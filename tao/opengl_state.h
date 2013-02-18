@@ -125,6 +125,57 @@ struct AlphaFunctionState
 
 
 // ============================================================================
+//
+//   Clip planes
+//
+// ============================================================================
+
+
+struct ClipPlaneState
+// ----------------------------------------------------------------------------
+//   Represent clip plane state
+// ----------------------------------------------------------------------------
+{
+    ClipPlaneState(GLenum plane = GL_CLIP_PLANE0) : plane(plane), equation() {}
+    bool operator==(const ClipPlaneState &o)
+    {
+        return equation == o.equation &&
+               active == o.active;
+    }
+    bool operator!=(const ClipPlaneState &o) { return !operator==(o); }
+    void Sync(ClipPlaneState &p, bool force=false);
+    GLenum  plane;
+    Vector4 equation;
+    bool active;
+};
+
+
+struct ClipPlanesState
+// ----------------------------------------------------------------------------
+//   Represent clip planes state
+// ----------------------------------------------------------------------------
+{
+    ClipPlanesState():  dirty(~0ULL), active(0), planes() {}
+    bool operator==(const ClipPlanesState &o)
+    {
+        uint max = planes.size();
+        if (max != o.planes.size())
+            return false;
+        for (uint i = 0; i < max; i++)
+            if (planes[i] != o.planes[i])
+                return false;
+        return true;
+    }
+    bool operator!=(const ClipPlanesState &o) { return !operator==(o); }
+    bool Sync(ClipPlanesState &ops);
+
+    uint64                        dirty;
+    uint64                        active;
+    std::vector<ClipPlaneState>   planes;
+};
+
+
+// ============================================================================
 // 
 //   Texture units
 // 
@@ -561,8 +612,7 @@ struct OpenGLState : GraphicState
                            GLenum dppass)  { glStencilOp(sfail, dpfail, dppass); }
 
     // Clipping plane
-    virtual void ClipPlane(GLenum plane,
-                           const GLdouble *equation) { glClipPlane(plane, equation); }
+    virtual void ClipPlane(GLenum plane, const GLdouble *equation);
 
     // Selection
     virtual int  RenderMode(GLenum mode);
@@ -672,6 +722,7 @@ public:
     TextureUnitsState       currentTextureUnits;
     ClientTextureUnitsState currentClientTextureUnits;
     LightsState             currentLights;
+    ClipPlanesState         currentClipPlanes;
 
 #define GS(type, name)                          \
     type name;
@@ -692,6 +743,9 @@ public:
     // Return the current texture state
     TextureState &      ActiveTexture();
     TextureUnitState &  ActiveTextureUnit(bool isDirty = true);
+
+    // Return the corresponding clip plane state
+    ClipPlaneState &    ClipPlane(GLenum plane);
 
 private:
     // Structure used to push/pop state

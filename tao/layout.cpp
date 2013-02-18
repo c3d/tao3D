@@ -63,9 +63,8 @@ LayoutState::LayoutState()
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
       hasTransform(false), hasMaterial(false), hasDepthAttr(false),
-      isSelection(false), groupDrag(false),
-      wrapS(false), wrapT(false),
-      hasClipPlanes(false), isSelection(false), groupDrag(false)
+      hasClipPlanes(false), isSelection(false), groupDrag(false),
+      wrapS(false), wrapT(false)
 {}
 
 
@@ -98,9 +97,8 @@ LayoutState::LayoutState(const LayoutState &o)
         hasLighting(false),
         hasBlending(false),
         hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
-        isSelection(o.isSelection), groupDrag(false),
-        wrapS(o.wrapS), wrapT(o.wrapT),
-        hasClipPlanes(false), isSelection(o.isSelection), groupDrag(false)
+        hasClipPlanes(false), isSelection(o.isSelection), groupDrag(false),
+        wrapS(o.wrapS), wrapT(o.wrapT)
 {}
 
 

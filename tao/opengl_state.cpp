@@ -420,6 +420,8 @@ void OpenGLState::Sync(uint64 which)
     SYNC(backShininess,
          glMaterialf(GL_BACK, GL_SHININESS, backShininess));
 
+    SYNC(clipPlanes,
+         currentClipPlanes.Sync(clipPlanes));
 #undef SYNC
 }
 
@@ -1516,7 +1518,18 @@ void OpenGLState::Enable(GLenum cap)
         SetLight(cap, true);
         break;
     }
-
+    case GL_CLIP_PLANE0:
+    case GL_CLIP_PLANE1:
+    case GL_CLIP_PLANE3:
+    case GL_CLIP_PLANE4:
+    case GL_CLIP_PLANE5:
+    {
+        ClipPlaneState &ps = ClipPlane(cap);
+        ps.active = true;
+        uint id = cap - GL_CLIP_PLANE0;
+        clipPlanes.active |= (1ULL << id);
+        break;
+    }
     default:
         // Other enable/disable operations are not cached
         glEnable(cap);
@@ -1568,7 +1581,22 @@ void OpenGLState::Disable(GLenum cap)
         SetLight(cap, false);
         break;
     }
+    case GL_CLIP_PLANE0:
+    case GL_CLIP_PLANE1:
+    case GL_CLIP_PLANE3:
+    case GL_CLIP_PLANE4:
+    case GL_CLIP_PLANE5:
+    {
+        ClipPlaneState &ps = ClipPlane(cap);
+        ps.active = false;
 
+        uint id = cap - GL_CLIP_PLANE0;
+        uint active = 1ULL << id;
+        if(clipPlanes.active & active)
+            clipPlanes.active ^= active;
+
+        break;
+    }
 
     default:
         // Other enable/disable operations are not cached
@@ -2530,6 +2558,132 @@ void LightsState::Sync(LightsState &nl)
 }
 
 
+// ============================================================================
+//
+//    Clip plane
+//
+// ============================================================================
+
+ClipPlaneState &OpenGLState::ClipPlane(GLenum plane)
+// ----------------------------------------------------------------------------
+//   Return corresponding clip plane state
+// ----------------------------------------------------------------------------
+{
+    uint id = plane - GL_CLIP_PLANE0;
+    if (id >= clipPlanes.planes.size())
+    {
+        clipPlanes.planes.resize(id + 1);
+        (clipPlanes.planes[id]) = ClipPlaneState(plane);
+    }
+
+    clipPlanes.dirty |= 1ULL << id;
+    SAVE(clipPlanes);
+    clipPlanes_isDirty = true;
+
+    return (clipPlanes.planes[id]);
+}
+
+
+void OpenGLState::ClipPlane(GLenum plane, const GLdouble *equation)
+// ----------------------------------------------------------------------------
+//   Define clip plane parameters
+// ----------------------------------------------------------------------------
+{
+    ClipPlaneState &ps = ClipPlane(plane);
+    ps.equation = Vector4(equation[0], equation[1], equation[2], equation[3]);
+
+    // We synchronize clip planes state now as
+    // glClipPlane depends on current MV and Proj matrices
+    GL.LoadMatrix();
+    GL.Sync(STATE_clipPlanes);
+}
+
+
+void ClipPlaneState::Sync(ClipPlaneState &p, bool force)
+// ----------------------------------------------------------------------------
+//   Sync with new clip plane state
+// ----------------------------------------------------------------------------
+{
+    bool traceErrors = XLTRACE(glerrors);
+
+#define SYNC_PLANE(name, Code)                          \
+            do                                          \
+            {                                           \
+                if (force || name != p.name)            \
+                {                                       \
+                    name = p.name;                      \
+                    Code;                               \
+                    if (traceErrors)                    \
+                        OpenGLState::ShowErrors(#name); \
+                }                                       \
+            } while(0)
+
+    if (force || plane != p.plane)
+        plane = p.plane;
+
+    GLdouble eq[4]  = {p.equation.x, p.equation.y, p.equation.z, p.equation.w};
+
+    // Synchronise plane parameters
+    SYNC_PLANE(active,
+        if (active) glEnable(plane); else glDisable(plane));
+    SYNC_PLANE(equation, glClipPlane(plane, eq));
+
+#undef SYNC_PLANE
+}
+
+
+bool ClipPlanesState::Sync(ClipPlanesState &np)
+// ----------------------------------------------------------------------------
+//   Sync with new clip plane states
+// ----------------------------------------------------------------------------
+{
+    uint max = planes.size();
+    uint nmax = np.planes.size();
+    uint64 ndirty = np.dirty;
+
+    // Quick bail out if nothing to do
+    if (ndirty == 0 && max == nmax)
+        return false;
+
+    // Synchronize all planes that are common between the two states
+    uint pmax = max < nmax ? max : nmax;
+    for (uint p = 0; p < pmax; p++)
+    {
+        if (ndirty & (1ULL<<p))
+        {
+            ClipPlaneState &ps = planes[p];
+            ClipPlaneState &nps = np.planes[p];
+            ps.Sync(nps);
+        }
+    }
+
+    // Check if number of planes changed
+    if (nmax < max)
+    {
+        // Number of planes decreased, deactivate extra planes
+        for (uint p = nmax; p < max; p++)
+            glDisable(GL_CLIP_PLANE0 + p);
+        planes.resize(nmax);
+    }
+    else if (nmax > max)
+    {
+        // Number of planes increased, activate extra planes
+        for (uint p = max; p < nmax; p++)
+        {
+            ClipPlaneState &nps = np.planes[p];
+            planes.push_back(nps);
+            ClipPlaneState &ps = planes.back();
+            ps.Sync(nps, true);
+        }
+    }
+
+    dirty = np.dirty = 0;
+
+    // Update active flag
+    active = np.active;
+
+    return true;
+}
 
 // ============================================================================
 //

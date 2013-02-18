@@ -5870,6 +5870,7 @@ Tree_p Widget::rescalez(Tree_p self, Real_p z)
     return rescale(self, r(1), r(1), z);
 }
 
+
 Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
@@ -5885,6 +5886,19 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
     layout->hasMatrix = true;
     return XL::xl_true;
 }
+
+
+Tree_p Widget::clipPlane(Tree_p self, int plane,
+                         double a, double b, double c, double d)
+// ----------------------------------------------------------------------------
+//    Defining a clip plane
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new ClipPlane(plane, a, b, c, d));
+    layout->hasClipPlanes = true;
+    return XL::xl_true;
+}
+
 
 Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------

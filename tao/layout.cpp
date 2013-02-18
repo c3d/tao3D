@@ -62,7 +62,7 @@ LayoutState::LayoutState()
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
       hasTransform(false), hasMaterial(false), hasDepthAttr(false),
-      isSelection(false), groupDrag(false)
+      hasClipPlanes(false), isSelection(false), groupDrag(false)
 {}
 
 
@@ -98,7 +98,7 @@ LayoutState::LayoutState(const LayoutState &o)
         hasLighting(false),
         hasBlending(false),
         hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
-        isSelection(o.isSelection), groupDrag(false)
+        hasClipPlanes(false), isSelection(o.isSelection), groupDrag(false)
 {}
 
 
@@ -116,6 +116,7 @@ void LayoutState::ClearAttributes(bool all)
         zero.hasAttributes = hasAttributes;
         zero.hasLighting = hasLighting;
         zero.hasDepthAttr = hasDepthAttr;
+        zero.hasClipPlanes = hasClipPlanes;
     }
     *this = zero;
 }
@@ -174,9 +175,9 @@ Layout::Layout(Widget *widget)
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
 {
     IFTRACE(justify)
-            std::cerr << "<-> Layout::Layout ["<< this << "] parent widget is "
-                      << widget << " layout is "
-                      << widget->layout <<"\n";
+        std::cerr << "<-> Layout::Layout ["<< this << "] parent widget is "
+                  << widget << " layout is "
+                  << widget->layout <<"\n";
 }
 
 
@@ -189,8 +190,8 @@ Layout::Layout(const Layout &o)
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(o.lastRefresh)
 {
     IFTRACE(justify)
-            std::cerr << "<-> Layout::Layout ["<< this << "] parent layout is "
-                      << &o <<"\n";
+        std::cerr << "<-> Layout::Layout ["<< this << "] parent layout is "
+                  << &o <<"\n";
 }
 
 
@@ -200,10 +201,10 @@ Layout::~Layout()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "-> Layout::~Layout ["<< this << "] \n";
+        std::cerr << "-> Layout::~Layout ["<< this << "] \n";
     Clear();
     IFTRACE(justify)
-            std::cerr << "<- Layout::~Layout ["<< this << "] \n";
+        std::cerr << "<- Layout::~Layout ["<< this << "] \n";
 }
 
 
@@ -442,7 +443,7 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "<->Layout::Add[" << this << "] drawing is "
+        std::cerr << "<->Layout::Add[" << this << "] drawing is "
                   << d << ":"
                   << demangle(typeid(*d).name()) << std::endl;
 
@@ -531,7 +532,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "->Layout::Refresh[" << this << "]  \n";
+        std::cerr << "->Layout::Refresh[" << this << "]  \n";
     bool changed = false;
     if (!e)
         return false;
@@ -560,7 +561,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         if (ctx && body)
         {
             IFTRACE(justify)
-                    std::cerr << "--Layout::Refresh[" << this << "] clears itself \n";
+                std::cerr << "--Layout::Refresh[" << this << "] clears \n";
+
             // Clear old contents of the layout, drop all children
             Clear();
 
@@ -598,7 +600,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         changed |= RefreshChildren(e, now, dbg);
     }
     IFTRACE(justify)
-            std::cerr << "<-Layout::Refresh[" << this << "]  \n";
+        std::cerr << "<-Layout::Refresh[" << this << "]  \n";
 
     return changed;
 }

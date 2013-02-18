@@ -413,6 +413,8 @@ public:
     Tree_p      rescaley(Tree_p self, Real_p y);
     Tree_p      rescalez(Tree_p self, Real_p z);
     Tree_p      rescale(Tree_p self, Real_p x, Real_p y, Real_p z);
+    Tree_p      clipPlane(Tree_p self, int plane,
+                          double a, double b, double c, double d);
 
     // Setting attributes
     Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);

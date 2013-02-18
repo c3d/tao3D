@@ -84,6 +84,19 @@ struct Scale : Transform
 };
 
 
+struct ClipPlane : Transform
+// ----------------------------------------------------------------------------
+//    Record a clip plane change
+// ----------------------------------------------------------------------------
+{
+    ClipPlane(int plane, scale a, scale b, scale c, scale d):
+        Transform(), plane(plane), a(a), b(b), c(c), d(d) {}
+    virtual void Draw(Layout *where);
+    int plane;
+    scale a, b, c, d;
+};
+
+
 struct MoveTo : Transform
 // ----------------------------------------------------------------------------
 //    Record a move-to operation

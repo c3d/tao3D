@@ -1057,6 +1057,41 @@ texture_type();
 
 /**
  * @~english
+ * Cache a complex drawing to avoid unnecessary computations
+ * When a drawing is the result of a complex computation, it is
+ * possible to cache the result of that computation so that the
+ * drawing displays faster.
+ * The @a version parameter is a real number indicating the version
+ * number for the cached drawing. Whenever the version changes, the
+ * computation described in @a body is re-evaluated.
+ *
+ * @~french
+ * Mémorise un dessin complexe pour minimiser  les calculs
+ * Quand un dessinest le résultat d'un calcul complexe, il est
+ * possible de mémoriser ce résultat pour que l'affichage soit plus
+ * rapide. Le paramètre @a version est un nombre réel indicant le
+ * numéro de version pour le dessin. Lorsque cette version change, le
+ * calcul décrit dans @a body est effectué de nouveau.
+ *
+ * @~
+ * @code
+page "Graphs",
+    scale 100, 100, 100
+    rotatey 20 * time
+    cached integer page_time,
+        color "transparent"
+        line_color "black"
+        path
+            W -> 0.001 * (page_time mod 60)
+            for T in 0..5000 loop
+                line_to 0.01 * T * sin(W * T), 0.01 * T * cos(W * T), sin(7 * W * T) 
+ * @endcode
+ */
+cached(version:real; body:tree);
+
+
+/**
+ * @~english
  * Selects current the texture unit.
  * Set the current texture unit to @p unit.
  *

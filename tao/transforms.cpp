@@ -143,6 +143,25 @@ void Scale::Draw(Layout *where)
 }
 
 
+void ClipPlane::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Setup a given clip plane
+// ----------------------------------------------------------------------------
+{
+    static GLint maxClipPlanes = 0;
+    if (maxClipPlanes == 0)
+        glGetIntegerv(GL_MAX_CLIP_PLANES, &maxClipPlanes);
+
+    if (plane >= 0 && plane < maxClipPlanes)
+    {
+        GLdouble result[] = { a, b, c, d };
+        glClipPlane(GL_CLIP_PLANE0 + plane, result);
+        glEnable(GL_CLIP_PLANE0 + plane);
+        where->hasClipPlanes = true;
+    }
+}
+
+
 void MoveTo::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    Position in a drawing

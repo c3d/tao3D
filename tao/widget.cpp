@@ -327,10 +327,11 @@ struct DisplayListInfo : XL::Info, InfoTrashCan
 //    Store information about a display list
 // ----------------------------------------------------------------------------
 {
-    DisplayListInfo(): displayListID(glGenLists(1)) {}
+    DisplayListInfo(): displayListID(glGenLists(1)), version(0.0) {}
     ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
     virtual void Delete() { trash.push_back(this); }
     GLuint      displayListID;
+    double      version;
 };
 
 
@@ -5869,6 +5870,7 @@ Tree_p Widget::rescalez(Tree_p self, Real_p z)
     return rescale(self, r(1), r(1), z);
 }
 
+
 Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
@@ -5884,6 +5886,19 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
     layout->hasMatrix = true;
     return XL::xl_true;
 }
+
+
+Tree_p Widget::clipPlane(Tree_p self, int plane,
+                         double a, double b, double c, double d)
+// ----------------------------------------------------------------------------
+//    Defining a clip plane
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new ClipPlane(plane, a, b, c, d));
+    layout->hasClipPlanes = true;
+    return XL::xl_true;
+}
+
 
 Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------
@@ -8906,13 +8921,12 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 {
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     PageLayout *tbox = new PageLayout(this);
+    tbox->lastRefresh = layout->lastRefresh;
     tbox->space = Box(x - w/2, y-h/2, w, h);
     tbox->id = shapeId();
     tbox->body = body;
     tbox->ctx = context;
     layout->Add(tbox);
-    layout->lastRefresh = CurrentTime();
-
     if (currentShape)
     {
         tbox->selectId = layout->id;
@@ -8921,6 +8935,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 
     XL::Save<Layout *> save(layout, tbox);
     Tree_p result = context->Evaluate(body);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -9988,7 +10003,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
-Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
+Tree* Widget::drawingCache(Context *context, Tree_p self,
+                           double version, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Create a compiled display list out of the program's result
 // ----------------------------------------------------------------------------
@@ -10002,6 +10018,11 @@ Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
         // First drawing: draw the hard way
         info = new DisplayListInfo();
         self->SetInfo<DisplayListInfo>(info);
+        info->version = version - 1;
+    }
+    if (info->version != version)
+    {
+        info->version = version;
 
         Layout *parent = layout;
         GLAllStateKeeper saveGL;

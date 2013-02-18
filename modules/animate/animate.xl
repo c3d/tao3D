@@ -44,16 +44,19 @@ interpolate S:real, TX:real, X:real ->
 // ----------------------------------------------------------------------------
 //    Interpolate variable x with target value tx, change ratio S
 // ----------------------------------------------------------------------------
-    X := S * TX + (1-S) * X
+    IS -> 0.0
+    IS := 1 - (1 - S)^(refresh_time * 60)
+    X := IS * TX + (1-IS) * X
+    if X <> TX then time
 
 
 interpolate S:real, TX:real, TY:real, TZ:real, X:real, Y:real, Z:real ->
 // ----------------------------------------------------------------------------
 //    Interpolate 3 variables at a time (typically coordinates)
 // ----------------------------------------------------------------------------
-    X := S * TX + (1-S) * X
-    Y := S * TY + (1-S) * Y
-    Z := S * TZ + (1-S) * Z
+    interpolate S, TX, X
+    interpolate S, TY, Y
+    interpolate S, TZ, Z
 
 
 interpolate_position S:real, TX:real,TY:real,TZ:real, X:real,Y:real,Z:real ->

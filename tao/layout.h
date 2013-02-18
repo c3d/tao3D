@@ -97,6 +97,7 @@ public:
     bool                hasTransform    : 1;
     bool                hasMaterial     : 1;
     bool                hasDepthAttr    : 1;
+    bool                hasClipPlanes   : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
     bool                wrapS           : 1;
@@ -180,6 +181,8 @@ public:
             bits |= GL_COLOR_BUFFER_BIT;
         if (hasDepthAttr)
             bits |= GL_DEPTH_BUFFER_BIT;
+        if (hasClipPlanes)
+            bits |= GL_TRANSFORM_BIT;
         return bits;
     }
 

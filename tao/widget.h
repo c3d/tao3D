@@ -414,6 +414,8 @@ public:
     Tree_p      rescaley(Tree_p self, Real_p y);
     Tree_p      rescalez(Tree_p self, Real_p z);
     Tree_p      rescale(Tree_p self, Real_p x, Real_p y, Real_p z);
+    Tree_p      clipPlane(Tree_p self, int plane,
+                          double a, double b, double c, double d);
 
     // Setting attributes
     Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);
@@ -713,7 +715,8 @@ public:
                              double w, double h, Tree_p prog, text name = "",
                              Integer_p depth=NULL, bool canvas=false);
     Integer *   framePixelCount(Tree_p self, float alphaMin);
-    Tree*       drawingCache(Context *context, Tree_p self, Tree_p prog);
+    Tree*       drawingCache(Context *context, Tree_p self,
+                             double version, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,

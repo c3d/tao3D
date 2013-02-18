@@ -112,3 +112,19 @@ PREFIX(Scale,  tree,  "scale",
        GROUP(graph:transform)
        SYNOPSIS("Scaling along three axes")
        DESCRIPTION("Scaling along three axes"))
+PREFIX(Scale3,  tree,  "scale",
+       PARM(xyz, real, "xyz-scale factor."),
+       RTAO(rescale(self, xyz, xyz, xyz)),
+       GROUP(graph:transform)
+       SYNOPSIS("Scaling along three axes")
+       DESCRIPTION("Scaling along three axes"))
+
+PREFIX(ClipPlane, tree, "clip_plane",
+       PARM(plane, integer, "Plane ID")
+       PARM(xfactor, real, "X factor")
+       PARM(yfactor, real, "Y factor")
+       PARM(zfactor, real, "Z factor")
+       PARM(offset, real, "Offset"),
+       RTAO(clipPlane(self, plane, xfactor, yfactor, zfactor, offset)),
+       GROUP(graph:transform)
+       SYNOPSIS("Define a clip plane"))

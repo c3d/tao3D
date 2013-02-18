@@ -55,6 +55,19 @@ scale (x:real, y:real, z:real);
 
 /**
  * @~english
+ * Scales along the three axes with the same value.
+ * Equivalent to:
+ * @~french
+ * Redimensionne la scène selon les trois axes avec la même valeur.
+ * Équivalent à :
+ * @~
+ * @code scale xyz, xyz, xyz @endcode
+ * @image html scale.png
+ */
+scale (xyz:really);
+
+/**
+ * @~english
  * Scales along the X axis.
  * Equivalent to:
  * @~french
@@ -218,5 +231,26 @@ reset_transform ();
  * @return 16 valeurs réelles, séparées par des virgules.
  */
 model_matrix ();
+
+/**
+ * @~english
+ * Define a clip plane
+ * A clip plane selects which element should be drawn.
+ * Defining a clip plane with arguments @a a, @a b, @a c and @a d will
+ * eliminate points for which coordinates @a x, @a y and @a z
+ * verify a*x+b*y+c*z+d>0.
+ * Several clip planes (at least 6) can be defined simutaneously,
+ * each one identified by the given @a planeID. Plane identifiers start at 0.
+ *
+ * @~french
+ * Définit un plan de découpe définit les éléments qui doivent être tracés.
+ * Un plan de découpe défini avec les arguments @a a, @a b, @a c et @a d
+ * élimine les points de coordonnées x, y, z tels que a*x+b*y+c*z+d>0.
+ * Plusieurs plans de découpe (au moins 6) peuvent être définis ensemble,
+ * chacun identifié par son propre @a planeID. L'identifiant de plan
+ * de découpe commence à 0.
+ */
+clip_plane(planeID:integer, a:real, b:real, c:real, d:real);
+
 
 /** @} */

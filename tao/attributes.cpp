@@ -149,9 +149,9 @@ void TextureWrap::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                    s ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+                    s ? GL_REPEAT : GL_CLAMP_TO_EDGE);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                    t ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+                    t ? GL_REPEAT : GL_CLAMP_TO_EDGE);
     where->wrapS = s;
     where->wrapT = t;
 }

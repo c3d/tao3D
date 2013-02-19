@@ -62,7 +62,6 @@ FrameInfo::~FrameInfo()
 //   Delete the frame buffer objects and GL tiles
 // ----------------------------------------------------------------------------
 {
-    
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Destructor " << this << "\n";
     purge();
@@ -81,6 +80,9 @@ void FrameInfo::resize(uint w, uint h)
     if (renderFBO && renderFBO->width()==int(w) && renderFBO->height()==int(h))
         return;
     
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Resize " << w << "x" << h << "\n";
+
     // Delete anything we might have
     purge();
 
@@ -88,9 +90,14 @@ void FrameInfo::resize(uint w, uint h)
     // on MacOSX
     const int SAMPLES = 4;
     bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit();
-    if (w >= TaoApp->maxTextureSize / SAMPLES ||
-        h >= TaoApp->maxTextureSize / SAMPLES)
+    if (w >= TaoApp->maxTextureSize ||
+        h >= TaoApp->maxTextureSize)
+    {
+        IFTRACE(fbo)
+            std::cerr << "[FrameInfo] Disable multisample, too big "
+                      << TaoApp->maxTextureSize << "\n";
         canMultiSample = false;
+    }
 
     // Select whether we draw directly in texture or blit to it
     // If we can blit and suceed in creating a multisample buffer,

@@ -38,7 +38,7 @@ struct Attribute : Drawing
     Attribute(): Drawing() {}
     virtual void        DrawSelection(Layout *l)        { Draw(l); }
     virtual void        Identify(Layout *l)             { Draw(l); }
-    virtual void        Evaluate(Layout *l)             { Draw(l); }
+    virtual void        Evaluate(Layout *l)             {}
     virtual Box3        Bounds(Layout *l);
     virtual Box3        Space(Layout *l);
     virtual bool        IsAttribute()                   { return true; }
@@ -123,6 +123,7 @@ struct TextureUnit : Attribute
     TextureUnit(uint glUnit)
         : Attribute(), glUnit(glUnit) {}
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *l) { Draw(l); }
     uint  glUnit;
 };
 

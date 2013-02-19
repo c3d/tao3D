@@ -435,7 +435,7 @@ struct LightsState
 //    The state of all lights
 // ----------------------------------------------------------------------------
 {
-    LightsState(): dirty(~0ULL), lights() {}
+    LightsState(): dirty(~0ULL), active(0), lights() {}
     bool operator==(const LightsState &o)
     {
         uint max = lights.size();
@@ -452,6 +452,7 @@ struct LightsState
 
 public:
     uint64                    dirty;
+    uint64                    active;
     std::vector<LightState>   lights;
 };
 

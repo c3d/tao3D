@@ -2315,6 +2315,14 @@ void OpenGLState::SetLight(GLenum light, bool active)
         SAVE(lights);
         lights_isDirty = true;
         (lights.lights[id]).active = active;
+
+        // Update bitmask of active lights
+        id = 1ULL << id;
+        if(active)
+            lights.active |= id;
+        else
+            if(textureUnits.active & id)
+                lights.active ^= id;
     }
 }
 

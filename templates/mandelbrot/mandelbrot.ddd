@@ -189,12 +189,12 @@ mandelbrot_shader ->
 // Current values for center position and scaling factor
 center_x -> 0.0
 center_y -> 0.0
-scaling_factor -> 1.0
+mandelbrot_scale -> 1.0
 
 // Target values for center position and scaling factor
 tgt_center_x -> 0.0
 tgt_center_y -> 0.0
-tgt_scaling_factor -> 1.0
+tgt_mandelbrot_scale -> 1.0
 
 // Information on current mouse position
 info_x -> 0.0
@@ -202,7 +202,7 @@ info_y -> 0.0
 
 // Size based on the size of the slide (we display in a square)
 sz -> slide_height
-sf -> sz * 0.25 * scaling_factor
+sf -> sz * 0.25 * mandelbrot_scale
 
 draw_mandelbrot ->
 // ----------------------------------------------------------------------------
@@ -215,7 +215,7 @@ draw_mandelbrot ->
         // Set the current shader's uniform variables
         shader_set centerX := center_x
         shader_set centerY := center_y
-        shader_set scaling := scaling_factor
+        shader_set scaling := mandelbrot_scale
 
         // Draw the rounded rectangle displaying the set
         // We make it an "active_widget" so that it reacts to clicks
@@ -228,10 +228,10 @@ draw_mandelbrot ->
                 tgt_center_x := center_x + mouse_x / sf
                 tgt_center_y := center_y + mouse_y / sf
                 if alt_modifier then
-                    tgt_scaling_factor := tgt_scaling_factor / 2
+                    tgt_mandelbrot_scale := tgt_mandelbrot_scale / 2
                 else
-                    tgt_scaling_factor := tgt_scaling_factor * 2
-                refresh 0.1
+                    tgt_mandelbrot_scale := tgt_mandelbrot_scale * 2
+                refresh 0.0
 
             on_mouseover
                 // Display current mouse coordinates
@@ -241,9 +241,8 @@ draw_mandelbrot ->
         // Animate coordinates smoothly
         interpolate 0.1, tgt_center_x, center_x
         interpolate 0.1, tgt_center_y, center_y
-        interpolate 0.1, tgt_scaling_factor, scaling_factor
-        if scaling_factor <> tgt_scaling_factor then
-            refresh 0.01
+        interpolate 0.1, tgt_mandelbrot_scale, mandelbrot_scale
+
 
 draw_help ->
 // ----------------------------------------------------------------------------
@@ -270,7 +269,7 @@ draw_info ->
             vertical_align 0.2
             align 0.5
 
-            theme_style theme, slide_master, "story", 1
+            theme_style theme, slide_master, "story"
             info_text tao_language
             line_break
             italic
@@ -285,8 +284,8 @@ draw_info ->
             line "Center Y=" & text center_y
             line "Mouse X=" & text info_x
             line "Mouse Y=" & text info_y
-            line "zoom " & text scaling_factor
-            if scaling_factor > 125000 then
+            line "zoom " & text mandelbrot_scale
+            if mandelbrot_scale > 125000 then
                 color "red", 80%
                 line "Pixellization (float precision)"
             refresh 0.1

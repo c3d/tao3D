@@ -44,9 +44,7 @@ interpolate S:real, TX:real, X:real ->
 // ----------------------------------------------------------------------------
 //    Interpolate variable x with target value tx, change ratio S
 // ----------------------------------------------------------------------------
-    IS -> 0.0
-    IS := 1 - (1 - S)^(refresh_time * 60)
-    X := IS * TX + (1-IS) * X
+    X := S * TX + (1-S) * X
     if X <> TX then time
 
 

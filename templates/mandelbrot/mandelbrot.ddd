@@ -270,7 +270,7 @@ draw_info ->
             vertical_align 0.2
             align 0.5
 
-            theme_style theme, slide_master, "story", 1
+            theme_style theme, slide_master, "story"
             info_text tao_language
             line_break
             italic

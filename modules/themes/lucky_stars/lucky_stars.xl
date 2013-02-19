@@ -58,7 +58,7 @@ theme_background "LuckyStars", Master:text ->
 
         rotatey lucky_stars_current
         rotatex 0.14 * lucky_stars_current
-        cached
+        cached 1.0,
             lucky_star with 1..1000
 
 

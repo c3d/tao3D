@@ -2547,7 +2547,13 @@ void LightsState::Sync(LightsState &nl)
     {
         // Number of lights decreased, deactivate extra lights
         for (uint l = nmax; l < max; l++)
+        {
             glDisable(GL_LIGHT0 + l);
+
+            // Update bitmask
+            if(nl.active & (1 << l))
+                nl.active ^= (1 << l);
+        }
         lights.resize(nmax);
     }
     else if (nmax > max)
@@ -2584,8 +2590,10 @@ ClipPlaneState &OpenGLState::ClipPlane(GLenum plane)
         (clipPlanes.planes[id]) = ClipPlaneState(plane);
     }
 
+    // Save old state and mark it as dirty
     clipPlanes.dirty |= 1ULL << id;
     SAVE(clipPlanes);
+
     clipPlanes_isDirty = true;
 
     return (clipPlanes.planes[id]);
@@ -2670,7 +2678,13 @@ bool ClipPlanesState::Sync(ClipPlanesState &np)
     {
         // Number of planes decreased, deactivate extra planes
         for (uint p = nmax; p < max; p++)
+        {
             glDisable(GL_CLIP_PLANE0 + p);
+
+            // Update bitmask
+            if(np.active & (1ULL << p))
+                np.active ^= (1ULL << p);
+        }
         planes.resize(nmax);
     }
     else if (nmax > max)
@@ -2796,6 +2810,10 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             if (oldtu.tex2D)   glDisable(GL_TEXTURE_2D);
             if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
             if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
+
+            // Update bitmask
+            if(ns.active & (1 << u))
+                ns.active ^= (1 << u);
 
             // Synchronise texture states (bind empty texture)
             ot.Sync(ts, false);

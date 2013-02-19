@@ -155,8 +155,8 @@ void ClipPlane::Draw(Layout *where)
     if (plane >= 0 && plane < maxClipPlanes)
     {
         GLdouble result[] = { a, b, c, d };
-        GL.ClipPlane(GL_CLIP_PLANE0 + plane, result);
         GL.Enable(GL_CLIP_PLANE0 + plane);
+        GL.ClipPlane(GL_CLIP_PLANE0 + plane, result);
         where->hasClipPlanes = true;
     }
 }

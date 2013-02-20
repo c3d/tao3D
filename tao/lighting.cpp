@@ -148,8 +148,6 @@ void LightId::Draw(Layout *where)
         where->currentLights |= 1 << id;
         GL.Enable(where->lightId);
         GL.Enable(GL_LIGHTING);
-        GL.Enable(GL_COLOR_MATERIAL);
-        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
         if(TaoApp->useShaderLighting)

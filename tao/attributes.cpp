@@ -85,8 +85,6 @@ void LineColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    where->hasMaterial = false;
-    GL.Enable(GL_COLOR_MATERIAL);
     where->lineColor = color;
 }
 
@@ -96,8 +94,6 @@ void FillColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    where->hasMaterial = false;
-    GL.Enable(GL_COLOR_MATERIAL);
     where->fillColor = color;
 }
 

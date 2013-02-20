@@ -170,8 +170,7 @@ bool Shape::setFillColor(Layout *where)
         scale v = where->visibility * color.alpha;
         if (v >= 0.01)
         {
-            if (!where->hasMaterial)
-                GL.Color(color.red, color.green, color.blue, v);
+            GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             GL.Sync();
             return true;
@@ -194,8 +193,7 @@ bool Shape::setLineColor(Layout *where)
         scale v = where->visibility * color.alpha;
         if (v >= 0.01 && width > 0.0)
         {
-            if (!where->hasMaterial)
-                GL.Color(color.red, color.green, color.blue, v);
+            GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             GL.Sync();
             return true;

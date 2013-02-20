@@ -364,8 +364,6 @@ void OpenGLState::Sync(uint64 which)
          glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
     SYNC(pointSize,
          glPointSize(pointSize));
-    SYNC(color,
-         glColor4f(color.red, color.green, color.blue, color.alpha));
     SYNC(clearColor,
          Tao::Color &c = clearColor;
          glClearColor(c.red,c.green,c.blue,c.alpha));
@@ -414,26 +412,41 @@ void OpenGLState::Sync(uint64 which)
 
     SYNC(lights,
          currentLights.Sync(lights));
-    SYNC(frontAmbient,
-         glMaterialfv(GL_FRONT, GL_AMBIENT, frontAmbient.Data()));
-    SYNC(frontDiffuse,
-         glMaterialfv(GL_FRONT, GL_DIFFUSE, frontDiffuse.Data()));
-    SYNC(frontSpecular,
-         glMaterialfv(GL_FRONT, GL_SPECULAR, frontSpecular.Data()));
-    SYNC(frontEmission,
-         glMaterialfv(GL_FRONT, GL_EMISSION, frontEmission.Data()));
-    SYNC(frontShininess,
-         glMaterialf(GL_FRONT, GL_SHININESS, frontShininess));
-    SYNC(backAmbient,
-         glMaterialfv(GL_BACK, GL_AMBIENT, backAmbient.Data()));
-    SYNC(backDiffuse,
-         glMaterialfv(GL_BACK, GL_DIFFUSE, backDiffuse.Data()));
-    SYNC(backSpecular,
-         glMaterialfv(GL_BACK, GL_SPECULAR, backSpecular.Data()));
-    SYNC(backEmission,
-         glMaterialfv(GL_BACK, GL_EMISSION, backEmission.Data()));
-    SYNC(backShininess,
-         glMaterialf(GL_BACK, GL_SHININESS, backShininess));
+    SYNC(color,
+         if(lights.active)
+         {
+             // Lighting model is Mf[ambient, diffuse] = Color * Mi[ambient, diffuse]
+             glMaterialfv(GL_FRONT, GL_AMBIENT, (frontAmbient * color).Data());
+             glMaterialfv(GL_BACK, GL_AMBIENT, (backAmbient * color).Data());
+             glMaterialfv(GL_FRONT, GL_DIFFUSE, (frontDiffuse * color).Data());
+             glMaterialfv(GL_BACK, GL_DIFFUSE, (backDiffuse * color).Data());
+             frontAmbient_isDirty = backAmbient_isDirty = true;
+             frontDiffuse_isDirty = backDiffuse_isDirty = true;
+          }
+          else
+          {
+             glColor4f(color.red, color.green, color.blue, color.alpha);
+          });
+     SYNC(frontAmbient,
+          glMaterialfv(GL_FRONT, GL_AMBIENT, (frontAmbient * color).Data()));
+     SYNC(frontDiffuse,
+          glMaterialfv(GL_FRONT, GL_DIFFUSE, (frontDiffuse * color).Data()));
+     SYNC(frontSpecular,
+          glMaterialfv(GL_FRONT, GL_SPECULAR, frontSpecular.Data()));
+     SYNC(frontEmission,
+          glMaterialfv(GL_FRONT, GL_EMISSION, frontEmission.Data()));
+     SYNC(frontShininess,
+          glMaterialf(GL_FRONT, GL_SHININESS, frontShininess));
+     SYNC(backAmbient,
+          glMaterialfv(GL_BACK, GL_AMBIENT, (backAmbient * color).Data()));
+     SYNC(backDiffuse,
+          glMaterialfv(GL_BACK, GL_DIFFUSE, (backDiffuse * color).Data()));
+     SYNC(backSpecular,
+          glMaterialfv(GL_BACK, GL_SPECULAR, backSpecular.Data()));
+     SYNC(backEmission,
+          glMaterialfv(GL_BACK, GL_EMISSION, backEmission.Data()));
+     SYNC(backShininess,
+          glMaterialf(GL_BACK, GL_SHININESS, backShininess));
 
     SYNC(clipPlanes,
          currentClipPlanes.Sync(clipPlanes));

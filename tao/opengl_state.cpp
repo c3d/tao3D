@@ -2053,8 +2053,6 @@ TextureUnitState &OpenGLState::ActiveTextureUnit(bool isDirty)
     Q_ASSERT(activeTexture >= GL_TEXTURE0);
     Q_ASSERT(activeTexture < GL_TEXTURE0+MAX_TEXTURE_UNITS);
     uint at = activeTexture - GL_TEXTURE0;
-    if (at >= textureUnits.units.size())
-        textureUnits.units.resize(at + 1);
 
     // Avoid to flag a texture unit as dirty if not needed
     if(isDirty)
@@ -2066,6 +2064,9 @@ TextureUnitState &OpenGLState::ActiveTextureUnit(bool isDirty)
         if (save)
             save->save_textureUnits(textureUnits);
     }
+
+    if (at >= textureUnits.units.size())
+        textureUnits.units.resize(at + 1);
 
     return textureUnits.units[at];
 }
@@ -2320,15 +2321,17 @@ void OpenGLState::SetLight(GLenum light, bool active)
     if (light >= GL_LIGHT0 && light < GL_LIGHT0 + MAX_LIGHTS)
     {
         uint id = light - GL_LIGHT0;
+
+        lights.dirty |= 1ULL << id;
+        SAVE(lights);
+        lights_isDirty = true;
+
         if (id >= lights.lights.size())
         {
             lights.lights.resize(id + 1);
             (lights.lights[id]) = LightState(id);
         }
 
-        lights.dirty |= 1ULL << id;
-        SAVE(lights);
-        lights_isDirty = true;
         (lights.lights[id]).active = active;
 
         // Update bitmask of active lights
@@ -2599,17 +2602,17 @@ ClipPlaneState &OpenGLState::ClipPlane(GLenum plane)
 // ----------------------------------------------------------------------------
 {
     uint id = plane - GL_CLIP_PLANE0;
+
+    // Save old state and mark it as dirty
+    clipPlanes.dirty |= 1ULL << id;
+    SAVE(clipPlanes);
+    clipPlanes_isDirty = true;
+
     if (id >= clipPlanes.planes.size())
     {
         clipPlanes.planes.resize(id + 1);
         (clipPlanes.planes[id]) = ClipPlaneState(plane);
     }
-
-    // Save old state and mark it as dirty
-    clipPlanes.dirty |= 1ULL << id;
-    SAVE(clipPlanes);
-
-    clipPlanes_isDirty = true;
 
     return (clipPlanes.planes[id]);
 }

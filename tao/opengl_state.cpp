@@ -2164,8 +2164,8 @@ void OpenGLState::TexEnv(GLenum type, GLenum pname, GLint param)
 {
     if (type == GL_TEXTURE_ENV && pname == GL_TEXTURE_ENV_MODE)
     {
-        TextureState &ts = ActiveTexture();
-        ts.mode = param;
+        TextureUnitState &tu = ActiveTextureUnit();
+        tu.mode = param;
     }
     else
     {

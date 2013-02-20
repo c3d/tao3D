@@ -313,9 +313,24 @@ void OpenGLState::Sync(uint64 which)
     } while(0)
 
     // Current texture unit, then texture bindings - ORDER MATTERS
-    SYNC(textureUnits, currentTextureUnits.Sync(textures, currentTextures, textureUnits));
-    SYNC(textures, currentTextureUnits.Sync(textures, currentTextures, textureUnits));
-    SYNC(clientTextureUnits, currentClientTextureUnits.Sync(clientTextureUnits, clientActiveTexture));
+    SYNC(textureUnits,
+         // As we have used glActiveTexture, activeTexture is
+         // now dirty (need to be resync)
+         if(currentTextureUnits.Sync(textures, currentTextures, textureUnits))
+            activeTexture_isDirty = true);
+    SYNC(textures,
+         // As we have used glActiveTexture, activeTexture is now
+         // dirty (need to be resync)
+         if(currentTextureUnits.Sync(textures, currentTextures, textureUnits))
+            activeTexture_isDirty = true);
+    SYNC(activeTexture, glActiveTexture(activeTexture));
+    SYNC(clientTextureUnits,
+         // As we have used glClientActiveTexture, clientActiveTexture is
+         // now dirty (need to be resync)
+         if(currentClientTextureUnits.Sync(clientTextureUnits, clientActiveTexture))
+            clientActiveTexture_isDirty = true);
+    SYNC(clientActiveTexture, glClientActiveTexture(clientActiveTexture));
+
     GLenum mmode = matrixMode;
     SYNC(mvMatrix,
          if (matrixMode_isDirty || mmode != GL_MODELVIEW)

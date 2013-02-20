@@ -2352,7 +2352,7 @@ void OpenGLState::SetLight(GLenum light, bool active)
         if(active)
             lights.active |= id;
         else
-            if(textureUnits.active & id)
+            if(lights.active & id)
                 lights.active ^= id;
     }
 }
@@ -2544,6 +2544,8 @@ LightsState &LightsState::operator=(const LightsState &o)
     }
 
     dirty = d;
+    active = o.active;
+
     return *this;
 }
 
@@ -2599,6 +2601,7 @@ void LightsState::Sync(LightsState &nl)
         }
     }
 
+    active = nl.active;
     nl.dirty = 0;
 }
 

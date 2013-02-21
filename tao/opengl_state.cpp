@@ -2765,6 +2765,9 @@ void TextureUnitState::Sync(TextureUnitState &ns, bool force)
         glMatrixMode(GL_TEXTURE);
         matrix = ns.matrix;
         glLoadMatrixd(matrix.Data(false));
+        // Need to restore to the previous mode,
+        // so mark it as dirty
+        GL.matrixMode_isDirty = true;
     }
     
 #define SYNC_CAP(cap, state)                    \

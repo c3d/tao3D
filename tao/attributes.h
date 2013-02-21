@@ -123,7 +123,6 @@ struct TextureUnit : Attribute
     TextureUnit(uint glUnit)
         : Attribute(), glUnit(glUnit) {}
     virtual void Draw(Layout *where);
-    virtual void Evaluate(Layout *l) { Draw(l); }
     uint  glUnit;
 };
 

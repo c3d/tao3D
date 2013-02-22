@@ -3016,7 +3016,7 @@ TextureState::TextureState(GLuint id)
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
     active(false),
-    wrapS(false), wrapT(false), wrapR(false),
+    wrapS(true), wrapT(true), wrapR(true),
     mipmap(false),
     unit(0), mode(GL_MODULATE)
 {}

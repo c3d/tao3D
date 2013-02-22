@@ -110,6 +110,7 @@ struct FillTexture : Attribute
     FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D)
         : Attribute(), glName(glName), glType(glType) {}
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *l) { Draw(l); }
     uint   glName;
     GLenum glType;
 };

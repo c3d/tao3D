@@ -2840,7 +2840,7 @@ bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiv
                 glClientActiveTexture(unit);
                 lastUnit = unit;
             }
-            us.Sync(nus, true);
+            us.Sync(nus, false);
             if (us.texCoordArray)
                 active |= 1ULL << u;
         }

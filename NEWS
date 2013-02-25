@@ -1,5 +1,49 @@
 Change log for Tao Presentations
 
+1.18 (22-Feb-2013)
+
+#2780 In movie credits template, the final scrolling text does not look good
+#2778 Implement clip planes
+#2777 Add function for uniform scaling
+#2776 refresh_time does not work inside a text box
+#2775 Automatically adjust refresh time for interpolate function
+#2774 Add a way to define a bullet with a non-text contents
+#2772 Cannot edit arrows and stars
+#2771 VLCAudioVideo: movie_drop/movie_only leak memory (one video frame)
+#2764 Source file no longer monitored if empty
+#2763 Crash in TextFlow destructor
+#2762 writeln output piped into 'tee' does not show up immediately
+#2761 tao --version should show build options
+#2760 Infinite recursion check does not work
+#2759 Having two pages with the same name leads to a behavior customers don't like
+#2754 Texture cache does not handle HTTP redirects
+#2753 Placeholder image not shown when HTTP texture fails to load
+#2752 Crash in textflow
+#2749 load_text does not automatically reload the contents if not re-evaluated
+#2748 Module info dialog: Disable/Enable buttons should be Enabled/Disabled
+#2747 Crash in page layout when changing flows from "outside"
+#2744 Tao does not exit on SIGTERM (regular 'kill') or SIGQUIT
+#2743 Animate: Reduce power usage of compute_smooth_step
+#2742 Crash in the page layout when changing the Animate module
+#2740 Add primitive texture_cache_refresh
+#2738 VLCAudioVideo: use pre-installed VLC if present (MacOSX, Windows)
+#2728 Windows: host id can't be selected and copied from the License dialog
+#2725 Templates should be sorted alphabetically in the template chooser
+#2723 Slides module: do not set attributes in bullets that are not necessary
+#2722 The 'cached' primitive should have a way to reset the cache
+#2720 Updating contents of a shader does not recompile it
+#2719 Shader code is not reloaded automatically when changed
+#2718 Do not show the Themes or Examples menu when empty
+#2711 VLCAudioVideo: make some functions accept regular expressions for movie name
+#2710 Slides: update documentation with the new slide features
+#2709 Invalid link in license warning dialog
+#2708 Add next_page and previous_page
+#2707 Add keyboard shortcuts: Space, F5, Shift+F5.
+#2706 Make import name more visible in module documentation
+#2705 Crash with a two column slide template using page_break
+#2580 Crash when mistakenly using != instead of <>
+
+
 1.17 (10-Jan-2013)
 
 #2700 Switching to full screen does not correctly resize slides contents

@@ -114,17 +114,23 @@ void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     GL.BindTexture(glType, glName);
-    GL.Enable(glType);
+
+    if(glName)
+        GL.Enable(glType);
+    else
+        GL.Disable(glType);
+
     if (glName && glType == GL_TEXTURE_2D)
     {
-        // Apply layout persistent defaults
+        // Set min and mag filter values (even if texture is not cached)
         GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, where->minFilter);
         GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, where->magFilter);
+
+        // Set wrap values
         GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
                         where->wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE);
         GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
                         where->wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-
     }
 }
 

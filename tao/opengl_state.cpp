@@ -2741,6 +2741,119 @@ bool ClipPlanesState::Sync(ClipPlanesState &np)
     return true;
 }
 
+
+
+// ============================================================================
+//
+//    Client active texture units
+//
+// ============================================================================
+
+void ClientTextureUnitState::Sync(ClientTextureUnitState &ns, bool force)
+// ----------------------------------------------------------------------------
+//   Sync the state of a given client texture unit to the new state
+// ----------------------------------------------------------------------------
+{
+#define SYNC_CAP(cap, state)                    \
+    if (force || state != ns.state)             \
+    {                                           \
+        if (ns.state)                           \
+            glEnableClientState(cap);           \
+        else                                    \
+            glDisableClientState(cap);          \
+        state = ns.state;                       \
+    }
+    SYNC_CAP(GL_TEXTURE_COORD_ARRAY,             texCoordArray);
+#undef SYNC_CAP
+
+}
+
+
+bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiveUnit)
+// ----------------------------------------------------------------------------
+//   Sync with the new state for all client texture units
+// ----------------------------------------------------------------------------
+{
+    uint max = units.size();
+    uint nmax = ns.units.size();
+    uint64 ndirty = ns.dirty;
+    uint lastUnit = clientActiveUnit;
+
+    // Quick bail out if nothing to do
+    if (ndirty == 0 && max == nmax)
+        return false;
+
+    // Reset count of active texture units
+    active = 0;
+
+    // Synchronize all texture units that are common between the two states
+    uint umax = max < nmax ? max : nmax;
+    for (uint u = 0; u < umax; u++)
+    {
+        ClientTextureUnitState &us = units[u];
+        uint unit = GL_TEXTURE0 + u;
+        if (ndirty && (1ULL << u))
+        {
+            ClientTextureUnitState &nus = ns.units[u];
+            if (lastUnit != unit)
+            {
+                glClientActiveTexture(unit);
+                lastUnit = unit;
+            }
+            us.Sync(nus, false);
+        }
+        if (us.texCoordArray)
+            active |= 1ULL << u;
+    }
+
+    // Check if number of texture units changed
+    if (nmax < max)
+    {
+        // Number of texture units decreased, deactivate extra units
+        for (uint u = nmax; u < max; u++)
+        {
+            ClientTextureUnitState &oldtu = units[u];
+            uint unit = GL_TEXTURE0 + u;
+            if (lastUnit != unit)
+            {
+                glClientActiveTexture(unit);
+                lastUnit = unit;
+            }
+            if (oldtu.texCoordArray)   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+        units.resize(nmax);
+    }
+    else if (nmax > max)
+    {
+        // Number of texture units increased, activate new ones
+        for (uint u = max; u < nmax; u++)
+        {
+            // Initialize with a default unit state
+            units.push_back(ClientTextureUnitState());
+
+            // Sync that state now
+            ClientTextureUnitState &nus = ns.units[u];
+            ClientTextureUnitState &us = units.back();
+            uint unit = GL_TEXTURE0 + u;
+            if (lastUnit != unit)
+            {
+                glClientActiveTexture(unit);
+                lastUnit = unit;
+            }
+            us.Sync(nus, true);
+            if (us.texCoordArray)
+                active |= 1ULL << u;
+        }
+    }
+
+    // We are done with current texture changes
+    dirty = ns.dirty = 0;
+
+    // Indicate if we changed the active unit compared to OpenGLState's
+    return lastUnit != clientActiveUnit;
+}
+
+
 // ============================================================================
 //
 //    Texture units
@@ -2870,10 +2983,10 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
             // Synchronise texture units
             glActiveTexture(GL_TEXTURE0 + u);
-            us.Sync(nus, true);
+            us.Sync(nus, false);
 
             // Synchronise textures
-            ot.Sync(ts, true);
+            ot.Sync(ts, false);
         }
     }
 
@@ -2886,119 +2999,6 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
     return true;
 }
-
-
-
-// ============================================================================
-//
-//    Client active texture units
-//
-// ============================================================================
-
-void ClientTextureUnitState::Sync(ClientTextureUnitState &ns, bool force)
-// ----------------------------------------------------------------------------
-//   Sync the state of a given client texture unit to the new state
-// ----------------------------------------------------------------------------
-{
-#define SYNC_CAP(cap, state)                    \
-    if (force || state != ns.state)             \
-    {                                           \
-        if (ns.state)                           \
-            glEnableClientState(cap);           \
-        else                                    \
-            glDisableClientState(cap);          \
-        state = ns.state;                       \
-    }
-    SYNC_CAP(GL_TEXTURE_COORD_ARRAY,             texCoordArray);
-#undef SYNC_CAP
-
-}
-
-
-bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiveUnit)
-// ----------------------------------------------------------------------------
-//   Sync with the new state for all client texture units
-// ----------------------------------------------------------------------------
-{
-    uint max = units.size();
-    uint nmax = ns.units.size();
-    uint64 ndirty = ns.dirty;
-    uint lastUnit = clientActiveUnit;
-
-    // Quick bail out if nothing to do
-    if (ndirty == 0 && max == nmax)
-        return false;
-
-    // Reset count of active texture units
-    active = 0;
-
-    // Synchronize all texture units that are common between the two states
-    uint umax = max < nmax ? max : nmax;
-    for (uint u = 0; u < umax; u++)
-    {
-        ClientTextureUnitState &us = units[u];
-        uint unit = GL_TEXTURE0 + u;
-        if (ndirty && (1ULL << u))
-        {
-            ClientTextureUnitState &nus = ns.units[u];
-            if (lastUnit != unit)
-            {
-                glClientActiveTexture(unit);
-                lastUnit = unit;
-            }
-            us.Sync(nus, false);
-        }
-        if (us.texCoordArray)
-            active |= 1ULL << u;
-    }
-
-    // Check if number of texture units changed
-    if (nmax < max)
-    {
-        // Number of texture units decreased, deactivate extra units
-        for (uint u = nmax; u < max; u++)
-        {
-            ClientTextureUnitState &oldtu = units[u];
-            uint unit = GL_TEXTURE0 + u;
-            if (lastUnit != unit)
-            {
-                glClientActiveTexture(unit);
-                lastUnit = unit;
-            }
-            if (oldtu.texCoordArray)   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        }
-        units.resize(nmax);
-    }
-    else if (nmax > max)
-    {
-        // Number of texture units increased, activate new ones
-        for (uint u = max; u < nmax; u++)
-        {
-            // Initialize with a default unit state
-            units.push_back(ClientTextureUnitState());
-
-            // Sync that state now
-            ClientTextureUnitState &nus = ns.units[u];
-            ClientTextureUnitState &us = units.back();
-            uint unit = GL_TEXTURE0 + u;
-            if (lastUnit != unit)
-            {
-                glClientActiveTexture(unit);
-                lastUnit = unit;
-            }
-            us.Sync(nus, true);
-            if (us.texCoordArray)
-                active |= 1ULL << u;
-        }
-    }
-
-    // We are done with current texture changes
-    dirty = ns.dirty = 0;
-
-    // Indicate if we changed the active unit compared to OpenGLState's
-    return lastUnit != clientActiveUnit;
-}
-
 
 
 // ============================================================================
@@ -3027,8 +3027,6 @@ void TextureState::Sync(TextureState &ts, bool force)
 //   Sync a texture state with a new value
 // ----------------------------------------------------------------------------
 {
-    force = force || (id == 0);
-
     bool traceErrors = XLTRACE(glerrors);
 
 #define SYNC_TEXTURE(name, Code)                \

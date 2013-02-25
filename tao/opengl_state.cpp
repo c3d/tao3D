@@ -1152,7 +1152,6 @@ void OpenGLState::VertexPointer(int size, GLenum type,
 //    Define an array of vertex data
 // ----------------------------------------------------------------------------
 {
-    Sync();
     glVertexPointer(size, type, stride, pointer);
 }
 
@@ -1162,7 +1161,6 @@ void OpenGLState::NormalPointer(GLenum type, int stride, const void* pointer)
 //    Define an array of normal data
 // ----------------------------------------------------------------------------
 {
-    Sync();
     glNormalPointer(type, stride, pointer);
 }
 
@@ -1173,7 +1171,7 @@ void OpenGLState::TexCoordPointer(int size, GLenum type,
 //    Define an array of texture coordinates
 // ----------------------------------------------------------------------------
 {
-    Sync();
+    Sync(STATE_clientTextureUnits | STATE_clientActiveTexture);
     glTexCoordPointer(size, type, stride, pointer);
 }
 
@@ -1184,7 +1182,6 @@ void OpenGLState::ColorPointer(int size, GLenum type,
 //    Define an array of color data
 // ----------------------------------------------------------------------------
 {
-    Sync();
     glColorPointer(size, type, stride, pointer);
 }
 

@@ -214,7 +214,7 @@ struct TextureUnitState
                matrix  == o.matrix;
     }
     bool operator!=(const TextureUnitState &o) { return !operator==(o); }
-    void Sync(TextureUnitState &ns, bool force);
+    void Sync(TextureUnitState &ns, TextureState &ot);
 
     GLuint      texture;
     GLenum      target, mode;
@@ -341,7 +341,7 @@ struct TextureState
                 mipmap == o.mipmap);
     }
     bool operator!=(const TextureState &o) { return !operator==(o); }
-    void Sync(TextureState &newState, bool force);
+    void Sync(TextureState &newState);
 
 public:
     GLenum      type;

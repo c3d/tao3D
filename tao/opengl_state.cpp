@@ -2119,7 +2119,8 @@ void OpenGLState::BindTexture(GLenum type, GLuint texture)
 
     // Change texture state once we saved the old one
     ts.type = type;
-    ts.id = texture;
+    ts.id   = texture;
+    ts.unit = activeTexture;
 }
 
 
@@ -2857,20 +2858,20 @@ bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiv
 //
 // ============================================================================
 
-void TextureUnitState::Sync(TextureUnitState &ns, bool force)
+void TextureUnitState::Sync(TextureUnitState &ns, TextureState &ot)
 // ----------------------------------------------------------------------------
 //   Sync the state of a given texture unit to the new state
 // ----------------------------------------------------------------------------
 {
     // Check if the mode changed
-    if (force || mode != ns.mode)
+    if (mode != ns.mode)
     {
         mode = ns.mode;
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
     }
 
     // Check if the matrix changed
-    if (force || matrix != ns.matrix)
+    if (matrix != ns.matrix)
     {
         glMatrixMode(GL_TEXTURE);
         matrix = ns.matrix;
@@ -2881,7 +2882,7 @@ void TextureUnitState::Sync(TextureUnitState &ns, bool force)
     }
     
 #define SYNC_CAP(cap, state)                    \
-    if (force || state != ns.state)             \
+    if (state != ns.state)                      \
     {                                           \
         if (ns.state)                           \
             glEnable(cap);                      \
@@ -2896,10 +2897,19 @@ void TextureUnitState::Sync(TextureUnitState &ns, bool force)
 #undef SYNC_CAP
 
     // Check if there was a change in the texture bound to the unit
-    if (force || texture != ns.texture || target != ns.target)
+    if (texture != ns.texture || target != ns.target)
     {
+        // Update current unit info
         texture = ns.texture;
-        target = ns.target;
+        target  = ns.target;
+
+        // Update current texture info
+        // (do not repeat binding during sync of textures)
+        ot.id   = texture;
+        ot.type = target;
+
+        // Need to bind in case of there is no changes
+        // on the texture but only on the unit
         glBindTexture(target, texture);
     }
 }
@@ -2930,12 +2940,12 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &nt = nts.textures[nus.texture]; // Get new associated texture state
             TextureState &ot = ots.textures[nus.texture]; // Get old texture state
 
-            // Synchronise texture units
+            // Synchronise texture unit
             glActiveTexture(GL_TEXTURE0 + u);
-            us.Sync(nus, false);
+            us.Sync(nus, ot);
 
-            // Synchronise textures
-            ot.Sync(nt, false); // REVISIT: Need sync ?
+            // Synchronise texture
+            ot.Sync(nt);
         }
     }
 
@@ -2949,7 +2959,7 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &ts = nts.textures[oldtu.texture]; // Get new texture state
             TextureState &ot = ots.textures[oldtu.texture]; // Get old texture state
 
-            // Synchronise texture units
+            // Active texture unit
             glActiveTexture(GL_TEXTURE0 + u);
 
             // Disable texture unit
@@ -2962,8 +2972,8 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             if(ns.active & (1 << u))
                 ns.active ^= (1 << u);
 
-            // Synchronise texture states (bind empty texture)
-            ot.Sync(ts, false);
+            // Synchronise texture state (bind empty texture)
+            ot.Sync(ts);
         }
         units.resize(nmax);
     }
@@ -2978,12 +2988,12 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &ts = nts.textures[nus.texture]; // Get new texture state
             TextureState &ot = ots.textures[nus.texture]; // Get old texture state
 
-            // Synchronise texture units
+            // Synchronise texture unit
             glActiveTexture(GL_TEXTURE0 + u);
-            us.Sync(nus, false);
+            us.Sync(nus, ot);
 
             // Synchronise textures
-            ot.Sync(ts, false);
+            ot.Sync(ts);
         }
     }
 
@@ -3019,7 +3029,7 @@ TextureState::TextureState(GLuint id)
 {}
 
 
-void TextureState::Sync(TextureState &ts, bool force)
+void TextureState::Sync(TextureState &ts)
 // ----------------------------------------------------------------------------
 //   Sync a texture state with a new value
 // ----------------------------------------------------------------------------
@@ -3029,7 +3039,7 @@ void TextureState::Sync(TextureState &ts, bool force)
 #define SYNC_TEXTURE(name, Code)                \
     do                                          \
     {                                           \
-        if (force || name != ts.name)           \
+        if (name != ts.name)                    \
         {                                       \
             name = ts.name;                     \
             Code;                               \

@@ -2790,7 +2790,7 @@ bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiv
     {
         ClientTextureUnitState &us = units[u];
         uint unit = GL_TEXTURE0 + u;
-        if (ndirty && (1ULL << u))
+        if (ndirty & (1ULL << u))
         {
             ClientTextureUnitState &nus = ns.units[u];
             if (lastUnit != unit)
@@ -2934,7 +2934,7 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
     for (uint u = 0; u < umax; u++)
     {
         TextureUnitState &us = units[u];
-        if (ndirty && (1ULL << u))
+        if (ndirty & (1ULL << u))
         {
             TextureUnitState &nus = ns.units[u]; // Get new texture unit state
             TextureState &nt = nts.textures[nus.texture]; // Get new associated texture state
@@ -2967,10 +2967,6 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             if (oldtu.tex2D)   glDisable(GL_TEXTURE_2D);
             if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
             if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
-
-            // Update bitmask
-            if(ns.active & (1 << u))
-                ns.active ^= (1 << u);
 
             // Synchronise texture state (bind empty texture)
             ot.Sync(ts);

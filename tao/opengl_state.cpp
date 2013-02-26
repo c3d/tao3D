@@ -313,23 +313,11 @@ void OpenGLState::Sync(uint64 which)
     } while(0)
 
     // Current texture unit, then texture bindings - ORDER MATTERS
-    SYNC(textureUnits,
-         // As we have used glActiveTexture, activeTexture is
-         // now dirty (need to be resync)
-         if(currentTextureUnits.Sync(textures, currentTextures, textureUnits))
-            activeTexture_isDirty = true);
-    SYNC(textures,
-         // As we have used glActiveTexture, activeTexture is now
-         // dirty (need to be resync)
-         if(currentTextureUnits.Sync(textures, currentTextures, textureUnits))
-            activeTexture_isDirty = true);
     SYNC(activeTexture, glActiveTexture(activeTexture));
-    SYNC(clientTextureUnits,
-         // As we have used glClientActiveTexture, clientActiveTexture is
-         // now dirty (need to be resync)
-         if(currentClientTextureUnits.Sync(clientTextureUnits, clientActiveTexture))
-            clientActiveTexture_isDirty = true);
+    SYNC(textureUnits, currentTextureUnits.Sync(textures, currentTextures, textureUnits));
+    SYNC(textures, currentTextureUnits.Sync(textures, currentTextures, textureUnits));
     SYNC(clientActiveTexture, glClientActiveTexture(clientActiveTexture));
+    SYNC(clientTextureUnits, currentClientTextureUnits.Sync(clientTextureUnits, clientActiveTexture));
 
     GLenum mmode = matrixMode;
     SYNC(mvMatrix,
@@ -2847,8 +2835,14 @@ bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiv
     // We are done with current texture changes
     dirty = ns.dirty = 0;
 
-    // Indicate if we changed the active unit compared to OpenGLState's
-    return lastUnit != clientActiveUnit;
+
+    // As we have used glClientActiveTexture, state needs
+    // to be restored to the last correct value
+    if(lastUnit != clientActiveUnit)
+        glClientActiveTexture(clientActiveUnit);
+
+    // Indicate if sync was successfull
+    return true;
 }
 
 
@@ -2924,6 +2918,7 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
     uint nmax = ns.units.size();
     uint64 ndirty = ns.dirty;
     uint64 tdirty = nts.dirty.size();
+    uint lastUnit = GL.activeTexture;
 
     // Quick bail out if nothing to do
     if (tdirty == 0 && ndirty == 0 && max == nmax)
@@ -2940,8 +2935,12 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &nt = nts.textures[nus.texture]; // Get new associated texture state
             TextureState &ot = ots.textures[nus.texture]; // Get old texture state
 
+            // Active texture unit
+            uint unit = GL_TEXTURE0 + u;
+            glActiveTexture(unit);
+            lastUnit = unit;
+
             // Synchronise texture unit
-            glActiveTexture(GL_TEXTURE0 + u);
             us.Sync(nus, ot);
 
             // Synchronise texture
@@ -2960,7 +2959,9 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &ot = ots.textures[oldtu.texture]; // Get old texture state
 
             // Active texture unit
-            glActiveTexture(GL_TEXTURE0 + u);
+            uint unit = GL_TEXTURE0 + u;
+            glActiveTexture(unit);
+            lastUnit = unit;
 
             // Disable texture unit
             if (oldtu.tex1D)   glDisable(GL_TEXTURE_1D);
@@ -2984,8 +2985,12 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &ts = nts.textures[nus.texture]; // Get new texture state
             TextureState &ot = ots.textures[nus.texture]; // Get old texture state
 
+            // Active texture unit
+            uint unit = GL_TEXTURE0 + u;
+            glActiveTexture(unit);
+            lastUnit = unit;
+
             // Synchronise texture unit
-            glActiveTexture(GL_TEXTURE0 + u);
             us.Sync(nus, ot);
 
             // Synchronise textures
@@ -2999,6 +3004,11 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
     // We are done with current texture changes
     dirty = ns.dirty = 0;
     nts.dirty.clear();
+
+    // As we have used glActiveTexture, state needs
+    // to be restored to the last correct value
+    if(lastUnit != GL.activeTexture)
+        glActiveTexture(GL.activeTexture);
 
     return true;
 }

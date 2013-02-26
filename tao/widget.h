@@ -331,6 +331,7 @@ public:
     bool        canPaste();
 
     Tree *      shapeAction(text n, GLuint id, int x, int y);
+    Tree_p      saveAndEvaluate(Context *context, Tree_p code);
 
     // Text flows and text management
     TextFlow *  pageLayoutFlow(text f)  { return flows[f]; }
@@ -828,6 +829,7 @@ public:
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      copySelection();
+
     // Unit conversions
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);

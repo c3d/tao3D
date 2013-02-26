@@ -815,7 +815,7 @@ void Widget::drawActivities()
         {
             if (!adCode->Symbols())
                 adCode->SetSymbols(xlProgram->symbols);
-            xlProgram->context->Evaluate(adCode);
+            saveAndEvaluate(xlProgram->context, adCode);
         }
         licenseOverlaySpace.Draw(NULL);
     }
@@ -1206,7 +1206,7 @@ void Widget::runProgramOnce()
         }
         else if (Tree *prog = xlProgram->tree)
         {
-            xlProgram->context->Evaluate(prog);
+            saveAndEvaluate(xlProgram->context, prog);
             layout->lastRefresh = CurrentTime();
         }
     }
@@ -1270,6 +1270,19 @@ void Widget::runProgram()
         if (pageId > 0)
             runProgramOnce();
     }
+}
+
+
+Tree_p Widget::saveAndEvaluate(Context* context, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Save GL states before evaluate a XL context
+// ----------------------------------------------------------------------------
+{
+    // Save GL state before evaluate
+    GLStateKeeper save;
+
+    // Evaluate context
+    return context->Evaluate(code);
 }
 
 
@@ -2178,7 +2191,7 @@ void Widget::userMenu(QAction *p_action)
     TaoSave saveCurrent(current, this);
     XL::Tree_p t = var.value<XL::Tree_p>();
     if (t)
-        xlProgram->context->Evaluate(t); // Typically will insert something...
+        saveAndEvaluate(xlProgram->context, t); // Typically will insert something...
 }
 
 
@@ -4822,7 +4835,7 @@ Layout *Widget::drawTree(Layout *where, Context *context, Tree_p code)
 {
     Layout *result = where->NewChild();
     XL::Save<Layout *> saveLayout(layout, result);
-    context->Evaluate(code);
+    saveAndEvaluate(context, code);
     return result;
 }
 
@@ -4927,7 +4940,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
             if (pageId > 1)
                 pageLinks["Up"] = lastPageName;
             pageTree = body;
-            context->Evaluate(body);
+            saveAndEvaluate(context, body);
         }
     }
     else if (pageName == lastPageName)
@@ -5623,7 +5636,7 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 
     Layout *childLayout = layout->AddChild(shapeId(), child, context);
     XL::Save<Layout *> save(layout, childLayout);
-    Tree_p result = currentContext->Evaluate(child);
+    Tree_p result = saveAndEvaluate(currentContext, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -5649,7 +5662,7 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
     Context_p childContext = currentContext;
     context->ClosureValue(child, &childContext);
     XL::Save<bool> setSaveArgs(childContext->keepSource, true);
-    Tree_p result = currentContext->Evaluate(child);
+    Tree_p result = saveAndEvaluate(currentContext, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -5670,7 +5683,7 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = saveAndEvaluate(context, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -5692,7 +5705,7 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child, bool abs)
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = saveAndEvaluate(context, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -5717,7 +5730,7 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     Layout *childLayout = new StereoLayout(*layout, vpts);
     childLayout = layout->AddChild(shapeId(), child, context, childLayout);
     XL::Save<Layout *> save(layout, childLayout);
-    Tree_p result = currentContext->Evaluate(child);
+    Tree_p result = saveAndEvaluate(currentContext, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -8881,7 +8894,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
     }
 
     XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+    Tree_p result = saveAndEvaluate(context, body);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -8911,7 +8924,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
 
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
-    Tree_p result = context->Evaluate(prog);
+    Tree_p result = saveAndEvaluate(context, prog);
     flow->lastRefresh = CurrentTime();
 
     return result;
@@ -8965,7 +8978,7 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
     layout->Add(childLayout);
 
     XL::Save<Layout *> saveLayout(layout, childLayout);
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = saveAndEvaluate(context, child);
     layout->lastRefresh = CurrentTime();
 
     return result;
@@ -9635,7 +9648,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
     tbox->ctx = context;
 
     XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+    Tree_p result = saveAndEvaluate(context, body);
 
     table->NextCell();
     return result;
@@ -9657,7 +9670,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
     table->Add(tbox);
 
     XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+    Tree_p result = saveAndEvaluate(context, body);
     layout->lastRefresh = CurrentTime();
     table->NextCell();
     return result;
@@ -9924,7 +9937,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         GL.Sync();
 
         // Evaluate the program
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);
@@ -9988,7 +10001,7 @@ Tree* Widget::drawingCache(Context *context, Tree_p self,
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout, layout->NewChild());
 
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
@@ -10071,7 +10084,7 @@ Integer* Widget::thumbnail(Context *context,
 
         // Evaluate the program, not the context files (bug #1054)
         if (Tree_p prog = xlProgram->tree)
-            context->Evaluate(prog);
+            saveAndEvaluate(context, prog);
 
         // Need to synchronize GL states
         // Because we have made a setupGL
@@ -10168,7 +10181,7 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
         GL.Sync();
 
         // Evaluate the program
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         // Draw gradient in a rectangle
         painter.fillRect(0, 0, w, h, (*gradient));
@@ -10253,7 +10266,7 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
         GL.Sync();
 
         // Evaluate the program
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         // Draw gradient in a rectangle
         painter.fillRect(0, 0, w, h, (*gradient));
@@ -10338,7 +10351,7 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
         GL.Sync();
 
         // Evaluate the program
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         // Draw gradient in a rectangle
         painter.fillRect(0, 0, w, h, (*gradient));
@@ -12241,7 +12254,7 @@ Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
         selectNextTime.erase(self);
     }
 
-    Tree_p result = context->Evaluate(shapes);
+    Tree_p result = saveAndEvaluate(context, shapes);
     layout->lastRefresh = CurrentTime();
     return result;
 }

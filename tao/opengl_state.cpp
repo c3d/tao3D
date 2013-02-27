@@ -2937,8 +2937,11 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
             // Active texture unit
             uint unit = GL_TEXTURE0 + u;
-            glActiveTexture(unit);
-            lastUnit = unit;
+            if(lastUnit != unit)
+            {
+                glActiveTexture(unit);
+                lastUnit = unit;
+            }
 
             // Synchronise texture unit
             us.Sync(nus, ot);
@@ -2960,16 +2963,19 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
             // Active texture unit
             uint unit = GL_TEXTURE0 + u;
-            glActiveTexture(unit);
-            lastUnit = unit;
+            if(lastUnit != unit)
+            {
+                glActiveTexture(unit);
+                lastUnit = unit;
+            }
 
-            // Disable texture unit
+            // Disable texture
             if (oldtu.tex1D)   glDisable(GL_TEXTURE_1D);
             if (oldtu.tex2D)   glDisable(GL_TEXTURE_2D);
             if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
             if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
 
-            // Synchronise texture state (bind empty texture)
+            // Synchronise texture state
             ot.Sync(ts);
         }
         units.resize(nmax);
@@ -2987,8 +2993,11 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
             // Active texture unit
             uint unit = GL_TEXTURE0 + u;
-            glActiveTexture(unit);
-            lastUnit = unit;
+            if(lastUnit != unit)
+            {
+                glActiveTexture(unit);
+                lastUnit = unit;
+            }
 
             // Synchronise texture unit
             us.Sync(nus, ot);

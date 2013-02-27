@@ -51,7 +51,7 @@ bool Shape::setTexture(Layout *where)
         setShader(where);
 
         // Synchronize the GL state
-        GL.Sync(STATE_shaderProgram | STATE_textures | STATE_textureUnits);
+        GL.Sync(STATE_shaderProgram | STATE_activeTexture | STATE_textures | STATE_textureUnits);
     }
     return GL.ActiveTextureUnitsCount() > 0;
 }

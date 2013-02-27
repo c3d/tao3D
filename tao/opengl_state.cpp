@@ -2961,22 +2961,26 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &ts = nts.textures[oldtu.texture]; // Get new texture state
             TextureState &ot = ots.textures[oldtu.texture]; // Get old texture state
 
-            // Active texture unit
-            uint unit = GL_TEXTURE0 + u;
-            if(lastUnit != unit)
+            // Disable unit only if it was active before
+            if(active & (1 << u))
             {
-                glActiveTexture(unit);
-                lastUnit = unit;
+                // Active texture unit
+                uint unit = GL_TEXTURE0 + u;
+                if(lastUnit != unit)
+                {
+                    glActiveTexture(unit);
+                    lastUnit = unit;
+                }
+
+                // Disable texture
+                if (oldtu.tex1D)   glDisable(GL_TEXTURE_1D);
+                if (oldtu.tex2D)   glDisable(GL_TEXTURE_2D);
+                if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
+                if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
+
+                // Synchronise texture state
+                ot.Sync(ts);
             }
-
-            // Disable texture
-            if (oldtu.tex1D)   glDisable(GL_TEXTURE_1D);
-            if (oldtu.tex2D)   glDisable(GL_TEXTURE_2D);
-            if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
-            if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
-
-            // Synchronise texture state
-            ot.Sync(ts);
         }
         units.resize(nmax);
     }
@@ -2991,16 +2995,20 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             TextureState &ts = nts.textures[nus.texture]; // Get new texture state
             TextureState &ot = ots.textures[nus.texture]; // Get old texture state
 
-            // Active texture unit
-            uint unit = GL_TEXTURE0 + u;
-            if(lastUnit != unit)
+            // Sync unit only if it is dirty
+            if(ndirty & (1 << u))
             {
-                glActiveTexture(unit);
-                lastUnit = unit;
-            }
+                // Active texture unit
+                uint unit = GL_TEXTURE0 + u;
+                if(lastUnit != unit)
+                {
+                    glActiveTexture(unit);
+                    lastUnit = unit;
+                }
 
-            // Synchronise texture unit
-            us.Sync(nus, ot);
+                // Synchronise texture unit
+                us.Sync(nus, ot);
+            }
 
             // Synchronise textures
             ot.Sync(ts);

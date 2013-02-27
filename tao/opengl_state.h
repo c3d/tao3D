@@ -233,7 +233,7 @@ struct TextureUnitsState
 //    The state of all texture units
 // ----------------------------------------------------------------------------
 {
-    TextureUnitsState(): dirty(~0ULL), active(1), units() {}
+    TextureUnitsState(): dirty(~0ULL), active(0), units() {}
     bool operator==(const TextureUnitsState &o)
     {
         uint max = units.size();

@@ -98,22 +98,22 @@ void PerPixelLighting::Draw(Layout *where)
 {
     if(shader)
     {
-	if(enable)
-	{
-	    shader->Draw(where);
-	    where->perPixelLighting = where->programId;
-	}
-	else
-	{
-	    // If there is no other shaders, then deactivate it
-	    if(where->perPixelLighting == where->programId)
+        if(enable)
+        {
+            shader->Draw(where);
+            where->perPixelLighting = where->programId;
+        }
+        else
+        {
+            // If there is no other shaders, then deactivate it
+            if(where->perPixelLighting == where->programId)
             {
-		where->programId = 0;
-                glUseProgram(0);
+                where->programId = 0;
+                GL.UseProgram(0);
             }
 
-	    where->perPixelLighting = 0;
-	}
+            where->perPixelLighting = 0;
+        }
 
     }
 }
@@ -187,7 +187,7 @@ void Material::Draw(Layout *where)
     // Determine is the diffuse material
     // is visible or not (use for transparency)
     if(function == GL_DIFFUSE)
-	where->visibility = args[args.size() - 1];
+        where->visibility = args[args.size() - 1];
 }
 
 
@@ -199,7 +199,7 @@ void ShaderProgram::Draw(Layout *where)
     if (!where->InIdentify())
     {
         program->bind();
-	where->programId = program->programId();
+        where->programId = program->programId();
         GL.UseProgram(where->programId);
     }
 }

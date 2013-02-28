@@ -4768,6 +4768,7 @@ static inline void resetLayout(Layout *where)
         where->currentLights = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
+        where->programId = 0;
     }
 }
 

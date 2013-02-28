@@ -65,6 +65,7 @@ struct ShaderProgram : Lighting
 {
     ShaderProgram(QGLShaderProgram *program): program(program) {}
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *where) { Draw(where); }
     QGLShaderProgram *program;
 };
 

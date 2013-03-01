@@ -56,19 +56,10 @@ Once:
 
 2) PUBLISHING
 
-- Upload Tao packages to http://ge.tt/ (login is contact@taodyne.com).
-  Take note of the ID of each file,
-    * Each file is assigned a URL like http://ge.tt/9Jf9pEH that opens a web
-      page where the file can be downloaded (there is also a direct link
-      available by clicking on "Download"). In this exemple the file ID is
-      "9Jf9pEH".
+- Upload Tao packages to taodyne.com:
+  scp <files> www-data@www.taodyne.com:/var/www/downloads
 - Edit the product comparison page in the PrestaShop CMS backend (Tools/CMS,
-  products/compare). Use the HTML editor. Search for "/dl/".
-  The URLs to be used for each Tao Discovery download is:
-    http://www.taodyne.com/dl/g/<file_id>
-  ...for instance: http://www/taodyne.com/dl/g/9Jf9pEH
-    * There is a rewrite rule in /var/www/.htaccess that redirects
-      to http://ge.tt.
+  products/compare). Use the HTML editor.
 - Update the download URLs in the PrestaShop product pages (under
   modules/Other modules/Multidéclinaison téléchargeable, Configure, top right
   icon). There is a single package for Discovery, Creativity and Impress, so

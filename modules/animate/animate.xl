@@ -28,7 +28,7 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.003
+    version 1.004
 
 module_description "fr",
     name "Animations"
@@ -44,9 +44,7 @@ interpolate S:real, TX:real, X:real ->
 // ----------------------------------------------------------------------------
 //    Interpolate variable x with target value tx, change ratio S
 // ----------------------------------------------------------------------------
-    IS -> 0.0
-    IS := 1 - (1 - S)^(refresh_time * 60)
-    X := IS * TX + (1-IS) * X
+    X := S * TX + (1-S) * X
     if X <> TX then time
 
 
@@ -105,6 +103,62 @@ interpolate_scale2 S:real, TScale:real, Scale:real ->
 // ----------------------------------------------------------------------------
     interpolate S, TScale, Scale
     scale Scale, Scale, 1
+
+
+
+// ============================================================================
+// 
+//   Adjustments based on refresh time
+// 
+// ============================================================================
+
+refresh_time_adjust S:real -> (1 - (1 - S) ^ (refresh_time * 60))
+// ----------------------------------------------------------------------------
+//   Adjust S for the refresh time
+// ----------------------------------------------------------------------------
+
+
+interpolate_rt S:real, TX:real, X:real ->
+// ----------------------------------------------------------------------------
+//   Like interpolate, but with an adjustment for the refresh-time
+// ----------------------------------------------------------------------------
+    interpolate refresh_time_adjust S, TX, X
+
+
+
+interpolate_position_rt S:real, TX:real,TY:real,TZ:real, X:real,Y:real,Z:real ->
+// ----------------------------------------------------------------------------
+//    Interpolate a position and translate accordingly
+// ----------------------------------------------------------------------------
+    interpolate_position refresh_time_adjust S, TX, TY, TZ, X, Y, Z
+
+
+interpolate_xangle_rt S:real, TX:real, X:real ->
+// ----------------------------------------------------------------------------
+//   Interpolate a rotation angle around X (horizontal axis)
+// ----------------------------------------------------------------------------
+    interpolate_xangle refresh_time_adjust S, TX, X
+
+
+interpolate_yangle_rt S:real, TY:real, Y:real ->
+// ----------------------------------------------------------------------------
+//    Interpolate a rotation angle along Y (vertical axis)
+// ----------------------------------------------------------------------------
+    interpolate_yangle refresh_time_adjust S, TY, Y
+
+
+interpolate_zangle_rt S:real, TZ:real, Z:real ->
+// ----------------------------------------------------------------------------
+//   Interpolate through Z axis (depth)
+// ----------------------------------------------------------------------------
+    interpolate_zangle refresh_time_adjust S, TZ, Z
+
+
+interpolate_scale_rt S:real, TScale:real, Scale:real ->
+// ----------------------------------------------------------------------------
+//   Interpolate scale
+// ----------------------------------------------------------------------------
+    interpolate_scale refresh_time_adjust S, TScale, Scale
 
 
 

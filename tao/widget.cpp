@@ -2303,6 +2303,10 @@ void Widget::setup(double w, double h, const Box *picking)
     w = ROUND(w, 2);
     h = ROUND(h, 2);
 
+    // #2784 Make sure we don't pass invalid values to glFrustrum
+    if (w == 0) w = 2;
+    if (h == 0) h = 2;
+
     // Setup viewport
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
@@ -9880,10 +9884,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     Tree_p result = XL::xl_false;
     GLuint maxTextureSize = GL.MaxTextureSize();
-    if (w < 1) w = 1;
-    if (h < 1) h = 1;
     if (w > maxTextureSize) w = maxTextureSize;
     if (h > maxTextureSize) h = maxTextureSize;
+    if (w < 1) w = 2;
+    if (h < 1) h = 2;
 
     FrameInfo *pFrame;
     if (name != "")

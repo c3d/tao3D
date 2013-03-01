@@ -1053,11 +1053,18 @@ void TextSpan::Draw(Layout *where)
 //   Draw items, then restore the state as it was initially
 // ----------------------------------------------------------------------------
 {
-    state.InheritState(where);
-    Vector3 offset = where->offset;
-    Layout::Draw(where);
-    where->InheritState(&state);
-    where->offset = offset;
+    if (where)
+    {
+        state.InheritState(where);
+        Vector3 offset = where->offset;
+        Layout::Draw(where);
+        where->InheritState(&state);
+        where->offset = offset;
+    }
+    else
+    {
+        Layout::Draw(where);
+    }
 }
 
 
@@ -1066,11 +1073,18 @@ void TextSpan::DrawSelection(Layout *where)
 //   Draw selection, then restore the state as it was initially
 // ----------------------------------------------------------------------------
 {
-    state.InheritState(where);
-    Vector3 offset = where->offset;
-    Layout::DrawSelection(where);
-    where->InheritState(&state);
-    where->offset = offset;
+    if (where)
+    {
+        state.InheritState(where);
+        Vector3 offset = where->offset;
+        Layout::DrawSelection(where);
+        where->InheritState(&state);
+        where->offset = offset;
+    }
+    else
+    {
+        Layout::DrawSelection(where);
+    }
 }
 
 
@@ -1079,11 +1093,18 @@ void TextSpan::Identify(Layout *where)
 //   Identify selection, then restore the state as it was initially
 // ----------------------------------------------------------------------------
 {
-    state.InheritState(where);
-    Vector3 offset = where->offset;
-    Layout::Identify(where);
-    where->InheritState(&state);
-    where->offset = offset;
+    if (where)
+    {
+        state.InheritState(where);
+        Vector3 offset = where->offset;
+        Layout::Identify(where);
+        where->InheritState(&state);
+        where->offset = offset;
+    }
+    else
+    {
+        Layout::Identify(where);
+    }
 }
 
 

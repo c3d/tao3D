@@ -195,6 +195,128 @@ interpolate_zangle(real S, real TargetZ, real Z);
 
 /**
  * @~english
+ * Interpolate a variable, adjusting for real-time
+ *
+ * Interpolate variable @a X to reach value @a TargetX with speed of change
+ * @a S. The interpolation rate is adjusted as a function of refresh rate.
+ *
+ * @~french
+ * Interpole une variable avec un ajustment temps réel
+ *
+ * Interpole la variable @a X pour atteindre la valeur @a TargetX avec une
+ * vitesse de changement de @a S ajustée en fonction de la vitesse d'affichage
+ */
+interpolate_rt(real S, real TargetX, real X);
+
+/**
+ * @~english
+ * Interpolate a position, adjusting for real-time
+ *
+ * Interpolate variables @a X, @a Y and @a Z to reach values
+ * @a TargetX, @a TargetY and @a TargetZ with speed of change @a S, and use the
+ * result as a position. After the call, the coordinate systems is
+ * centered on that new position. The interpolation rate is adjusted
+ * as a function of refresh rate.
+ *
+ * @~french
+ * Interpole une  position avec un ajustment temps réel
+ *
+ * Interpole les variables @a X, @a Y et @a Z pour atteindre les
+ * valeurs @a TargetX, @a TargetY et @a TargetZ avec une vitesse de
+ * changement @a S, ajustée en fonction de la vitesse d'affichage, et
+ * utilise le résultat comme une position. Après l'appel, le système
+ * de coordonnées est centré sur cette nouvelle position.
+ */
+interpolate_position_rt(real S, real TargetX, real TargetY, real TargetZ, real X, real Y, real Z);
+
+/**
+ * @~english
+ * Interpolate a scale along X, Y and Z axis, adjusting for real-time
+ *
+ * Interpolate variable @a Scale to reach value @a TargetScale with
+ * speed of change @a S, and use the result as a global scale along X,
+ * Y and Z axis. The interpolation rate is adjusted as a function of
+ * refresh rate.
+ *
+ * @ref interpolate_scale2(real, real, real) performs the same operation
+ * on X and Y only.
+ *
+ * @~french
+ * Interpole une échelle le long des axes X, Y et Z avec un ajustment temps réel
+ *
+ * Interpole la variable @a Scale pour atteindre la valeur @a
+ * TargetScale avec une vitesse de changement de @a S ajustée en
+ * fonction de la vitesse d'affichage, et utilise le résultat comme un
+ * facteur d'échelle global le long des axes X, Y et Z.
+ *
+ * @ref interpolate_scale2(real, real, real) effectue la même opération
+ * relativement aux axes X et Y seulement.
+ */
+interpolate_scale_rt(real S, real TargetScale, real Scale);
+
+
+/**
+ * @~english
+ * Interpolate a rotation around X axis, adjusting for real-time
+ *
+ * Interpolate variable @a X to reach value @a TargetX with speed of
+ * change @a S, then use the resulting value as a rotation
+ * angle. After the call, the coordinate systems will have been
+ * rotated along the X axis by @a X degrees. The interpolation rate is
+ * adjusted as a function of refresh rate.
+ *
+ * @~french
+ * Interpole une rotation autour de l'axe X avec un ajustment temps réel
+ *
+ * Interpole la variable @a X pour atteindre la valeur @a TargetX avec une
+ * vitesse de changement @a S, ajustée en fonction de la vitesse d'affichage,
+ * et utilise le résultat comme un angle de rotation. Après l'appel,
+ * le système de coordonnées a tourné d'un angle @a X degrés autour de l'axe X.
+ */
+interpolate_xangle_rt(real S, real TargetX, real X);
+
+/**
+ * @~english
+ * Interpolate a rotation around Y axis, adjusting for real-time
+ *
+ * Interpolate variable @a Y to reach value @a TargetY with speed of
+ * change @a S, then use the resulting value as a rotation
+ * angle. After the call, the coordinate systems will have been
+ * rotated along the Y axis by @a Y degrees. The interpolation rate is
+ * adjusted as a function of refresh rate.
+ *
+ * @~french
+ * Interpole une rotation autour de l'axe Y avec un ajustment temps réel
+ *
+ * Interpole la variable @a Y pour atteindre la valeur @a TargetY avec une
+ * vitesse de changement @a S, ajustée en fonction de la vitesse d'affichage,
+ * et utilise le résultat comme un angle de rotation. Après l'appel,
+ * le système de coordonnées a tourné d'un angle @a Y degrés autour de l'axe Y.
+ */
+interpolate_yangle_rt(real S, real TargetY, real Y);
+
+/**
+ * @~english
+ * Interpolate a rotation around Z axis, adjusting for real-time
+ *
+ * Interpolate variable @a Z to reach value @a TargetZ with speed of
+ * change @a S, then use the resulting value as a rotation
+ * angle. After the call, the coordinate systems will have been
+ * rotated along the Z axis by @a Z degrees. The interpolation rate is
+ * adjusted as a function of refresh rate.
+ *
+ * @~french
+ * Interpole une rotation autour de l'axe Z avec un ajustment temps réel
+ *
+ * Interpole la variable @a Z pour atteindre la valeur @a TargetZ avec une
+ * vitesse de changement @a S, ajustée en fonction de la vitesse d'affichage,
+ * et utilise le résultat comme un angle de rotation. Après l'appel,
+ * le système de coordonnées a tourné d'un angle @a Z degrés autour de l'axe Z.
+ */
+interpolate_zangle_rt(real S, real TargetZ, real Z);
+
+/**
+ * @~english
  * Compute value to be used for fade-in effects
  *
  * Return a value that fades approximately from 0.0 to 1.0 over @a Duration

@@ -82,6 +82,9 @@ void FrameInfo::resize(uint w, uint h)
     if (renderFBO && renderFBO->width()==int(w) && renderFBO->height()==int(h))
         return;
     
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Resize " << w << "x" << h << "\n";
+
     // Delete anything we might have
     purge();
 
@@ -91,7 +94,12 @@ void FrameInfo::resize(uint w, uint h)
     const uint maxTextureSize = GL.MaxTextureSize() / SAMPLES;
     bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit();
     if (w >= maxTextureSize || h >= maxTextureSize)
+    {
+        IFTRACE(fbo)
+            std::cerr << "[FrameInfo] Disable multisample, too big "
+                      << maxTextureSize << "\n";
         canMultiSample = false;
+    }
 
     // Select whether we draw directly in texture or blit to it
     // If we can blit and suceed in creating a multisample buffer,

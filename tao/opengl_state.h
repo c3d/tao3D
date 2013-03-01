@@ -447,7 +447,6 @@ struct LightsState
         return true;
     }
     bool operator!=(const LightsState &o) { return !operator==(o); }
-    LightsState &operator=(const LightsState &o);
     void Sync(LightsState &nl);
 
 public:

@@ -2494,48 +2494,6 @@ void LightState::Sync(const LightState &ls, bool force)
 }
 
 
-LightsState &LightsState::operator=(const LightsState &o)
-// ----------------------------------------------------------------------------
-//    Copy a lighting state
-// ----------------------------------------------------------------------------
-{
-    uint max = lights.size();
-    uint omax = o.lights.size();
-    uint64 d = 0;
-
-    // Compare all the light states we write to mark changed ones as dirty
-    uint lmax = max < omax ? max : omax;
-    for (uint l = 0; l < lmax; l++)
-    {
-        if (lights[l] != o.lights[l])
-            d |= 1ULL << l;
-        lights[l] = o.lights[l];
-    }
-
-    // Check if number of lights changed
-    if (omax < max)
-    {
-        // Number of lights diminished, truncate my lights to match
-        lights.resize(omax);
-    }
-    else if (omax > max)
-    {
-        // Number of lights increased, append new lights and mark dirty
-        for (uint l = max; l < omax; l++)
-        {
-            const LightState &ls = o.lights[l];
-            lights.push_back(ls);
-            d |= 1ULL << l;
-        }
-    }
-
-    dirty = d;
-    active = o.active;
-
-    return *this;
-}
-
-
 void LightsState::Sync(LightsState &nl)
 // ----------------------------------------------------------------------------
 //   Sync with new light states

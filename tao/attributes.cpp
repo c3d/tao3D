@@ -114,11 +114,7 @@ void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     GL.BindTexture(glType, glName);
-
-    if(glName)
-        GL.Enable(glType);
-    else
-        GL.Disable(glType);
+    GL.Enable(glType);
 
     if (glName && glType == GL_TEXTURE_2D)
     {

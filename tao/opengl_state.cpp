@@ -2958,7 +2958,6 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
         for (uint u = nmax; u < max; u++)
         {
             TextureUnitState &oldtu = units[u];             // Get old texture unit state
-            TextureState &ts = nts.textures[oldtu.texture]; // Get new texture state
             TextureState &ot = ots.textures[oldtu.texture]; // Get old texture state
 
             // Disable unit only if it was active before
@@ -2978,8 +2977,8 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
                 if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
                 if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
 
-                // Synchronise texture state
-                ot.Sync(ts);
+                // Bind empty texture
+                if(ot.id) glBindTexture(ot.type, 0);
             }
         }
         units.resize(nmax);

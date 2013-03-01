@@ -2699,11 +2699,8 @@ bool ClipPlanesState::Sync(ClipPlanesState &np)
         // Number of planes decreased, deactivate extra planes
         for (uint p = nmax; p < max; p++)
         {
-            glDisable(GL_CLIP_PLANE0 + p);
-
-            // Update bitmask
-            if(np.active & (1ULL << p))
-                np.active ^= (1ULL << p);
+            if(active & (1 << p))
+                glDisable(GL_CLIP_PLANE0 + p);
         }
         planes.resize(nmax);
     }
@@ -2712,10 +2709,14 @@ bool ClipPlanesState::Sync(ClipPlanesState &np)
         // Number of planes increased, activate extra planes
         for (uint p = max; p < nmax; p++)
         {
-            ClipPlaneState &nps = np.planes[p];
-            planes.push_back(nps);
-            ClipPlaneState &ps = planes.back();
-            ps.Sync(nps, true);
+            // Sync plane only if it is dirty
+            if(ndirty & (1 << p))
+            {
+                ClipPlaneState &nps = np.planes[p];
+                planes.push_back(nps);
+                ClipPlaneState &ps = planes.back();
+                ps.Sync(nps, true);
+            }
         }
     }
 

@@ -60,7 +60,8 @@
        chroma_key \
        transitions \
        news_feed \
-       snowfall
+       snowfall \
+       nodejs
 
     OTHER_MODULES =  \
         DIP          \

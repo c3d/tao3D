@@ -921,29 +921,31 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 //    Multiply the current matrix with a viewing matrix
 // ----------------------------------------------------------------------------+
 {
-    // Compute forward vector
-    Vector3 forward = (center - eye).Normalize();
+    /* Compute Forward vector */
+    Vector3 forward = (eye - center);
+    forward.Normalize();
 
-    // Compute side vector
-    Vector3 side = forward;
+    /* Side vector = Up cross Forward */
+    Vector3 side = up ^ forward;
+
+    /* Recompute Up = Forward cross Side */
+    up = forward ^ side;
+
+    side.Normalize();
     up.Normalize();
-    side.Cross(up).Normalize();
 
-    // Compute new up vector
-    Vector3 upVector = side;
-    upVector.Cross(forward).Normalize();
-
+    /* Compute View matrix */
     Matrix4 view(false);
 
     view(0, 0) = side.x;
-    view(1, 0) = side.y;
-    view(2, 0) = side.z;
-    view(0, 1) = upVector.x;
-    view(1, 1) = upVector.y;
-    view(2, 1) = upVector.z;
-    view(0, 2) = -forward.x;
-    view(1, 2) = -forward.y;
-    view(2, 2) = -forward.z;
+    view(0, 1) = side.y;
+    view(0, 2) = side.z;
+    view(1, 0) = up.x;
+    view(1, 1) = up.y;
+    view(1, 2) = up.z;
+    view(2, 0) = forward.x;
+    view(2, 1) = forward.y;
+    view(2, 2) = forward.z;
     view(3, 3) = 1.0;
 
     view(3, 0) = view(3, 1) = view(3, 2) = 0.0;
@@ -951,7 +953,6 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 
     // Update current matrix
     CHANGE_MATRIX(matrix *= view;
-                  /* TO REMOVE */
                   matrix.Translate(-eye.x, -eye.y, -eye.z));
 
     // TO REMOVE?
@@ -2478,7 +2479,7 @@ void LightState::Sync(const LightState &ls, bool force)
     SYNC_LIGHT(position,
         glLightfv(light, GL_POSITION, pos));
     SYNC_LIGHT(spotDirection,
-            glLightfv(light, GL_SPOT_DIRECTION, spot));
+        glLightfv(light, GL_SPOT_DIRECTION, spot));
     SYNC_LIGHT(spotExponent,
         glLightfv(light, GL_SPOT_EXPONENT, &spotExponent));
     SYNC_LIGHT(spotCutoff,

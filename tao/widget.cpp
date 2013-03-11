@@ -1553,6 +1553,99 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 }
 
 
+XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
+                                 text file)
+// ----------------------------------------------------------------------------
+//   Take a snapshot of a page (2D) and save it. Based on renderFrames().
+// ----------------------------------------------------------------------------
+{
+    // Create output directory if needed
+    QFileInfo inf(QDir(+currentDocumentFolder()), +file);
+    QString dir = inf.absoluteDir().absolutePath();
+    if (!QDir().mkpath(dir))
+        return XL::xl_false;
+    file = +inf.absoluteFilePath();
+
+    bool ok = false;
+    TaoSave saveCurrent(current, this);
+
+    // Select 2D display. Requires current != NULL.
+    QString disp = "2D";
+    QString prevDisplay;
+    if (!displayDriver->isCurrentDisplayFunctionSameAs(disp))
+    {
+        // Select 2D display function
+        prevDisplay = displayDriver->getDisplayFunction();
+        displayDriver->setDisplayFunction(disp);
+    }
+
+    // Set the initial time we want to set and freeze animations
+    double start_time = 0.0;
+    XL::Save<double> setPageTime(pageStartTime, start_time);
+    XL::Save<double> setFrozenTime(frozenTime, start_time);
+    XL::Save<double> saveStartTime(startTime, start_time);
+    XL::Save<page_list> savePageNames(pageNames, pageNames);
+    XL::Save<text> savePageName(pageName, transitionPageName);
+
+    GLAllStateKeeper saveGL;
+    XL::Save<double> saveScaling(scaling, scaling);
+
+    // Render with fullscreen size (then later scale)
+    QDesktopWidget *dw = QApplication::desktop();
+    QRect geom = dw->screenGeometry(this);
+    int sw = geom.width();
+    int sh = geom.height();
+    offlineRenderingWidth = sw * displayDriver->windowWidthFactor();
+    offlineRenderingHeight = sh * displayDriver->windowHeightFactor();
+    inOfflineRendering = true;
+
+    // Select page, if not current
+    if (page != -1)
+    {
+        currentTime = start_time;
+        runProgram();
+        gotoPage(NULL, pageNameAtIndex(NULL, page));
+    }
+
+    // Create a GL frame to render into
+    FrameInfo frame(offlineRenderingWidth, offlineRenderingHeight);
+
+    // Set time and run program
+    currentTime = start_time;
+
+    if (gotoPageName != "")
+    {
+        IFTRACE(pages)
+                std::cerr << "(thumbnailFile) "
+                          << "Goto page request: '" << gotoPageName
+                          << "' from '" << pageName << "'\n";
+        commitPageChange(false);
+    }
+
+    runProgram();
+
+    // Draw the layout in the frame context
+    id = idDepth = 0;
+    space->ClearPolygonOffset();
+    frame.begin();
+    displayDriver->display();
+    frame.end();
+
+    // Save frame to disk
+    QImage img = frame.toImage();
+    QImage scaled = img.scaled(w, h, Qt::KeepAspectRatio,
+                               Qt::SmoothTransformation);
+    ok = scaled.save(+file);
+
+    // Done with offline rendering
+    inOfflineRendering = false;
+    if (!prevDisplay.isEmpty())
+        displayDriver->setDisplayFunction(prevDisplay);
+
+    return ok ? XL::xl_true : XL::xl_false;
+}
+
+
 void Widget::identifySelection()
 // ----------------------------------------------------------------------------
 //   Draw the elements in global space for selection purpose

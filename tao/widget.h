@@ -718,7 +718,7 @@ public:
                              double version, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Name_p      saveThumbnail(Context *context, Tree_p self, int w, int h,
-                              int page, text file);
+                              int page, text file, double pageTime = 0.0);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
                                double w, double h, Tree_p prog);

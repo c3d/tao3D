@@ -1554,7 +1554,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
 
 XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
-                                 text file)
+                                 text file, double pageTime)
 // ----------------------------------------------------------------------------
 //   Take a snapshot of a page (2D) and save it. Based on renderFrames().
 // ----------------------------------------------------------------------------
@@ -1580,10 +1580,9 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
     }
 
     // Set the initial time we want to set and freeze animations
-    double start_time = 0.0;
-    XL::Save<double> setPageTime(pageStartTime, start_time);
-    XL::Save<double> setFrozenTime(frozenTime, start_time);
-    XL::Save<double> saveStartTime(startTime, start_time);
+    XL::Save<double> setPageTime(pageStartTime, pageTime);
+    XL::Save<double> setFrozenTime(frozenTime, pageTime);
+    XL::Save<double> saveStartTime(startTime, pageTime);
     XL::Save<page_list> savePageNames(pageNames, pageNames);
     XL::Save<text> savePageName(pageName, transitionPageName);
 
@@ -1602,7 +1601,7 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
     // Select page, if not current
     if (page != -1)
     {
-        currentTime = start_time;
+        currentTime = pageTime;
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
@@ -1611,7 +1610,7 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
     FrameInfo frame(offlineRenderingWidth, offlineRenderingHeight);
 
     // Set time and run program
-    currentTime = start_time;
+    currentTime = pageTime;
 
     if (gotoPageName != "")
     {

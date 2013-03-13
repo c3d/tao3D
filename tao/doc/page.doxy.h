@@ -207,6 +207,29 @@ page_thumbnail (s:real, i:real, p:text);
 
 /**
  * @~english
+ * Save a thumbnail of the specified page to file.
+ * @p w and @p h are the width and height of the picture, in pixels. @p pnum is
+ * the page number, -1 for the current page. @p path is the path to the image
+ * file that will be saved. Intermediate directories are created as needed. The
+ * file format is automatically chosen from the file extension. If the path is
+ * not absolute, it is relative to the document directory. @p ptime is
+ * the value of @ref page_time to use to take the snapshot of the page
+ * (default value: 0.0).
+ *
+ * @~french
+ * Crée une miniature d'une page et l'enregistre dans un fichier.
+ * @p w et @p h sont la largeur et la hauteur de l'image, en pixels. @p pnum
+ * est le numéro de la page, -1 signifie la page courante. @p path est le chemin
+ * sur le fichier image. Les répertoires intermédiaires sont créés
+ * automatiquement si nécessaire. Le format d'image est déterminé d'après
+ * l'extension du fichier. Si le chemin n'est pas absolu, il est relatif au
+ * répertoire du document. @p time est la valeur de @ref page_time utilisée
+ * pour faire la capture de la page (valeur par défaut : 0.0).
+ */
+save_page_thumbnail(w:real, h:real, pnum:text, path:text, ptime:real);
+
+/**
+ * @~english
  * Returns the number of pages in the current document.
  * @~french
  * Renvoie le nombre de pages dans le document.

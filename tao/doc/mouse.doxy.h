@@ -20,9 +20,15 @@
  *
  * Associate the specified code @p t and the action named @p n. This code is
  * executed when the action occurs on the current @c shape or @c active_widget.
- * Currently known event name are
+ * Currently known event names are:
  * - @c click
  * - @c mouseover
+ * In addition, the following event name is available which is not related to
+ * a shape:
+ * - @c pagechange
+ * When the code @c t associated with this event is executed, the page change
+ * has just occurred and @ref page_label or @ref page_number point to the new
+ * page.
  *
  * @~french
  * Associe du code à un événement.
@@ -33,6 +39,12 @@
  * Les noms valides sont :
  * - @c click : clic de souris
  * - @c mouseover : passage du pointeur de souris (sans clic)
+ * D'autre part, l'évènement suivant, indépendant de @c shape ou
+ * @c active_widget), est disponible:
+ * - @c pagechange
+ * Cet événement correspond à un changement de page. Lors le code @c t
+ * s'exécute, le changement de page vient de se produire (et par conséquent,
+ * @ref page_label ou @ref page_number désignent la nouvelle page).
  */
 on (n:text, t:tree);
 

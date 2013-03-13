@@ -969,6 +969,9 @@ void Widget::commitPageChange(bool afterTransition)
         transitionTree = NULL;
     }
 
+    if (onPageChangeAction && !inOfflineRendering)
+        XL::MAIN->context->Evaluate(onPageChangeAction);
+
     IFTRACE(pages)
         std::cerr << "New page number is " << pageShown << "\n";
 }
@@ -1169,6 +1172,7 @@ void Widget::runProgramOnce()
 
     //Clean actionMap
     actionMap.clear();
+    onPageChangeAction = NULL;
     dfltRefresh = optimalDefaultRefresh();
 
     // Clean text flow
@@ -5698,6 +5702,14 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
+    if (name == "pagechange")
+    {
+        onPageChangeAction = action;
+        if (!action->Symbols())
+            action->SetSymbols(self->Symbols());
+        return XL::xl_true;
+    }
+
     IFTRACE(layoutevents)
         std::cerr << "Register action " << name
                   << " on layout " << layout->PrettyId() << std::endl;

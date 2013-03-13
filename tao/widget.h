@@ -987,6 +987,7 @@ private:
     selection_map         selection;
     tree_set              selectionTrees, selectNextTime;
     action_map            actionMap;
+    Tree_p                onPageChangeAction;
     bool                  hadSelection;
     bool                  selectionChanged;
     QEvent *              w_event;

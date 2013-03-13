@@ -4764,6 +4764,7 @@ static inline void resetLayout(Layout *where)
         where->fillColor = Color(0,1,0,0.8);
         where->fillTextures.clear();
         where->previousTextures.clear();
+        where->programId = 0;
     }
 }
 

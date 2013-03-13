@@ -440,12 +440,12 @@ ConeMesh::ConeMesh(double ratio)
     // neighbouring faces
     // NOTE: First and last normals are the same because of QUAD_STRIP
     Vector3 previousFaceNorm, nextFaceNorm;
-    Triangle lastTriangle(vertices[vertices.size() - 2],
+    Triangle lastTriangle(vertices[vertices.size() - 3],
                           vertices[vertices.size() - 1],
                           vertices[0]);
     Triangle firstTriangle(vertices[0],
                            vertices[1],
-                           vertices[2]);
+                           vertices[3]);
 
     previousFaceNorm = lastTriangle.computeNormal();
     nextFaceNorm     = firstTriangle.computeNormal();
@@ -457,7 +457,7 @@ ConeMesh::ConeMesh(double ratio)
         previousFaceNorm = nextFaceNorm;
         Triangle triangle(vertices[i],
                           vertices[i + 1],
-                          vertices[i + 2]);
+                          vertices[i + 3]);
         nextFaceNorm = triangle.computeNormal();
 
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));

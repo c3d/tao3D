@@ -389,7 +389,7 @@ public:
     Integer_p   screenMouseX(Tree_p self);
     Integer_p   screenMouseY(Tree_p self);
     Integer_p   mouseButtons(Tree_p self);
-    Tree_p      shapeAction(Tree_p self, text name, Tree_p action);
+    Tree_p      shapeAction(Tree_p self, Context_p context, text name, Tree_p action);
 
     // Preserving attributes
     Tree_p      locally(Context *context, Tree_p self, Tree_p t);
@@ -907,6 +907,16 @@ private:
     friend class GCThread;
     friend class WidgetSurface;
 
+    struct ContextAndCode
+    {
+        ContextAndCode() : context(0), code(0) {}
+        ContextAndCode(XL::Context_p context, XL::Tree_p code)
+            : context(context), code(code) {}
+        ~ContextAndCode() { context = 0; code = 0; }
+        XL::Context_p context;
+        XL::Tree_p    code;
+    };
+
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
     typedef std::map<text, TextFlow*>        flow_map;
@@ -914,6 +924,7 @@ private:
     typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
     typedef std::map<text, perId_action_map> action_map;
+    typedef std::map<Tree_p, ContextAndCode> page_action_map;
     typedef std::map<Tree_p, GLuint>         GLid_map;
     typedef std::set<Tree_p>                 tree_set;
 
@@ -987,7 +998,7 @@ private:
     selection_map         selection;
     tree_set              selectionTrees, selectNextTime;
     action_map            actionMap;
-    Tree_p                onPageChangeAction;
+    page_action_map       pageChangeActions;
     bool                  hadSelection;
     bool                  selectionChanged;
     QEvent *              w_event;

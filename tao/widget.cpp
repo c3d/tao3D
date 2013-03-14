@@ -969,8 +969,16 @@ void Widget::commitPageChange(bool afterTransition)
         transitionTree = NULL;
     }
 
-    if (onPageChangeAction && !inOfflineRendering)
-        XL::MAIN->context->Evaluate(onPageChangeAction);
+    if (!inOfflineRendering)
+    {
+        page_action_map::iterator i;
+        for (i = pageChangeActions.begin(); i != pageChangeActions.end(); i++)
+        {
+            XL::Context_p ctx = (*i).second.context;
+            XL::Tree_p code = (*i).second.code;
+            ctx->Evaluate(code);
+        }
+    }
 
     IFTRACE(pages)
         std::cerr << "New page number is " << pageShown << "\n";
@@ -1172,7 +1180,7 @@ void Widget::runProgramOnce()
 
     //Clean actionMap
     actionMap.clear();
-    onPageChangeAction = NULL;
+    pageChangeActions.clear();
     dfltRefresh = optimalDefaultRefresh();
 
     // Clean text flow
@@ -5697,16 +5705,21 @@ Integer_p Widget::mouseButtons(Tree_p self)
 }
 
 
-Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
+Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
+                           Tree_p action)
 // ----------------------------------------------------------------------------
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
     if (name == "pagechange")
     {
-        onPageChangeAction = action;
-        if (!action->Symbols())
-            action->SetSymbols(self->Symbols());
+        if (!pageChangeActions.count(self))
+        {
+            if (!action->Symbols())
+                action->SetSymbols(self->Symbols());
+            ContextAndCode cc(context, action);
+            pageChangeActions[self] = cc;
+        }
         return XL::xl_true;
     }
 

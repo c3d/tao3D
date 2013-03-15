@@ -135,6 +135,8 @@ void Cube::Draw(Layout *where)
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
             disableTexCoord((*it).first);
+    // Restore the client active texture
+    glClientActiveTexture(GL_TEXTURE0);
 
     if(where->currentLights || where->programId)
         glDisableClientState(GL_NORMAL_ARRAY);
@@ -222,6 +224,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     for (it = where->fillTextures.begin(); it!=where->fillTextures.end(); it++)
         if (((*it).second).id)
             disableTexCoord((*it).first);
+    glClientActiveTexture(GL_TEXTURE0);
 
     // Disable normals
     if (where->currentLights || where->programId)

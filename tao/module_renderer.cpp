@@ -105,6 +105,7 @@ bool ModuleRenderer::DisableTexCoords()
         it != currentLayout->fillTextures.end(); it++)
         if(((*it).second).id)
             Shape::disableTexCoord((*it).first);
+    glClientActiveTexture(GL_TEXTURE0);
 
     return true;
 }

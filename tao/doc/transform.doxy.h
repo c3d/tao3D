@@ -64,7 +64,7 @@ scale (x:real, y:real, z:real);
  * @code scale xyz, xyz, xyz @endcode
  * @image html scale.png
  */
-scale (xyz:really);
+scale (xyz:real);
 
 /**
  * @~english

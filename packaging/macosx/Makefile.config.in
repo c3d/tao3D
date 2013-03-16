@@ -21,6 +21,8 @@ ifneq (,\$(findstring CFG_NONETWORK, $$DEFINES))
 PACKAGE_NOGIT=1
 endif
 endif
-ifneq (,\$findstring CFG_NO_QTWEBKIT, $$DEFINES))
+ifneq (,\$(findstring CFG_NO_QTWEBKIT, $$DEFINES))
+ifneq (,$$NO_HELP_VIEWER)
 PACKAGE_NO_QTWEBKIT=1
+endif
 endif

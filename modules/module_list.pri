@@ -61,7 +61,8 @@
        transitions \
        news_feed \
        snowfall \
-       nodejs
+       nodejs \
+       web_remote
 
     OTHER_MODULES =  \
         DIP          \

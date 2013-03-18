@@ -1598,9 +1598,9 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
     }
 
     // Set the initial time we want to set and freeze animations
-    XL::Save<double> setPageTime(pageStartTime, pageTime);
+    XL::Save<double> setPageTime(pageStartTime, 0);
     XL::Save<double> setFrozenTime(frozenTime, pageTime);
-    XL::Save<double> saveStartTime(startTime, pageTime);
+    XL::Save<double> saveStartTime(startTime, 0);
     XL::Save<page_list> savePageNames(pageNames, pageNames);
     XL::Save<text> savePageName(pageName, transitionPageName);
 
@@ -1639,6 +1639,7 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
         commitPageChange(false);
     }
 
+    pageStartTime = startTime = 0; // REVISIT
     runProgram();
 
     // Draw the layout in the frame context

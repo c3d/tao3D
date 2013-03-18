@@ -1571,6 +1571,12 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
 //   Take a snapshot of a page (2D) and save it. Based on renderFrames().
 // ----------------------------------------------------------------------------
 {
+    // Do not re-enter this function
+    static bool inSaveThumbnail = false;
+    if (inSaveThumbnail)
+        return XL::xl_false;
+    XL::Save<bool> noReenter(inSaveThumbnail, true);
+
     // Create output directory if needed
     QFileInfo inf(QDir(+currentDocumentFolder()), +file);
     QString dir = inf.absoluteDir().absolutePath();

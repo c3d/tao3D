@@ -158,6 +158,9 @@ public slots:
                              QString displayName = "");
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
     void        addToReloadList(const QString &path) { toReload.append(path); }
+#ifdef MACOSX_DISPLAYLINK
+    void        sendTimerEvent();
+#endif
 
 
 signals:

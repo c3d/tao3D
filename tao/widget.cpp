@@ -3228,6 +3228,17 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
+#ifdef MACOSX_DISPLAYLINK
+void Widget::sendTimerEvent()
+// ----------------------------------------------------------------------------
+//    Slot that sends a timer event to self
+// ----------------------------------------------------------------------------
+{
+    QTimerEvent e(0);
+    timerEvent(&e);
+}
+#endif
+
 bool Widget::event(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Process event
@@ -3246,8 +3257,11 @@ bool Widget::event(QEvent *event)
             holdOff = false;
             return true;
         }
-        QTimerEvent e(0);
-        timerEvent(&e);
+        // Do not call timerEvent() directly. Doing so may cause some events
+        // to remain stalled in the main event loop for a long time.
+        // This 1ms timer is the solution I found.
+        // See commit comment for details.
+        QTimer::singleShot(1, this, SLOT(sendTimerEvent()));
         return true;
     }
     else if (type == QEvent::MouseMove ||

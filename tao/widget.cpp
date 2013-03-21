@@ -969,8 +969,12 @@ void Widget::commitPageChange(bool afterTransition)
         transitionTree = NULL;
     }
 
-    if (!inOfflineRendering)
+    if (!inOfflineRendering && pageChangeActions.size())
     {
+        // REVISIT? Added saveCurrent because I've hit assert(current) during
+        // ctx->Evaluate(), below.
+        TaoSave saveCurrent(current, this);
+
         page_action_map::iterator i;
         for (i = pageChangeActions.begin(); i != pageChangeActions.end(); i++)
         {

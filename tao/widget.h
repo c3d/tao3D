@@ -1108,6 +1108,7 @@ public:
     static double         trueCurrentTime();
     static void           postEventAPI(int eventType);
     static bool           postEventOnceAPI(int eventType);
+    static bool           offlineRenderingAPI();
 
 private:
     void                  processProgramEvents();

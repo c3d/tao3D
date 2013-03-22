@@ -1143,6 +1143,15 @@ double Widget::currentTimeAPI()
 }
 
 
+bool Widget::offlineRenderingAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to inOfflineRendering
+// ----------------------------------------------------------------------------
+{
+    return findTaoWidget()->inOfflineRendering;
+}
+
+
 void Widget::makeGLContextCurrent()
 // ----------------------------------------------------------------------------
 //   Make GL context of the current Tao widget the current GL context

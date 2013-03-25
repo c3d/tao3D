@@ -155,7 +155,8 @@ public slots:
     void        saveAndCommit();
     void        renderFrames(int w, int h, double startT, double endT,
                              QString dir, double fps = 25.0, int page = -1,
-                             QString displayName = "");
+                             QString displayName = "",
+                             QString fileName = "frame%0d.png", int firstFrame = 1);
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
     void        addToReloadList(const QString &path) { toReload.append(path); }
 

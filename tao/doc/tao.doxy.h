@@ -685,12 +685,12 @@ import "xl:my_definitions.xl"
  * to "Installed in:" to open a file browser window in the module folder.
  *  - Copy the whole @c tao_visuals folder into the @c modules folder
  * of your user account. More specifically, you should end up with:
- *    - Windows: <tt>%%LOCALAPPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *    - Windows: <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations\\modules\\tao_visuals</tt>.
  *      To open <tt>%%LOCALAPPDATA%</tt> easily on Windows, just type <tt>%%LOCALAPPDATA%</tt>
  *      in the Start menu.
- *    - MacOSX: <tt>$HOME/Library/Application Support/Tao Presentations/modules/tao_visuals</tt>.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations/modules/tao_visuals</tt>.
  *     To open <tt>$HOME</tt> on MacOSX, open a new Finder window.
- *    - <tt>$HOME/.tao/modules/tao_visuals</tt> on Linux.
+ *    - <tt>$HOME/.local/share/data/Taodyne/Tao Presentations/modules/tao_visuals</tt> on Linux.
  *  - Rename the module. You must rename the directory
  * as well as the main XL %file: <tt>tao_visuals/tao_visuals.xl</tt> should become
  * <tt>my_module/my_module.xl</tt>.

@@ -62,7 +62,8 @@
        news_feed \
        snowfall \
        nodejs \
-       web_remote
+       web_remote \
+       prez_at
 
     OTHER_MODULES =  \
         DIP          \

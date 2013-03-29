@@ -28,6 +28,9 @@
 
 const ModuleApi *LensFlare::tao = NULL;
 
+#define GL (*graphic_state)
+DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
+
 // ============================================================================
 //
 //    Lens Flare
@@ -139,14 +142,13 @@ void LensFlare::Draw()
     // If it is, we draw no one of the flares.
     bool occluded = isOccluded(source);
 
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    GL.Enable(GL_TEXTURE_2D);
+    GL.Enable(GL_BLEND);
+    GL.BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     // Compute lens direction
     Vector3 lens_dir = target  - source;
-
-    glDepthMask(GL_FALSE);
+    GL.DepthMask(GL_FALSE);
     for(uint i = 0; i < lens_flare.size(); i++)
     {
         // Draw flares at the source position without depth test
@@ -160,22 +162,19 @@ void LensFlare::Draw()
         {
             // Disable current depth_test to avoid
             // display problem with flares
-            glDisable(GL_DEPTH_TEST);
+            GL.Disable(GL_DEPTH_TEST);
 
             // Interpolate position of the current flare
             Vector3 pos = source + lens_flare[i].loc * lens_dir;
             DrawFlare(lens_flare[i], pos);
 
             // Restore OpenGL depth test
-            glEnable(GL_DEPTH_TEST);
+            GL.Enable(GL_DEPTH_TEST);
         }
     }
-    glDepthMask(GL_TRUE);
 
-    // Restore previous bend settings.
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_BLEND);
-    glDisable(GL_TEXTURE_2D);
+    GL.DepthMask(GL_TRUE);
+    GL.Sync();
 }
 
 
@@ -191,25 +190,25 @@ void LensFlare::DrawFlare(Flare flare, Vector3 pos)
     tao->textureCacheBind(flare.id);
     tao->textureCacheSetMinMagFilters(flare.id);
     tao->SetShader(0);
-    glColor4f(flare.color[0],
+    GL.Color(flare.color[0],
               flare.color[1],
               flare.color[2],
               flare.color[3]);
 
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 0.0);
-    glVertex3f(pos.x - scale, pos.y - scale, pos.z);
+    GL.Begin(GL_QUADS);
+    GL.TexCoord(0.0, 0.0);
+    GL.Vertex(pos.x - scale, pos.y - scale, pos.z);
 
-    glTexCoord2f(1.0, 0.0);
-    glVertex3f(pos.x + scale, pos.y - scale, pos.z);
+    GL.TexCoord(1.0, 0.0);
+    GL.Vertex(pos.x + scale, pos.y - scale, pos.z);
 
-    glTexCoord2f(1.0, 1.0);
-    glVertex3f(pos.x + scale, pos.y  + scale, pos.z);
+    GL.TexCoord(1.0, 1.0);
+    GL.Vertex(pos.x + scale, pos.y  + scale, pos.z);
 
-    glTexCoord2f(0.0, 1.0);
-    glVertex3f(pos.x - scale, pos.y + scale, pos.z);
+    GL.TexCoord(0.0, 1.0);
+    GL.Vertex(pos.x - scale, pos.y + scale, pos.z);
 
-    glEnd();
+    GL.End();
 }
 
 bool LensFlare::isOccluded(Vector3 p)
@@ -223,15 +222,15 @@ bool LensFlare::isOccluded(Vector3 p)
         GLuint result = 0;
 
         glBeginQuery(GL_SAMPLES_PASSED, query);
-        glBegin(GL_QUADS);
+        GL.Begin(GL_QUADS);
 
         // Draw sun flare
-        glVertex3f(p.x - test_size, p.y - test_size, p.z);
-        glVertex3f(p.x + test_size, p.y - test_size, p.z);
-        glVertex3f(p.x + test_size, p.y + test_size, p.z);
-        glVertex3f(p.x - test_size, p.y + test_size, p.z);
+        GL.Vertex(p.x - test_size, p.y - test_size, p.z);
+        GL.Vertex(p.x + test_size, p.y - test_size, p.z);
+        GL.Vertex(p.x + test_size, p.y + test_size, p.z);
+        GL.Vertex(p.x - test_size, p.y + test_size, p.z);
 
-        glEnd();
+        GL.End();
         glEndQuery(GL_SAMPLES_PASSED);
         glGetQueryObjectuiv(query, GL_QUERY_RESULT, &result);
 

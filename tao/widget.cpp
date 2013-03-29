@@ -7294,6 +7294,7 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         CachedTexture *t = TextureCache::instance()->load(+img, +docPath);
         layout->Add(new FillTexture(t->id, GL_TEXTURE_2D));
         GL.TextureSize(t->width, t->height);
+        texId = t->id;
     }
     else
     {

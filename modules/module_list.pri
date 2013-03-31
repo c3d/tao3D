@@ -60,7 +60,8 @@
        chroma_key \
        transitions \
        news_feed \
-       snowfall
+       snowfall \
+       nodejs
 
     OTHER_MODULES =  \
         DIP          \
@@ -69,7 +70,9 @@
         tao_tester   \
         tao_quiz     \
         speech       \
-        database
+        database     \
+        web_remote \
+        prez_at
 
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

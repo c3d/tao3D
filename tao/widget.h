@@ -159,6 +159,9 @@ public slots:
                              QString fileName = "frame%0d.png", int firstFrame = 1);
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
     void        addToReloadList(const QString &path) { toReload.append(path); }
+#ifdef MACOSX_DISPLAYLINK
+    void        sendTimerEvent();
+#endif
 
 
 signals:
@@ -390,7 +393,7 @@ public:
     Integer_p   screenMouseX(Tree_p self);
     Integer_p   screenMouseY(Tree_p self);
     Integer_p   mouseButtons(Tree_p self);
-    Tree_p      shapeAction(Tree_p self, text name, Tree_p action);
+    Tree_p      shapeAction(Tree_p self, Context_p context, text name, Tree_p action);
 
     // Preserving attributes
     Tree_p      locally(Context *context, Tree_p self, Tree_p t);
@@ -718,6 +721,8 @@ public:
     Tree*       drawingCache(Context *context, Tree_p self,
                              double version, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
+    Name_p      saveThumbnail(Context *context, Tree_p self, int w, int h,
+                              int page, text file, double pageTime = 0.0);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
                                double w, double h, Tree_p prog);
@@ -906,6 +911,16 @@ private:
     friend class GCThread;
     friend class WidgetSurface;
 
+    struct ContextAndCode
+    {
+        ContextAndCode() : context(0), code(0) {}
+        ContextAndCode(XL::Context_p context, XL::Tree_p code)
+            : context(context), code(code) {}
+        ~ContextAndCode() { context = 0; code = 0; }
+        XL::Context_p context;
+        XL::Tree_p    code;
+    };
+
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
     typedef std::map<text, TextFlow*>        flow_map;
@@ -913,6 +928,7 @@ private:
     typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
     typedef std::map<text, perId_action_map> action_map;
+    typedef std::map<Tree_p, ContextAndCode> page_action_map;
     typedef std::map<Tree_p, GLuint>         GLid_map;
     typedef std::set<Tree_p>                 tree_set;
 
@@ -986,6 +1002,7 @@ private:
     selection_map         selection;
     tree_set              selectionTrees, selectNextTime;
     action_map            actionMap;
+    page_action_map       pageChangeActions;
     bool                  hadSelection;
     bool                  selectionChanged;
     QEvent *              w_event;
@@ -1092,6 +1109,7 @@ public:
     static double         trueCurrentTime();
     static void           postEventAPI(int eventType);
     static bool           postEventOnceAPI(int eventType);
+    static bool           offlineRenderingAPI();
 
 private:
     void                  processProgramEvents();

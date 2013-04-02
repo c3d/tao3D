@@ -1125,6 +1125,16 @@ ClientTextureUnitState &OpenGLState::ClientActiveTexture()
 }
 
 
+void OpenGLState::DrawElements(GLenum  mode, int count, GLenum type, const GLvoid *  indices)
+// ----------------------------------------------------------------------------
+//    Render primitives from array data
+// ----------------------------------------------------------------------------
+{
+    Sync();
+    glDrawElements(mode, count, type, indices);
+}
+
+
 void OpenGLState::DrawArrays(GLenum mode, int first, int count)
 // ----------------------------------------------------------------------------
 //    Render primitives from array data

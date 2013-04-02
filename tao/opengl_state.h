@@ -550,6 +550,7 @@ struct OpenGLState : GraphicState
     virtual void EnableClientState(GLenum cap);
     virtual void DisableClientState(GLenum cap);
     virtual void ClientActiveTexture(GLenum tex);
+    virtual void DrawElements(GLenum  mode, int count, GLenum type, const GLvoid *  indices);
     virtual void DrawArrays(GLenum mode, int first, int count);
     virtual void VertexPointer(int size, GLenum type, int stride,
                                const void* pointer);

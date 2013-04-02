@@ -113,6 +113,7 @@ struct GraphicState
     virtual void EnableClientState(GLenum cap) = 0;
     virtual void DisableClientState(GLenum cap) = 0;
     virtual void ClientActiveTexture(GLenum tex) = 0;
+    virtual void DrawElements(GLenum  mode, int count, GLenum type, const GLvoid *  indices) = 0;
     virtual void DrawArrays(GLenum mode, int first, int count) = 0;
     virtual void VertexPointer(int size, GLenum type, int stride,
                                const void* pointer) = 0;

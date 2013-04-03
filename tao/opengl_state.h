@@ -346,7 +346,7 @@ struct TextureState
 public:
     GLenum      type;
     GLuint      id;
-    GLuint      width, height;
+    GLuint      width, height, depth;
     GLenum      minFilt, magFilt;
     bool        active : 1;
     bool        wrapS  : 1;
@@ -678,11 +678,16 @@ struct OpenGLState : GraphicState
                                       GLenum internalformat,
                                       GLsizei width, GLsizei height,
                                       GLint border, GLsizei imgSize,
-                                      const GLvoid *data);
+                                      const GLvoid *data);    
+    virtual void TexImage3D(GLenum target, GLint level, GLint internalformat,
+                            GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                            GLenum format, GLenum type,
+                            const GLvoid *pixels );
 
-    virtual void TextureSize(uint width, uint height);
+    virtual void TextureSize(uint width, uint height, uint depth = 0);
     virtual uint TextureWidth();
     virtual uint TextureHeight();
+    virtual uint TextureDepth();
     virtual uint TextureType();
     virtual uint TextureMode();
     virtual uint TextureID();

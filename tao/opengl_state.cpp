@@ -2239,14 +2239,31 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
 }
 
 
-void OpenGLState::TextureSize(uint width, uint height)
+
+void OpenGLState::TexImage3D(GLenum target, GLint level, GLint internalformat,
+                             GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                             GLenum format, GLenum type,
+                             const GLvoid *pixels )
+// ----------------------------------------------------------------------------
+//    Define an uncompressed 3D image
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
+    glTexImage3D(target, level, internalformat, width, height, depth, border,
+                 format, type, pixels);
+    TextureSize(width, height, depth);
+}
+
+
+void OpenGLState::TextureSize(uint width, uint height, uint depth)
 // ----------------------------------------------------------------------------
 //   Set the dimension of the given texture
 // ----------------------------------------------------------------------------
 {
     TextureState &ts = ActiveTexture();
-    ts.width = width;
+    ts.width  = width;
     ts.height = height;
+    ts.depth  = depth; // If depth = 0, then it's a 2D texture
 }
 
 
@@ -2267,6 +2284,16 @@ uint OpenGLState::TextureHeight()
 {
     TextureState &ts = ActiveTexture();
     return ts.height;
+}
+
+
+uint OpenGLState::TextureDepth()
+// ----------------------------------------------------------------------------
+//   Get the depth of the current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    return ts.depth;
 }
 
 
@@ -3047,7 +3074,7 @@ TextureState::TextureState(GLuint id)
 //   Initialize a texture state
 // ----------------------------------------------------------------------------
   : type(GL_TEXTURE_2D),
-    id(id), width(0), height(0),
+    id(id), width(0), height(0), depth(0),
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
     active(false),

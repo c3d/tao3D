@@ -644,6 +644,10 @@ struct OpenGLState : GraphicState
     virtual void Uniform(uint id, int v0, int v1);
     virtual void Uniform(uint id, int v0, int v1, int v2);
     virtual void Uniform(uint id, int v0, int v1, int v2, int v3);
+    virtual void Uniform(uint id, uint v);
+    virtual void Uniform(uint id, uint v0, uint v1);
+    virtual void Uniform(uint id, uint v0, uint v1, uint v2);
+    virtual void Uniform(uint id, uint v0, uint v1, uint v2, uint v3);
     virtual void Uniform1fv(uint id, GLsizei size, const float* v);
     virtual void Uniform2fv(uint id, GLsizei size, const float* v);
     virtual void Uniform3fv(uint id, GLsizei size, const float* v);

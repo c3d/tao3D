@@ -1880,6 +1880,42 @@ void OpenGLState::Uniform(uint id, float v0, float v1, float v2, float v3)
 }
 
 
+void OpenGLState::Uniform(uint id, uint v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform1i(id, v));
+}
+
+
+void OpenGLState::Uniform(uint id, uint v0, uint v1)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform2i(id, v0, v1));
+}
+
+
+void OpenGLState::Uniform(uint id, uint v0, uint v1, uint v2)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform3i(id, v0, v1, v2));
+}
+
+
+void OpenGLState::Uniform(uint id, uint v0, uint v1, uint v2, uint v3)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform4i(id, v0, v1, v2, v3));
+}
+
+
 void OpenGLState::Uniform(uint id, int v)
 // ----------------------------------------------------------------------------
 //    Setting uniform values

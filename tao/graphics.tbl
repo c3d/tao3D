@@ -44,7 +44,7 @@ PREFIX(ShowHide, tree, "show",
 PREFIX(Page, text, "page",
        PARM(name, text, "Name of the page.")
        PARM(body, code, "Content of the page."),
-       RTAO(page(context, name, body)),
+       RTAO(page(context, &name, body)),
        GROUP(page)
        SYNOPSIS("Create a page in a document.")
        DESCRIPTION("Create a new page in the document with the given name, "

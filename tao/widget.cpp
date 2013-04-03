@@ -4961,11 +4961,12 @@ Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
-XL::Text_p Widget::page(Context *context, text name, Tree_p body)
+XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Start a new page, returns the previously named page
 // ----------------------------------------------------------------------------
 {
+    text name = namePtr;
     IFTRACE(pages)
         std::cerr << "Displaying page "
                   << "#" << pageShown
@@ -4990,8 +4991,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         // Check if we already displayed a page with that name
         if (pageFound && !drawAllPages)
         {
-            Ooops("Page name $1 is already used",
-                  new Text(name, "\"", "\"", body->Position()));
+            Ooops("Page name $1 is already used", namePtr);
         }
         else
         {

@@ -408,6 +408,11 @@ void OpenGLState::Sync(uint64 which)
              glMaterialfv(GL_BACK, GL_AMBIENT, (backAmbient * color).Data());
              glMaterialfv(GL_FRONT, GL_DIFFUSE, (frontDiffuse * color).Data());
              glMaterialfv(GL_BACK, GL_DIFFUSE, (backDiffuse * color).Data());
+
+             // We need to set a value to glColor to avoid
+             // undefined value of gl_Color in shaders
+             glColor4fv(color.Data());
+
              frontAmbient_isDirty = backAmbient_isDirty = true;
              frontDiffuse_isDirty = backDiffuse_isDirty = true;
           }

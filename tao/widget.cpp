@@ -1414,8 +1414,51 @@ public:
 };
 
 
+static bool checkPrintfFormat(QString str)
+// ----------------------------------------------------------------------------
+//   true if str has 0 or 1 integer printf format, no other format or invalid %
+// ----------------------------------------------------------------------------
+{
+    // I found a regular expressions on the net, and adapted it. Seems to work
+    // well enough.
+
+#define BEFORE_LETTER "%(?!%)(?:\\d+\\$)?[+-]?(?:[ 0]|'.{1})?-?\\d*(?:\\.\\d+)?"
+    // Valid but unacceptable printf formats (like %s)
+    QRegExp reject(BEFORE_LETTER "[bceEfFgGs]");
+    int intfmt = 0;
+    bool ok = reject.indexIn(str) == -1;
+    if (ok)
+    {
+        // Want only one integer format
+        QRegExp all(BEFORE_LETTER "[duoxX]");
+        int pos = 0;
+        while ((pos = all.indexIn((str), pos)) != -1)
+        {
+            if (intfmt == 1)
+            {
+                ok = false;
+                break;
+            }
+            intfmt++;
+            pos += all.matchedLength();
+        }
+    }
+    if (ok)
+    {
+        // Want no single % other than the integer format string we may have
+        // found above
+        QString str2(str);
+        str2.replace("%%", "");
+        ok = str2.count(QChar('%')) == intfmt;
+    }
+#undef BEFORE_LETTER
+    return ok;
+}
+
+
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps, int page, QString disp)
+                          QString dir, double fps, int page, QString disp,
+                          QString fileName, int firstFrame)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
@@ -1425,6 +1468,16 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         QDir().mkdir(dir);
     if (!QFileInfo(dir).isDir() && dir != "/dev/null")
         return;
+
+    if (!checkPrintfFormat(fileName))
+    {
+        QMessageBox::warning(NULL, tr("Error"),
+                             tr("Invalid file name. Check any % format "
+                                "specification and remember to use %% to "
+                                "insert a percent character."));
+        emit renderFramesDone();
+        return;
+    }
 
     TaoSave saveCurrent(current, this);
 
@@ -1471,9 +1524,15 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     FrameInfo frame(w, h);
 
     // Render frames for the whole time range
-    int currentFrame = 1, frameCount = (end_time - start_time) * fps;
+    int currentFrame = firstFrame, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
     int digits = (int)log10(frameCount) + 1;
+
+    if (fileName.contains("%0d"))
+    {
+        // Replace '%0d' with e.g., '%03d' if we need 3 digits.
+        fileName.replace("%0d", "%0" + QString("%1d").arg(digits));
+    }
 
     std::vector<SaveImage*> saveThreads;
     QTime fpsTimer;
@@ -1526,12 +1585,16 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         CHECK_CANCELED();
 
         // Save frame to disk
-        // Convert to .mov with: ffmpeg -i frame%d.png output.mov
-        QString fileName = QString("%1/frame%2.png").arg(dir)
-                .arg(currentFrame, digits, 10, QLatin1Char('0'));
+        // QString::sprintf() expects (and outputs) Latin1 strings. We need UTF-8,
+        // and this works.
+        QString fp;
+        fp.sprintf(QString("%1/%2").arg(dir).arg(fileName).toUtf8().data(),
+                   currentFrame);
+        QString filePath = QString::fromUtf8(fp.toLatin1().data());
+
         if (dir != "/dev/null")
         {
-            SaveImage *thread = new SaveImage(fileName, frame.toImage());
+            SaveImage *thread = new SaveImage(filePath, frame.toImage());
             saveThreads.push_back(thread);
             thread->start();
         }
@@ -4906,11 +4969,12 @@ Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
-XL::Text_p Widget::page(Context *context, text name, Tree_p body)
+XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Start a new page, returns the previously named page
 // ----------------------------------------------------------------------------
 {
+    text name = namePtr;
     IFTRACE(pages)
         std::cerr << "Displaying page "
                   << "#" << pageShown
@@ -4935,8 +4999,7 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         // Check if we already displayed a page with that name
         if (pageFound && !drawAllPages)
         {
-            Ooops("Page name $1 is already used",
-                  new Text(name, "\"", "\"", body->Position()));
+            Ooops("Page name $1 is already used", namePtr);
         }
         else
         {

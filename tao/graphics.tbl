@@ -44,7 +44,7 @@ PREFIX(ShowHide, tree, "show",
 PREFIX(Page, text, "page",
        PARM(name, text, "Name of the page.")
        PARM(body, code, "Content of the page."),
-       RTAO(page(context, name, body)),
+       RTAO(page(context, &name, body)),
        GROUP(page)
        SYNOPSIS("Create a page in a document.")
        DESCRIPTION("Create a new page in the document with the given name, "
@@ -257,18 +257,32 @@ PREFIX(Every50Pct, real, "every",
                    "of one millisecond. The specified code evaluates for "
                    "approximately 50% of the time."))
 
-PREFIX(MouseX,  real,  "mouse_x", , RTAO(mouseX(self)),
+PREFIX(MouseX,  real,  "mousex", , RTAO(mouseX(self)),
        GROUP(mouse)
        SYNOPSIS("Mouse x-coordinate")
        DESCRIPTION("Mouse x-coordinate")
        RETURNS(real, "Return the position of the mouse"))
-PREFIX(MouseY,  real,  "mouse_y", , RTAO(mouseY(self)),
+PREFIX(Mouse_X,  real,  "mouse_x", , RTAO(mouseX(self)),
+       GROUP(mouse)
+       SYNOPSIS("Mouse x-coordinate")
+       DESCRIPTION("Mouse x-coordinate")
+       RETURNS(real, "Return the position of the mouse"))
+PREFIX(MouseY,  real,  "mousey", , RTAO(mouseY(self)),
        GROUP(mouse)
        SYNOPSIS("Mouse y-coordinate")
        DESCRIPTION("Mouse y-coordinate")
        RETURNS(real, "Return the position of the mouse"))
-PREFIX(ScreenMouseX, integer, "screen_mouse_x", , RTAO(screenMouseX(self)), )
-PREFIX(ScreenMouseY, integer, "screen_mouse_y", , RTAO(screenMouseY(self)), )
+PREFIX(Mouse_Y,  real,  "mouse_y", , RTAO(mouseY(self)),
+       GROUP(mouse)
+       SYNOPSIS("Mouse y-coordinate")
+       DESCRIPTION("Mouse y-coordinate")
+       RETURNS(real, "Return the position of the mouse"))
+PREFIX(Screen_Mouse_X, integer, "screen_mouse_x", , RTAO(screenMouseX(self)), )
+PREFIX(Screen_MouseX, integer, "screen_mousex", , RTAO(screenMouseX(self)), )
+PREFIX(ScreenMouseX, integer, "screenmousex", , RTAO(screenMouseX(self)), )
+PREFIX(Screen_Mouse_Y, integer, "screen_mouse_y", , RTAO(screenMouseY(self)), )
+PREFIX(Screen_MouseY, integer, "screen_mousey", , RTAO(screenMouseY(self)), )
+PREFIX(ScreenMouseY, integer, "screenmousey", , RTAO(screenMouseY(self)), )
 PREFIX(MouseButtons,  integer,  "mouse_buttons", , RTAO(mouseButtons(self)),
        GROUP(mouse)
        SYNOPSIS("Return the buttons of the last mouse event")

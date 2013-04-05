@@ -263,6 +263,43 @@ struct FixedSizePoint : Shape2
 };
 
 
+struct PlaneMesh
+// ----------------------------------------------------------------------------
+//   Common drawing code for mesh-based shapes
+// ----------------------------------------------------------------------------
+{
+    PlaneMesh(int lines, int columns);
+
+    std::vector<Point3> vertices;
+    std::vector<GLuint> indices;
+    std::vector<Point>  textures;
+};
+
+struct Plane : Shape2
+// ----------------------------------------------------------------------------
+//   Define a subdivided plane
+// ----------------------------------------------------------------------------
+{
+    // Constructor and destructor
+    Plane(float x, float y, float w, float h, int lines, int columns);
+
+    // Draw plane
+    virtual void Draw(Layout *where);
+    void Draw(PlaneMesh* plane, Layout *where);
+
+private:
+    // Plane parameters
+    Tao::Vector3 center;
+    float width, height;
+    int   slices, stacks;
+
+    enum { MAX_PLANES = 10 };
+    typedef std::pair<uint, uint> Key;
+    typedef std::map<Key, PlaneMesh *> PlaneCache;
+
+    static PlaneCache cache;
+};
+
 
 // ============================================================================
 // 

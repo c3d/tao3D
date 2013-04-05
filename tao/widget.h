@@ -583,6 +583,8 @@ public:
     // 2D primitive that can be in a path or standalone
     Tree_p      fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s);
     Tree_p      rectangle(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      plane(Tree_p tree, Real_p x, Real_p y, Real_p w,
+                      Real_p h, Integer_p lines_nb, Integer_p columns_nb);
     Tree_p      isoscelesTriangle(Tree_p self,
                                   Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      rightTriangle(Tree_p self,

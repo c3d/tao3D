@@ -346,7 +346,7 @@ struct TextureState
 public:
     GLenum      type;
     GLuint      id;
-    GLuint      width, height;
+    GLuint      width, height, depth;
     GLenum      minFilt, magFilt;
     bool        active : 1;
     bool        wrapS  : 1;
@@ -550,6 +550,7 @@ struct OpenGLState : GraphicState
     virtual void EnableClientState(GLenum cap);
     virtual void DisableClientState(GLenum cap);
     virtual void ClientActiveTexture(GLenum tex);
+    virtual void DrawElements(GLenum  mode, int count, GLenum type, const GLvoid *  indices);
     virtual void DrawArrays(GLenum mode, int first, int count);
     virtual void VertexPointer(int size, GLenum type, int stride,
                                const void* pointer);
@@ -643,6 +644,10 @@ struct OpenGLState : GraphicState
     virtual void Uniform(uint id, int v0, int v1);
     virtual void Uniform(uint id, int v0, int v1, int v2);
     virtual void Uniform(uint id, int v0, int v1, int v2, int v3);
+    virtual void Uniform(uint id, uint v);
+    virtual void Uniform(uint id, uint v0, uint v1);
+    virtual void Uniform(uint id, uint v0, uint v1, uint v2);
+    virtual void Uniform(uint id, uint v0, uint v1, uint v2, uint v3);
     virtual void Uniform1fv(uint id, GLsizei size, const float* v);
     virtual void Uniform2fv(uint id, GLsizei size, const float* v);
     virtual void Uniform3fv(uint id, GLsizei size, const float* v);
@@ -673,11 +678,16 @@ struct OpenGLState : GraphicState
                                       GLenum internalformat,
                                       GLsizei width, GLsizei height,
                                       GLint border, GLsizei imgSize,
-                                      const GLvoid *data);
+                                      const GLvoid *data);    
+    virtual void TexImage3D(GLenum target, GLint level, GLint internalformat,
+                            GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                            GLenum format, GLenum type,
+                            const GLvoid *pixels );
 
-    virtual void TextureSize(uint width, uint height);
+    virtual void TextureSize(uint width, uint height, uint depth = 0);
     virtual uint TextureWidth();
     virtual uint TextureHeight();
+    virtual uint TextureDepth();
     virtual uint TextureType();
     virtual uint TextureMode();
     virtual uint TextureID();

@@ -1052,6 +1052,118 @@ void FixedSizePoint::Draw(Layout *where)
     }
 }
 
+
+// ============================================================================
+//
+//    Plane
+//
+// ============================================================================
+
+
+PlaneMesh::PlaneMesh(int lines, int columns)
+// ----------------------------------------------------------------------------
+//   Initialize plane parameters
+// ----------------------------------------------------------------------------
+{
+    // Subdivision steps
+    float stepX = 1.0 / lines;
+    float stepY = 1.0 / columns;
+
+    // Compute vertices and textures coordinates
+    for(int j = 0; j <= columns; j++)
+    {
+        for(int i = 0; i <= lines; i++)
+        {
+            vertices.push_back(Vector3(stepX * i - 0.5, stepY * j - 0.5, 0));
+            textures.push_back(Vector((double) i / lines, (double) j / columns));
+        }
+    }
+
+    // Compute indexes
+    for(int j = 0; j < columns; j++)
+    {
+        for(int i = 0; i < lines; i++)
+        {
+            indices.push_back(j * (lines + 1) + i);
+            indices.push_back(j * (lines + 1) + i + 1);
+            indices.push_back((j + 1) * (lines + 1) + i + 1);
+            indices.push_back((j + 1) * (lines + 1) + i);
+        }
+    }
+}
+
+Plane::PlaneCache Plane::cache;
+
+
+Plane::Plane(float x, float y, float w, float h, int slices, int stacks)
+// ----------------------------------------------------------------------------
+//   Construction
+// ----------------------------------------------------------------------------
+    : center(x, y, 0), width(w), height(h), slices(slices), stacks(stacks)
+{}
+
+
+void Plane::Draw(Layout *where)
+{
+    PlaneMesh * plane = NULL;
+    Key key(slices, stacks);
+    PlaneCache::iterator found = cache.find(key);
+    if (found == cache.end())
+    {
+        // Prune the map if it gets too big
+        while (cache.size() > MAX_PLANES)
+        {
+            PlaneCache::iterator first = cache.begin();
+            delete (*first).second;
+            cache.erase(first);
+        }
+        plane = new PlaneMesh(slices, stacks);
+        cache[key] = plane;
+    }
+    else
+    {
+        plane = (*found).second;
+    }
+
+    Draw(plane, where);
+}
+
+
+void Plane::Draw(PlaneMesh* plane, Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a subdivided plane
+// ----------------------------------------------------------------------------
+{
+    GLAllStateKeeper save;
+
+    GL.Enable(GL_NORMALIZE);
+    GL.Translate(center.x, center.y, 0.0);
+    GL.Scale(width, height, 1.0);
+    GL.Normal(0., 0., 1.);
+
+    // Set vertex coordinates
+    GL.VertexPointer(3, GL_DOUBLE, 0, &plane->vertices[0].x);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+
+    enableTexCoord(&plane->textures[0].x, ~0ULL);
+    setTexture(where);
+
+    GLuint size = stacks * slices * 4;
+
+    // Set fill color defined in Tao
+    if(setFillColor(where))
+        GL.DrawElements(GL_QUADS, size, GL_UNSIGNED_INT, &plane->indices[0]);
+
+    // Set line color defined in Tao
+    if(setLineColor(where))
+        for(GLuint i = 0; i < size; i+= 4)
+            GL.DrawElements(GL_LINE_LOOP, 4 , GL_UNSIGNED_INT, &plane->indices[0] + i);
+
+    disableTexCoord(~0ULL);
+
+    GL.DisableClientState(GL_VERTEX_ARRAY);
+}
+
 TAO_END
 
 

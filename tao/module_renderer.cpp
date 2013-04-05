@@ -142,7 +142,6 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     Layout *layout = Widget::Tao()->layout;
     layout->Add(new FillTexture(id, type));
     layout->hasAttributes = true;
-    GL.BindTexture(type, id);
     return false;
 }
 

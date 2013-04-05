@@ -113,6 +113,7 @@ struct GraphicState
     virtual void EnableClientState(GLenum cap) = 0;
     virtual void DisableClientState(GLenum cap) = 0;
     virtual void ClientActiveTexture(GLenum tex) = 0;
+    virtual void DrawElements(GLenum  mode, int count, GLenum type, const GLvoid *  indices) = 0;
     virtual void DrawArrays(GLenum mode, int first, int count) = 0;
     virtual void VertexPointer(int size, GLenum type, int stride,
                                const void* pointer) = 0;
@@ -201,6 +202,10 @@ struct GraphicState
     virtual void Uniform(uint id, int v0, int v1) = 0;
     virtual void Uniform(uint id, int v0, int v1, int v2) = 0;
     virtual void Uniform(uint id, int v0, int v1, int v2, int v3) = 0;
+    virtual void Uniform(uint id, uint v) = 0;
+    virtual void Uniform(uint id, uint v0, uint v1) = 0;
+    virtual void Uniform(uint id, uint v0, uint v1, uint v2) = 0;
+    virtual void Uniform(uint id, uint v0, uint v1, uint v2, uint v3) = 0;
     virtual void Uniform1fv(uint id, GLsizei size, const float* v) = 0;
     virtual void Uniform2fv(uint id, GLsizei size, const float* v) = 0;
     virtual void Uniform3fv(uint id, GLsizei size, const float* v) = 0;
@@ -233,10 +238,15 @@ struct GraphicState
                                       GLsizei width, GLsizei height,
                                       GLint border, GLsizei imgSize,
                                       const GLvoid *data) = 0;
+    virtual void TexImage3D(GLenum target, GLint level, GLint internalformat,
+                            GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                            GLenum format, GLenum type,
+                            const GLvoid *pixels ) = 0;
 
-    virtual void TextureSize(uint width, uint height) = 0;
+    virtual void TextureSize(uint width, uint height, uint depth = 0) = 0;
     virtual uint TextureWidth() = 0;
     virtual uint TextureHeight() = 0;
+    virtual uint TextureDepth() = 0;
     virtual uint TextureType() = 0;
     virtual uint TextureMode() = 0;
     virtual uint TextureID() = 0;

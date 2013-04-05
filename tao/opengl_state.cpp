@@ -408,6 +408,11 @@ void OpenGLState::Sync(uint64 which)
              glMaterialfv(GL_BACK, GL_AMBIENT, (backAmbient * color).Data());
              glMaterialfv(GL_FRONT, GL_DIFFUSE, (frontDiffuse * color).Data());
              glMaterialfv(GL_BACK, GL_DIFFUSE, (backDiffuse * color).Data());
+
+             // We need to set a value to glColor to avoid
+             // undefined value of gl_Color in shaders
+             glColor4fv(color.Data());
+
              frontAmbient_isDirty = backAmbient_isDirty = true;
              frontDiffuse_isDirty = backDiffuse_isDirty = true;
           }
@@ -1122,6 +1127,16 @@ ClientTextureUnitState &OpenGLState::ClientActiveTexture()
          save->save_clientTextureUnits(clientTextureUnits);
 
      return clientTextureUnits.units[at];
+}
+
+
+void OpenGLState::DrawElements(GLenum  mode, int count, GLenum type, const GLvoid *  indices)
+// ----------------------------------------------------------------------------
+//    Render primitives from array data
+// ----------------------------------------------------------------------------
+{
+    Sync();
+    glDrawElements(mode, count, type, indices);
 }
 
 
@@ -1870,6 +1885,42 @@ void OpenGLState::Uniform(uint id, float v0, float v1, float v2, float v3)
 }
 
 
+void OpenGLState::Uniform(uint id, uint v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform1i(id, v));
+}
+
+
+void OpenGLState::Uniform(uint id, uint v0, uint v1)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform2i(id, v0, v1));
+}
+
+
+void OpenGLState::Uniform(uint id, uint v0, uint v1, uint v2)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform3i(id, v0, v1, v2));
+}
+
+
+void OpenGLState::Uniform(uint id, uint v0, uint v1, uint v2, uint v3)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform4i(id, v0, v1, v2, v3));
+}
+
+
 void OpenGLState::Uniform(uint id, int v)
 // ----------------------------------------------------------------------------
 //    Setting uniform values
@@ -2193,14 +2244,31 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
 }
 
 
-void OpenGLState::TextureSize(uint width, uint height)
+
+void OpenGLState::TexImage3D(GLenum target, GLint level, GLint internalformat,
+                             GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                             GLenum format, GLenum type,
+                             const GLvoid *pixels )
+// ----------------------------------------------------------------------------
+//    Define an uncompressed 3D image
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
+    glTexImage3D(target, level, internalformat, width, height, depth, border,
+                 format, type, pixels);
+    TextureSize(width, height, depth);
+}
+
+
+void OpenGLState::TextureSize(uint width, uint height, uint depth)
 // ----------------------------------------------------------------------------
 //   Set the dimension of the given texture
 // ----------------------------------------------------------------------------
 {
     TextureState &ts = ActiveTexture();
-    ts.width = width;
+    ts.width  = width;
     ts.height = height;
+    ts.depth  = depth; // If depth = 0, then it's a 2D texture
 }
 
 
@@ -2221,6 +2289,16 @@ uint OpenGLState::TextureHeight()
 {
     TextureState &ts = ActiveTexture();
     return ts.height;
+}
+
+
+uint OpenGLState::TextureDepth()
+// ----------------------------------------------------------------------------
+//   Get the depth of the current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    return ts.depth;
 }
 
 
@@ -2380,6 +2458,11 @@ void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
     case GL_POSITION:
     {
         ls.position = Vector4(params[0], params[1], params[2], params[3]);
+
+        // We need to synchronise now as light position
+        //  is impacted by MV matrix.
+        Sync(STATE_mvMatrix | STATE_lights);
+
         break;
     }
     case GL_SPOT_DIRECTION:
@@ -3001,7 +3084,7 @@ TextureState::TextureState(GLuint id)
 //   Initialize a texture state
 // ----------------------------------------------------------------------------
   : type(GL_TEXTURE_2D),
-    id(id), width(0), height(0),
+    id(id), width(0), height(0), depth(0),
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
     active(false),

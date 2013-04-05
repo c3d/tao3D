@@ -8411,6 +8411,20 @@ Tree_p Widget::rectangle(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h)
 }
 
 
+Tree_p Widget::plane(Tree_p tree, Real_p x, Real_p y, Real_p w,
+             Real_p h, Integer_p lines_nb, Integer_p columns_nb)
+// ----------------------------------------------------------------------------
+//    Draw a subdivided plane
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Plane(x, y, w, h, lines_nb, columns_nb));
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::isoscelesTriangle(Tree_p self,
                                  Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------

@@ -122,12 +122,19 @@ int main(int argc, char **argv)
         std::cerr << "Exception caught, exiting\n";
     }
 
-    RECORD(ALWAYS, "Cleaning up");
-    Cleanup();
-
-    // HACK: it seems that cleanup() does not clean everything, at least on
-    // Windows -- without the exit() call, the windows build crashes at exit
-    exit(ret);
+    try
+    {
+        RECORD(ALWAYS, "Cleaning up");
+        Cleanup();
+        
+        // HACK: it seems that cleanup() does not clean everything, at least on
+        // Windows -- without the exit() call, the windows build crashes at exit
+        exit(ret);
+    }
+    catch(...)
+    {
+        std::cerr << "Exception caught during cleanup\n";
+    }
 
     return ret;
 }

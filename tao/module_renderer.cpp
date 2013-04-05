@@ -27,6 +27,7 @@
 #include "shapes.h"
 #include "application.h"
 #include "attributes.h"
+#include "flight_recorder.h"
 
 namespace Tao {
 
@@ -71,7 +72,7 @@ bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
 //  identify function
 // ----------------------------------------------------------------------------
 {
-    Widget::Tao()->layout->Add(new ModuleRenderer(callback, identify, arg, del));
+    Widget::Tao()->layout->Add(new ModuleRenderer(callback,identify,arg,del));
     return true;
 }
 
@@ -236,8 +237,18 @@ void ModuleRenderer::Draw(Layout *where)
     // Load matrix before draw
     GL.LoadMatrix();
 
-    currentLayout = where;
-    callback(arg);
+    try
+    {
+        currentLayout = where;
+        callback(arg);
+    }
+    catch(...)
+    {
+        RECORD(ALWAYS, "Exception raised from module renderer",
+               "call", (intptr_t) callback);
+        std::cerr << "Exception raised from module renderer callback "
+                  << (intptr_t) callback << "\n";
+    }
 
     GL.Invalidate();
 }
@@ -259,13 +270,25 @@ void ModuleRenderer::Identify(Layout *where)
         GL.UseProgram(0); // Necessary for #1464
         currentLayout = where;
         
-        if(identify)
-            identify(arg);
-        else
-            callback(arg);
+        try
+        {
+            if(identify)
+                identify(arg);
+            else
+                callback(arg);
+        }
+        catch(...)
+        {
+            RECORD(ALWAYS, "Exception raised from module identify",
+                   "call", (intptr_t) callback,
+                   "id", (intptr_t) identify);
+            std::cerr << "Exception raised from module renderer callback "
+                      << (intptr_t) callback << " "
+                      << (intptr_t) identify << "\n";
+        }
     }
 
     GL.Invalidate();
 }
 
-}
+} // namespace Tao

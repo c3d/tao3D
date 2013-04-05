@@ -886,6 +886,8 @@ void GraphicPath::Draw(const Vector3 &offset,
                         }
                         unit++;
                     }
+                    // Restore the client active texture
+                    glClientActiveTexture(GL_TEXTURE0);
                 }
 
                 data.clear();

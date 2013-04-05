@@ -37,6 +37,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     : QDialog(parent),
       folder(QDir::toNativeSeparators(Application::defaultProjectFolderPath() +
                                     tr("/frames"))),
+      fileName("frame%0d.png"),
       x(640), y(480), start(0.0), end(10.0), fps(25),
       widget(widget),
       okToDismiss(false), okButton(NULL), rendering(false)
@@ -46,12 +47,14 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     progressBar->setMinimum(0);
     progressBar->setMaximum(100);
     progressBar->setValue(0);
+    firstFrameEdit->setText("1");
 
     // Restore previous settings
 
     QSettings settings;
     settings.beginGroup("renderToFiles");
     folder = settings.value("folder", folder).toString();
+    fileName = settings.value("fileName", fileName).toString();
     x = settings.value("x", x).toInt();
     y = settings.value("y", y).toInt();
     start = settings.value("start", start).toDouble();
@@ -62,6 +65,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     // Fill values
 
     folderEdit->setText(folder);
+    fileEdit->setText(fileName);
     QCompleter *pc = new QCompleter(TaoApp->pathCompletions(), this);
     folderEdit->setCompleter(pc);
     xResolution->setText(QString::number(x));
@@ -102,6 +106,7 @@ void RenderToFileDialog::accept()
     }
 
     // Read other values
+    fileName = fileEdit->text();
     x = xResolution->text().toInt();
     y = yResolution->text().toInt();
     start = startEdit->text().toDouble();
@@ -113,6 +118,7 @@ void RenderToFileDialog::accept()
     QSettings settings;
     settings.beginGroup("renderToFiles");
     settings.setValue("folder", folder);
+    settings.setValue("fileName", fileName);
     settings.setValue("x", x);
     settings.setValue("y", y);
     settings.setValue("start", start);
@@ -128,7 +134,9 @@ void RenderToFileDialog::accept()
             this, SLOT(done()));
 
     rendering = true;
-    widget->renderFrames(x, y, start, end, folder, fps);
+    widget->renderFrames(x, y, start, end, folder, fps, -1, "",
+                         fileName,
+                         firstFrameEdit->text().toInt());
 }
 
 

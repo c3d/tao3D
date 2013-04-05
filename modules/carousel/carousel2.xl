@@ -24,7 +24,7 @@
 
 import Animate
 
-license_check -> check_impress_or_license "Carousel 1.004"
+license_check -> check_impress_or_license "Carousel 1.005"
 
 
 
@@ -141,7 +141,7 @@ carousel_display ->
 // ----------------------------------------------------------------------------
     hand_scale -> 0.1
     compute_smooth_step
-    carousel_angle := smooth_step + caro_hand_x * hand_scale
+    carousel_angle := -smooth_step + caro_hand_x * hand_scale
     if abs caro_hand_sy < 0.1 and mouse_buttons = 0 then
         // Encourage adjustment to the next integer position
         caro_hand_x := (0.95 * caro_hand_x +

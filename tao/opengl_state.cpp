@@ -2458,6 +2458,11 @@ void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
     case GL_POSITION:
     {
         ls.position = Vector4(params[0], params[1], params[2], params[3]);
+
+        // We need to synchronise now as light position
+        //  is impacted by MV matrix.
+        Sync(STATE_mvMatrix | STATE_lights);
+
         break;
     }
     case GL_SPOT_DIRECTION:

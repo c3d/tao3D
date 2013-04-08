@@ -626,9 +626,9 @@ struct OpenGLState : GraphicState
     // Shader functions
     virtual void UseProgram(uint prg);
     virtual void GetProgram(uint prg, GLenum pname, int* params);
+    virtual void GetUniformIndices(uint prg, GLsizei count, const char** names, GLuint* indices);
     virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
                                   GLsizei* size, GLenum* type, char *name);
-
     virtual int  GetAttribLocation(uint program, const char* name);
     virtual void VertexAttrib1fv(uint id, const float *v);
     virtual void VertexAttrib2fv(uint id, const float *v);

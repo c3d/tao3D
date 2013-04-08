@@ -7985,6 +7985,7 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
                     Ooops("Shader value $1 is not a number", value);
             }
 
+
             // Get location for the given uniform
             kstring cname = name->value.c_str();
             GLint uniformLoc = GL.GetUniformLocation(programId, cname);
@@ -7995,12 +7996,17 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
 
             if (uniformLoc >= 0)
             {
+                // Get index for the given uniform
+                // NOTE: index and uniform location are not the same
+                const GLchar *uniformNames[1];
+                uniformNames[0]= cname;
+                uint index = 0;
+                GL.GetUniformIndices(programId, 1, uniformNames, &index);
 
-                GL.GetActiveUniform(programId, uniformLoc,
+                // Retrieve infos of the given uniform
+                GL.GetActiveUniform(programId, index,
                                     sizeof(altName)-1, &length, &size, &type,
                                     altName);
-
-                // REVISIT: Check size returned by above function vs. values
 
                 // Register that we want to set a shader value
                 layout->Add(new ShaderValue(uniformLoc, type, values));

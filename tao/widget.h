@@ -355,7 +355,7 @@ public:
     // XLR entry points
 
     // Page definition and attributes
-    Text_p      page(Context *context, text name, Tree_p body);
+    Text_p      page(Context *context, Text_p name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
     Real_p      pageSetPrintTime(Tree_p self, double t);
     Text_p      gotoPage(Tree_p self, text page);

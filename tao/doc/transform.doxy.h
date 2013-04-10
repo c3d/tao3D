@@ -80,6 +80,18 @@ scalex (x:real);
 
 /**
  * @~english
+ * Scales along the X axis.
+ * Equivalent to:
+ * @~french
+ * Redimensionne la scène selon l'axe X.
+ * Équivalent à :
+ * @~
+ * @code scale x, 1, 1 @endcode
+ */
+scale_x (x:real);
+
+/**
+ * @~english
  * Scales along the Y axis.
  * Equivalent to:
  * @~french
@@ -92,6 +104,18 @@ scaley (y:real);
 
 /**
  * @~english
+ * Scales along the Y axis.
+ * Equivalent to:
+ * @~french
+ * Redimensionne la scène selon l'axe Y.
+ * Équivalent à :
+ * @~
+ * @code scale 1, y, 1 @endcode
+ */
+scale_y (y:real);
+
+/**
+ * @~english
  * Scales along the Z axis.
  * Equivalent to:
  * @~french
@@ -101,6 +125,18 @@ scaley (y:real);
  * @code scale 1, 1, z @endcode
  */
 scalez (z:real);
+
+/**
+ * @~english
+ * Scales along the Z axis.
+ * Equivalent to:
+ * @~french
+ * Redimensionne la scène selon l'axe Z.
+ * Équivalent à :
+ * @~
+ * @code scale 1, 1, z @endcode
+ */
+scale_z (z:real);
 
 /**
  * @~english
@@ -142,6 +178,18 @@ rotatex (rx:real);
 
 /**
  * @~english
+ * Rotates around the X axis.
+ * Equivalent to:
+ * @~french
+ * Rotation autour de l'axe X.
+ * Équivalent à :
+ * @~
+ * @code rotate rx, 1, 0, 0 @endcode
+ */
+rotate_x (rx:real);
+
+/**
+ * @~english
  * Rotates around the Y axis.
  * Equivalent to:
  * @~french
@@ -154,6 +202,18 @@ rotatey (ry:real);
 
 /**
  * @~english
+ * Rotates around the Y axis.
+ * Equivalent to:
+ * @~french
+ * Rotation autour de l'axe Y.
+ * Équivalent à :
+ * @~
+ * @code rotate ry, 0, 1, 0 @endcode
+ */
+rotate_y (ry:real);
+
+/**
+ * @~english
  * Rotates around the Z axis.
  * Equivalent to:
  * @~french
@@ -163,6 +223,18 @@ rotatey (ry:real);
  * @code rotate rz, 0, 0, 1 @endcode
  */
 rotatez (rz:real);
+
+/**
+ * @~english
+ * Rotates around the Z axis.
+ * Equivalent to:
+ * @~french
+ * Rotation autour de l'axe Z.
+ * Équivalent à :
+ * @~
+ * @code rotate rz, 0, 0, 1 @endcode
+ */
+rotate_z (rz:real);
 
 /**
  * @~english
@@ -188,6 +260,18 @@ translatex (x:real);
 
 /**
  * @~english
+ * Translates along the X axis.
+ * Equivalent to:
+ * @~french
+ * Translation le long de l'axe X.
+ * Équivalent à :
+ * @~
+ * @code translate x, 0, 0 @endcode
+ */
+translate_x (x:real);
+
+/**
+ * @~english
  * Translates along the Y axis.
  * Equivalent to:
  * @~french
@@ -200,6 +284,18 @@ translatey (y:real);
 
 /**
  * @~english
+ * Translates along the Y axis.
+ * Equivalent to:
+ * @~french
+ * Translation le long de l'axe Y.
+ * Équivalent à :
+ * @~
+ * @code translate 0, y, 0 @endcode
+ */
+translate_y (y:real);
+
+/**
+ * @~english
  * Translates along the Z axis.
  * Equivalent to:
  * @~french
@@ -209,6 +305,18 @@ translatey (y:real);
  * @code translate 0, 0, z @endcode
  */
 translatez (z:real);
+
+/**
+ * @~english
+ * Translates along the Z axis.
+ * Equivalent to:
+ * @~french
+ * Translation le long de l'axe Z.
+ * Équivalent à :
+ * @~
+ * @code translate 0, 0, z @endcode
+ */
+translate_z (z:real);
 
 /**
  * @~english

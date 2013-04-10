@@ -1,5 +1,5 @@
 CXXFLAGS = -DNDEBUG -g -O2
-#CXXFLAGS = -g
+# -O3 fails to link on Cygwin GCC version 4.5.3
 # -fPIC is supported. Please report any breakage of -fPIC as a bug.
 # CXXFLAGS += -fPIC
 # the following options reduce code size, but breaks link or makes link very slow on some systems
@@ -12,6 +12,10 @@ MKDIR = mkdir
 EGREP = egrep
 UNAME = $(shell uname)
 ISX86 = $(shell uname -m | $(EGREP) -c "i.86|x86|i86|amd64")
+IS_SUN_CC = $(shell $(CXX) -V 2>&1 | $(EGREP) -c "CC: Sun")
+IS_LINUX = $(shell $(CXX) -dumpmachine 2>&1 | $(EGREP) -c "linux")
+IS_MINGW = $(shell $(CXX) -dumpmachine 2>&1 | $(EGREP) -c "mingw")
+CLANG_COMPILER = $(shell $(CXX) --version 2>&1 | $(EGREP) -i -c "clang version")
 
 # Default prefix for make install
 ifeq ($(PREFIX),)
@@ -27,11 +31,9 @@ ifeq ($(ISX86),1)
 GCC42_OR_LATER = $(shell $(CXX) -v 2>&1 | $(EGREP) -c "^gcc version (4.[2-9]|[5-9])")
 INTEL_COMPILER = $(shell $(CXX) --version 2>&1 | $(EGREP) -c "\(ICC\)")
 ICC111_OR_LATER = $(shell $(CXX) --version 2>&1 | $(EGREP) -c "\(ICC\) ([2-9][0-9]|1[2-9]|11\.[1-9])")
-IS_SUN_CC = $(shell $(CXX) -V 2>&1 | $(EGREP) -c "CC: Sun")
-GAS210_OR_LATER = $(shell echo "" | $(AS) -v 2>&1 | $(EGREP) -c "GNU assembler version (2\.[1-9][0-9]|[3-9])")
-GAS217_OR_LATER = $(shell echo "" | $(AS) -v 2>&1 | $(EGREP) -c "GNU assembler version (2\.1[7-9]|2\.[2-9]|[3-9])")
-GAS219_OR_LATER = $(shell echo "" | $(AS) -v 2>&1 | $(EGREP) -c "GNU assembler version (2\.19|2\.[2-9]|[3-9])")
-ISMINGW = $(shell $(CXX) --version 2>&1 | $(EGREP) -c "mingw")
+GAS210_OR_LATER = $(shell $(CXX) -xc -c /dev/null -Wa,-v -o/dev/null 2>&1 | $(EGREP) -c "GNU assembler version (2\.[1-9][0-9]|[3-9])")
+GAS217_OR_LATER = $(shell $(CXX) -xc -c /dev/null -Wa,-v -o/dev/null 2>&1 | $(EGREP) -c "GNU assembler version (2\.1[7-9]|2\.[2-9]|[3-9])")
+GAS219_OR_LATER = $(shell $(CXX) -xc -c /dev/null -Wa,-v -o/dev/null 2>&1 | $(EGREP) -c "GNU assembler version (2\.19|2\.[2-9]|[3-9])")
 
 ifneq ($(GCC42_OR_LATER),0)
 ifeq ($(UNAME),Darwin)
@@ -65,10 +67,6 @@ CXXFLAGS += -Wa,--divide	# allow use of "/" operator
 endif
 endif
 
-ifeq ($(ISMINGW),1)
-LDLIBS += -lws2_32
-endif
-
 endif	# ISX86
 
 ifeq ($(UNAME),)	# for DJGPP, where uname doesn't exist
@@ -77,7 +75,11 @@ else
 CXXFLAGS += -pipe
 endif
 
-ifeq ($(UNAME),Linux)
+ifeq ($(IS_MINGW),1)
+LDLIBS += -lws2_32
+endif
+
+ifeq ($(IS_LINUX),1)
 LDFLAGS += -pthread
 ifneq ($(shell uname -i | $(EGREP) -c "(_64|d64)"),0)
 M32OR64 = -m64
@@ -99,6 +101,10 @@ endif
 ifeq ($(UNAME),SunOS)
 LDLIBS += -lnsl -lsocket
 M32OR64 = -m$(shell isainfo -b)
+endif
+
+ifneq ($(CLANG_COMPILER),0)
+CXXFLAGS += -Wno-tautological-compare
 endif
 
 ifneq ($(IS_SUN_CC),0)	# override flags for CC Sun C++ compiler
@@ -132,19 +138,27 @@ TESTIMPORTOBJS = $(TESTOBJS:.o=.import.o)
 DLLTESTOBJS = dlltest.dllonly.o
 
 all: cryptest.exe
+static: libcryptopp.a
+dynamic: libcryptopp.so
 
 test: cryptest.exe
 	./cryptest.exe v
 
 clean:
-	$(RM) cryptest.exe libcryptopp.a $(LIBOBJS) $(TESTOBJS) cryptopp.dll libcryptopp.dll.a libcryptopp.import.a cryptest.import.exe dlltest.exe $(DLLOBJS) $(LIBIMPORTOBJS) $(TESTIMPORTOBJS) $(DLLTESTOBJS)
+	-$(RM) cryptest.exe libcryptopp.a libcryptopp.so $(LIBOBJS) $(TESTOBJS) cryptopp.dll libcryptopp.dll.a libcryptopp.import.a cryptest.import.exe dlltest.exe $(DLLOBJS) $(LIBIMPORTOBJS) $(TESTI MPORTOBJS) $(DLLTESTOBJS)
 
 install:
 	$(MKDIR) -p $(PREFIX)/include/cryptopp $(PREFIX)/lib $(PREFIX)/bin
-	$(CP) *.h $(PREFIX)/include/cryptopp
-	$(CP) *.a $(PREFIX)/lib
-	$(CP) *.so $(PREFIX)/lib
-	$(CP) *.exe $(PREFIX)/bin
+	-$(CP) *.h $(PREFIX)/include/cryptopp
+	-$(CP) *.a $(PREFIX)/lib
+	-$(CP) *.so $(PREFIX)/lib
+	-$(CP) *.exe $(PREFIX)/bin
+
+remove:
+	-$(RM) -rf $(PREFIX)/include/cryptopp
+	-$(RM) $(PREFIX)/lib/libcryptopp.a
+	-$(RM) $(PREFIX)/lib/libcryptopp.so
+	-$(RM) $(PREFIX)/bin/cryptest.exe
 
 libcryptopp.a: $(LIBOBJS)
 	$(AR) $(ARFLAGS) $@ $(LIBOBJS)
@@ -154,7 +168,7 @@ libcryptopp.so: $(LIBOBJS)
 	$(CXX) -shared -o $@ $(LIBOBJS)
 
 cryptest.exe: libcryptopp.a $(TESTOBJS)
-	$(CXX) -o $@ $(CXXFLAGS) $(TESTOBJS) -L. -lcryptopp $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ $(CXXFLAGS) $(TESTOBJS) ./libcryptopp.a $(LDFLAGS) $(LDLIBS)
 
 nolib: $(OBJS)		# makes it faster to test changes
 	$(CXX) -o ct $(CXXFLAGS) $(OBJS) $(LDFLAGS) $(LDLIBS)

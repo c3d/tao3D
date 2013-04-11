@@ -14,14 +14,15 @@
  *
  * Each question can be time bombed.
  *
- * Each user can have its answer or the stat as feedback
+ * Each user can have its answer or the stat as feedback.
  *
  * And finaly, an interaction like common drawing using the mouse is possible.
  *
  * Each question must be on a different slide.
  * Each question has two modes:
- *    # the question mode: only the question is displayed
- *    # the answer mode: question and all the responses are shown.
+ *    * the question mode: only the question is displayed.
+ *    * the answer mode: question and all the responses are shown.
+ *
  * To switch from one to another, hit '/'.
  *
  * @endtaomoduledescription{TaoQuiz}
@@ -48,13 +49,14 @@
  * en retour sa propre réponse, des statistiques sur toutes les réponses
  * ou rien du tout.
  *
- * Et enfin une interaction de type dessin collectif à la souris est possible
+ * Et enfin une interaction de type dessin collectif à la souris est possible.
  *
  * Chaque question doit être sur une page différente.
  *
  * Chaque question à deux modes :
- *    # Le mode question : seule la question est affichée.
- *    # Le mode réponse : la question et toutes les réponses sont affichées.
+ *    * Le mode question : seule la question est affichée.
+ *    * Le mode réponse : la question et toutes les réponses sont affichées.
+ *
  * Pour passer d'un mode à l'autre, appuyez sur '/'.
  *
  * @endtaomoduledescription{TaoQuiz}

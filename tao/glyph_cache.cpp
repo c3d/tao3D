@@ -359,7 +359,8 @@ bool GlyphCache::Find(const QFont &font,
         painter.drawRect(QRectF(x+bounds.x(), y+bounds.y(), 1, 1));
 
         painter.setPen(QColor(255, 0, 0, 80));
-        painter.drawRect(QRectF(rect.x1, rect.y1, rect.x2-rect.x1, rect.y2-rect.y1));
+        painter.drawRect(QRectF(rect.x1, rect.y1,
+                                rect.x2-rect.x1, rect.y2-rect.y1));
 #endif
 
         painter.end();

@@ -7804,6 +7804,36 @@ Integer *Widget::framePixelCount(Tree_p self, float alphaMin)
 }
 
 
+Tree_p Widget::extrudeDepth(Tree_p self, float depth)
+// ----------------------------------------------------------------------------
+//    Set the extrude depth
+// ----------------------------------------------------------------------------
+{
+    layout->Add (new ExtrudeDepth(depth));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::extrudeRadius(Tree_p self, float radius)
+// ----------------------------------------------------------------------------
+//   Set the extrude radius
+// ----------------------------------------------------------------------------
+{
+    layout->Add (new ExtrudeRadius(radius));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::extrudeCount(Tree_p self, uint count)
+// ----------------------------------------------------------------------------
+//   Set the extrude count
+// ----------------------------------------------------------------------------
+{
+    layout->Add (new ExtrudeCount(count));
+    return XL::xl_true;
+}
+
+
 Integer_p Widget::lightsMask(Tree_p self)
 // ----------------------------------------------------------------------------
 //  Return a bitmask of all current activated lights

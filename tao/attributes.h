@@ -199,6 +199,39 @@ struct Visibility : Attribute
 };
 
 
+struct ExtrudeDepth : Attribute
+// ----------------------------------------------------------------------------
+//    Record the extrude depth when drawing elements
+// ----------------------------------------------------------------------------
+{
+    ExtrudeDepth(float d) : Attribute(), depth(d) {}
+    virtual void Draw(Layout *where);
+    float depth;
+};
+
+
+struct ExtrudeRadius : Attribute
+// ----------------------------------------------------------------------------
+//    Record the extrude bezel when drawing elements
+// ----------------------------------------------------------------------------
+{
+    ExtrudeRadius(float r) : Attribute(), radius(r) {}
+    virtual void Draw(Layout *where);
+    float radius;
+};
+
+
+struct ExtrudeCount : Attribute
+// ----------------------------------------------------------------------------
+//    Record the extrude bezel when drawing elements
+// ----------------------------------------------------------------------------
+{
+    ExtrudeCount(uint c) : Attribute(), count(c) {}
+    virtual void Draw(Layout *where);
+    float count;
+};
+
+
 struct LineWidth : Attribute
 // ----------------------------------------------------------------------------
 //    Record the line width when drawing elements

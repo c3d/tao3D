@@ -313,3 +313,21 @@ PREFIX(SetTextureMagFilter,  tree,  "texture_mag_filter",
        RTAO(textureMagFilter(self, fn)),
        GROUP(graph)
        SYNOPSIS("Set the texture magnification filter function"))
+PREFIX(ExtrudeDepth,  tree,  "extrude_depth",
+       PARM(ed, real, ""),
+       RTAO(extrudeDepth(self, ed)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Select the extrude depth for paths")
+       DESCRIPTION("Select the extrude depth for paths"))
+PREFIX(ExtrudeRadius,  tree,  "extrude_radius",
+       PARM(er, real, ""),
+       RTAO(extrudeRadius(self, er)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Select the extrude radius for paths")
+       DESCRIPTION("Select the extrude radius for paths"))
+PREFIX(ExtrudeCount,  tree,  "extrude_count",
+       PARM(ec, integer, ""),
+       RTAO(extrudeCount(self, ec)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Select the extrude count for paths")
+       DESCRIPTION("Select the extrude count for paths"))

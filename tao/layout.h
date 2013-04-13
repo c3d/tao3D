@@ -104,6 +104,9 @@ public:
     Justification       alongX, alongY, alongZ;
     coord               left, right, top, bottom; // Margins
     scale               visibility;
+    scale               extrudeDepth;
+    scale               extrudeRadius;
+    uint                extrudeCount;
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;

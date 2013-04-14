@@ -99,10 +99,11 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     (void) poly;
+    uint64 textureUnits = poly->layout->textureUnits;
     for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
     {
         //Active texture coordinates only for used units
-        if (poly->textureUnits & (1 << i))
+        if (textureUnits & (1 << i))
             glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
     }
     glVertex3dv(&vertex->vertex.x);
@@ -419,7 +420,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 
     if (setFillColor(where))
     {
-        Draw(where->offset, where->textureUnits, GL_POLYGON, tessel);
+        Draw(where, where->offset, GL_POLYGON, tessel);
     }
     if (setLineColor(where))
     {
@@ -606,19 +607,19 @@ void GraphicPath::DrawOutline(Layout *where)
         {
             addEndpointToPath(endStyle, endPoint, endHeading, outline);
         }
-        outline.Draw(where->offset, where->textureUnits,
+        outline.Draw(where, where->offset,
                      GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
     }
     else
     {
         // Path is not flat: use GL lines (temporarily)
-        Draw(where->offset, where->textureUnits, GL_LINE_STRIP, 0);
+        Draw(where, where->offset, GL_LINE_STRIP, 0);
     }
 }
 
 
-void GraphicPath::Draw(const Vector3 &offset,
-                       uint64 texUnits,
+void GraphicPath::Draw(Layout *layout,
+                       const Vector3 &offset,
                        GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
@@ -628,7 +629,8 @@ void GraphicPath::Draw(const Vector3 &offset,
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
-    polygon.textureUnits = texUnits;
+    polygon.layout = layout;
+    uint textureUnits = layout->textureUnits;
 
     // Check if we need to tesselate polygon
     static GLUtesselator *tess = 0;
@@ -860,7 +862,7 @@ void GraphicPath::Draw(const Vector3 &offset,
                     // Activate texture coordinates for all used units
                     for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
                     {
-                        if(texUnits & (1 << i))
+                        if(textureUnits & (1 << i))
                         {
                             glClientActiveTexture( GL_TEXTURE0 + i );
                             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -875,7 +877,7 @@ void GraphicPath::Draw(const Vector3 &offset,
 
                     for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
                     {
-                        if(texUnits & (1 << i))
+                        if(textureUnits & (1 << i))
                         {
                             glClientActiveTexture( GL_TEXTURE0 + i );
                             glDisableClientState(GL_TEXTURE_COORD_ARRAY);

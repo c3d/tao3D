@@ -93,7 +93,7 @@ public:
     typedef     BinPacker::Rect                 Rect;
 
     void        Clear();
-    void        CheckTextureUnits(uint64 texUnits);
+    void        CheckActiveLayout(Layout *where);
 
     uint        Width()        { return packer.Width(); }
     uint        Height()       { return packer.Height(); }
@@ -209,6 +209,7 @@ public:
     PerFont *   lastFont;
     const
     QGLContext *GLcontext;
+    Layout *    layout;
 };
 
 TAO_END

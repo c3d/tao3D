@@ -340,7 +340,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     glDisable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
-    path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);
+    path.Draw(where, where->Offset(), GL_LINE_STRIP, 0);
 }
 
 

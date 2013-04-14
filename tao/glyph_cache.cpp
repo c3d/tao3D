@@ -161,7 +161,8 @@ GlyphCache::GlyphCache()
       antiAliasMargin(3),
       texUnits(1),              // Default is texture unit 0 only
       lastFont(NULL),
-      GLcontext(QGLContext::currentContext())
+      GLcontext(QGLContext::currentContext()),
+      layout(NULL)
 {
     image.fill(0);
 }
@@ -195,17 +196,18 @@ void GlyphCache::Clear()
 }
 
 
-void GlyphCache::CheckTextureUnits(uint64 texUnits)
+void GlyphCache::CheckActiveLayout(Layout *where)
 // ----------------------------------------------------------------------------
-//   Check if we use more texture units. If so, need to re-emit texture coords
+//   Check if changes in the layout require us to clear the cache
 // ----------------------------------------------------------------------------
 {
     // Check if there are new texture units active compared to what we had
-    if (texUnits & ~this->texUnits)
+    if (where->textureUnits & ~this->texUnits)
     {
         Clear();
-        this->texUnits |= texUnits;
+        this->texUnits |= where->textureUnits;
     }
+    layout = where;
 }
 
 
@@ -392,7 +394,7 @@ bool GlyphCache::Find(const QFont &font,
             if (!entry.interior)
                 entry.interior = glGenLists(1);
             glNewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), texUnits,
+            path.Draw(layout, Vector3(0,0,0),
                       GL_POLYGON, GLU_TESS_WINDING_ODD);
             glEndList();
         }
@@ -412,7 +414,7 @@ bool GlyphCache::Find(const QFont &font,
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
             glNewList(outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), texUnits,
+            strokePath.Draw(layout, Vector3(0,0,0),
                             GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
             glEndList();
         }
@@ -527,7 +529,7 @@ bool GlyphCache::Find(const QFont &font,
             if (!entry.interior)
                 entry.interior = glGenLists(1);
             glNewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), texUnits,
+            path.Draw(layout, Vector3(0,0,0),
                       GL_POLYGON, GLU_TESS_WINDING_ODD);
             glEndList();
         }
@@ -547,7 +549,7 @@ bool GlyphCache::Find(const QFont &font,
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
             glNewList(outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), texUnits,
+            strokePath.Draw(layout, Vector3(0,0,0),
                             GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
             glEndList();
         }

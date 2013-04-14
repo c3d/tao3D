@@ -49,8 +49,8 @@ struct GraphicPath : Shape
 
     // Internal drawing routines
     void                Draw(Layout *where, GLenum tessel);
-    void                Draw(const Vector3 &offset, uint64 texUnits,
-                             GLenum mode, GLenum tessel);
+    void                Draw(Layout *where,
+                             const Vector3 &offset, GLenum mode, GLenum tessel);
     void                DrawOutline(Layout *where);
 
     // Absolute coordinates
@@ -105,7 +105,7 @@ public:
         ~PolygonData();
         Vertices        vertices;
         DynamicVertices allocated;
-        uint64          textureUnits;
+        Layout *        layout;
     };
 
 public:

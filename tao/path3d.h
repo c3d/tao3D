@@ -93,6 +93,7 @@ public:
     struct VertexData
     {
         VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
+        VertexData(): vertex(), texture(), normal() {}
         Vector3  vertex;
         Vector3  texture;
         Vector3  normal;
@@ -106,6 +107,7 @@ public:
         Vertices        vertices;
         DynamicVertices allocated;
         Layout *        layout;
+        GLenum          mode;
     };
 
 public:

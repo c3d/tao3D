@@ -73,23 +73,176 @@ GraphicPath::PolygonData::~PolygonData()
 }
 
 
+static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
+// ----------------------------------------------------------------------------
+//   Draw arrays 
+// ----------------------------------------------------------------------------
+{
+    double *vdata = &data[0].vertex.x;
+    double *tdata = &data[0].texture.x;
+    double *ndata = &data[0].normal.x;
+    GLuint size = data.size();
+
+    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
+    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+
+    // Activate texture coordinates for all used units
+    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    {
+        if(textureUnits & (1 << i))
+        {
+            glClientActiveTexture( GL_TEXTURE0 + i );
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
+                              tdata);
+        }
+    }
+
+    glDrawArrays(mode, 0, size);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+
+    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    {
+        if(textureUnits & (1 << i))
+        {
+            glClientActiveTexture( GL_TEXTURE0 + i );
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+    }
+
+    // Restore the client active texture
+    glClientActiveTexture(GL_TEXTURE0);
+}
+
+
+static void computeNormals(Vertices &data)
+// ----------------------------------------------------------------------------
+//   Compute the normals in the given array
+// ----------------------------------------------------------------------------
+{
+    uint size = data.size();
+
+    for (uint i = 0, n = 0; i < size && n < size; )
+    {
+        uint i1 = 0, i2 = 0;
+        Point3 p0, p1, p2;
+        Vector3 v1, v2, vn;
+        
+        p0 = data[i].vertex;
+        do
+        {
+            ++i1;
+            p1 = data[(i + i1) % size].vertex;
+        }
+        while (p0 == p1 && i1 < size);
+        v1 = p1 - p0;
+        
+        do
+        {
+            ++i2;
+            p2 = data[(i + i1 + i2) % size].vertex;
+        }
+        while (p1 == p2 && (i1 + i2) < size);
+        v2 = p2 - p1;
+        
+        IFTRACE(paths)
+        {
+            std::cerr << "P0 #" << i
+                      << " = x:" << p0.x
+                      << ", y:" << p0.y
+                      << ", z:" << p0.z << std::endl;
+            std::cerr << "P1 #" << (i+i1)%size 
+                      << " = x:" << p1.x
+                      << ", y:" << p1.y << ", z:"
+                      << p1.z << std::endl;
+            std::cerr << "P2 #" << (i+i1+i2) % size
+                      << " = x:" << p2.x
+                      << ", y:" << p2.y
+                      << ", z:" << p2.z << std::endl;
+            std::cerr << "V1 (P1 - P0) = x:" << v1.x
+                      << ", y:" << v1.y
+                      << ", z:" << v1.z << std::endl;
+            std::cerr << "V2 (P2 - P1) = x:" << v2.x
+                      << ", y:" << v2.y
+                      << ", z:" << v2.z << std::endl;
+        }
+        
+        if ((i1 + i2) < size)
+        {
+            Triangle triangle(p0, p1, p2);
+            vn = triangle.computeNormal();
+            
+            for (uint j = (i + i1); j < (i + i1 + i2); j++)
+            {
+                ++n;
+                data[j%size].normal = vn;
+                
+                IFTRACE(paths)
+                    std::cerr << "Normal #" << j % size
+                              << " = x:" << vn.x
+                              << ", y:" << vn.y
+                              << ", z:" << vn.z << std::endl;
+            }
+        }
+        
+        i += i1;
+    }
+    IFTRACE(paths)
+        std::cerr << std::endl;
+}
+
+
+static void extrude(Layout *layout, Vertices &data, scale depth)
+// ----------------------------------------------------------------------------
+//   Extrude a given set of vertices
+// ----------------------------------------------------------------------------
+{
+    uint size = data.size();
+    uint64 textureUnits = layout->textureUnits;
+
+    // Use the line color for the border, line width as radius
+    glPushAttrib(GL_CURRENT_BIT);
+    Color &line = layout->lineColor;
+    scale alpha = layout->visibility * line.alpha;
+    glColor4f(line.red, line.green, line.blue, alpha);
+    
+    // scale radius = layout->lineWidth;
+    // uint count = layout->extrudeCount;
+            
+    Vertices side;
+    VertexData v;
+    side.reserve(2*size);
+    Vector3 normal;
+    for (uint s = 0; s < size; s++)
+    {
+        v = data[s];
+        if (s+1 < size)
+        {
+            normal = data[s+1].vertex - data[s].vertex;
+            normal.Normalize();
+        }
+        v.normal = normal;
+        side.push_back(v);
+        v.vertex.z -= depth;
+        side.push_back(v);
+    }
+
+    computeNormals(side);
+    drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+    glPopAttrib();
+}
+
+
 static void CALLBACK tessBegin(GLenum mode, PolygonData *poly)
 // ----------------------------------------------------------------------------
 //   Callback for beginning of rendering
 // ----------------------------------------------------------------------------
 {
-    (void) poly;
-    glBegin(mode);
-}
-
-
-static void CALLBACK tessEnd(PolygonData *poly)
-// ----------------------------------------------------------------------------
-//   Callback for end of rendering
-// ----------------------------------------------------------------------------
-{
-    (void) poly;
-    glEnd();
+    poly->mode = mode;
+    poly->vertices.clear();
 }
 
 
@@ -98,15 +251,31 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 //   Emit a vertex during tesselation
 // ----------------------------------------------------------------------------
 {
-    (void) poly;
-    uint64 textureUnits = poly->layout->textureUnits;
-    for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
+    poly->vertices.push_back(*vertex);
+    poly->vertices.back().normal.z = 1;
+}
+
+
+static void CALLBACK tessEnd(PolygonData *poly)
+// ----------------------------------------------------------------------------
+//   Callback for end of rendering
+// ----------------------------------------------------------------------------
+{
+    Vertices &data = poly->vertices;
+    uint size = data.size();
+    if (size)
     {
-        //Active texture coordinates only for used units
-        if (textureUnits & (1 << i))
-            glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
-    }
-    glVertex3dv(&vertex->vertex.x);
+        Layout *layout = poly->layout;
+        uint64 textureUnits = layout->textureUnits;
+        drawArrays(poly->mode, textureUnits, data);
+
+        // Check if we need to extrude something
+        scale depth = layout->extrudeDepth;
+        if (depth > 0.0)
+            extrude(layout, data, depth);
+
+        poly->vertices.clear();
+     }
 }
 
 
@@ -783,108 +952,8 @@ void GraphicPath::Draw(Layout *layout,
                 else
                 {
                     // If no tesselation is required, draw directly
-                    double *vdata = &data[0].vertex.x;
-                    double *tdata = &data[0].texture.x;
-                    double *ndata = &data[0].normal.x;
-                    for (uint i = 0, n = 0; i < size && n < size; )
-                    {
-                        uint i1 = 0, i2 = 0;
-                        Point3 p0, p1, p2;
-                        Vector3 v1, v2, vn;
-
-                        p0 = data[i].vertex;
-                        do
-                        {
-                            ++i1;
-                            p1 = data[(i + i1) % size].vertex;
-                        }
-                        while (p0 == p1 && i1 < size);
-                        v1 = p1 - p0;
-
-                        do
-                        {
-                            ++i2;
-                            p2 = data[(i + i1 + i2) % size].vertex;
-                        }
-                        while (p1 == p2 && (i1 + i2) < size);
-                        v2 = p2 - p1;
-
-                        IFTRACE(paths)
-                        {
-                            std::cerr << "P0 #" << i
-                                      << " = x:" << p0.x
-                                      << ", y:" << p0.y
-                                      << ", z:" << p0.z << std::endl;
-                            std::cerr << "P1 #" << (i+i1)%size 
-                                      << " = x:" << p1.x
-                                      << ", y:" << p1.y << ", z:"
-                                      << p1.z << std::endl;
-                            std::cerr << "P2 #" << (i+i1+i2) % size
-                                      << " = x:" << p2.x
-                                      << ", y:" << p2.y
-                                      << ", z:" << p2.z << std::endl;
-                            std::cerr << "V1 (P1 - P0) = x:" << v1.x
-                                      << ", y:" << v1.y
-                                      << ", z:" << v1.z << std::endl;
-                            std::cerr << "V2 (P2 - P1) = x:" << v2.x
-                                      << ", y:" << v2.y
-                                      << ", z:" << v2.z << std::endl;
-                        }
-
-                        if ((i1 + i2) < size)
-                        {
-                            Triangle triangle(p0, p1, p2);
-                            vn = triangle.computeNormal();
-
-                            for (uint j = (i + i1); j < (i + i1 + i2); j++)
-                            {
-                                ++n;
-                                data[j%size].normal = vn;
-
-                                IFTRACE(paths)
-                                    std::cerr << "Normal #" << j % size
-                                              << " = x:" << vn.x
-                                              << ", y:" << vn.y
-                                              << ", z:" << vn.z << std::endl;
-                            }
-                        }
-
-                        i += i1;
-                    }
-                    IFTRACE(paths)
-                        std::cerr << std::endl;
-
-                    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
-                    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
-                    glEnableClientState(GL_VERTEX_ARRAY);
-                    glEnableClientState(GL_NORMAL_ARRAY);
-
-                    // Activate texture coordinates for all used units
-                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
-                    {
-                        if(textureUnits & (1 << i))
-                        {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
-                            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
-                                              tdata);
-                        }
-                    }
-
-                    glDrawArrays(mode, 0, size);
-                    glDisableClientState(GL_VERTEX_ARRAY);
-                    glDisableClientState(GL_NORMAL_ARRAY);
-
-                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
-                    {
-                        if(textureUnits & (1 << i))
-                        {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
-                            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-                        }
-                    }
-                    // Restore the client active texture
-                    glClientActiveTexture(GL_TEXTURE0);
+                    computeNormals(data);
+                    drawArrays(mode, textureUnits, data);
                 }
 
                 data.clear();

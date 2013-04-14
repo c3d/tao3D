@@ -401,7 +401,7 @@ static void addEndpointToPath(EndpointStyle style,
             break;
         case GraphicPath::NONE:
         default:
-            ;
+            break;
     }
 }
 
@@ -423,187 +423,196 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     }
     if (setLineColor(where))
     {
-        GraphicPath outline;
+        DrawOutline(where);
+    }
+}
 
-        bool first = true;
-        //bool penultimate = true;
-        bool last = true;
-        Kind endKind = MOVE_TO;
-        Point3 startPoint;
-        Point3 endPoint;
-        Point3* endPointPtr;
-        Vector3 startHeading;
-        Vector3 endHeading;
-        scale length;
-        scale shortenBy;
 
-        path_elements::iterator begin = elements.begin(), end = elements.end();
-        path_elements::iterator p;
-        for (path_elements::iterator i = begin; i != end; i++)
+void GraphicPath::DrawOutline(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the outline for the current path
+// ----------------------------------------------------------------------------
+{
+    GraphicPath outline;
+
+    bool first = true;
+    bool last = true;
+    Kind endKind = MOVE_TO;
+    Point3 startPoint;
+    Point3 endPoint;
+    Point3* endPointPtr;
+    Vector3 startHeading;
+    Vector3 endHeading;
+    scale length;
+    scale shortenBy;
+
+    path_elements::iterator begin = elements.begin(), end = elements.end();
+    path_elements::iterator p;
+    for (path_elements::iterator i = begin; i != end; i++)
+    {
+        if (first)
         {
-            if (first)
-            {
-                shortenBy = getShortenByStyle(startStyle, where->lineWidth);
+            shortenBy = getShortenByStyle(startStyle, where->lineWidth);
                 
-                switch ((*i).kind)
-                {
-                case MOVE_TO:
-                    startPoint = (*i).position;
-                    break;
-                case LINE_TO:
-                case CURVE_TO:
-                    // First line
-                    startHeading = (*i).position - startPoint;
-                    length = startHeading.Length();
-                    if (length == 0)
-                    {
-                        startPoint = (*i).position;
-                    }
-                    else
-                    {
-                        startHeading.Normalize();
-                        startHeading *= shortenBy;
-                        if(length > shortenBy)
-                        {
-                            outline.moveTo(startPoint + startHeading);
-                        }
-                        else
-                        {
-                            outline.moveTo(startPoint);
-                            startPoint -= startHeading;
-                        }
-                        p=i;
-                        first = false;
-                    }
-                    break;
-                case CURVE_CONTROL:
-                    // First curve
-                    startHeading = (*i).position - startPoint;
-                    length = startHeading.Length();
-                    if (length == 0)
-                    {
-                        startPoint = (*i).position;
-                    }
-                    else
-                    {
-                        startHeading.Normalize();
-                        startHeading *= shortenBy;
-                        outline.moveTo(startPoint);
-                        startPoint -= startHeading;
-                        p = i;
-                        first = false;
-                    }
-                    break;
-                }
-                
-            }
-            else
+            switch ((*i).kind)
             {
-                if ((*p).position == (*i).position)
-                {
-                    if ((*i).kind == CURVE_TO)
-                    {
-                        p=i;
-                    }
-                }
-                else
-                {
-                    outline.elements.push_back(*p);
-                    p = i;
-                }
-            }
-        }
-        if (!first)
-        {
-            outline.elements.push_back(*p);
-        }
-        
-        path_elements::reverse_iterator rbegin = outline.elements.rbegin();
-        path_elements::reverse_iterator rend = outline.elements.rend();
-        for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
-        {
-            j = i+1;
-            if (last)
-            {
-                shortenBy = getShortenByStyle(endStyle, where->lineWidth);
-                
-                switch ((*i).kind)
-                {
-                case LINE_TO:
-                    // Last line
-                    endKind = LINE_TO;
-                    break;
-                case CURVE_TO:
-                case CURVE_CONTROL:
-                    // Last curve or line
-                    if ((*j).kind == CURVE_CONTROL)
-                        endKind = CURVE_TO;
-                    else
-                        endKind = LINE_TO;
-                    break;
-                case MOVE_TO:
-                    endKind = MOVE_TO;
-                    break;
-                }
-                endPoint = (*i).position;
-                endPointPtr = &(*i).position;
-                endHeading = (*j).position - (*i).position;
-                length = endHeading.Length();
+            case MOVE_TO:
+                startPoint = (*i).position;
+                break;
+            case LINE_TO:
+            case CURVE_TO:
+                // First line
+                startHeading = (*i).position - startPoint;
+                length = startHeading.Length();
                 if (length == 0)
                 {
-                    endKind = MOVE_TO;
+                    startPoint = (*i).position;
                 }
                 else
                 {
-                    endHeading.Normalize();
-                    endHeading *= shortenBy;
-                    if (endKind == LINE_TO && length > shortenBy)
+                    startHeading.Normalize();
+                    startHeading *= shortenBy;
+                    if(length > shortenBy)
                     {
-                        *endPointPtr += endHeading;
+                        outline.moveTo(startPoint + startHeading);
                     }
                     else
                     {
-                        endPoint -= endHeading;
+                        outline.moveTo(startPoint);
+                        startPoint -= startHeading;
                     }
+                    p=i;
+                    first = false;
                 }
-                if (endKind != MOVE_TO)
+                break;
+            case CURVE_CONTROL:
+                // First curve
+                startHeading = (*i).position - startPoint;
+                length = startHeading.Length();
+                if (length == 0)
                 {
-                    last = false;
+                    startPoint = (*i).position;
                 }
+                else
+                {
+                    startHeading.Normalize();
+                    startHeading *= shortenBy;
+                    outline.moveTo(startPoint);
+                    startPoint -= startHeading;
+                    p = i;
+                    first = false;
+                }
+                break;
             }
-        }
-        
-
-        // Draw outline of the path.
-        QPainterPath path;
-        if (extractQtPath(outline, path))
-        {
-            // Path is flat: use a QPainterPathStroker
-            QPainterPathStroker stroker;
-            stroker.setWidth(where->lineWidth);
-            stroker.setCapStyle(Qt::FlatCap);
-            stroker.setJoinStyle(Qt::RoundJoin);
-            stroker.setDashPattern(Qt::SolidLine);
-            QPainterPath stroke = stroker.createStroke(path);
-            outline.clear();
-            outline.addQtPath(stroke);
-
-            // Draw the endpoints
-            if (!first)
-            {
-                addEndpointToPath(startStyle,startPoint,startHeading,outline);
-            }
-            if (!last)
-            {
-                addEndpointToPath(endStyle, endPoint, endHeading, outline);
-            }
-            outline.Draw(where->offset, where->textureUnits, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+            
         }
         else
         {
-            // Path is not flat: use GL lines (temporarily)
-            Draw(where->offset, where->textureUnits, GL_LINE_STRIP, 0);
+            if ((*p).position == (*i).position)
+            {
+                if ((*i).kind == CURVE_TO)
+                {
+                    p=i;
+                }
+            }
+            else
+            {
+                outline.elements.push_back(*p);
+                p = i;
+            }
         }
+    }
+    if (!first)
+    {
+        outline.elements.push_back(*p);
+    }
+        
+    path_elements::reverse_iterator rbegin = outline.elements.rbegin();
+    path_elements::reverse_iterator rend = outline.elements.rend();
+    for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
+    {
+        j = i+1;
+        if (last)
+        {
+            shortenBy = getShortenByStyle(endStyle, where->lineWidth);
+                
+            switch ((*i).kind)
+            {
+            case LINE_TO:
+                // Last line
+                endKind = LINE_TO;
+                break;
+            case CURVE_TO:
+            case CURVE_CONTROL:
+                // Last curve or line
+                if ((*j).kind == CURVE_CONTROL)
+                    endKind = CURVE_TO;
+                else
+                    endKind = LINE_TO;
+                break;
+            case MOVE_TO:
+                endKind = MOVE_TO;
+                break;
+            }
+            endPoint = (*i).position;
+            endPointPtr = &(*i).position;
+            endHeading = (*j).position - (*i).position;
+            length = endHeading.Length();
+            if (length == 0)
+            {
+                endKind = MOVE_TO;
+            }
+            else
+            {
+                endHeading.Normalize();
+                endHeading *= shortenBy;
+                if (endKind == LINE_TO && length > shortenBy)
+                {
+                    *endPointPtr += endHeading;
+                }
+                else
+                {
+                    endPoint -= endHeading;
+                }
+            }
+            if (endKind != MOVE_TO)
+            {
+                last = false;
+            }
+        }
+    }
+        
+
+    // Draw outline of the path.
+    QPainterPath path;
+    if (extractQtPath(outline, path))
+    {
+        // Path is flat: use a QPainterPathStroker
+        QPainterPathStroker stroker;
+        stroker.setWidth(where->lineWidth);
+        stroker.setCapStyle(Qt::FlatCap);
+        stroker.setJoinStyle(Qt::RoundJoin);
+        stroker.setDashPattern(Qt::SolidLine);
+        QPainterPath stroke = stroker.createStroke(path);
+        outline.clear();
+        outline.addQtPath(stroke);
+
+        // Draw the endpoints
+        if (!first)
+        {
+            addEndpointToPath(startStyle,startPoint,startHeading,outline);
+        }
+        if (!last)
+        {
+            addEndpointToPath(endStyle, endPoint, endHeading, outline);
+        }
+        outline.Draw(where->offset, where->textureUnits,
+                     GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    }
+    else
+    {
+        // Path is not flat: use GL lines (temporarily)
+        Draw(where->offset, where->textureUnits, GL_LINE_STRIP, 0);
     }
 }
 
@@ -782,14 +791,16 @@ void GraphicPath::Draw(const Vector3 &offset,
                         Vector3 v1, v2, vn;
 
                         p0 = data[i].vertex;
-                        do {
+                        do
+                        {
                             ++i1;
                             p1 = data[(i + i1) % size].vertex;
                         }
                         while (p0 == p1 && i1 < size);
                         v1 = p1 - p0;
 
-                        do {
+                        do
+                        {
                             ++i2;
                             p2 = data[(i + i1 + i2) % size].vertex;
                         }
@@ -846,7 +857,7 @@ void GraphicPath::Draw(const Vector3 &offset,
                     glEnableClientState(GL_VERTEX_ARRAY);
                     glEnableClientState(GL_NORMAL_ARRAY);
 
-                    //Active texture coordinates for all used units
+                    // Activate texture coordinates for all used units
                     for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
                     {
                         if(texUnits & (1 << i))

@@ -45,10 +45,13 @@ struct GraphicPath : Shape
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
-    virtual void        Draw(Layout *where, GLenum tessel);
-    virtual void        Draw(const Vector3 &offset, uint64 texUnits,
-                             GLenum mode, GLenum tessel);
     virtual Box3        Bounds(Layout *layout);
+
+    // Internal drawing routines
+    void                Draw(Layout *where, GLenum tessel);
+    void                Draw(const Vector3 &offset, uint64 texUnits,
+                             GLenum mode, GLenum tessel);
+    void                DrawOutline(Layout *where);
 
     // Absolute coordinates
     GraphicPath&        moveTo(Point3 dst);

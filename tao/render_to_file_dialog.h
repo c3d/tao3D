@@ -49,7 +49,7 @@ public slots:
     virtual void failed();
 
 public:
-    QString      folder;
+    QString      folder, fileName;
     int          x, y;
     double       start, end;
     double       fps;

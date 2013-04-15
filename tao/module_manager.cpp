@@ -1166,6 +1166,9 @@ bool ModuleManager::loadNative(Context * /*context*/,
                         IFTRACE(modules)
                             debug() << "      Error (return code: "
                                     << st << ")\n";
+                        if (m_p->onLoadError != "")
+                            warnLibraryLoadError(+m_p->name, "",
+                                                 +m_p->onLoadError);
                         return false;
                     }
                 }

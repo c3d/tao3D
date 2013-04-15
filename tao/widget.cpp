@@ -3696,9 +3696,7 @@ void Widget::hideEvent(QHideEvent *event)
     // Use case: a primitive implemented in a module calls
     // ModuleApi::setCurrentWidget to show its own stuff: program refresh has
     // to continue normally.
-    // NOTE: There is at least the main window in the widget's stack,
-    // so we check if there is more stacked widgets.
-    if (taoWindow()->stackedWidget->count() > 1)
+    if (taoWindow()->hasStackedWidget())
         return;
 
     bool oldFs = hasAnimations();

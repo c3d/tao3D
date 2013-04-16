@@ -49,14 +49,14 @@ struct PerFontGlyphCache
 public:
     struct GlyphEntry
     {
-        typedef std::map<scale, uint> OutlineMap;
-
         Box             bounds;
         Box             texture;
         coord           advance;
         scale           scalingFactor;
         uint            interior;
-        OutlineMap      outlines;
+        uint            outline;
+        scale           outlineWidth;
+        scale           outlineDepth;
     };
 
 public:
@@ -94,6 +94,7 @@ public:
 
     void        Clear();
     void        CheckActiveLayout(Layout *where);
+    void        RemoveLayout()  { layout = NULL; }
 
     uint        Width()        { return packer.Width(); }
     uint        Height()       { return packer.Height(); }

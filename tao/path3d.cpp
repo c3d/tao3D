@@ -201,8 +201,8 @@ static inline Vector3 swapXY(Vector3 v)
 // ----------------------------------------------------------------------------
 {
     coord y = v.y;
-    v.y = v.x;
-    v.x = -y;
+    v.y = -v.x;
+    v.x = y;
     v.Normalize();
     return v;
 }
@@ -216,15 +216,6 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
     uint size = data.size();
     uint64 textureUnits = layout->textureUnits;
 
-    // Use the line color for the border, line width as radius
-    Color &line = layout->lineColor;
-    scale alpha = layout->visibility * line.alpha;
-    if (alpha > 0.0)
-    {
-        glPushAttrib(GL_CURRENT_BIT);
-        glColor4f(line.red, line.green, line.blue, alpha);
-    }
-    
     // scale radius = layout->lineWidth;
     // uint count = layout->extrudeCount;
             
@@ -249,9 +240,6 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
     }
 
     drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
-
-    if (alpha > 0.0)
-        glPopAttrib();
 }
 
 
@@ -816,7 +804,7 @@ void GraphicPath::Draw(Layout *layout,
 
     // Check if we need to tesselate polygon
     static GLUtesselator *tess = 0;
-    if (tesselation)
+    if (tesselation && tesselation != GL_DEPTH)
     {
         if (!tess)
         {
@@ -952,25 +940,39 @@ void GraphicPath::Draw(Layout *layout,
             {
                 scale depth = layout->extrudeDepth;
                 if (depth > 0.0)
+                {
+                    if (!tesselation)
+                    {
+                        // If no tesselation is required, draw back directly
+                        glPushMatrix();
+                        computeNormals(data);
+                        glTranslatef(0.0, 0.0, -depth);
+                        drawArrays(mode, textureUnits, data);
+                        glPopMatrix();
+                    }
                     extrude(layout, data, depth);
+                }
 
                 // Pass the data we had so far to OpenGL and clear it
-                if (tesselation)
+                if (tesselation != GL_DEPTH)
                 {
-                    gluTessBeginContour(tess);
-                    for (uint j = 0; j < size; j++)
+                    if (tesselation)
                     {
-                        VertexData *dynv = new VertexData(data[j]);
-                        polygon.allocated.push_back(dynv);
-                        gluTessVertex(tess, &dynv->vertex.x, dynv);
+                        gluTessBeginContour(tess);
+                        for (uint j = 0; j < size; j++)
+                        {
+                            VertexData *dynv = new VertexData(data[j]);
+                            polygon.allocated.push_back(dynv);
+                            gluTessVertex(tess, &dynv->vertex.x, dynv);
+                        }
+                        gluTessEndContour(tess);
                     }
-                    gluTessEndContour(tess);
-                }
-                else
-                {
-                    // If no tesselation is required, draw directly
-                    computeNormals(data);
-                    drawArrays(mode, textureUnits, data);
+                    else
+                    {
+                        // If no tesselation is required, draw directly
+                        computeNormals(data);
+                        drawArrays(mode, textureUnits, data);
+                    }
                 }
 
                 data.clear();

@@ -195,6 +195,19 @@ static void computeNormals(Vertices &data)
 }
 
 
+static inline Vector3 swapXY(Vector3 v)
+// ----------------------------------------------------------------------------
+//   Swap X and Y coordinates (rotate 90 degrees)
+// ----------------------------------------------------------------------------
+{
+    coord y = v.y;
+    v.y = v.x;
+    v.x = -y;
+    v.Normalize();
+    return v;
+}
+
+
 static void extrude(Layout *layout, Vertices &data, scale depth)
 // ----------------------------------------------------------------------------
 //   Extrude a given set of vertices
@@ -219,13 +232,15 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
     VertexData v;
     side.reserve(2*size);
     Vector3 normal;
+    Vector3 upV(0, 0, -1);
     for (uint s = 0; s < size; s++)
     {
         v = data[s];
         if (s+1 < size)
         {
-            normal = data[s+1].vertex - data[s].vertex;
-            normal.Normalize();
+            Vector3 delta = data[s+1].vertex - data[s].vertex;
+            if (delta.Length() > 1.0)
+                normal = swapXY(delta);
         }
         v.normal = normal;
         side.push_back(v);
@@ -233,7 +248,6 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
         side.push_back(v);
     }
 
-    computeNormals(side);
     drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
 
     if (alpha > 0.0)

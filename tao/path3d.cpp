@@ -38,7 +38,7 @@ typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
 typedef GraphicPath::EndpointStyle      EndpointStyle;
 
-scale GraphicPath::default_steps = 12;
+scale GraphicPath::default_steps = 1;
 
 #ifndef CALLBACK // Needed for Windows
 #define CALLBACK
@@ -204,10 +204,13 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
     uint64 textureUnits = layout->textureUnits;
 
     // Use the line color for the border, line width as radius
-    glPushAttrib(GL_CURRENT_BIT);
     Color &line = layout->lineColor;
     scale alpha = layout->visibility * line.alpha;
-    glColor4f(line.red, line.green, line.blue, alpha);
+    if (alpha > 0.0)
+    {
+        glPushAttrib(GL_CURRENT_BIT);
+        glColor4f(line.red, line.green, line.blue, alpha);
+    }
     
     // scale radius = layout->lineWidth;
     // uint count = layout->extrudeCount;
@@ -232,7 +235,9 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
 
     computeNormals(side);
     drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
-    glPopAttrib();
+
+    if (alpha > 0.0)
+        glPopAttrib();
 }
 
 
@@ -268,12 +273,6 @@ static void CALLBACK tessEnd(PolygonData *poly)
         Layout *layout = poly->layout;
         uint64 textureUnits = layout->textureUnits;
         drawArrays(poly->mode, textureUnits, data);
-
-        // Check if we need to extrude something
-        scale depth = layout->extrudeDepth;
-        if (depth > 0.0)
-            extrude(layout, data, depth);
-
         poly->vertices.clear();
      }
 }
@@ -937,6 +936,10 @@ void GraphicPath::Draw(Layout *layout,
             // Get size of previous elements
             if (uint size = data.size())
             {
+                scale depth = layout->extrudeDepth;
+                if (depth > 0.0)
+                    extrude(layout, data, depth);
+
                 // Pass the data we had so far to OpenGL and clear it
                 if (tesselation)
                 {

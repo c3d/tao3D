@@ -321,8 +321,9 @@ void TextSplit::DrawDirect(Layout *where)
                     glPopMatrix();
                     glCallList(glyph.interior);
                 }
-                if (setLineColor(where))
-                    glCallList(glyph.outline);
+                setLineColor(where); // May fail, keep fill color
+                glCallList(glyph.outline);
+                
             }
             else
             {

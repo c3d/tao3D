@@ -83,6 +83,7 @@ HEADERS +=     activity.h \
     gl_keepers.h \
     glyph_cache.h \
     group_layout.h \
+    http_ua.h \
     info_trash_can.h \
     init_cleanup.h \
     inspectordialog.h \
@@ -161,6 +162,7 @@ SOURCES +=     activity.cpp \
     gl_keepers.cpp \
     glyph_cache.cpp \
     group_layout.cpp \
+    http_ua.cpp \
     info_trash_can.cpp \
     init_cleanup.cpp \
     inspectordialog.cpp \

@@ -20,6 +20,7 @@
 //  (C) 2012 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
+#include "http_ua.h"
 #include "repository.h"
 #include "process.h"
 #include "tao.h"
@@ -37,7 +38,7 @@
 namespace Tao {
 
 
-class UpdateApplication : public QObject
+class UpdateApplication : public QObject, HttpUserAgent
 // ------------------------------------------------------------------------
 //   Asynchronously update the main application
 // ------------------------------------------------------------------------
@@ -66,7 +67,6 @@ private:
     QString  remoteVer();
     void     connectSignals(QNetworkReply *reply);
     void     setLastChecked(QDateTime when);
-    QString  userAgent();
 
 public slots:
     void     cancel();
@@ -81,11 +81,6 @@ private slots:
 
 private:
     State                    state;
-
-    // Tao info
-    double                   version;
-    QString                  edition;
-    QString                  target;
 
     // Update info
     double                   remoteVersion;

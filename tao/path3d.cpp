@@ -216,30 +216,90 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
     uint size = data.size();
     uint64 textureUnits = layout->textureUnits;
 
-    // scale radius = layout->lineWidth;
-    // uint count = layout->extrudeCount;
-            
+    scale radius = layout->lineWidth;
+    uint count = layout->extrudeCount;
+
     Vertices side;
     VertexData v;
-    side.reserve(2*size);
     Vector3 normal;
-    Vector3 upV(0, 0, -1);
-    for (uint s = 0; s < size; s++)
-    {
-        v = data[s];
-        if (s+1 < size)
-        {
-            Vector3 delta = data[s+1].vertex - data[s].vertex;
-            if (delta.Length() > 1.0)
-                normal = swapXY(delta);
-        }
-        v.normal = normal;
-        side.push_back(v);
-        v.vertex.z -= depth;
-        side.push_back(v);
-    }
 
-    drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+    if (radius > 0 && count > 0)
+    {
+        if (depth < 2 * radius)
+            radius = depth / 2;
+
+        Vertices bottom;
+
+        for (uint c = 0; c+1 < count; c++)
+        {
+            double a1  = M_PI/2 * c / count;
+            double ca1 = cos (a1);
+            double sa1 = sin (a1);
+            double a2  = M_PI/2 * (c+1) / count;
+            double ca2 = cos (a2);
+            double sa2 = sin (a2);
+
+            side.reserve (2*size);
+            bottom.reserve (2*size);
+            for (uint s = 0; s < size; s++)
+            {
+                v = data[s];
+                uint n = s+1 < size ? s+1 : s;
+                Vector3 next = data[n].vertex;
+                Vector3 delta = next - v.vertex;
+
+                if (delta.Length() > 1.0)
+                    normal = swapXY(delta);
+
+                VertexData v1 = v;
+                v1.vertex += normal * radius * sa1;
+                v1.vertex.z -= radius * (1 - ca1);
+
+                VertexData v2 = v;
+                v2.vertex += normal * radius * sa2;
+                v2.vertex.z -= radius * (1 - ca2);
+
+                Triangle t(v1.vertex, v2.vertex, next);
+                Vector3 faceNormal = t.computeNormal();
+                v1.normal = faceNormal;
+                v2.normal = faceNormal;
+                side.push_back(v1);
+                side.push_back(v2);
+
+                v1.vertex.z = -depth - v1.vertex.z;
+                v2.vertex.z = -depth - v2.vertex.z;
+                v1.normal.z *= -1;
+                v2.normal.z *= -1;
+                bottom.push_back(v1);
+                bottom.push_back(v2);
+            }
+
+            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+            drawArrays(GL_TRIANGLE_STRIP, textureUnits, bottom);
+            side.clear();
+            bottom.clear();
+        }
+    }
+    else
+    {
+        side.reserve(2*size);
+        for (uint s = 0; s < size; s++)
+        {
+            v = data[s];
+            if (s+1 < size)
+            {
+                Vector3 delta = data[s+1].vertex - data[s].vertex;
+                if (delta.Length() > 1.0)
+                    normal = swapXY(delta);
+            }
+            v.normal = normal;
+            side.push_back(v);
+            v.vertex.z -= depth;
+            side.push_back(v);
+        }
+
+        drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+    }
 }
 
 
@@ -588,13 +648,19 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     else
         tessel = 0;
 
-    if (setFillColor(where))
+    if (where->extrudeDepth > 0.0)
     {
-        Draw(where, where->offset, GL_POLYGON, tessel);
+        if (setFillColor(where))
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        setLineColor(where);
+        Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
     }
-    if (setLineColor(where))
+    else
     {
-        DrawOutline(where);
+        if (setFillColor(where))
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        if (setLineColor(where))
+            DrawOutline(where);
     }
 }
 
@@ -984,7 +1050,7 @@ void GraphicPath::Draw(Layout *layout,
     } // Loop on all elements
 
     // End of tesselation
-    if (tesselation)
+    if (tesselation && tesselation != GL_DEPTH)
     {
         gluTessEndPolygon(tess);
     }

@@ -329,7 +329,7 @@ void TextSplit::DrawDirect(Layout *where)
             {
                 if (setFillColor(where))
                     glCallList(glyph.interior);
-                if (setLineColor(where) && lw)
+                if (lw > 0.0 && setLineColor(where))
                     glCallList(glyph.outline);
             }
 

@@ -346,6 +346,16 @@ contains(DEFINES, CFG_NO_QTWEBKIT) {
 } else {
     QT += webkit
 }
+contains(DEFINES, CFG_NO_LICENSE_DOWNLOAD) {
+    !build_pass:message("[CFG_NO_LICENSE_DOWNLOAD] License download is disabled")
+} else {
+    HEADERS += \
+        license_download.h \
+        login_dialog.h
+    SOURCES += \
+        license_download.cpp \
+        login_dialog.cpp
+}
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 

@@ -20,6 +20,7 @@
 // ****************************************************************************
 #include "application.h"
 #include "http_ua.h"
+#include <process.h>
 #include "version.h"
 #include <QRegExp>
 

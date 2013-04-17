@@ -38,7 +38,7 @@ typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
 typedef GraphicPath::EndpointStyle      EndpointStyle;
 
-scale GraphicPath::default_steps = 1;
+scale GraphicPath::default_steps = 12;
 
 #ifndef CALLBACK // Needed for Windows
 #define CALLBACK
@@ -214,23 +214,35 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
 // ----------------------------------------------------------------------------
 {
     uint size = data.size();
+    if (!size)
+        return;
+
     uint64 textureUnits = layout->textureUnits;
 
     scale radius = layout->lineWidth;
-    uint count = layout->extrudeCount;
+    int count = layout->extrudeCount;
 
     Vertices side;
     VertexData v;
     Vector3 normal;
+
+    int vertexDebugInfo = count < 0;
+    if (vertexDebugInfo)
+        count = -count;
 
     if (radius > 0 && count > 0)
     {
         if (depth < 2 * radius)
             radius = depth / 2;
 
-        Vertices bottom;
+        // Compute the shape center
+        Vector3 center;
+        for (uint s = 0; s < size; s++)
+            center += data[s].vertex;
+        center /= size;
 
-        for (uint c = 0; c+1 < count; c++)
+        Vertices bottom;
+        for (int c = 0; c < count; c++)
         {
             double a1  = M_PI/2 * c / count;
             double ca1 = cos (a1);
@@ -239,17 +251,20 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
             double ca2 = cos (a2);
             double sa2 = sin (a2);
 
-            side.reserve (2*size);
-            bottom.reserve (2*size);
+            Vector3 last = data[size-1].vertex;
+            Vector3 lastNormal = last - center;
+            lastNormal.Normalize();
+            last += lastNormal * radius * sa1;
+            last.z -= radius * (1 - ca1);
+
+            side.reserve (2*size+2);
+            bottom.reserve (2*size+2);
+
             for (uint s = 0; s < size; s++)
             {
                 v = data[s];
-                uint n = s+1 < size ? s+1 : s;
-                Vector3 next = data[n].vertex;
-                Vector3 delta = next - v.vertex;
-
-                if (delta.Length() > 1.0)
-                    normal = swapXY(delta);
+                Vector3 normal = v.vertex - center;
+                normal.Normalize();
 
                 VertexData v1 = v;
                 v1.vertex += normal * radius * sa1;
@@ -259,12 +274,34 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
                 v2.vertex += normal * radius * sa2;
                 v2.vertex.z -= radius * (1 - ca2);
 
-                Triangle t(v1.vertex, v2.vertex, next);
+                Triangle t(v1.vertex, v2.vertex, last);
                 Vector3 faceNormal = t.computeNormal();
+
                 v1.normal = faceNormal;
                 v2.normal = faceNormal;
                 side.push_back(v1);
                 side.push_back(v2);
+
+                if (vertexDebugInfo)
+                {
+                    glPushAttrib(GL_CURRENT_BIT);
+                    glColor4f(1,0,1.0 * s / size,1);
+                    glLineWidth(1);
+                    glBegin(GL_LINES);
+                    Vector3 center = (v1.vertex + v2.vertex + last) / 3;
+                    Vector3 nv = center + 15 * faceNormal;
+                    glVertex3f(center.x, center.y, center.z);
+                    glVertex3f(nv.x, nv.y, nv.z);
+                    glEnd();
+                    glColor4f(0,1.0 * s / size,1,1);
+                    glPointSize(5);
+                    glBegin(GL_POINTS);
+                    glVertex3f(v1.vertex.x, v1.vertex.y, v1.vertex.z);
+                    glVertex3f(v2.vertex.x, v2.vertex.y, v2.vertex.z);
+                    glVertex3f(last.x, last.y, last.z);
+                    glEnd();
+                    glPopAttrib();
+                }
 
                 v1.vertex.z = -depth - v1.vertex.z;
                 v2.vertex.z = -depth - v2.vertex.z;
@@ -272,12 +309,56 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
                 v2.normal.z *= -1;
                 bottom.push_back(v1);
                 bottom.push_back(v2);
+
+                if (vertexDebugInfo)
+                {
+                    glPushAttrib(GL_CURRENT_BIT);
+                    glColor4f(1,0,1.0 * s / size,1);
+                    glLineWidth(1);
+                    glBegin(GL_LINES);
+                    last.z = -depth - last.z;
+                    faceNormal = v2.normal;
+                    Vector3 center = (v1.vertex + v2.vertex + last) / 3;
+                    Vector3 nv = center + 15 * faceNormal;
+                    glVertex3f(center.x, center.y, center.z);
+                    glVertex3f(nv.x, nv.y, nv.z);
+                    glEnd();
+                    glColor4f(0,1.0 * s / size,1,1);
+                    glPointSize(5);
+                    glBegin(GL_POINTS);
+                    glVertex3f(v1.vertex.x, v1.vertex.y, v1.vertex.z);
+                    glVertex3f(v2.vertex.x, v2.vertex.y, v2.vertex.z);
+                    glVertex3f(last.x, last.y, last.z);
+                    glEnd();
+                    glPopAttrib();
+                }
+
+                last = v1.vertex;
             }
 
             drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
             drawArrays(GL_TRIANGLE_STRIP, textureUnits, bottom);
             side.clear();
             bottom.clear();
+        }
+
+        if (depth > 2 * radius)
+        {
+            side.reserve(2*size+2);
+            for (uint s = 0; s < size; s++)
+            {
+                v = data[s];
+                Vector3 normal = v.vertex - center;
+                normal.Normalize();
+                v.normal = normal;
+                v.vertex += normal * radius;
+                v.vertex.z = -radius;
+                side.push_back(v);
+                v.vertex.z = radius-depth;
+                side.push_back(v);
+            }
+
+            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
         }
     }
     else

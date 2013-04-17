@@ -226,9 +226,9 @@ struct ExtrudeCount : Attribute
 //    Record the extrude bezel when drawing elements
 // ----------------------------------------------------------------------------
 {
-    ExtrudeCount(uint c) : Attribute(), count(c) {}
+    ExtrudeCount(int c) : Attribute(), count(c) {}
     virtual void Draw(Layout *where);
-    float count;
+    int count;
 };
 
 

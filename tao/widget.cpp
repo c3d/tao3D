@@ -7824,7 +7824,7 @@ Tree_p Widget::extrudeRadius(Tree_p self, float radius)
 }
 
 
-Tree_p Widget::extrudeCount(Tree_p self, uint count)
+Tree_p Widget::extrudeCount(Tree_p self, int count)
 // ----------------------------------------------------------------------------
 //   Set the extrude count
 // ----------------------------------------------------------------------------

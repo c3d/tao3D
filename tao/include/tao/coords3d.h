@@ -259,17 +259,14 @@ struct Triangle
     Triangle(const Triangle& t) : v1(t.v1), v2(t.v2), v3(t.v3) {}
 
 
-    Vector3& computeNormal()
+    Vector3 computeNormal()
     // ------------------------------------------------------------------------
     //    Compute normal of the triangle
     // ------------------------------------------------------------------------
     {
-        Vector3 a;
-        Vector3 b;
+        Vector3 a = v1 - v2;
+        Vector3 b = v2 - v3;
         Vector3 normal;
-
-        a = v1 - v2;
-        b = v2 - v3;
 
         if(a == b)
             normal = Vector3(0.0, 0.0, -1.0);

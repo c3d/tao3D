@@ -106,7 +106,7 @@ public:
     scale               visibility;
     scale               extrudeDepth;
     scale               extrudeRadius;
-    uint                extrudeCount;
+    int                 extrudeCount;
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;

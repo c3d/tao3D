@@ -113,21 +113,9 @@ void FillTexture::Draw(Layout *where)
 //   Remember the texture in the layout
 // ----------------------------------------------------------------------------
 {
+    (void) where;
     GL.BindTexture(glType, glName);
     GL.Enable(glType);
-
-    if (glName && glType == GL_TEXTURE_2D)
-    {
-        // Set min and mag filter values (even if texture is not cached)
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, where->minFilter);
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, where->magFilter);
-
-        // Set wrap values
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                        where->wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                        where->wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-    }
 }
 
 
@@ -146,12 +134,11 @@ void TextureWrap::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
+    (void) where;
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
                     s ? GL_REPEAT : GL_CLAMP_TO_EDGE);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
                     t ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-    where->wrapS = s;
-    where->wrapT = t;
 }
 
 
@@ -170,8 +157,8 @@ void TextureMinFilter::Draw(Layout *where)
 //   Replay a texture minifiying filter
 // ----------------------------------------------------------------------------
 {
+    (void) where;
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-    where->minFilter = filter;
 }
 
 
@@ -180,8 +167,8 @@ void TextureMagFilter::Draw(Layout *where)
 //   Replay a texture magnigication filter
 // ----------------------------------------------------------------------------
 {
+    (void) where;
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-    where->magFilter = filter;
 }
 
 

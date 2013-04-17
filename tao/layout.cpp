@@ -52,8 +52,6 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      minFilter(PerformancesPage::texture2DMinFilter()),
-      magFilter(PerformancesPage::texture2DMagFilter()),
       lightId(GL_LIGHT0), currentLights(0),
       perPixelLighting(0),
       programId(0),
@@ -63,8 +61,7 @@ LayoutState::LayoutState()
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
       hasTransform(false), hasMaterial(false), hasDepthAttr(false),
-      hasClipPlanes(false), isSelection(false), groupDrag(false),
-      wrapS(false), wrapT(false)
+      hasClipPlanes(false), isSelection(false), groupDrag(false)
 {}
 
 
@@ -80,7 +77,6 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        minFilter(o.minFilter), magFilter(o.magFilter),
         lightId(o.lightId),
         currentLights(o.currentLights),
         perPixelLighting(o.perPixelLighting),
@@ -97,8 +93,7 @@ LayoutState::LayoutState(const LayoutState &o)
         hasLighting(false),
         hasBlending(false),
         hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
-        hasClipPlanes(false), isSelection(o.isSelection), groupDrag(false),
-        wrapS(o.wrapS), wrapT(o.wrapT)
+        hasClipPlanes(false), isSelection(o.isSelection), groupDrag(false)
 {}
 
 
@@ -760,11 +755,6 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
-
-    minFilter        = where->minFilter;
-    magFilter        = where->magFilter;
-    wrapS            = where->wrapS;
-    wrapT            = where->wrapT;
 
     lightId          = where->lightId;
     currentLights    = where->currentLights;

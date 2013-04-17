@@ -2170,6 +2170,13 @@ void OpenGLState::BindTexture(GLenum type, GLuint texture)
     ts.type = type;
     ts.id   = texture;
     ts.unit = activeTexture;
+
+    // Set current values of texture settings (Compatibility with XL language, Refs #2953)
+    ts.minFilt = tunit.minFilt;
+    ts.magFilt = tunit.magFilt;
+    ts.wrapR   = tunit.wrapR;
+    ts.wrapS   = tunit.wrapS;
+    ts.wrapT   = tunit.wrapT;
 }
 
 
@@ -2179,23 +2186,29 @@ void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
 // ----------------------------------------------------------------------------
 {
     TextureState &ts = ActiveTexture();
+    TextureUnitState &tus = ActiveTextureUnit();
     Q_ASSERT (ts.type == type);
     switch(pname)
     {
     case GL_TEXTURE_MIN_FILTER:
         ts.minFilt = param;
+        tus.minFilt = param;  // Update min filter for future textures
         break;
     case GL_TEXTURE_MAG_FILTER:
         ts.magFilt = param;
+        tus.magFilt = param;  // Update mag filter for future textures
         break;
     case GL_TEXTURE_WRAP_S:
         ts.wrapS = param == GL_REPEAT;
+        tus.wrapS = ts.wrapS; // Update wrap for future textures
         break;
     case GL_TEXTURE_WRAP_T:
         ts.wrapT = param == GL_REPEAT;
+        tus.wrapT = ts.wrapT; // Update wrap for future textures
         break;
     case GL_TEXTURE_WRAP_R:
         ts.wrapR = param == GL_REPEAT;
+        tus.wrapR = ts.wrapR; // Update wrap for future textures
         break;
     default:
         Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
@@ -2904,6 +2917,17 @@ bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiv
 //
 // ============================================================================
 
+TextureUnitState::TextureUnitState()
+// ----------------------------------------------------------------------------
+//   Initialize a texture unit state
+// ----------------------------------------------------------------------------
+    : texture(0), target(GL_TEXTURE_2D), mode(GL_MODULATE), matrix(),
+      tex1D(false), tex2D(false), tex3D(false), texCube(false),
+      minFilt(GL_NEAREST_MIPMAP_LINEAR),
+      magFilt(GL_LINEAR),
+      wrapS(true), wrapT(true), wrapR(true)
+{}
+
 void TextureUnitState::Sync(TextureUnitState &ns, TextureState &ot)
 // ----------------------------------------------------------------------------
 //   Sync the state of a given texture unit to the new state
@@ -3094,11 +3118,10 @@ TextureState::TextureState(GLuint id)
 // ----------------------------------------------------------------------------
   : type(GL_TEXTURE_2D),
     id(id), width(0), height(0), depth(0),
+    active(false),
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
-    active(false),
     wrapS(true), wrapT(true), wrapR(true),
-    mipmap(false),
     unit(0), mode(GL_MODULATE)
 {}
 

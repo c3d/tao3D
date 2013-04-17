@@ -7610,6 +7610,7 @@ Tree_p Widget::textureMagFilter(Tree_p self, text filter)
     return XL::xl_true;
 }
 
+
 Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation
@@ -7634,6 +7635,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     layout->hasTransform = hadTransform;
     return result;
 }
+
 
 Integer* Widget::textureWidth(Tree_p self)
 // ----------------------------------------------------------------------------

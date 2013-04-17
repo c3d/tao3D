@@ -186,10 +186,7 @@ struct TextureUnitState
 //    The state of a single texture unit
 // ----------------------------------------------------------------------------
 {
-    TextureUnitState()
-        : texture(0), target(GL_TEXTURE_2D), mode(GL_MODULATE), matrix(),
-          tex1D(false), tex2D(false), tex3D(false), texCube(false) {}
-
+    TextureUnitState();
     void Set(GLenum cap, bool enabled)
     {
         switch (cap)
@@ -223,6 +220,13 @@ struct TextureUnitState
     bool        tex2D   : 1;
     bool        tex3D   : 1;
     bool        texCube : 1;
+
+    // REVISIT: The following are here to assure a compatibility with
+    // the XL language (these settings can be setted without binding textures)
+    GLenum      minFilt, magFilt;
+    bool        wrapS  : 1;
+    bool        wrapT  : 1;
+    bool        wrapR  : 1;
 };
 
 
@@ -335,10 +339,9 @@ struct TextureState
     {
         return (type == o.type && id == o.id &&
                 /* ignore unit, width and height on purpose */
-                minFilt == o.minFilt && magFilt == o.magFilt &&
                 active == o.active &&
-                wrapS == o.wrapS && wrapT == o.wrapT && wrapR == o.wrapR &&
-                mipmap == o.mipmap);
+                minFilt == o.minFilt && magFilt == o.magFilt &&
+                wrapS == o.wrapS && wrapT == o.wrapT && wrapR == o.wrapR);
     }
     bool operator!=(const TextureState &o) { return !operator==(o); }
     void Sync(TextureState &newState);
@@ -347,12 +350,11 @@ public:
     GLenum      type;
     GLuint      id;
     GLuint      width, height, depth;
-    GLenum      minFilt, magFilt;
     bool        active : 1;
+    GLenum      minFilt, magFilt;
     bool        wrapS  : 1;
     bool        wrapT  : 1;
     bool        wrapR  : 1;
-    bool        mipmap : 1;
 
     // REVISIT: The following are here temporarily (for Layout use).
     // They really belong to TextureUnit, which is done for the OpenGLState.

@@ -2924,10 +2924,22 @@ TextureUnitState::TextureUnitState()
 // ----------------------------------------------------------------------------
     : texture(0), target(GL_TEXTURE_2D), mode(GL_MODULATE), matrix(),
       tex1D(false), tex2D(false), tex3D(false), texCube(false),
-      minFilt(PerformancesPage::texture2DMinFilter()),
-      magFilt(PerformancesPage::texture2DMagFilter()),
       wrapS(true), wrapT(true), wrapR(true)
-{}
+{
+    // The default values have to depend from the preferences
+    if(PerformancesPage::texture2DMipmap())
+    {
+        // If mipmap enable, then get min and mag filter values
+        minFilt = PerformancesPage::texture2DMinFilter();
+        magFilt = PerformancesPage::texture2DMagFilter();
+    }
+    else
+    {
+        // Otherwise set default values
+        minFilt = GL_LINEAR;
+        magFilt = GL_LINEAR;
+    }
+}
 
 void TextureUnitState::Sync(TextureUnitState &ns, TextureState &ot)
 // ----------------------------------------------------------------------------

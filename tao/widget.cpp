@@ -2468,9 +2468,7 @@ void Widget::setupGL()
 
     // Disable all texture units
     GL.ActivateTextureUnits(0);
-    GL.ActiveTexture(GL_TEXTURE0);
-    GL.BindTexture(GL_TEXTURE_2D, 0);
-    GL.Disable(GL_TEXTURE_2D);
+    GL.ActiveTexture(GL_TEXTURE0); // Reset the default active texture
     GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
     GL.Disable(GL_CULL_FACE);
     GL.ShadeModel(GL_SMOOTH);

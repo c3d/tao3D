@@ -28,6 +28,7 @@
 #include "texture_cache.h"
 #include "tao_main.h"
 #include "module_manager.h"
+#include "preferences_pages.h"
 #include <cassert>
 #include <ostream>
 
@@ -2923,8 +2924,8 @@ TextureUnitState::TextureUnitState()
 // ----------------------------------------------------------------------------
     : texture(0), target(GL_TEXTURE_2D), mode(GL_MODULATE), matrix(),
       tex1D(false), tex2D(false), tex3D(false), texCube(false),
-      minFilt(GL_NEAREST_MIPMAP_LINEAR),
-      magFilt(GL_LINEAR),
+      minFilt(PerformancesPage::texture2DMinFilter()),
+      magFilt(PerformancesPage::texture2DMagFilter()),
       wrapS(true), wrapT(true), wrapR(true)
 {}
 

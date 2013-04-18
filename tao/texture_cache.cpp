@@ -256,11 +256,6 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
         if (cached->load())
         {
             insert(cached, memLRU);
-            if (GLSize < maxGLSize)
-            {
-                cached->transfer();
-                insert(cached, GL_LRU);
-            }
             printStatistics();
         }
     }
@@ -326,12 +321,6 @@ void TextureCache::reload(CachedTexture *tex)
     {
         insert(tex, memLRU);
         printStatistics();
-
-        if (GLSize > maxGLSize)
-            purgeGLMem();
-
-        tex->transfer();
-        insert(tex, GL_LRU);
     }
 }
 
@@ -759,6 +748,7 @@ void CachedTexture::transfer()
             GL.BindTexture(GL_TEXTURE_2D, id);
             if (mipmap)
                 GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+            TextureCache::instance()->setMinMagFilters(id);
             GL.CompressedTexImage2D(GL_TEXTURE_2D, 0, image.fmt, width, height,
                                     0, image.byteCount(), image.compressed);
             if (mipmap)
@@ -777,6 +767,7 @@ void CachedTexture::transfer()
             GL.BindTexture(GL_TEXTURE_2D, id);
             if (mipmap)
                 GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+            TextureCache::instance()->setMinMagFilters(id);
             GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
                           width, height, 0, GL_RGBA,
                           GL_UNSIGNED_BYTE, texture.bits());
@@ -840,6 +831,7 @@ void CachedTexture::transfer()
         GL.BindTexture(GL_TEXTURE_2D, id);
         if (mipmap)
             GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+        TextureCache::instance()->setMinMagFilters(id);
         GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
                      width, height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());

@@ -114,8 +114,12 @@ void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
-    GL.BindTexture(glType, glName);
     GL.Enable(glType);
+    CachedTexture *cached = NULL;
+    QSharedPointer<TextureCache> cache = TextureCache::instance();
+    cache->bind(glName);
+    if(!cached)
+        GL.BindTexture(glType, glName);
 }
 
 

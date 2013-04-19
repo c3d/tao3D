@@ -28,6 +28,7 @@
 #include "license.h"
 #include "application.h"
 #include "widget.h"
+#include "gl_keepers.h"
 #include <QtEndian>
 
 namespace Tao {
@@ -886,6 +887,10 @@ void CachedTexture::purgeGL()
 
     if (Tao::OpenGLState::State())
     {
+        // Assure we restore a correct GL state after purge.
+        // (Purge phase is often out of the evaluation phase)
+        GLAllStateKeeper save;
+
         // Resize the texture as a 1x1 pixel. Resizing at 0x0 triggers a bug in
         // the Nvidia driver on MacOS Mountain Lion (#2622)
         static uint32 zero = 0;

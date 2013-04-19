@@ -28,6 +28,7 @@
 #include <iostream>
 #include "text_drawing.h"
 #include "application.h"
+#include "preferences_pages.h"
 
 TAO_BEGIN
 
@@ -117,7 +118,7 @@ void FillTexture::Draw(Layout *where)
     GL.Enable(glType);
     CachedTexture *cached = NULL;
     QSharedPointer<TextureCache> cache = TextureCache::instance();
-    cache->bind(glName);
+    cached = cache->bind(glName);
     if(!cached)
         GL.BindTexture(glType, glName);
 }
@@ -162,6 +163,16 @@ void TextureMinFilter::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
+    if ( !PerformancesPage::texture2DMipmap() &&
+         (filter == GL_NEAREST_MIPMAP_NEAREST ||
+          filter == GL_LINEAR_MIPMAP_NEAREST  ||
+          filter == GL_NEAREST_MIPMAP_LINEAR  ||
+          filter == GL_LINEAR_MIPMAP_LINEAR))
+    {
+        // Fallback to GL_LINEAR when a mipmap filter is requested but texture
+        // was not loaded with mipmapping enabled
+        filter = GL_LINEAR;
+    }
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
 

@@ -107,6 +107,11 @@ void FrameInfo::resize(uint w, uint h)
     // with 4 samples per pixel. This cannot be used directly as texture.
     QGLFramebufferObjectFormat format;
     format.setInternalTextureFormat(this->format);
+
+    // Enable mipmap for fbo
+    if(PerformancesPage::texture2DMipmap())
+        format.setMipmap(true);
+
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
     if (canMultiSample)
     {

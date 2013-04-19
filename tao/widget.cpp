@@ -1279,7 +1279,7 @@ Tree_p Widget::saveAndEvaluate(Context* context, Tree_p code)
 // ----------------------------------------------------------------------------
 {
     // Save GL state before evaluate
-    GLStateKeeper save;
+    GLAllStateKeeper save;
 
     // Evaluate context
     return context->Evaluate(code);

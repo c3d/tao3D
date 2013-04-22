@@ -478,10 +478,7 @@ QString LicenseDownload::Source::defaultUrlStr()
 //   The URL to use when not specified
 // ----------------------------------------------------------------------------
 {
-//    return "http://taodyne.com/licenses/gen.php?"
-//           "bundle=$bundle&hostid=$hostid";
-    return "http://192.168.77.98/licenses/gen.php?"
-            "bundle=$bundle&hostid=$hostid";
+    return "http://taodyne.com/licenses/gen.php?bundle=$bundle&hostid=$hostid";
 }
 
 

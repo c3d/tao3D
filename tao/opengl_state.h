@@ -697,6 +697,7 @@ struct OpenGLState : GraphicState
     virtual uint ActiveTextureUnitIndex();
     virtual uint ActiveTextureUnitsCount();
     virtual uint64 ActiveTextureUnits();
+    virtual void HasPixelBlur(bool enable);
 
     // Lighting
     void SetLight(GLenum light, bool active);

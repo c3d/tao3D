@@ -49,10 +49,6 @@ public:
     static bool         setShader(Layout *where);
     static bool         setFillColor(Layout *where);
     static bool         setLineColor(Layout *where);
-
-private:
-    static void bindTexture(TextureState& texture, bool hasPixelBlur);
-    static void unbindTexture(TextureState& texture);
 };
 
 struct Shape2 : Shape

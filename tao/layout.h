@@ -85,7 +85,6 @@ public:
     // For optimized drawing, we keep track of what changes
     uint64              hasTextureMatrix; // 64 texture units
     bool                printing        : 1;
-    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                has3D           : 1;
     bool                hasAttributes   : 1;

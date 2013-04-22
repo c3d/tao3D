@@ -255,6 +255,7 @@ struct GraphicState
     virtual uint ActiveTextureUnitIndex() = 0;
     virtual uint ActiveTextureUnitsCount() = 0;
     virtual uint64 ActiveTextureUnits() = 0;
+    virtual void HasPixelBlur(bool enable) = 0;
 
     // Lighting
     virtual void Light(GLenum light, GLenum pname, const float* params) = 0;

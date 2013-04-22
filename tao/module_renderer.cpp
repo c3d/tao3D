@@ -207,7 +207,7 @@ bool ModuleRenderer::HasPixelBlur(bool enable)
 //   Enable or deactivate pixel blur.
 // ----------------------------------------------------------------------------
 {
-    currentLayout->hasPixelBlur = enable;
+    GL.HasPixelBlur(enable);
     return true;
 }
 

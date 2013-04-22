@@ -69,7 +69,7 @@ void ResetTransform::Draw(Layout *where)
 {
     Widget *widget = where->Display();
     widget->resetModelviewMatrix();
-    where->hasPixelBlur = false;
+    GL.HasPixelBlur(false);
     where->has3D = false;
 }
 
@@ -84,7 +84,7 @@ void Rotation::Draw(Layout *where)
     amount = fmod(amount, 360.0);
     double amod90 = fmod(amount, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
-        where->hasPixelBlur = true;
+        GL.HasPixelBlur(true);
     if (amount != 0.0)
     {
         if (xaxis != 0.0 || yaxis != 0.0)
@@ -113,9 +113,10 @@ void Translation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
+    (void) where;
     GL.Translate(xaxis, yaxis, zaxis);
     if (zaxis != 0.0)
-        where->hasPixelBlur = true;
+        GL.HasPixelBlur(true);
 }
 
 
@@ -135,7 +136,7 @@ void Scale::Draw(Layout *where)
         GL.Scale(xaxis, yaxis, zaxis);
     }
     if (xaxis != 1.0 || yaxis != 1.0)
-        where->hasPixelBlur = true;
+        GL.HasPixelBlur(true);
     if (xaxis == yaxis && xaxis == zaxis)
         where->planarScale *= xaxis;
     else

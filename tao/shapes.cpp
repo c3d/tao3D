@@ -57,65 +57,6 @@ bool Shape::setTexture(Layout *where)
 }
 
 
-void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
-// ----------------------------------------------------------------------------
-//    Bind the given texture
-// ----------------------------------------------------------------------------
-{
-    GL.ActiveTexture(GL_TEXTURE0 + texture.unit);
-    GL.Enable(texture.type);
-    CachedTexture *cached = NULL;
-    if (texture.type == GL_TEXTURE_2D)
-    {
-        QSharedPointer<TextureCache> cache = TextureCache::instance();
-        cached = cache->bind(texture.id);
-        if (cached)
-        {
-            // Do not call GL.TexParameter directly for min filter, because we
-            // need to deal with the case where minFilt would need mipmapping
-            // but texture has no mipmap
-            cache->setMinFilter(texture.id, texture.minFilt);
-            GL.TexParameter(texture.type, GL_TEXTURE_MAG_FILTER,
-                             texture.magFilt);
-        }
-    }
-    if (!cached)
-    {
-        GL.BindTexture(texture.type, texture.id);
-        GLint min, mag;
-        if (hasPixelBlur)
-            min = mag = GL_LINEAR;
-        else
-            min = mag = GL_NEAREST;
-        GL.TexParameter(texture.type, GL_TEXTURE_MAG_FILTER, mag);
-        GL.TexParameter(texture.type, GL_TEXTURE_MIN_FILTER, min);
-    }
-    GL.TexEnv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
-
-    // Wrap if texture 2D
-    if(texture.type == GL_TEXTURE_2D)
-    {
-        GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-        GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-    }
-
-    if (TaoApp->hasGLMultisample)
-        GL.Enable(GL_MULTISAMPLE);
-}
-
-
-void Shape::unbindTexture(TextureState& texture)
-// ----------------------------------------------------------------------------
-//    Unbind the given texture
-// ----------------------------------------------------------------------------
-{
-    GL.ActiveTexture(GL_TEXTURE0 + texture.unit);
-    GL.BindTexture(texture.type, 0);
-    GL.Disable(texture.type);
-}
-
 
 void Shape::enableTexCoord(double *texCoord, uint64 mask)
 // ----------------------------------------------------------------------------

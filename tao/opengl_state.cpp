@@ -147,6 +147,7 @@ OpenGLState::OpenGLState()
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER), shaderProgram(0),
       activeTexture(GL_TEXTURE0), clientActiveTexture(GL_TEXTURE0),
+      hasPixelBlur(false),
 
 #define GS(type, name)
 #define GFLAG(name)             glflag_##name(false),
@@ -2407,6 +2408,22 @@ uint64 OpenGLState::ActiveTextureUnits()
 }
 
 
+void OpenGLState::HasPixelBlur(bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable use of blurring on textures
+// ----------------------------------------------------------------------------
+{
+    CHANGE(hasPixelBlur, enable);
+
+    // Set texture units as dirty if we need pixel blur
+    if(hasPixelBlur_isDirty)
+    {
+        textureUnits.dirty = 1 << textureUnits.units.size();
+        textureUnits_isDirty = true;
+        hasPixelBlur_isDirty = false;
+    }
+}
+
 
 // ============================================================================
 //
@@ -2901,7 +2918,6 @@ bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiv
     // We are done with current texture changes
     dirty = ns.dirty = 0;
 
-
     // As we have used glClientActiveTexture, state needs
     // to be restored to the last correct value
     if(lastUnit != clientActiveUnit)
@@ -3157,6 +3173,13 @@ void TextureState::Sync(TextureState &ts)
                 OpenGLState::ShowErrors(#name); \
         }                                       \
     } while(0)
+
+    // Overload filter settings if pixel blur is not required
+    if(! GL.hasPixelBlur)
+    {
+        ts.minFilt = GL_NEAREST;
+        ts.magFilt = GL_NEAREST;
+    }
 
     type = ts.type;
     SYNC_TEXTURE(id, glBindTexture(type, id));

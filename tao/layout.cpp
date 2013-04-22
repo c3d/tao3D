@@ -58,7 +58,7 @@ LayoutState::LayoutState()
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
       hasTextureMatrix(false), printing(false),
-      hasPixelBlur(false), hasMatrix(false), has3D(false),
+      hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
       hasTransform(false), hasMaterial(false), hasDepthAttr(false),
       hasClipPlanes(false), isSelection(false), groupDrag(false)
@@ -88,7 +88,7 @@ LayoutState::LayoutState(const LayoutState &o)
         model(o.model),
         hasTextureMatrix(o.hasTextureMatrix),
         printing(o.printing),
-        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
+        hasMatrix(o.hasMatrix), has3D(o.has3D),
         hasAttributes(o.hasAttributes),
         hasLighting(false),
         hasBlending(false),
@@ -768,7 +768,6 @@ void LayoutState::InheritState(LayoutState *where)
     model            = where->model;
 
     has3D            = where->has3D;
-    hasPixelBlur     = where->hasPixelBlur;
     groupDrag        = where->groupDrag;
     hasMaterial      = where->hasMaterial;
     hasTransform     = where->hasTransform;

@@ -223,7 +223,7 @@ void TextSplit::DrawCached(Layout *where)
         // Bind the glyph texture
         GL.BindTexture(GL_TEXTURE_2D, glyphs.Texture());
         GLenum blur = GL_LINEAR;
-        if (!where->hasPixelBlur &&
+        if (!GL.hasPixelBlur &&
             font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
             blur = GL_NEAREST;
         GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);

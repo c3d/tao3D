@@ -401,7 +401,7 @@ bool LicenseDownload::Source::parseEncoded(QString auth)
 
     QString invalid = tr("Invalid authorization string @%1:%2").arg(__FILE__);
     QByteArray ba = QByteArray::fromBase64(auth.toUtf8());
-    int sz = ba.size();
+    unsigned int sz = ba.size();
     if (sz < 3)
     {
         errorString = invalid.arg(__LINE__);

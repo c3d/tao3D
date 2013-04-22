@@ -395,6 +395,9 @@ LicenseDownload::Source::Source(QString bundle, QString user, QString password,
 
 
 bool LicenseDownload::Source::parseEncoded(QString auth)
+// ----------------------------------------------------------------------------
+//   Extract urlStr, bundle, user etc. from ancoded string 'auth'
+// ----------------------------------------------------------------------------
 {
     IFTRACE(lic)
         debug() << "parseEncoded(" << +auth << ")\n";

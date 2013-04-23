@@ -91,7 +91,7 @@ void FrameInfo::resize(uint w, uint h)
     // If the size is too big, we shouldn't use multisampling, it crashes
     // on MacOSX
     const uint SAMPLES = 4;
-    const uint maxTextureSize = GL.MaxTextureSize() / SAMPLES;
+    const uint maxTextureSize = GL.MaxTextureSize();
     bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit();
     if (w >= maxTextureSize || h >= maxTextureSize)
     {
@@ -308,6 +308,7 @@ void FrameInfo::blit()
         // Use direct GL calls here because QGLFrameBufferObject did, and
         // we need to do each call once
         glBindTexture(GL_TEXTURE_2D, textureFBO->texture());
+        GL.BindTexture(GL_TEXTURE_2D, textureFBO->texture());
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 }

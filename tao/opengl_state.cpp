@@ -2418,9 +2418,13 @@ void OpenGLState::HasPixelBlur(bool enable)
     // Set texture units as dirty if we need pixel blur
     if(hasPixelBlur_isDirty)
     {
-        textureUnits.dirty = 1 << textureUnits.units.size();
+        // Set all units as dirty in order to apply pixel blur
+        // on each texture
+        for(uint i = 0; i < textureUnits.units.size(); i++)
+            textureUnits.dirty |= 1ULL << i;
+
         textureUnits_isDirty = true;
-        hasPixelBlur_isDirty = false;
+        hasPixelBlur_isDirty = false; // Done with pixel blur change
     }
 }
 

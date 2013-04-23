@@ -174,7 +174,6 @@ void TextureMinFilter::Draw(Layout *where)
         filter = GL_LINEAR;
     }
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-    GL.HasPixelBlur(true); // Enable pixel blur
 }
 
 
@@ -185,7 +184,6 @@ void TextureMagFilter::Draw(Layout *where)
 {
     (void) where;
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-    GL.HasPixelBlur(true); // Enable pixel blur
 }
 
 

@@ -314,6 +314,13 @@ void OpenGLState::Sync(uint64 which)
         }                                               \
     } while(0)
 
+    SYNC(hasPixelBlur,
+         // Set all units as dirty in order to apply pixel blur
+         // on each texture
+         for(uint i = 0; i < textureUnits.units.size(); i++)
+             textureUnits.dirty |= 1ULL << i;
+         textureUnits_isDirty = true);
+
     // Current texture unit, then texture bindings - ORDER MATTERS
     SYNC(activeTexture, glActiveTexture(activeTexture));
     SYNC(textureUnits, currentTextureUnits.Sync(textures, currentTextures, textureUnits));
@@ -2195,10 +2202,12 @@ void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
     case GL_TEXTURE_MIN_FILTER:
         ts.minFilt = param;
         tus.minFilt = param;  // Update min filter for future textures
+        HasPixelBlur(true);   // Enable pixel blur
         break;
     case GL_TEXTURE_MAG_FILTER:
         ts.magFilt = param;
         tus.magFilt = param;  // Update mag filter for future textures
+        HasPixelBlur(true);   // Enable pixel blur
         break;
     case GL_TEXTURE_WRAP_S:
         ts.wrapS = param == GL_REPEAT;
@@ -2414,18 +2423,6 @@ void OpenGLState::HasPixelBlur(bool enable)
 // ----------------------------------------------------------------------------
 {
     CHANGE(hasPixelBlur, enable);
-
-    // Set texture units as dirty if we need pixel blur
-    if(hasPixelBlur_isDirty)
-    {
-        // Set all units as dirty in order to apply pixel blur
-        // on each texture
-        for(uint i = 0; i < textureUnits.units.size(); i++)
-            textureUnits.dirty |= 1ULL << i;
-
-        textureUnits_isDirty = true;
-        hasPixelBlur_isDirty = false; // Done with pixel blur change
-    }
 }
 
 

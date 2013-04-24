@@ -35,6 +35,7 @@ CONFIG += help
 QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
 !isEmpty(TAO_PLAYER):DEFINES *= TAO_PLAYER
+!isEmpty(NO_DOC_SIGNATURE):DEFINES *= CFG_NO_DOC_SIGNATURE
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -355,6 +356,14 @@ contains(DEFINES, CFG_NO_LICENSE_DOWNLOAD) {
     SOURCES += \
         license_download.cpp \
         login_dialog.cpp
+}
+contains(DEFINES, CFG_NO_DOC_SIGNATURE) {
+    !build_pass:message("[CFG_NO_DOC_SIGNATURE] Document signing and verification is disabled")
+} else {
+    HEADERS += \
+        document_signature.h
+    NOWARN_SOURCES += \
+        document_signature.cpp
 }
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp

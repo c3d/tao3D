@@ -42,6 +42,9 @@
 #include "../config.h"
 #include "decryption.h"
 #include "normalize.h"
+#ifndef CFG_NO_DOC_SIGNATURE
+#include "document_signature.h"
+#endif
 
 #include <QApplication>
 #include <QGLWidget>
@@ -523,6 +526,43 @@ void signal_handler(int sigid)
 
 
 TAO_BEGIN
+int Main::LoadFile(text file, bool updateContext,
+                   XL::Context *importContext, XL::Symbols *importSymbols)
+// ----------------------------------------------------------------------------
+//   Call XLR to load file. Attach signature info to tree if file is signed.
+// ----------------------------------------------------------------------------
+{
+#ifndef CFG_NO_DOC_SIGNATURE
+    SignatureInfo * si = NULL;
+    if (!Application::isImpress())
+    {
+        si = new SignatureInfo(file);
+    }
+    else
+    {
+        // Tao Impress or Tao Player Pro impose no restriction that could be
+        // lifted by checking a document signature
+    }
+#endif
+
+    int ret = XL::Main::LoadFile(file, updateContext, importContext,
+                                 importSymbols);
+
+#ifndef CFG_NO_DOC_SIGNATURE
+    if (ret != 0 || !si)
+    {
+        delete si;
+        return ret;
+    }
+
+    XL::SourceFile &sf = XL::MAIN->files[file];
+    sf.tree->SetInfo<SignatureInfo>(si);
+#endif
+
+    return ret;
+}
+
+
 text Main::SearchFile(text file)
 // ----------------------------------------------------------------------------
 //   Find the file in the application path

@@ -100,6 +100,9 @@
 #     Include a minimalistic welcome screen.
 #   NO_FONTS=1
 #     Do not install font files.
+#   NO_DOC_SIGNATURE=1
+#     Do not include the code to sign documents (Impress) or validate document
+#     signature (Discovery, unlicensed Player).
 #
 # 2. To build:
 #

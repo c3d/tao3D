@@ -16,8 +16,9 @@
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 2013 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2011 Taodyne SAS
+//  (C) 2011, 2013 Taodyne SAS
 // ****************************************************************************
 
 #include "license.h"
@@ -29,8 +30,8 @@
 #include "cryptopp/dsa.h"
 #include "cryptopp/osrng.h"
 #include "cryptopp/base64.h"
-#include "doc_private_key_dsa.h"
-#include "doc_public_key_dsa.h"
+#include "private_key_dsa.h"
+#include "public_key_dsa.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -116,14 +117,14 @@ void sign_raw(const char *path)
         std::string b64_pubkey, b64_signature;
         QString qpub, qsig;
 
-        byte pubkey[] = DOC_DSA_PUBLIC_KEY;
+        byte pubkey[] = TAO_DSA_PUBLIC_KEY;
         StringSource(pubkey, sizeof(pubkey), true,
                      new Base64Encoder(
                          new StringSink(b64_pubkey)));
         qpub.append(b64_pubkey.data());
         qpub = qpub.trimmed();
 
-        byte privkey[] = DOC_DSA_PRIVATE_KEY;
+        byte privkey[] = TAO_DSA_PRIVATE_KEY;
         DSA::Signer signer;
         PrivateKey &privateKey = signer.AccessPrivateKey();
         privateKey.Load(StringSource(privkey, sizeof(privkey), true).Ref());

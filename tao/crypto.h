@@ -23,7 +23,7 @@
 
 namespace Tao {
 
-struct Decryption
+struct Crypto
 {
     static std::string Decrypt(std::string &encrypted);
 };

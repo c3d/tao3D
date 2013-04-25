@@ -40,7 +40,7 @@
 #include "tao_utf8.h"
 #include "version.h"
 #include "../config.h"
-#include "decryption.h"
+#include "crypto.h"
 #include "normalize.h"
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
@@ -614,7 +614,7 @@ text Main::Decrypt(text file)
             QByteArray ba = f.readAll();
             text in;
             in.append(ba.data(), ba.size());
-            return Decryption::Decrypt(in);
+            return Crypto::Decrypt(in);
         }
     }
     return "";

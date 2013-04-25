@@ -67,7 +67,7 @@ HEADERS +=     activity.h \
     binpack.h \
     chooser.h \
     color.h \
-    decryption.h \
+    crypto.h \
     destination_folder_dialog.h \
     dir.h \
     display_driver.h \
@@ -368,7 +368,7 @@ contains(DEFINES, CFG_NO_DOC_SIGNATURE) {
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
-NOWARN_SOURCES += decryption.cpp license.cpp
+NOWARN_SOURCES += crypto.cpp license.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -406,7 +406,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
     license.cpp \
-    decryption.cpp \
+    crypto.cpp \
     document_signature.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \

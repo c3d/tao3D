@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  decrypt.cpp                                                    Tao project
+//  crypto.cpp                                                    Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Decrypt encrypted XL files
+//     Crypto functions used by Tao and external tools.
 //
 //
 //
@@ -15,11 +15,11 @@
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-//  (C) 2011 Jérôme Forissier <jerome@taodyne.com>
-//  (C) 2011 Taodyne SAS
+//  (C) 2011, 2013 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2011, 2013 Taodyne SAS
 // ****************************************************************************
 
-#include "decryption.h"
+#include "crypto.h"
 #include "private_key_rsa.h"
 #include "cryptopp/rsa.h"
 #include "cryptopp/gcm.h"
@@ -36,7 +36,7 @@ using namespace CryptoPP;
 
 namespace Tao {
 
-std::string Decryption::Decrypt(std::string &ciphered)
+std::string Crypto::Decrypt(std::string &ciphered)
 // ----------------------------------------------------------------------------
 //   Decrypt data, return "" on error
 // ----------------------------------------------------------------------------

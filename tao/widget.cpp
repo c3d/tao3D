@@ -704,6 +704,7 @@ void Widget::drawStereoIdent()
     if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
         updateStereoIdentPatterns(stereoPlanes);
     StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
+    GLAllStateKeeper save;
     GL.Color(1.0, 1.0, 1.0, 1.0);
     drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
 }
@@ -11306,6 +11307,7 @@ void Widget::setWatermarkText(text t, int w, int h)
     GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  w, h, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texture.bits());
+    GL.BindTexture(GL_TEXTURE_2D, 0);
 
     watermarkText = t;
     watermarkWidth = w;
@@ -11335,6 +11337,7 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
+    GLAllStateKeeper save;
     GL.Color(1.0, 1.0, 1.0, 0.2);
     drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
 }

@@ -305,11 +305,9 @@ void FrameInfo::blit()
                                           buffers);
     if (PerformancesPage::texture2DMipmap())
     {
-        // Use direct GL calls here because QGLFrameBufferObject did, and
-        // we need to do each call once
-        glBindTexture(GL_TEXTURE_2D, textureFBO->texture());
         GL.BindTexture(GL_TEXTURE_2D, textureFBO->texture());
-        glGenerateMipmap(GL_TEXTURE_2D);
+        GL.GenerateMipMap(GL_TEXTURE_2D);
+        GL.BindTexture(GL_TEXTURE_2D, 0);
     }
 }
 

@@ -23,7 +23,10 @@
 
 #include "document_signature.h"
 
+#include "application.h"
 #include "base.h"
+#include "crypto.h"
+#include "version.h"
 #include "tao_utf8.h"
 
 #include "cryptopp/dsa.h"
@@ -32,12 +35,26 @@
 
 #include "public_key_dsa.h"
 #include "doc_public_key_dsa.h"
+#ifndef TAO_PLAYER
+#include "doc_private_key_dsa.h"
+#endif
 
 #include <QFileInfo>
 #include <QFile>
 #include <QSettings>
 
+#define BA(x) QByteArray((const char *)x, sizeof(x))
+
+
 TAO_BEGIN
+
+
+static byte pubKeyTao[] = TAO_DSA_PUBLIC_KEY;
+static byte pubKeyDoc[] = DOC_DSA_PUBLIC_KEY;
+#ifndef TAO_PLAYER
+static byte privKeyDoc[] = DOC_DSA_PRIVATE_KEY;
+#endif
+
 
 
 SignatureInfo::SignatureInfo(text path)
@@ -86,13 +103,6 @@ SignatureInfo::Status SignatureInfo::loadAndCheckSignature()
     return ok ? SI_VALID : SI_INVALID;
 }
 
-
-static byte pubKeyTao[] = TAO_DSA_PUBLIC_KEY;
-static byte pubKeyDoc[] = DOC_DSA_PUBLIC_KEY;
-//#ifndef TAO_PLAYER
-//static byte privKeyDoc[] = DOC_DSA_PRIVATE_KEY;
-//#endif
-
 using namespace CryptoPP;
 
 bool SignatureInfo::verify(QByteArray content)
@@ -100,8 +110,6 @@ bool SignatureInfo::verify(QByteArray content)
 //   True if signature is valid and pubKey is one of the known keys
 // ----------------------------------------------------------------------------
 {
-#define BA(x) QByteArray((const char *)x, sizeof(x))
-
     // Check key
     if (pubKey != BA(pubKeyTao) && pubKey != BA(pubKeyDoc))
     {
@@ -109,7 +117,6 @@ bool SignatureInfo::verify(QByteArray content)
             debug() << path << " unexpected public key\n";
         return false;
     }
-#undef BA
 
     // Hash file content
     SHA1 hash;
@@ -130,6 +137,23 @@ bool SignatureInfo::verify(QByteArray content)
     return result;
 }
 
+
+#ifndef TAO_PLAYER
+QString SignatureInfo::signWithDocKey()
+// ----------------------------------------------------------------------------
+//   Sign the file content (on disk) with the document private key
+// ----------------------------------------------------------------------------
+{
+    QByteArray qpubKeyDoc = pubKey = BA(pubKeyDoc);
+    QByteArray qprivKeyDoc = BA(privKeyDoc);
+
+    QString ident = "; Signed by: Tao Presentations " +
+                       Application::editionStr() + "\n"
+                    "; version " GITREV " (" GITSHA1 ")\n";
+
+    return  Tao::Crypto::Sign(+path, qpubKeyDoc, qprivKeyDoc, ident);
+}
+#endif
 
 std::ostream & SignatureInfo::debug()
 // ----------------------------------------------------------------------------

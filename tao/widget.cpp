@@ -1285,7 +1285,7 @@ void Widget::runProgram()
                   << " shown=" << pageShown
                   << "\n";
     pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
+    pageTotal = pageId;
     if (pageFound)
     {
         pageShown = pageFound;

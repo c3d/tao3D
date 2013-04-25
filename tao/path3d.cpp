@@ -371,7 +371,20 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
             {
                 Vector3 delta = data[s+1].vertex - data[s].vertex;
                 if (delta.Length() > 1.0)
-                    normal = swapXY(delta);
+                {
+                    Vector3 newNormal = swapXY(delta);
+                    if (newNormal.Dot(normal) < 0.8)
+                    {
+                        // If we have a sharp angle, create additional face
+                        // so that OpenGL does not interpolate normals
+                        v.normal = normal;
+                        side.push_back(v);
+                        v.vertex.z -= depth;
+                        side.push_back(v);
+                        v.vertex.z = data[s].vertex.z;
+                    }
+                    normal = newNormal;
+                }
             }
             v.normal = normal;
             side.push_back(v);

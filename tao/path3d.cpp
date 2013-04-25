@@ -73,23 +73,324 @@ GraphicPath::PolygonData::~PolygonData()
 }
 
 
+static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
+// ----------------------------------------------------------------------------
+//   Draw arrays 
+// ----------------------------------------------------------------------------
+{
+    double *vdata = &data[0].vertex.x;
+    double *tdata = &data[0].texture.x;
+    double *ndata = &data[0].normal.x;
+    GLuint size = data.size();
+
+    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
+    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+
+    // Activate texture coordinates for all used units
+    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    {
+        if(textureUnits & (1 << i))
+        {
+            glClientActiveTexture( GL_TEXTURE0 + i );
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
+                              tdata);
+        }
+    }
+
+    glDrawArrays(mode, 0, size);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+
+    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    {
+        if(textureUnits & (1 << i))
+        {
+            glClientActiveTexture( GL_TEXTURE0 + i );
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+    }
+
+    // Restore the client active texture
+    glClientActiveTexture(GL_TEXTURE0);
+}
+
+
+static void computeNormals(Vertices &data)
+// ----------------------------------------------------------------------------
+//   Compute the normals in the given array
+// ----------------------------------------------------------------------------
+{
+    uint size = data.size();
+
+    for (uint i = 0, n = 0; i < size && n < size; )
+    {
+        uint i1 = 0, i2 = 0;
+        Point3 p0, p1, p2;
+        Vector3 v1, v2, vn;
+        
+        p0 = data[i].vertex;
+        do
+        {
+            ++i1;
+            p1 = data[(i + i1) % size].vertex;
+        }
+        while (p0 == p1 && i1 < size);
+        v1 = p1 - p0;
+        
+        do
+        {
+            ++i2;
+            p2 = data[(i + i1 + i2) % size].vertex;
+        }
+        while (p1 == p2 && (i1 + i2) < size);
+        v2 = p2 - p1;
+        
+        IFTRACE(paths)
+        {
+            std::cerr << "P0 #" << i
+                      << " = x:" << p0.x
+                      << ", y:" << p0.y
+                      << ", z:" << p0.z << std::endl;
+            std::cerr << "P1 #" << (i+i1)%size 
+                      << " = x:" << p1.x
+                      << ", y:" << p1.y << ", z:"
+                      << p1.z << std::endl;
+            std::cerr << "P2 #" << (i+i1+i2) % size
+                      << " = x:" << p2.x
+                      << ", y:" << p2.y
+                      << ", z:" << p2.z << std::endl;
+            std::cerr << "V1 (P1 - P0) = x:" << v1.x
+                      << ", y:" << v1.y
+                      << ", z:" << v1.z << std::endl;
+            std::cerr << "V2 (P2 - P1) = x:" << v2.x
+                      << ", y:" << v2.y
+                      << ", z:" << v2.z << std::endl;
+        }
+        
+        if ((i1 + i2) < size)
+        {
+            Triangle triangle(p0, p1, p2);
+            vn = triangle.computeNormal();
+            
+            for (uint j = (i + i1); j < (i + i1 + i2); j++)
+            {
+                ++n;
+                data[j%size].normal = vn;
+                
+                IFTRACE(paths)
+                    std::cerr << "Normal #" << j % size
+                              << " = x:" << vn.x
+                              << ", y:" << vn.y
+                              << ", z:" << vn.z << std::endl;
+            }
+        }
+        
+        i += i1;
+    }
+    IFTRACE(paths)
+        std::cerr << std::endl;
+}
+
+
+static inline Vector3 swapXY(Vector3 v)
+// ----------------------------------------------------------------------------
+//   Swap X and Y coordinates (rotate 90 degrees)
+// ----------------------------------------------------------------------------
+{
+    coord y = v.y;
+    v.y = -v.x;
+    v.x = y;
+    v.Normalize();
+    return v;
+}
+
+
+static void extrude(Layout *layout, Vertices &data, scale depth)
+// ----------------------------------------------------------------------------
+//   Extrude a given set of vertices
+// ----------------------------------------------------------------------------
+{
+    uint size = data.size();
+    if (!size)
+        return;
+
+    uint64 textureUnits = layout->textureUnits;
+
+    scale radius = layout->extrudeRadius;
+    int count = layout->extrudeCount;
+
+    Vertices side;
+    VertexData v;
+    Vector3 normal;
+
+    int vertexDebugInfo = count < 0;
+    if (vertexDebugInfo)
+        count = -count;
+
+    if (radius > 0 && count > 0)
+    {
+        if (depth < 2 * radius)
+            radius = depth / 2;
+
+        // Compute the shape center
+        Vector3 center;
+        for (uint s = 0; s < size; s++)
+            center += data[s].vertex;
+        center /= size;
+
+        Vertices bottom;
+        for (int c = 0; c < count; c++)
+        {
+            double a1  = M_PI/2 * c / count;
+            double ca1 = cos (a1);
+            double sa1 = sin (a1);
+            double a2  = M_PI/2 * (c+1) / count;
+            double ca2 = cos (a2);
+            double sa2 = sin (a2);
+
+            Vector3 last = data[size-1].vertex;
+            Vector3 lastNormal = last - center;
+            lastNormal.Normalize();
+            last += lastNormal * radius * sa1;
+            last.z -= radius * (1 - ca1);
+
+            side.reserve (2*size+2);
+            bottom.reserve (2*size+2);
+
+            for (uint s = 0; s < size; s++)
+            {
+                v = data[s];
+                Vector3 normal = v.vertex - center;
+                normal.Normalize();
+
+                VertexData v1 = v;
+                v1.vertex += normal * radius * sa1;
+                v1.vertex.z -= radius * (1 - ca1);
+
+                VertexData v2 = v;
+                v2.vertex += normal * radius * sa2;
+                v2.vertex.z -= radius * (1 - ca2);
+
+                Triangle t(v1.vertex, v2.vertex, last);
+                Vector3 faceNormal = t.computeNormal();
+
+                v1.normal = faceNormal;
+                v2.normal = faceNormal;
+                side.push_back(v1);
+                side.push_back(v2);
+
+                if (vertexDebugInfo)
+                {
+                    glPushAttrib(GL_CURRENT_BIT);
+                    glColor4f(1,0,1.0 * s / size,1);
+                    glLineWidth(1);
+                    glBegin(GL_LINES);
+                    Vector3 center = (v1.vertex + v2.vertex + last) / 3;
+                    Vector3 nv = center + 15 * faceNormal;
+                    glVertex3f(center.x, center.y, center.z);
+                    glVertex3f(nv.x, nv.y, nv.z);
+                    glEnd();
+                    glColor4f(0,1.0 * s / size,1,1);
+                    glPointSize(5);
+                    glBegin(GL_POINTS);
+                    glVertex3f(v1.vertex.x, v1.vertex.y, v1.vertex.z);
+                    glVertex3f(v2.vertex.x, v2.vertex.y, v2.vertex.z);
+                    glVertex3f(last.x, last.y, last.z);
+                    glEnd();
+                    glPopAttrib();
+                }
+
+                v1.vertex.z = -depth - v1.vertex.z;
+                v2.vertex.z = -depth - v2.vertex.z;
+                v1.normal.z *= -1;
+                v2.normal.z *= -1;
+                bottom.push_back(v1);
+                bottom.push_back(v2);
+
+                if (vertexDebugInfo)
+                {
+                    glPushAttrib(GL_CURRENT_BIT);
+                    glColor4f(1,0,1.0 * s / size,1);
+                    glLineWidth(1);
+                    glBegin(GL_LINES);
+                    last.z = -depth - last.z;
+                    faceNormal = v2.normal;
+                    Vector3 center = (v1.vertex + v2.vertex + last) / 3;
+                    Vector3 nv = center + 15 * faceNormal;
+                    glVertex3f(center.x, center.y, center.z);
+                    glVertex3f(nv.x, nv.y, nv.z);
+                    glEnd();
+                    glColor4f(0,1.0 * s / size,1,1);
+                    glPointSize(5);
+                    glBegin(GL_POINTS);
+                    glVertex3f(v1.vertex.x, v1.vertex.y, v1.vertex.z);
+                    glVertex3f(v2.vertex.x, v2.vertex.y, v2.vertex.z);
+                    glVertex3f(last.x, last.y, last.z);
+                    glEnd();
+                    glPopAttrib();
+                }
+
+                last = v1.vertex;
+            }
+
+            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+            drawArrays(GL_TRIANGLE_STRIP, textureUnits, bottom);
+            side.clear();
+            bottom.clear();
+        }
+
+        if (depth > 2 * radius)
+        {
+            side.reserve(2*size+2);
+            for (uint s = 0; s < size; s++)
+            {
+                v = data[s];
+                Vector3 normal = v.vertex - center;
+                normal.Normalize();
+                v.normal = normal;
+                v.vertex += normal * radius;
+                v.vertex.z = -radius;
+                side.push_back(v);
+                v.vertex.z = radius-depth;
+                side.push_back(v);
+            }
+
+            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+        }
+    }
+    else // Optimized case for 0 radius
+    {
+        side.reserve(2*size);
+        for (uint s = 0; s < size; s++)
+        {
+            v = data[s];
+            if (s+1 < size)
+            {
+                Vector3 delta = data[s+1].vertex - data[s].vertex;
+                if (delta.Length() > 1.0)
+                    normal = swapXY(delta);
+            }
+            v.normal = normal;
+            side.push_back(v);
+            v.vertex.z -= depth;
+            side.push_back(v);
+        }
+
+        drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+    }
+}
+
+
 static void CALLBACK tessBegin(GLenum mode, PolygonData *poly)
 // ----------------------------------------------------------------------------
 //   Callback for beginning of rendering
 // ----------------------------------------------------------------------------
 {
-    (void) poly;
-    glBegin(mode);
-}
-
-
-static void CALLBACK tessEnd(PolygonData *poly)
-// ----------------------------------------------------------------------------
-//   Callback for end of rendering
-// ----------------------------------------------------------------------------
-{
-    (void) poly;
-    glEnd();
+    poly->mode = mode;
+    poly->vertices.clear();
 }
 
 
@@ -98,14 +399,25 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 //   Emit a vertex during tesselation
 // ----------------------------------------------------------------------------
 {
-    (void) poly;
-    for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
+    poly->vertices.push_back(*vertex);
+    poly->vertices.back().normal.z = 1;
+}
+
+
+static void CALLBACK tessEnd(PolygonData *poly)
+// ----------------------------------------------------------------------------
+//   Callback for end of rendering
+// ----------------------------------------------------------------------------
+{
+    Vertices &data = poly->vertices;
+    uint size = data.size();
+    if (size)
     {
-        //Active texture coordinates only for used units
-        if (poly->textureUnits & (1 << i))
-            glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
-    }
-    glVertex3dv(&vertex->vertex.x);
+        Layout *layout = poly->layout;
+        uint64 textureUnits = layout->textureUnits;
+        drawArrays(poly->mode, textureUnits, data);
+        poly->vertices.clear();
+     }
 }
 
 
@@ -401,7 +713,7 @@ static void addEndpointToPath(EndpointStyle style,
             break;
         case GraphicPath::NONE:
         default:
-            ;
+            break;
     }
 }
 
@@ -418,198 +730,205 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
         tessel = 0;
 
     if (setFillColor(where))
-    {
-        Draw(where->offset, where->textureUnits, GL_POLYGON, tessel);
-    }
+        Draw(where, where->offset, GL_POLYGON, tessel);
     if (setLineColor(where))
+        DrawOutline(where);
+    else if (where->extrudeDepth > 0.0)
+        Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
+}
+
+
+void GraphicPath::DrawOutline(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the outline for the current path
+// ----------------------------------------------------------------------------
+{
+    GraphicPath outline;
+
+    bool first = true;
+    bool last = true;
+    Kind endKind = MOVE_TO;
+    Point3 startPoint;
+    Point3 endPoint;
+    Point3* endPointPtr;
+    Vector3 startHeading;
+    Vector3 endHeading;
+    scale length;
+    scale shortenBy;
+
+    path_elements::iterator begin = elements.begin(), end = elements.end();
+    path_elements::iterator p;
+    for (path_elements::iterator i = begin; i != end; i++)
     {
-        GraphicPath outline;
-
-        bool first = true;
-        //bool penultimate = true;
-        bool last = true;
-        Kind endKind = MOVE_TO;
-        Point3 startPoint;
-        Point3 endPoint;
-        Point3* endPointPtr;
-        Vector3 startHeading;
-        Vector3 endHeading;
-        scale length;
-        scale shortenBy;
-
-        path_elements::iterator begin = elements.begin(), end = elements.end();
-        path_elements::iterator p;
-        for (path_elements::iterator i = begin; i != end; i++)
+        if (first)
         {
-            if (first)
-            {
-                shortenBy = getShortenByStyle(startStyle, where->lineWidth);
+            shortenBy = getShortenByStyle(startStyle, where->lineWidth);
                 
-                switch ((*i).kind)
-                {
-                case MOVE_TO:
-                    startPoint = (*i).position;
-                    break;
-                case LINE_TO:
-                case CURVE_TO:
-                    // First line
-                    startHeading = (*i).position - startPoint;
-                    length = startHeading.Length();
-                    if (length == 0)
-                    {
-                        startPoint = (*i).position;
-                    }
-                    else
-                    {
-                        startHeading.Normalize();
-                        startHeading *= shortenBy;
-                        if(length > shortenBy)
-                        {
-                            outline.moveTo(startPoint + startHeading);
-                        }
-                        else
-                        {
-                            outline.moveTo(startPoint);
-                            startPoint -= startHeading;
-                        }
-                        p=i;
-                        first = false;
-                    }
-                    break;
-                case CURVE_CONTROL:
-                    // First curve
-                    startHeading = (*i).position - startPoint;
-                    length = startHeading.Length();
-                    if (length == 0)
-                    {
-                        startPoint = (*i).position;
-                    }
-                    else
-                    {
-                        startHeading.Normalize();
-                        startHeading *= shortenBy;
-                        outline.moveTo(startPoint);
-                        startPoint -= startHeading;
-                        p = i;
-                        first = false;
-                    }
-                    break;
-                }
-                
-            }
-            else
+            switch ((*i).kind)
             {
-                if ((*p).position == (*i).position)
-                {
-                    if ((*i).kind == CURVE_TO)
-                    {
-                        p=i;
-                    }
-                }
-                else
-                {
-                    outline.elements.push_back(*p);
-                    p = i;
-                }
-            }
-        }
-        if (!first)
-        {
-            outline.elements.push_back(*p);
-        }
-        
-        path_elements::reverse_iterator rbegin = outline.elements.rbegin();
-        path_elements::reverse_iterator rend = outline.elements.rend();
-        for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
-        {
-            j = i+1;
-            if (last)
-            {
-                shortenBy = getShortenByStyle(endStyle, where->lineWidth);
-                
-                switch ((*i).kind)
-                {
-                case LINE_TO:
-                    // Last line
-                    endKind = LINE_TO;
-                    break;
-                case CURVE_TO:
-                case CURVE_CONTROL:
-                    // Last curve or line
-                    if ((*j).kind == CURVE_CONTROL)
-                        endKind = CURVE_TO;
-                    else
-                        endKind = LINE_TO;
-                    break;
-                case MOVE_TO:
-                    endKind = MOVE_TO;
-                    break;
-                }
-                endPoint = (*i).position;
-                endPointPtr = &(*i).position;
-                endHeading = (*j).position - (*i).position;
-                length = endHeading.Length();
+            case MOVE_TO:
+                startPoint = (*i).position;
+                break;
+            case LINE_TO:
+            case CURVE_TO:
+                // First line
+                startHeading = (*i).position - startPoint;
+                length = startHeading.Length();
                 if (length == 0)
                 {
-                    endKind = MOVE_TO;
+                    startPoint = (*i).position;
                 }
                 else
                 {
-                    endHeading.Normalize();
-                    endHeading *= shortenBy;
-                    if (endKind == LINE_TO && length > shortenBy)
+                    startHeading.Normalize();
+                    startHeading *= shortenBy;
+                    if(length > shortenBy)
                     {
-                        *endPointPtr += endHeading;
+                        outline.moveTo(startPoint + startHeading);
                     }
                     else
                     {
-                        endPoint -= endHeading;
+                        outline.moveTo(startPoint);
+                        startPoint -= startHeading;
                     }
+                    p=i;
+                    first = false;
                 }
-                if (endKind != MOVE_TO)
+                break;
+            case CURVE_CONTROL:
+                // First curve
+                startHeading = (*i).position - startPoint;
+                length = startHeading.Length();
+                if (length == 0)
                 {
-                    last = false;
+                    startPoint = (*i).position;
                 }
+                else
+                {
+                    startHeading.Normalize();
+                    startHeading *= shortenBy;
+                    outline.moveTo(startPoint);
+                    startPoint -= startHeading;
+                    p = i;
+                    first = false;
+                }
+                break;
             }
-        }
-        
-
-        // Draw outline of the path.
-        QPainterPath path;
-        if (extractQtPath(outline, path))
-        {
-            // Path is flat: use a QPainterPathStroker
-            QPainterPathStroker stroker;
-            stroker.setWidth(where->lineWidth);
-            stroker.setCapStyle(Qt::FlatCap);
-            stroker.setJoinStyle(Qt::RoundJoin);
-            stroker.setDashPattern(Qt::SolidLine);
-            QPainterPath stroke = stroker.createStroke(path);
-            outline.clear();
-            outline.addQtPath(stroke);
-
-            // Draw the endpoints
-            if (!first)
-            {
-                addEndpointToPath(startStyle,startPoint,startHeading,outline);
-            }
-            if (!last)
-            {
-                addEndpointToPath(endStyle, endPoint, endHeading, outline);
-            }
-            outline.Draw(where->offset, where->textureUnits, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+            
         }
         else
         {
-            // Path is not flat: use GL lines (temporarily)
-            Draw(where->offset, where->textureUnits, GL_LINE_STRIP, 0);
+            if ((*p).position == (*i).position)
+            {
+                if ((*i).kind == CURVE_TO)
+                {
+                    p=i;
+                }
+            }
+            else
+            {
+                outline.elements.push_back(*p);
+                p = i;
+            }
         }
+    }
+    if (!first)
+    {
+        outline.elements.push_back(*p);
+    }
+        
+    path_elements::reverse_iterator rbegin = outline.elements.rbegin();
+    path_elements::reverse_iterator rend = outline.elements.rend();
+    for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
+    {
+        j = i+1;
+        if (last)
+        {
+            shortenBy = getShortenByStyle(endStyle, where->lineWidth);
+                
+            switch ((*i).kind)
+            {
+            case LINE_TO:
+                // Last line
+                endKind = LINE_TO;
+                break;
+            case CURVE_TO:
+            case CURVE_CONTROL:
+                // Last curve or line
+                if ((*j).kind == CURVE_CONTROL)
+                    endKind = CURVE_TO;
+                else
+                    endKind = LINE_TO;
+                break;
+            case MOVE_TO:
+                endKind = MOVE_TO;
+                break;
+            }
+            endPoint = (*i).position;
+            endPointPtr = &(*i).position;
+            endHeading = (*j).position - (*i).position;
+            length = endHeading.Length();
+            if (length == 0)
+            {
+                endKind = MOVE_TO;
+            }
+            else
+            {
+                endHeading.Normalize();
+                endHeading *= shortenBy;
+                if (endKind == LINE_TO && length > shortenBy)
+                {
+                    *endPointPtr += endHeading;
+                }
+                else
+                {
+                    endPoint -= endHeading;
+                }
+            }
+            if (endKind != MOVE_TO)
+            {
+                last = false;
+            }
+        }
+    }
+        
+
+    // Draw outline of the path.
+    QPainterPath path;
+    if (extractQtPath(outline, path))
+    {
+        // Path is flat: use a QPainterPathStroker
+        QPainterPathStroker stroker;
+        stroker.setWidth(where->lineWidth);
+        stroker.setCapStyle(Qt::FlatCap);
+        stroker.setJoinStyle(Qt::RoundJoin);
+        stroker.setDashPattern(Qt::SolidLine);
+        QPainterPath stroke = stroker.createStroke(path);
+        outline.clear();
+        outline.addQtPath(stroke);
+
+        // Draw the endpoints
+        if (!first)
+        {
+            addEndpointToPath(startStyle,startPoint,startHeading,outline);
+        }
+        if (!last)
+        {
+            addEndpointToPath(endStyle, endPoint, endHeading, outline);
+        }
+        outline.Draw(where, where->offset,
+                     GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    }
+    else
+    {
+        // Path is not flat: use GL lines (temporarily)
+        Draw(where, where->offset, GL_LINE_STRIP, 0);
     }
 }
 
 
-void GraphicPath::Draw(const Vector3 &offset,
-                       uint64 texUnits,
+void GraphicPath::Draw(Layout *layout,
+                       const Vector3 &offset,
                        GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
@@ -619,11 +938,12 @@ void GraphicPath::Draw(const Vector3 &offset,
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
-    polygon.textureUnits = texUnits;
+    polygon.layout = layout;
+    uint textureUnits = layout->textureUnits;
 
     // Check if we need to tesselate polygon
     static GLUtesselator *tess = 0;
-    if (tesselation)
+    if (tesselation && tesselation != GL_DEPTH)
     {
         if (!tess)
         {
@@ -757,121 +1077,41 @@ void GraphicPath::Draw(const Vector3 &offset,
             // Get size of previous elements
             if (uint size = data.size())
             {
-                // Pass the data we had so far to OpenGL and clear it
-                if (tesselation)
+                scale depth = layout->extrudeDepth;
+                if (depth > 0.0)
                 {
-                    gluTessBeginContour(tess);
-                    for (uint j = 0; j < size; j++)
+                    if (!tesselation)
                     {
-                        VertexData *dynv = new VertexData(data[j]);
-                        polygon.allocated.push_back(dynv);
-                        gluTessVertex(tess, &dynv->vertex.x, dynv);
+                        // If no tesselation is required, draw back directly
+                        glPushMatrix();
+                        computeNormals(data);
+                        glTranslatef(0.0, 0.0, -depth);
+                        drawArrays(mode, textureUnits, data);
+                        glPopMatrix();
                     }
-                    gluTessEndContour(tess);
+                    extrude(layout, data, depth);
                 }
-                else
+
+                // Pass the data we had so far to OpenGL and clear it
+                if (tesselation != GL_DEPTH)
                 {
-                    // If no tesselation is required, draw directly
-                    double *vdata = &data[0].vertex.x;
-                    double *tdata = &data[0].texture.x;
-                    double *ndata = &data[0].normal.x;
-                    for (uint i = 0, n = 0; i < size && n < size; )
+                    if (tesselation)
                     {
-                        uint i1 = 0, i2 = 0;
-                        Point3 p0, p1, p2;
-                        Vector3 v1, v2, vn;
-
-                        p0 = data[i].vertex;
-                        do {
-                            ++i1;
-                            p1 = data[(i + i1) % size].vertex;
-                        }
-                        while (p0 == p1 && i1 < size);
-                        v1 = p1 - p0;
-
-                        do {
-                            ++i2;
-                            p2 = data[(i + i1 + i2) % size].vertex;
-                        }
-                        while (p1 == p2 && (i1 + i2) < size);
-                        v2 = p2 - p1;
-
-                        IFTRACE(paths)
+                        gluTessBeginContour(tess);
+                        for (uint j = 0; j < size; j++)
                         {
-                            std::cerr << "P0 #" << i
-                                      << " = x:" << p0.x
-                                      << ", y:" << p0.y
-                                      << ", z:" << p0.z << std::endl;
-                            std::cerr << "P1 #" << (i+i1)%size 
-                                      << " = x:" << p1.x
-                                      << ", y:" << p1.y << ", z:"
-                                      << p1.z << std::endl;
-                            std::cerr << "P2 #" << (i+i1+i2) % size
-                                      << " = x:" << p2.x
-                                      << ", y:" << p2.y
-                                      << ", z:" << p2.z << std::endl;
-                            std::cerr << "V1 (P1 - P0) = x:" << v1.x
-                                      << ", y:" << v1.y
-                                      << ", z:" << v1.z << std::endl;
-                            std::cerr << "V2 (P2 - P1) = x:" << v2.x
-                                      << ", y:" << v2.y
-                                      << ", z:" << v2.z << std::endl;
+                            VertexData *dynv = new VertexData(data[j]);
+                            polygon.allocated.push_back(dynv);
+                            gluTessVertex(tess, &dynv->vertex.x, dynv);
                         }
-
-                        if ((i1 + i2) < size)
-                        {
-                            Triangle triangle(p0, p1, p2);
-                            vn = triangle.computeNormal();
-
-                            for (uint j = (i + i1); j < (i + i1 + i2); j++)
-                            {
-                                ++n;
-                                data[j%size].normal = vn;
-
-                                IFTRACE(paths)
-                                    std::cerr << "Normal #" << j % size
-                                              << " = x:" << vn.x
-                                              << ", y:" << vn.y
-                                              << ", z:" << vn.z << std::endl;
-                            }
-                        }
-
-                        i += i1;
+                        gluTessEndContour(tess);
                     }
-                    IFTRACE(paths)
-                        std::cerr << std::endl;
-
-                    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
-                    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
-                    glEnableClientState(GL_VERTEX_ARRAY);
-                    glEnableClientState(GL_NORMAL_ARRAY);
-
-                    //Active texture coordinates for all used units
-                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+                    else
                     {
-                        if(texUnits & (1 << i))
-                        {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
-                            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
-                                              tdata);
-                        }
+                        // If no tesselation is required, draw directly
+                        computeNormals(data);
+                        drawArrays(mode, textureUnits, data);
                     }
-
-                    glDrawArrays(mode, 0, size);
-                    glDisableClientState(GL_VERTEX_ARRAY);
-                    glDisableClientState(GL_NORMAL_ARRAY);
-
-                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
-                    {
-                        if(texUnits & (1 << i))
-                        {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
-                            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-                        }
-                    }
-                    // Restore the client active texture
-                    glClientActiveTexture(GL_TEXTURE0);
                 }
 
                 data.clear();
@@ -883,7 +1123,7 @@ void GraphicPath::Draw(const Vector3 &offset,
     } // Loop on all elements
 
     // End of tesselation
-    if (tesselation)
+    if (tesselation && tesselation != GL_DEPTH)
     {
         gluTessEndPolygon(tess);
     }

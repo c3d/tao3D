@@ -47,6 +47,19 @@ struct Color
         return *this;
     }
 
+    bool operator ==(const Color& o)
+    {
+        return (red   == o.red    &&
+                blue  == o.blue  &&
+                green == o.green &&
+                alpha == o.alpha);
+    }
+
+    bool operator !=(const Color& o)
+    {
+        return !operator==(o);
+    }
+
     Color& Set(percent r, percent g, percent b, percent a = 1)
     {
         red   = r;

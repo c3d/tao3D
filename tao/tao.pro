@@ -407,6 +407,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 OTHER_FILES +=  \
     license.cpp \
     decryption.cpp \
+    document_signature.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \

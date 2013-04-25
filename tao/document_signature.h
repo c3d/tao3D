@@ -40,18 +40,22 @@ public:
     SignatureInfo(text path);
     ~SignatureInfo() {}
 
-protected:
+public:
     enum Status { SI_FILEERR, SI_NOTSIGNED, SI_VALID, SI_INVALID };
 
+public:
+    Status            loadAndCheckSignature();
+
 protected:
-    Status            checkSignature();
-    bool              verify(QByteArray content, QByteArray pubKey,
-                             QByteArray signature);
+    bool              verify(QByteArray content);
 
 protected:
     std::ostream &    debug();
 
 private:
+    QByteArray        pubKey;
+    QByteArray        signature;
+
     text              path;
     Status            status;
 };

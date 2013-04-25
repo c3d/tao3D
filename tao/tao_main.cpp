@@ -537,6 +537,12 @@ int Main::LoadFile(text file, bool updateContext,
     if (!Application::isImpress())
     {
         si = new SignatureInfo(file);
+        SignatureInfo::Status st = si->loadAndCheckSignature();
+        if (st != SignatureInfo::SI_VALID)
+        {
+            delete si;
+            si = NULL;
+        }
     }
     else
     {

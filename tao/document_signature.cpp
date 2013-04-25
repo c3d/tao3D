@@ -45,12 +45,10 @@ SignatureInfo::SignatureInfo(text path)
 //   Load signature for an existing file
 // ----------------------------------------------------------------------------
     : path(path)
-{
-    status = checkSignature();
-}
+{}
 
 
-SignatureInfo::Status SignatureInfo::checkSignature()
+SignatureInfo::Status SignatureInfo::loadAndCheckSignature()
 // ----------------------------------------------------------------------------
 //   Check if file is signed and if signature is valid
 // ----------------------------------------------------------------------------
@@ -60,7 +58,7 @@ SignatureInfo::Status SignatureInfo::checkSignature()
     if (!file.open(QFile::ReadOnly))
     {
         IFTRACE2(lic,fileload)
-            debug() << +path << " not readable\n";
+            debug() << +path << " is not readable\n";
         return SI_FILEERR;
     }
 
@@ -69,20 +67,21 @@ SignatureInfo::Status SignatureInfo::checkSignature()
     if (!QFileInfo(sigPath).isReadable())
     {
         IFTRACE2(lic,fileload)
-            debug() << +path << " not signed\n";
+            debug() << +path << " is not signed\n";
         return SI_NOTSIGNED;
     }
     QSettings settings(sigPath, QSettings::IniFormat);
 
     QByteArray content = file.readAll();
-    QByteArray pubKey = QByteArray::fromBase64(settings.value("pubkey")
-                                               .toByteArray());
-    QByteArray signature = QByteArray::fromBase64(settings.value("signature")
-                                                  .toByteArray());
+    pubKey = QByteArray::fromBase64(settings.value("pubkey")
+                                    .toByteArray());
+    signature = QByteArray::fromBase64(settings.value("signature")
+                                       .toByteArray());
 
-    bool ok = verify(content, pubKey, signature);
+    bool ok = verify(content);
     IFTRACE2(lic,fileload)
-        debug() << +path << " signed, " << (ok ? "" : "in") << "valid\n";
+        debug() << +path << " is signed, signature is "
+                << (ok ? "valid" : "INVALID") << "\n";
 
     return ok ? SI_VALID : SI_INVALID;
 }
@@ -96,8 +95,7 @@ static byte pubKeyDoc[] = DOC_DSA_PUBLIC_KEY;
 
 using namespace CryptoPP;
 
-bool SignatureInfo::verify(QByteArray content, QByteArray pubKey,
-                           QByteArray signature)
+bool SignatureInfo::verify(QByteArray content)
 // ----------------------------------------------------------------------------
 //   True if signature is valid and pubKey is one of the known keys
 // ----------------------------------------------------------------------------
@@ -138,7 +136,7 @@ std::ostream & SignatureInfo::debug()
 //   Convenience method to log with a common prefix
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "[DocumentSignature] ";
+    std::cerr << "[SignatureInfo] ";
     return std::cerr;
 }
 

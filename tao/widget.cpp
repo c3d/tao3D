@@ -168,7 +168,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
-      pageId(0), pageFound(0), pageShown(1), pageTotal(1),
+      pageId(0), pageFound(0), pageShown(1), pageTotal(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
@@ -978,6 +978,21 @@ void Widget::commitPageChange(bool afterTransition)
         transitionTree = NULL;
     }
 
+    if (!inOfflineRendering && pageChangeActions.size())
+    {
+        // REVISIT? Added saveCurrent because I've hit assert(current) during
+        // ctx->Evaluate(), below.
+        TaoSave saveCurrent(current, this);
+
+        page_action_map::iterator i;
+        for (i = pageChangeActions.begin(); i != pageChangeActions.end(); i++)
+        {
+            XL::Context_p ctx = (*i).second.context;
+            XL::Tree_p code = (*i).second.code;
+            ctx->Evaluate(code);
+        }
+    }
+
     IFTRACE(pages)
         std::cerr << "New page number is " << pageShown << "\n";
 }
@@ -1137,6 +1152,15 @@ double Widget::currentTimeAPI()
 }
 
 
+bool Widget::offlineRenderingAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to inOfflineRendering
+// ----------------------------------------------------------------------------
+{
+    return findTaoWidget()->inOfflineRendering;
+}
+
+
 void Widget::makeGLContextCurrent()
 // ----------------------------------------------------------------------------
 //   Make GL context of the current Tao widget the current GL context
@@ -1178,6 +1202,7 @@ void Widget::runProgramOnce()
 
     // Clean actionMap
     actionMap.clear();
+    pageChangeActions.clear();
     dfltRefresh = optimalDefaultRefresh();
 
     // Clean text flow
@@ -1260,7 +1285,7 @@ void Widget::runProgram()
                   << " shown=" << pageShown
                   << "\n";
     pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
+    pageTotal = pageId;
     if (pageFound)
     {
         pageShown = pageFound;
@@ -1622,6 +1647,105 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     // Redraw
     refreshNow();
+}
+
+
+XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
+                                 text file, double pageTime)
+// ----------------------------------------------------------------------------
+//   Take a snapshot of a page (2D) and save it. Based on renderFrames().
+// ----------------------------------------------------------------------------
+{
+    // Do not re-enter this function
+    static bool inSaveThumbnail = false;
+    if (inSaveThumbnail)
+        return XL::xl_false;
+    XL::Save<bool> noReenter(inSaveThumbnail, true);
+
+    // Create output directory if needed
+    QFileInfo inf(QDir(+currentDocumentFolder()), +file);
+    QString dir = inf.absoluteDir().absolutePath();
+    if (!QDir().mkpath(dir))
+        return XL::xl_false;
+    file = +inf.absoluteFilePath();
+
+    bool ok = false;
+    TaoSave saveCurrent(current, this);
+
+    // Select 2D display. Requires current != NULL.
+    QString disp = "2D";
+    QString prevDisplay;
+    if (!displayDriver->isCurrentDisplayFunctionSameAs(disp))
+    {
+        // Select 2D display function
+        prevDisplay = displayDriver->getDisplayFunction();
+        displayDriver->setDisplayFunction(disp);
+    }
+
+    // Set the initial time we want to set and freeze animations
+    XL::Save<double> setPageTime(pageStartTime, 0);
+    XL::Save<double> setFrozenTime(frozenTime, pageTime);
+    XL::Save<double> saveStartTime(startTime, 0);
+    XL::Save<page_list> savePageNames(pageNames, pageNames);
+    XL::Save<text> savePageName(pageName, transitionPageName);
+
+    GLAllStateKeeper saveGL;
+    XL::Save<double> saveScaling(scaling, scaling);
+
+    // Render with fullscreen size (then later scale)
+    QDesktopWidget *dw = QApplication::desktop();
+    QRect geom = dw->screenGeometry(this);
+    int sw = geom.width();
+    int sh = geom.height();
+    offlineRenderingWidth = sw * displayDriver->windowWidthFactor();
+    offlineRenderingHeight = sh * displayDriver->windowHeightFactor();
+    inOfflineRendering = true;
+
+    // Select page, if not current
+    if (page != -1)
+    {
+        currentTime = pageTime;
+        runProgram();
+        gotoPage(NULL, pageNameAtIndex(NULL, page));
+    }
+
+    // Create a GL frame to render into
+    FrameInfo frame(offlineRenderingWidth, offlineRenderingHeight);
+
+    // Set time and run program
+    currentTime = pageTime;
+
+    if (gotoPageName != "")
+    {
+        IFTRACE(pages)
+                std::cerr << "(thumbnailFile) "
+                          << "Goto page request: '" << gotoPageName
+                          << "' from '" << pageName << "'\n";
+        commitPageChange(false);
+    }
+
+    pageStartTime = startTime = 0; // REVISIT
+    runProgram();
+
+    // Draw the layout in the frame context
+    id = idDepth = 0;
+    space->ClearPolygonOffset();
+    frame.begin();
+    displayDriver->display();
+    frame.end();
+
+    // Save frame to disk
+    QImage img = frame.toImage();
+    QImage scaled = img.scaled(w, h, Qt::KeepAspectRatio,
+                               Qt::SmoothTransformation);
+    ok = scaled.save(+file);
+
+    // Done with offline rendering
+    inOfflineRendering = false;
+    if (!prevDisplay.isEmpty())
+        displayDriver->setDisplayFunction(prevDisplay);
+
+    return ok ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -3186,6 +3310,17 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
+#ifdef MACOSX_DISPLAYLINK
+void Widget::sendTimerEvent()
+// ----------------------------------------------------------------------------
+//    Slot that sends a timer event to self
+// ----------------------------------------------------------------------------
+{
+    QTimerEvent e(0);
+    timerEvent(&e);
+}
+#endif
+
 bool Widget::event(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Process event
@@ -3204,8 +3339,11 @@ bool Widget::event(QEvent *event)
             holdOff = false;
             return true;
         }
-        QTimerEvent e(0);
-        timerEvent(&e);
+        // Do not call timerEvent() directly. Doing so may cause some events
+        // to remain stalled in the main event loop for a long time.
+        // This 1ms timer is the solution I found.
+        // See commit comment for details.
+        QTimer::singleShot(1, this, SLOT(sendTimerEvent()));
         return true;
     }
     else if (type == QEvent::MouseMove ||
@@ -5099,7 +5237,12 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
 {
-    return new Integer(pageTotal ? pageTotal : 1);
+    uint pages = 0;
+    if (pageTotal)
+        pages = pageTotal;
+    else if (pageId)
+        pages = pageId;
+    return new Integer(pages);
 }
 
 
@@ -5676,11 +5819,24 @@ Integer_p Widget::mouseButtons(Tree_p self)
 }
 
 
-Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
+Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
+                           Tree_p action)
 // ----------------------------------------------------------------------------
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
+    if (name == "pagechange")
+    {
+        if (!pageChangeActions.count(self))
+        {
+            if (!action->Symbols())
+                action->SetSymbols(self->Symbols());
+            ContextAndCode cc(context, action);
+            pageChangeActions[self] = cc;
+        }
+        return XL::xl_true;
+    }
+
     IFTRACE(layoutevents)
         std::cerr << "Register action " << name
                   << " on layout " << layout->PrettyId() << std::endl;

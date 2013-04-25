@@ -144,6 +144,23 @@ PREFIX(PageThumbnail, tree, "page_thumbnail",
        RTAO(thumbnail(context, self, s, i, p)),
        GROUP(page)
        SYNOPSIS("Generate a page thumbnail as a texture"))
+PREFIX(SavePageThumbnail, tree, "save_page_thumbnail",
+      PARM(w, real, "Width of the thumbnail in pixels")
+      PARM(h, real, "Height of the thumbnail in pixels")
+      PARM(p, integer, "Page number, -1 for current page")
+      PARM(f, text, "File path"),
+      RTAO(saveThumbnail(context, self, w, h, p, f, 0.0)),
+      GROUP(page)
+      SYNOPSIS("Save a page thumbnail as a picture file"))
+PREFIX(SavePageThumbnailTime, tree, "save_page_thumbnail",
+      PARM(w, real, "Width of the thumbnail in pixels")
+      PARM(h, real, "Height of the thumbnail in pixels")
+      PARM(p, integer, "Page number, -1 for current page")
+      PARM(f, text, "File path")
+      PARM(t, real, "Value of page_time (default 0.0)"),
+      RTAO(saveThumbnail(context, self, w, h, p, f, t)),
+      GROUP(page)
+      SYNOPSIS("Save a page thumbnail as a picture file"))
 PREFIX(OffLineRendering, boolean, "offline_rendering", , RTAO(offlineRendering(self)),
        GROUP(page)
        SYNOPSIS("Return true if we are currently rendering to file")

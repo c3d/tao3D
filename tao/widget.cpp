@@ -168,7 +168,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
-      pageId(0), pageFound(0), pageShown(1), pageTotal(1),
+      pageId(0), pageFound(0), pageShown(1), pageTotal(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
@@ -5099,7 +5099,12 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
 {
-    return new Integer(pageTotal ? pageTotal : 1);
+    uint pages = 0;
+    if (pageTotal)
+        pages = pageTotal;
+    else if (pageId)
+        pages = pageId;
+    return new Integer(pages);
 }
 
 

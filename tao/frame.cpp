@@ -75,6 +75,7 @@ void FrameInfo::resize(uint w, uint h)
 //   Change the size of the frame buffer used for rendering
 // ----------------------------------------------------------------------------
 {
+    GLAllStateKeeper save;
     assert(QGLContext::currentContext() ||
            !"FrameInfo::resize without an OpenGL context???");
     
@@ -224,7 +225,6 @@ void FrameInfo::begin(bool clearContents)
 
     // Synchronize cached state
     GL.SetCached_bufferMode(GL_COLOR_ATTACHMENT0);
-    GL.Disable(GL_TEXTURE_2D);
     GL.Disable(GL_STENCIL_TEST);
 
     if (clearContents)

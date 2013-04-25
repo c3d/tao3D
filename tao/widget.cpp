@@ -11300,6 +11300,7 @@ void Widget::setWatermarkText(text t, int w, int h)
     painter.end();
 
     // Generate the GL texture
+    GLAllStateKeeper save;
     QImage texture = QGLWidget::convertToGLFormat(image);
     if (!watermark)
         GL.GenTextures(1, &watermark);

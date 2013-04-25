@@ -1723,6 +1723,30 @@ close_path ();
  */
 endpoints_style (s:symbol, e:symbol);
 
+/**
+ * @~english
+ * Selects the extrude depth for shape outlines.
+ *
+ * When the extrude depth is positive, all shapes will be extruded.
+ * The default value is 0, meaning that shapes are not extruded.
+ * The extruded border has the line color (@see line_color) if set,
+ * the shape color otherwise (@see color).
+
+ * @p ed is the extrude depth in pixels
+ *
+ * @~french
+ * Définit l'épaisseur d'extrusion pour les formes.
+ *
+ * Lorsaue l'épaisseur d'extrusion est positive, toutes les formes
+ * seront extrudées. La valeur par défaut est 0, ce qui veut dire que
+ * les formes restent plates.
+ * Le bord extrudé a la couleur de ligne (@see line_color) si elle est
+ * définie, la couleur de l'objet sinon (@see color)
+ * @p ed est la profondeur d'extrusion en pixels.
+ */
+extrude_depth (ed:real);
+
+
 #if 0
 /**
  * Add a texture coordinate to the path.

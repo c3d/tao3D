@@ -219,7 +219,7 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
 
     uint64 textureUnits = layout->textureUnits;
 
-    scale radius = layout->lineWidth;
+    scale radius = layout->extrudeRadius;
     int count = layout->extrudeCount;
 
     Vertices side;
@@ -361,7 +361,7 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
             drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
         }
     }
-    else
+    else // Optimized case for 0 radius
     {
         side.reserve(2*size);
         for (uint s = 0; s < size; s++)
@@ -729,20 +729,12 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     else
         tessel = 0;
 
-    if (where->extrudeDepth > 0.0)
-    {
-        if (setFillColor(where))
-            Draw(where, where->offset, GL_POLYGON, tessel);
-        setLineColor(where);
+    if (setFillColor(where))
+        Draw(where, where->offset, GL_POLYGON, tessel);
+    if (setLineColor(where))
+        DrawOutline(where);
+    else if (where->extrudeDepth > 0.0)
         Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
-    }
-    else
-    {
-        if (setFillColor(where))
-            Draw(where, where->offset, GL_POLYGON, tessel);
-        if (setLineColor(where))
-            DrawOutline(where);
-    }
 }
 
 

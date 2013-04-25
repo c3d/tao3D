@@ -26,15 +26,12 @@
 #include "main.h"
 #include "flight_recorder.h"
 #include "tao_utf8.h"
+#include "crypto.h"
 
-#include "cryptopp/dsa.h"
-#include "cryptopp/osrng.h"
-#include "cryptopp/base64.h"
 #include "private_key_dsa.h"
 #include "public_key_dsa.h"
 
-#include <QFile>
-#include <QTextStream>
+#include <QFileInfo>
 #include <iostream>
 
 XL_DEFINE_TRACES
@@ -86,9 +83,14 @@ void usage(const char *progname)
 //    Show usage
 // ----------------------------------------------------------------------------
 {
+    QFileInfo info(progname);
+    QString name = info.fileName();
     std::cerr << "Taodyne file signing tool version "
-              << GITREV " (" GITSHA1 ")\n"
-              << "Usage: " << progname << " [-r] <files>\n\n"
+              << GITREV " (" GITSHA1 ")\n\n"
+              << "Usage: " << +name << " <unsigned .taokey files>\n"
+              << "       " << +name << " -r <files>\n\n"
+              << "Sign Tao Presentations license files (.taokey format),\n"
+              << "or any file when run with -r.\n\n"
               << "Options:\n"
               << "  -r    Raw mode: store public key and signature of raw\n"
               << "        file content into a file of the same name with the\n"
@@ -96,65 +98,25 @@ void usage(const char *progname)
     exit(0);
 }
 
-using namespace CryptoPP;
-
 void sign_raw(const char *path)
 // ----------------------------------------------------------------------------
 //    Sign SHA1 digest of file content with DSA private key, create .sig file
 // ----------------------------------------------------------------------------
 {
-    QFile file(path);
-    if (!file.open(QFile::ReadOnly))
+    QString qpath = QString::fromLocal8Bit(path);
+
+    static const char pub[] = TAO_DSA_PUBLIC_KEY;
+    static const char priv[] = TAO_DSA_PRIVATE_KEY;
+    QByteArray qpub(pub, sizeof(pub));
+    QByteArray qpriv(priv, sizeof(priv));
+
+    QString ident = "; Signed by: Taodyne file signing tool\n"
+                    "; version " GITREV " (" GITSHA1 ")\n";
+
+    QString res = Tao::Crypto::Sign(qpath, qpub, qpriv, ident);
+    if (!res.isEmpty())
     {
-        std::cerr << prog << ": " << path << ": " << +file.errorString()
-                  << "\n";
-        exit(1);
-    }
-    QByteArray content = file.readAll();
-
-    try
-    {
-        std::string b64_pubkey, b64_signature;
-        QString qpub, qsig;
-
-        byte pubkey[] = TAO_DSA_PUBLIC_KEY;
-        StringSource(pubkey, sizeof(pubkey), true,
-                     new Base64Encoder(
-                         new StringSink(b64_pubkey)));
-        qpub.append(b64_pubkey.data());
-        qpub = qpub.trimmed();
-
-        byte privkey[] = TAO_DSA_PRIVATE_KEY;
-        DSA::Signer signer;
-        PrivateKey &privateKey = signer.AccessPrivateKey();
-        privateKey.Load(StringSource(privkey, sizeof(privkey), true).Ref());
-        AutoSeededRandomPool rng;
-        CryptoPP::SHA1 hash;
-        StringSource((const byte*)content.data(), content.size(), true,
-                   new HashFilter(hash,
-                       new SignerFilter(rng, signer,
-                           new Base64Encoder(
-                               new StringSink(b64_signature)))));
-        qsig.append(b64_signature.data());
-        qsig = qsig.trimmed();
-
-        QString outPath = QString(path) + QString(".sig");
-        QFile outFile(outPath);
-        if (!outFile.open(QFile::WriteOnly))
-        {
-            std::cerr << +outPath << ": " << +outFile.errorString() << "\n";
-            exit(1);
-        }
-        QTextStream out(&outFile);
-        out.setCodec("UTF-8");
-        out << "; Signed by: Taodyne file signing tool\n";
-        out << "; version " << GITREV << " (" << GITSHA1 << ")\n";
-        out << "signature=\"" << qsig << "\"\n";
-        out << "pubkey=\"\n" << qpub << "\n\"\n";
-    }
-    catch (Exception &e)
-    {
-        std::cerr << prog << ": " <<  e.what() << "\n";
+        std::cerr << prog << ": " << +res << "\n";
         exit(1);
     }
 }

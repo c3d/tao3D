@@ -21,9 +21,15 @@
 
 #include "crypto.h"
 #include "private_key_rsa.h"
+#include "cryptopp/base64.h"
+#include "cryptopp/dsa.h"
 #include "cryptopp/rsa.h"
 #include "cryptopp/gcm.h"
 #include "cryptopp/osrng.h"
+
+#include <QFile>
+#include <QTextStream>
+
 #include <string>
 #include <stdint.h>
 #ifdef CONFIG_MINGW
@@ -118,6 +124,65 @@ std::string Crypto::Decrypt(std::string &ciphered)
     }
 
     return plain;
+}
+
+
+QString Crypto::Sign(QString path, QByteArray pubKey, QByteArray privKey,
+                     QString ident)
+// ----------------------------------------------------------------------------
+//   Sign path with privKey (create .sig file). Write pubKey and ident.
+// ----------------------------------------------------------------------------
+{
+    QFile file(path);
+    if (!file.open(QFile::ReadOnly))
+    {
+        return path + ": " + file.errorString();
+    }
+    QByteArray content = file.readAll();
+
+    try
+    {
+        std::string b64_pubkey, b64_signature;
+        QString qpub, qsig;
+
+        StringSource((const byte *)pubKey.data(), pubKey.size(), true,
+                     new Base64Encoder(
+                         new StringSink(b64_pubkey)));
+        qpub.append(b64_pubkey.data());
+        qpub = qpub.trimmed();
+
+        DSA::Signer signer;
+        PrivateKey &privateKey = signer.AccessPrivateKey();
+        privateKey.Load(StringSource((const byte *)privKey.data(),
+                                     privKey.size(), true).Ref());
+        AutoSeededRandomPool rng;
+        CryptoPP::SHA1 hash;
+        StringSource((const byte*)content.data(), content.size(), true,
+                   new HashFilter(hash,
+                       new SignerFilter(rng, signer,
+                           new Base64Encoder(
+                               new StringSink(b64_signature)))));
+        qsig.append(b64_signature.data());
+        qsig = qsig.trimmed();
+
+        QString outPath = QString(path) + QString(".sig");
+        QFile outFile(outPath);
+        if (!outFile.open(QFile::WriteOnly))
+        {
+            return outPath + ": "  + outFile.errorString() + "\n";
+        }
+        QTextStream out(&outFile);
+        out.setCodec("UTF-8");
+        out << ident << "\n";
+        out << "signature=\"" << qsig << "\"\n";
+        out << "pubkey=\"\n" << qpub << "\n\"\n";
+    }
+    catch (Exception &e)
+    {
+        return  QString(e.what());
+    }
+
+    return QString();
 }
 
 }

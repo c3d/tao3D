@@ -19,13 +19,18 @@
 //  (C) 2011 Taodyne SAS
 // ****************************************************************************
 
+#include <QString>
+#include <QByteArray>
 #include <string>
+
 
 namespace Tao {
 
 struct Crypto
 {
     static std::string Decrypt(std::string &encrypted);
+    static QString Sign(QString path, QByteArray pubKey, QByteArray privKey,
+                        QString ident);
 };
 
 }

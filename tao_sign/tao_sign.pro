@@ -20,7 +20,7 @@ include(../main.pri)
 
 TEMPLATE = app
 TARGET   = tao_sign
-SOURCES += sign.cpp ../tao/license.cpp
+SOURCES += sign.cpp ../tao/license.cpp ../tao/crypto.cpp
 HEADERS += ../tao/license.h
 CONFIG  += console static
 CONFIG  -= app_bundle
@@ -40,6 +40,8 @@ INC = . ../tao ../tao/include ../tao/include/tao ../tao/xlr/xlr/include \
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
 LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
+# Windows needs ws2_32.dll for ntohs() due to tao/crypto.cpp
+win32:LIBS += -lws2_32
 
 # Convenience script to run signing program
 macx:SIGN_CMD  = export DYLD_LIBRARY_PATH=$$PWD/../libxlr ; $$PWD/tao_sign \\\"\\\$$@\\\"

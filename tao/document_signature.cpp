@@ -61,7 +61,7 @@ SignatureInfo::SignatureInfo(text path)
 // ----------------------------------------------------------------------------
 //   Load signature for an existing file
 // ----------------------------------------------------------------------------
-    : path(path)
+    : path(path), status(SI_UNKNOWN)
 {}
 
 
@@ -90,22 +90,23 @@ SignatureInfo::Status SignatureInfo::loadAndCheckSignature()
     QSettings settings(sigPath, QSettings::IniFormat);
 
     QByteArray content = file.readAll();
-    pubKey = QByteArray::fromBase64(settings.value("pubkey")
+    QByteArray pubKey = QByteArray::fromBase64(settings.value("pubkey")
                                     .toByteArray());
-    signature = QByteArray::fromBase64(settings.value("signature")
+    QByteArray signature = QByteArray::fromBase64(settings.value("signature")
                                        .toByteArray());
 
-    bool ok = verify(content);
+    bool ok = verify(content, pubKey, signature);
     IFTRACE2(lic,fileload)
-        debug() << +path << " is signed, signature is "
-                << (ok ? "valid" : "INVALID") << "\n";
+        debug() << +path << " is signed (.sig " << (ok ? "valid":"INVALID")
+                << ")\n";
 
     return ok ? SI_VALID : SI_INVALID;
 }
 
 using namespace CryptoPP;
 
-bool SignatureInfo::verify(QByteArray content)
+bool SignatureInfo::verify(QByteArray content, QByteArray pubKey,
+                           QByteArray signature)
 // ----------------------------------------------------------------------------
 //   True if signature is valid and pubKey is one of the known keys
 // ----------------------------------------------------------------------------
@@ -144,14 +145,19 @@ QString SignatureInfo::signWithDocKey()
 //   Sign the file content (on disk) with the document private key
 // ----------------------------------------------------------------------------
 {
-    QByteArray qpubKeyDoc = pubKey = BA(pubKeyDoc);
+    QByteArray qpubKeyDoc = BA(pubKeyDoc);
     QByteArray qprivKeyDoc = BA(privKeyDoc);
 
     QString ident = "; Signed by: Tao Presentations " +
                        Application::editionStr() + "\n"
                     "; version " GITREV " (" GITSHA1 ")\n";
 
-    return  Tao::Crypto::Sign(+path, qpubKeyDoc, qprivKeyDoc, ident);
+    QString err = Tao::Crypto::Sign(+path, qpubKeyDoc, qprivKeyDoc, ident);
+    if (err.isEmpty())
+        status = SI_VALID;
+    else
+        status = SI_FILEERR;
+    return err;
 }
 #endif
 

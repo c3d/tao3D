@@ -45,10 +45,13 @@ struct GraphicPath : Shape
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
-    virtual void        Draw(Layout *where, GLenum tessel);
-    virtual void        Draw(const Vector3 &offset, uint64 texUnits,
-                             GLenum mode, GLenum tessel);
     virtual Box3        Bounds(Layout *layout);
+
+    // Internal drawing routines
+    void                Draw(Layout *where, GLenum tessel);
+    void                Draw(Layout *where,
+                             const Vector3 &offset, GLenum mode, GLenum tessel);
+    void                DrawOutline(Layout *where);
 
     // Absolute coordinates
     GraphicPath&        moveTo(Point3 dst);
@@ -90,6 +93,7 @@ public:
     struct VertexData
     {
         VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
+        VertexData(): vertex(), texture(), normal() {}
         Vector3  vertex;
         Vector3  texture;
         Vector3  normal;
@@ -102,7 +106,8 @@ public:
         ~PolygonData();
         Vertices        vertices;
         DynamicVertices allocated;
-        uint64          textureUnits;
+        Layout *        layout;
+        GLenum          mode;
     };
 
 public:

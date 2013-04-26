@@ -91,7 +91,7 @@ public:
     bool     needNewWindow();
     bool     setStereo(bool on);
     void     addDisplayModeMenu(QString mode, QString label);
-    bool     hasStackedWidget() { return (stackedWidget->count() >= 1); }
+    bool     hasStackedWidget() { return (stackedWidget->count() > 1); }
     QString  welcomePath();
 
     bool isUntitled;

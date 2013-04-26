@@ -49,14 +49,14 @@ struct PerFontGlyphCache
 public:
     struct GlyphEntry
     {
-        typedef std::map<scale, uint> OutlineMap;
-
         Box             bounds;
         Box             texture;
         coord           advance;
         scale           scalingFactor;
         uint            interior;
-        OutlineMap      outlines;
+        uint            outline;
+        scale           outlineWidth;
+        scale           outlineDepth;
     };
 
 public:
@@ -93,7 +93,8 @@ public:
     typedef     BinPacker::Rect                 Rect;
 
     void        Clear();
-    void        CheckTextureUnits(uint64 texUnits);
+    void        CheckActiveLayout(Layout *where);
+    void        RemoveLayout()  { layout = NULL; }
 
     uint        Width()        { return packer.Width(); }
     uint        Height()       { return packer.Height(); }
@@ -209,6 +210,7 @@ public:
     PerFont *   lastFont;
     const
     QGLContext *GLcontext;
+    Layout *    layout;
 };
 
 TAO_END

@@ -358,7 +358,7 @@ public:
     Text_p      page(Context *context, Text_p name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
     Real_p      pageSetPrintTime(Tree_p self, double t);
-    Text_p      gotoPage(Tree_p self, text page);
+    Text_p      gotoPage(Tree_p self, text page, bool abortTransition=false);
     Text_p      pageLabel(Tree_p self);
     Integer_p   pageNumber(Tree_p self);
     Integer_p   pageCount(Tree_p self);
@@ -540,6 +540,10 @@ public:
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
     Tree_p      hasTexture(Tree_p self, GLuint unit);
+    Tree_p      extrudeDepth(Tree_p self, float depth);
+    Tree_p      extrudeRadius(Tree_p self, float radius);
+    Tree_p      extrudeCount(Tree_p self, int count);
+
     Integer_p   lightsMask(Tree_p self);
     Tree_p      perPixelLighting(Tree_p self,  bool enable);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
@@ -980,6 +984,7 @@ private:
     bool                  stereoIdent;
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
+    bool                  runningTransitionCode;
     GLint                 mouseTrackingViewport[4];
     int                   stereoPlane, stereoPlanes;
     DisplayDriver *       displayDriver;

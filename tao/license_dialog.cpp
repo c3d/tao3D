@@ -118,6 +118,7 @@ void LicenseDialog::init()
     msg += tr(
                 "<h3>To add new licenses</h3>"
                 "<p>If you received license files (with the .taokey "
+                " or .taokey.src "
                 "extension), copy them into the license folder and "
                 "restart the application. Your new licenses will be "
                 "loaded automatically.</p>"

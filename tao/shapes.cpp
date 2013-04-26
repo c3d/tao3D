@@ -205,7 +205,7 @@ bool Shape::setLineColor(Layout *where)
         Color &color = where->lineColor;
         scale width = where->lineWidth;
         scale v = where->visibility * color.alpha;
-        if (v >= 0.01 && width > 0.0)
+        if (v >= 0.01 && (width > 0.0 || where->extrudeDepth > 0.0))
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
@@ -340,7 +340,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     glDisable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
-    path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);
+    path.Draw(where, where->Offset(), GL_LINE_STRIP, 0);
 }
 
 

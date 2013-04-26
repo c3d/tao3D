@@ -2839,7 +2839,11 @@ void Window::setCurrentFile(const QString &fileName)
     closeAct->setEnabled(!isTutorial(curFile));
 #ifndef TAO_PLAYER
     if (signDocumentAct)
-        signDocumentAct->setEnabled(!isTutorial(curFile));
+    {
+        bool show = !isReadOnly &&
+                    !curFile.startsWith(Application::applicationDirPath());
+        signDocumentAct->setEnabled(show);
+    }
 #endif
 
     // Update the recent file list

@@ -2432,7 +2432,7 @@ void OpenGLState::GenerateMipMap(GLenum target)
 // ----------------------------------------------------------------------------
 {
     GL.Sync(STATE_textures);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    glGenerateMipmap(target);
 }
 
 // ============================================================================

@@ -4,47 +4,57 @@
 <context>
     <name>CloneDialog</name>
     <message>
+        <location filename="clone_dialog.ui" line="23"/>
         <source>Clone</source>
-        <translation type="obsolete">Cloner</translation>
+        <translation>Cloner</translation>
     </message>
     <message>
+        <location filename="clone_dialog.ui" line="32"/>
         <source>Give the path or URL of the project you want to clone, and select a local folder:</source>
-        <translation type="obsolete">Donnez le chemin ou l&apos;URL du projet à cloner et choisissez un dossier local :</translation>
+        <translation>Donnez le chemin ou l&apos;URL du projet à cloner et choisissez un dossier local :</translation>
     </message>
     <message>
+        <location filename="clone_dialog.ui" line="44"/>
         <source>Project path or URL</source>
-        <translation type="obsolete">Chemin ou URL</translation>
+        <translation>Chemin ou URL</translation>
     </message>
     <message>
+        <location filename="clone_dialog.ui" line="54"/>
         <source>Local folder</source>
-        <translation type="obsolete">Dossier local</translation>
+        <translation>Dossier local</translation>
     </message>
     <message>
+        <location filename="clone_dialog.ui" line="64"/>
         <source>Browse...</source>
-        <translation type="obsolete">Parcourir...</translation>
+        <translation>Parcourir...</translation>
     </message>
     <message>
+        <location filename="clone_dialog.ui" line="71"/>
         <source>New folder</source>
-        <translation type="obsolete">Nouveau dossier</translation>
+        <translation>Nouveau dossier</translation>
     </message>
     <message>
+        <location filename="clone_dialog.ui" line="85"/>
         <source>(leave empty to keep original name)</source>
-        <translation type="obsolete">(vide pour conserver le nom d&apos;origine)</translation>
+        <translation>(vide pour conserver le nom d&apos;origine)</translation>
     </message>
 </context>
 <context>
     <name>DiffDialog</name>
     <message>
+        <location filename="diff_dialog.ui" line="14"/>
         <source>Diff</source>
-        <translation type="obsolete">Différences</translation>
+        <translation>Différences</translation>
     </message>
     <message>
+        <location filename="diff_dialog.ui" line="64"/>
         <source>Symmetric difference (show all changes made in B that are not also in A)</source>
-        <translation type="obsolete">Différence symétrique (changements dans B qui ne sont pas dans A)</translation>
+        <translation>Différence symétrique (changements dans B qui ne sont pas dans A)</translation>
     </message>
     <message>
+        <location filename="diff_dialog.ui" line="87"/>
         <source>Close</source>
-        <translation type="obsolete">Fermer</translation>
+        <translation>Fermer</translation>
     </message>
 </context>
 <context>
@@ -68,38 +78,45 @@
 <context>
     <name>FetchPushDialog</name>
     <message>
+        <location filename="fetch_push_dialog.ui" line="17"/>
         <source>Fetch/Push</source>
-        <translation type="obsolete">Fetch/Push</translation>
+        <translation>Fetch/Push</translation>
     </message>
     <message>
+        <location filename="fetch_push_dialog.ui" line="26"/>
         <source>Label</source>
-        <translation type="obsolete">Texte</translation>
+        <translation>Texte</translation>
     </message>
 </context>
 <context>
     <name>HistoryDialog</name>
     <message>
+        <location filename="history_dialog.ui" line="14"/>
         <source>History</source>
-        <translation type="obsolete">Historique</translation>
+        <translation>Historique</translation>
     </message>
 </context>
 <context>
     <name>HistoryFrame</name>
     <message>
+        <location filename="history_frame.ui" line="14"/>
         <source>History</source>
-        <translation type="obsolete">Historique</translation>
+        <translation>Historique</translation>
     </message>
     <message>
+        <location filename="history_frame.ui" line="20"/>
         <source>&lt;Message&gt;</source>
-        <translation type="obsolete">&lt;Message&gt;</translation>
+        <translation>&lt;Message&gt;</translation>
     </message>
     <message>
+        <location filename="history_frame.ui" line="35"/>
         <source>Branch</source>
-        <translation type="obsolete">Branche</translation>
+        <translation>Branche</translation>
     </message>
     <message>
+        <location filename="history_frame.ui" line="58"/>
         <source>Revision</source>
-        <translation type="obsolete">Révision</translation>
+        <translation>Révision</translation>
     </message>
 </context>
 <context>
@@ -127,40 +144,49 @@
 <context>
     <name>MergeDialog</name>
     <message>
+        <location filename="merge_dialog.ui" line="20"/>
         <source>Merge</source>
-        <translation type="obsolete">Fusionner</translation>
+        <translation>Fusionner</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="32"/>
         <source>Please select the branches to merge, and the conflict resolution method:</source>
-        <translation type="obsolete">Sélectionnez les branches à fusionner, et la résolution de conflits :</translation>
+        <translation>Sélectionnez les branches à fusionner, et la résolution de conflits :</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="39"/>
         <source>Source branch</source>
-        <translation type="obsolete">Branche source</translation>
+        <translation>Branche source</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="49"/>
         <source>at</source>
-        <translation type="obsolete">à</translation>
+        <translation>à</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="81"/>
         <source>Conflict resolution</source>
-        <translation type="obsolete">Résolution</translation>
+        <translation>Résolution</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="88"/>
         <source>Manual</source>
-        <translation type="obsolete">Manuelle</translation>
+        <translation>Manuelle</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="98"/>
         <source>Ours</source>
-        <translation type="obsolete">Version locale</translation>
+        <translation>Version locale</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="105"/>
         <source>Theirs</source>
-        <translation type="obsolete">Version distante</translation>
+        <translation>Version distante</translation>
     </message>
     <message>
+        <location filename="merge_dialog.ui" line="125"/>
         <source>Destination branch</source>
-        <translation type="obsolete">Branche cible</translation>
+        <translation>Branche cible</translation>
     </message>
 </context>
 <context>
@@ -179,40 +205,49 @@
 <context>
     <name>PullFromDialog</name>
     <message>
+        <location filename="pull_from_dialog.ui" line="14"/>
         <source>Synchronize</source>
-        <translation type="obsolete">Synchronisation</translation>
+        <translation>Synchronisation</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="29"/>
         <source>Choose the remote project you want to synchronize with:</source>
-        <translation type="obsolete">Choisissez le projet avec lequel vous voulez vous synchroniser :</translation>
+        <translation>Choisissez le projet avec lequel vous voulez vous synchroniser :</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="57"/>
         <source>Choose a conflict resolution mode:</source>
-        <translation type="obsolete">En cas de conflit, conserver :</translation>
+        <translation>En cas de conflit, conserver :</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="64"/>
         <source>Conflicting parts of the document will be resolved by favoring the local version.</source>
-        <translation type="obsolete">En cas de modifications contradictoires, la version locale est adoptée.</translation>
+        <translation>En cas de modifications contradictoires, la version locale est adoptée.</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="67"/>
         <source>Ours</source>
-        <translation type="obsolete">Les modifications locales</translation>
+        <translation>Les modifications locales</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="77"/>
         <source>Conflicting parts of the document will be resolved by favoring the remote version.</source>
-        <translation type="obsolete">En cas de modifications contradictoires, la version distante est adoptée.</translation>
+        <translation>En cas de modifications contradictoires, la version distante est adoptée.</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="80"/>
         <source>Theirs</source>
-        <translation type="obsolete">Les modifications distantes</translation>
+        <translation>Les modifications distantes</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="100"/>
         <source>Synchronize every:</source>
-        <translation type="obsolete">Synchroniser toutes les :</translation>
+        <translation>Synchroniser toutes les :</translation>
     </message>
     <message>
+        <location filename="pull_from_dialog.ui" line="114"/>
         <source>seconds</source>
-        <translation type="obsolete">secondes</translation>
+        <translation>secondes</translation>
     </message>
 </context>
 <context>
@@ -267,12 +302,19 @@
 <context>
     <name>RemoteSelectionFrame</name>
     <message>
-        <source>Name</source>
-        <translation type="obsolete">Nom</translation>
+        <location filename="remote_selection_frame.ui" line="17"/>
+        <source>Frame</source>
+        <translation>Frame</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.ui" line="29"/>
+        <source>Name</source>
+        <translation>Nom</translation>
+    </message>
+    <message>
+        <location filename="remote_selection_frame.ui" line="46"/>
         <source>Path or URL</source>
-        <translation type="obsolete">Chemin ou URL</translation>
+        <translation>Chemin ou URL</translation>
     </message>
 </context>
 <context>
@@ -516,188 +558,229 @@ Les préférences de l&apos;utilisateur ?</translation>
 <context>
     <name>Tao::BranchSelectionComboBox</name>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="96"/>
         <source>&lt;No branch&gt;</source>
-        <translation type="obsolete">&lt;Aucune branche&gt;</translation>
+        <translation>&lt;Aucune branche&gt;</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="120"/>
         <source>New branch...</source>
-        <translation type="obsolete">Nouvelle branche...</translation>
+        <translation>Nouvelle branche...</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="171"/>
         <source>Rename %1...</source>
-        <translation type="obsolete">Renommer %1...</translation>
+        <translation>Renommer %1...</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="172"/>
         <source>Delete %1...</source>
-        <translation type="obsolete">Supprimer %1...</translation>
+        <translation>Supprimer %1...</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="224"/>
         <source>Are you sure you want to delete branch %1?</source>
-        <translation type="obsolete">Voulez-vous supprimer la branche %1 ?</translation>
+        <translation>Voulez-vous supprimer la branche %1 ?</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="226"/>
         <source>Delete branch</source>
-        <translation type="obsolete">Supprimer une branche</translation>
+        <translation>Supprimer une branche</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="233"/>
         <source>A branch will not be deleted unless it is fully merged into the main branch.
 Do you want to delete %1 anyway?</source>
-        <translation type="obsolete">La branche %1 n&apos;est peut-être pas fusionnée dans la branche principale.
+        <translation>La branche %1 n&apos;est peut-être pas fusionnée dans la branche principale.
 Voulez-vouz la supprimer malgré tout ?</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="237"/>
         <source>Unmerged branch</source>
-        <translation type="obsolete">Branche non fusionnée</translation>
+        <translation>Branche non fusionnée</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="267"/>
         <source>New branch</source>
-        <translation type="obsolete">Nouvelle branche</translation>
+        <translation>Nouvelle branche</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="268"/>
         <source>Enter the name of the new branch:</source>
-        <translation type="obsolete">Nom de la nouvelle branche :</translation>
+        <translation>Nom de la nouvelle branche :</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="274"/>
         <source>Invalid name</source>
-        <translation type="obsolete">Nom invalide</translation>
+        <translation>Nom invalide</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="275"/>
         <source>Branch name cannot contain spaces</source>
-        <translation type="obsolete">Le nom de la branche ne peut contenir d&apos;espace</translation>
+        <translation>Le nom de la branche ne peut contenir d&apos;espace</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="296"/>
         <source>Rename branch</source>
-        <translation type="obsolete">Renommer une branche</translation>
+        <translation>Renommer une branche</translation>
     </message>
     <message>
+        <location filename="branch_selection_combobox.cpp" line="297"/>
         <source>Enter the new name for %1:</source>
-        <translation type="obsolete">Nouveau nom pour %1 :</translation>
+        <translation>Nouveau nom pour %1 :</translation>
     </message>
 </context>
 <context>
     <name>Tao::BranchSelectionTool</name>
     <message>
+        <location filename="branch_selection_tool.cpp" line="55"/>
         <source>None</source>
-        <translation type="obsolete">Aucun</translation>
+        <translation>Aucun</translation>
     </message>
     <message>
+        <location filename="branch_selection_tool.cpp" line="57"/>
         <source>Shows the URL of the project for the current document</source>
-        <translation type="obsolete">URL du projet correspondant au document courant</translation>
+        <translation>URL du projet correspondant au document courant</translation>
     </message>
     <message>
+        <location filename="branch_selection_tool.cpp" line="63"/>
         <source>Branch:</source>
-        <translation type="obsolete">Branche :</translation>
+        <translation>Branche :</translation>
     </message>
     <message>
+        <location filename="branch_selection_tool.cpp" line="64"/>
         <source>Task:</source>
-        <translation type="obsolete">Tâche :</translation>
+        <translation>Tâche :</translation>
     </message>
     <message>
+        <location filename="branch_selection_tool.cpp" line="65"/>
         <source>Project URL:</source>
-        <translation type="obsolete">URL du projet :</translation>
+        <translation>URL du projet :</translation>
     </message>
 </context>
 <context>
     <name>Tao::CheckoutDialog</name>
     <message>
+        <location filename="checkout_dialog.cpp" line="36"/>
         <source>Checkout</source>
-        <translation type="obsolete">Checkout</translation>
+        <translation>Checkout</translation>
     </message>
     <message>
+        <location filename="checkout_dialog.cpp" line="37"/>
         <source>Please select a version of the document and click Checkout to bring a copy into a temporary branch</source>
-        <translation type="obsolete">Choisissez une version du document et cliquez Checkout pour amener une copie dans une branche temporaire</translation>
+        <translation>Choisissez une version du document et cliquez Checkout pour amener une copie dans une branche temporaire</translation>
     </message>
     <message>
+        <location filename="checkout_dialog.cpp" line="40"/>
         <source>&amp;Checkout</source>
-        <translation type="obsolete">&amp;Checkout</translation>
+        <translation>&amp;Checkout</translation>
     </message>
 </context>
 <context>
     <name>Tao::CloneDialog</name>
     <message>
+        <location filename="clone_dialog.cpp" line="46"/>
         <source>Show/Hide details</source>
-        <translation type="obsolete">Plus/moins de détails</translation>
+        <translation>Plus/moins de détails</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="72"/>
         <source>Folder does not exist</source>
-        <translation type="obsolete">Le dossier n&apos;existe pas</translation>
+        <translation>Le dossier n&apos;existe pas</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="73"/>
         <source>Do you want do create folder: %1?</source>
-        <translation type="obsolete">Voulez-vous créer le dossier %1 ?</translation>
+        <translation>Voulez-vous créer le dossier %1 ?</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="81"/>
         <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
+        <translation>Erreur</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="82"/>
         <source>Could not create folder.</source>
-        <translation type="obsolete">Impossible de créer le dossier.</translation>
+        <translation>Impossible de créer le dossier.</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="91"/>
         <source>Invalid folder</source>
-        <translation type="obsolete">Dossier invalide</translation>
+        <translation>Dossier invalide</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="92"/>
         <source>You can&apos;t clone into a folder that is already under a valid Tao project.&lt;br&gt;Please select a different folder.</source>
-        <translation type="obsolete">Impossible de cloner dans un dossier qui est sous un projet Tao.&lt;br&gt;Choisisser un autre dossier.</translation>
+        <translation>Impossible de cloner dans un dossier qui est sous un projet Tao.&lt;br&gt;Choisisser un autre dossier.</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="99"/>
         <source>Starting...
 </source>
-        <translation type="obsolete">Démarrage...
+        <translation>Démarrage...
 </translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="142"/>
         <source>Aborted.
 </source>
-        <translation type="obsolete">Annulé.
+        <translation>Annulé.
 </translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="144"/>
+        <location filename="clone_dialog.cpp" line="164"/>
         <source>Done.
 </source>
-        <translation type="obsolete">Terminé.
+        <translation>Terminé.
 </translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="159"/>
         <source>Checking out files...
 </source>
-        <translation type="obsolete">Extraction des fichiers...
+        <translation>Extraction des fichiers...
 </translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="168"/>
         <source>Failed.
 </source>
-        <translation type="obsolete">Erreur.
+        <translation>Erreur.
 </translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="203"/>
         <source>Select destination folder</source>
-        <translation type="obsolete">Choissisez un dossier de destination</translation>
+        <translation>Choissisez un dossier de destination</translation>
     </message>
     <message>
+        <location filename="clone_dialog.cpp" line="236"/>
         <source>OK</source>
-        <translation type="obsolete">OK</translation>
+        <translation>OK</translation>
     </message>
 </context>
 <context>
     <name>Tao::CommitTableModel</name>
     <message>
+        <location filename="commit_table_model.cpp" line="96"/>
         <source>ID</source>
-        <translation type="obsolete">ID</translation>
+        <translation>ID</translation>
     </message>
     <message>
+        <location filename="commit_table_model.cpp" line="97"/>
         <source>Date</source>
-        <translation type="obsolete">Date</translation>
+        <translation>Date</translation>
     </message>
     <message>
+        <location filename="commit_table_model.cpp" line="98"/>
         <source>Author</source>
-        <translation type="obsolete">Auteur</translation>
+        <translation>Auteur</translation>
     </message>
     <message>
+        <location filename="commit_table_model.cpp" line="99"/>
         <source>Message</source>
-        <translation type="obsolete">Message</translation>
+        <translation>Message</translation>
     </message>
 </context>
 <context>
@@ -760,12 +843,14 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DiffDialog</name>
     <message>
+        <location filename="diff_dialog.cpp" line="41"/>
         <source>Select first version (A):</source>
-        <translation type="obsolete">Première version (A) :</translation>
+        <translation>Première version (A) :</translation>
     </message>
     <message>
+        <location filename="diff_dialog.cpp" line="42"/>
         <source>Select second version (B):</source>
-        <translation type="obsolete">Seconde version (B) :</translation>
+        <translation>Seconde version (B) :</translation>
     </message>
 </context>
 <context>
@@ -830,48 +915,39 @@ Voulez-vouz la supprimer malgré tout ?</translation>
     </message>
 </context>
 <context>
-    <name>Tao::ExamplesMenu</name>
-    <message>
-        <source>Examples</source>
-        <translation type="obsolete">Exemples</translation>
-    </message>
-    <message>
-        <source>Themes</source>
-        <translation type="obsolete">Thèmes</translation>
-    </message>
-    <message>
-        <source>Miscellaneous</source>
-        <translation type="obsolete">Divers</translation>
-    </message>
-</context>
-<context>
     <name>Tao::FetchDialog</name>
     <message>
+        <location filename="fetch_dialog.cpp" line="41"/>
         <source>Fetch</source>
-        <translation type="obsolete">Fetch</translation>
+        <translation>Fetch</translation>
     </message>
     <message>
+        <location filename="fetch_dialog.cpp" line="42"/>
         <source>Choose the remote project you want to fetch from:</source>
-        <translation type="obsolete">Sélectionnez le projet distant à télecharger :</translation>
+        <translation>Sélectionnez le projet distant à télecharger :</translation>
     </message>
 </context>
 <context>
     <name>Tao::FetchPushDialogBase</name>
     <message>
+        <location filename="fetch_push_dialog_base.cpp" line="42"/>
         <source>Show/Hide details</source>
-        <translation type="obsolete">Plus/moins de détails</translation>
+        <translation>Plus/moins de détails</translation>
     </message>
     <message>
+        <location filename="fetch_push_dialog_base.cpp" line="128"/>
         <source>Operation failed.
 Exit code: %1
 %2</source>
-        <translation type="obsolete">L&apos;opération à échoué.
+        <translation>L&apos;opération à échoué.
 Code : %1
 %2</translation>
     </message>
     <message>
+        <location filename="fetch_push_dialog_base.cpp" line="130"/>
+        <location filename="fetch_push_dialog_base.cpp" line="148"/>
         <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
+        <translation>Erreur</translation>
     </message>
 </context>
 <context>
@@ -946,28 +1022,34 @@ Voulez-vous me montrer où elle se trouve ?</translation>
 <context>
     <name>Tao::GitToolBar</name>
     <message>
+        <location filename="git_toolbar.cpp" line="61"/>
         <source>Branch selection</source>
-        <translation type="obsolete">Choix de branche</translation>
+        <translation>Choix de branche</translation>
     </message>
     <message>
+        <location filename="git_toolbar.cpp" line="71"/>
         <source>Show/hide the branch selection tool</source>
-        <translation type="obsolete">Montrer/cacher l&apos;outil de sélection de branche</translation>
+        <translation>Montrer/cacher l&apos;outil de sélection de branche</translation>
     </message>
     <message>
+        <location filename="git_toolbar.cpp" line="73"/>
         <source>Branch</source>
-        <translation type="obsolete">Branche</translation>
+        <translation>Branche</translation>
     </message>
     <message>
+        <location filename="git_toolbar.cpp" line="79"/>
         <source>History Playback</source>
-        <translation type="obsolete">Historique</translation>
+        <translation>Historique</translation>
     </message>
     <message>
+        <location filename="git_toolbar.cpp" line="87"/>
         <source>Show/hide the history playback tool</source>
-        <translation type="obsolete">Montrer/cacher l&apos;outil d&apos;historique</translation>
+        <translation>Montrer/cacher l&apos;outil d&apos;historique</translation>
     </message>
     <message>
+        <location filename="git_toolbar.cpp" line="89"/>
         <source>Playback</source>
-        <translation type="obsolete">Historique</translation>
+        <translation>Historique</translation>
     </message>
 </context>
 <context>
@@ -1002,7 +1084,7 @@ Voulez-vous me montrer où elle se trouve ?</translation>
         <translation>Impossible de sauver le fichier de license %1 (%2)</translation>
     </message>
     <message>
-        <location filename="license_download.cpp" line="402"/>
+        <location filename="license_download.cpp" line="405"/>
         <source>Invalid authorization string @%1:%2</source>
         <translation>Clé d&apos;autorisation invalide @%1:%2</translation>
     </message>
@@ -1239,14 +1321,16 @@ Le téléchargement sera à nouveau tenté lors du prochain lancement de l&apos;
 <context>
     <name>Tao::MergeDialog</name>
     <message>
+        <location filename="merge_dialog.cpp" line="90"/>
         <source>Merge error</source>
-        <translation type="obsolete">Erreur de fusion</translation>
+        <translation>Erreur de fusion</translation>
     </message>
     <message>
+        <location filename="merge_dialog.cpp" line="91"/>
         <source>Automatic merge failed.
 Select OK to restore the project to its previous state.
 Select Cancel to leave the project half-merged and resolve conflicts manually.</source>
-        <translation type="obsolete">La fusion automatique a échoué.
+        <translation>La fusion automatique a échoué.
 Choisissez OK pour remettre le projet dans son état précédent.
 Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les conflits manuellement.</translation>
     </message>
@@ -1714,55 +1798,67 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 <context>
     <name>Tao::PushDialog</name>
     <message>
+        <location filename="push_dialog.cpp" line="41"/>
         <source>Push</source>
-        <translation type="obsolete">Pousser</translation>
+        <translation>Pousser</translation>
     </message>
     <message>
+        <location filename="push_dialog.cpp" line="42"/>
         <source>Choose the remote project you want to push to:</source>
-        <translation type="obsolete">Choisissez le projet vers lequel vous voulez pousser :</translation>
+        <translation>Choisissez le projet vers lequel vous voulez pousser :</translation>
     </message>
 </context>
 <context>
     <name>Tao::RemoteSelectionFrame</name>
     <message>
+        <location filename="remote_selection_frame.cpp" line="80"/>
         <source>&lt;None&gt;</source>
-        <translation type="obsolete">&lt;Aucune&gt;</translation>
+        <translation>&lt;Aucune&gt;</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="85"/>
         <source>Add new...</source>
-        <translation type="obsolete">Nouvelle destination...</translation>
+        <translation>Nouvelle destination...</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="125"/>
         <source>Rename %1...</source>
-        <translation type="obsolete">Renommer %1...</translation>
+        <translation>Renommer %1...</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="126"/>
         <source>Delete %1...</source>
-        <translation type="obsolete">Supprimer %1...</translation>
+        <translation>Supprimer %1...</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="204"/>
         <source>New remote</source>
-        <translation type="obsolete">Nouvelle destination</translation>
+        <translation>Nouvelle destination</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="205"/>
         <source>Enter the name of the new remote:</source>
-        <translation type="obsolete">Entrez le nom de la nouvelle destination :</translation>
+        <translation>Entrez le nom de la nouvelle destination :</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="211"/>
         <source>Invalid name</source>
-        <translation type="obsolete">Nom invalide</translation>
+        <translation>Nom invalide</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="212"/>
         <source>Remote name cannot contain spaces</source>
-        <translation type="obsolete">Le nom ne doit pas contenir d&apos;espace</translation>
+        <translation>Le nom ne doit pas contenir d&apos;espace</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="232"/>
         <source>Rename remote</source>
-        <translation type="obsolete">Renommer</translation>
+        <translation>Renommer</translation>
     </message>
     <message>
+        <location filename="remote_selection_frame.cpp" line="233"/>
         <source>Enter the new name for %1:</source>
-        <translation type="obsolete">Nouveau nom pour %1 :</translation>
+        <translation>Nouveau nom pour %1 :</translation>
     </message>
 </context>
 <context>
@@ -1809,26 +1905,31 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 <context>
     <name>Tao::SelectiveUndoDialog</name>
     <message>
+        <location filename="selective_undo_dialog.cpp" line="37"/>
         <source>Selective undo</source>
-        <translation type="obsolete">Annulation sélective</translation>
+        <translation>Annulation sélective</translation>
     </message>
     <message>
+        <location filename="selective_undo_dialog.cpp" line="38"/>
         <source>Please select a change and click Undo to undo this change in the current document</source>
-        <translation type="obsolete">Sélectionnez un changement puis Défaire pour annuler cette modification dans le document en cours</translation>
+        <translation>Sélectionnez un changement puis Défaire pour annuler cette modification dans le document en cours</translation>
     </message>
     <message>
+        <location filename="selective_undo_dialog.cpp" line="41"/>
         <source>&amp;Undo</source>
-        <translation type="obsolete">&amp;Annuler</translation>
+        <translation>&amp;Annuler</translation>
     </message>
     <message>
+        <location filename="selective_undo_dialog.cpp" line="57"/>
         <source>Undo error</source>
-        <translation type="obsolete">Erreur d&apos;annulation</translation>
+        <translation>Erreur d&apos;annulation</translation>
     </message>
     <message>
+        <location filename="selective_undo_dialog.cpp" line="58"/>
         <source>Selective undo failed.
 Select OK to restore the project to its previous state.
 Select Cancel to leave the project as is and resolve conflicts manually.</source>
-        <translation type="obsolete">L&apos;annulation sélective a échoué.
+        <translation>L&apos;annulation sélective a échoué.
 Choisissez OK pour remettre le projet dans son état précédent.
 Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les conflits manuellement.</translation>
     </message>
@@ -2104,37 +2205,37 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="1371"/>
+        <location filename="widget.cpp" line="1384"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1481"/>
+        <location filename="widget.cpp" line="1494"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1482"/>
+        <location filename="widget.cpp" line="1495"/>
         <source>Invalid file name. Check any % format specification and remember to use %% to insert a percent character.</source>
         <translation>Nom de fichier invalide. Vérifiez que la spécification de format (%) et utilisez %% pour insérer un caractère pourcent.</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2623"/>
+        <location filename="widget.cpp" line="2636"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2629"/>
+        <location filename="widget.cpp" line="2642"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12299"/>
+        <location filename="widget.cpp" line="12349"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12300"/>
+        <location filename="widget.cpp" line="12350"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

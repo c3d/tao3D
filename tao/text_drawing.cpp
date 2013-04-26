@@ -96,7 +96,7 @@ void TextSplit::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Widget     *widget     = where->Display();
-    bool        hasLine    = setLineColor(where);
+    bool        hasLine    = setLineColor(where) || where->extrudeDepth > 0;
     bool        hasTexture = setTexture(where);
     GlyphCache &glyphs     = widget->glyphs();
     scale       fontSize   = where->font.pointSizeF();
@@ -116,7 +116,7 @@ void TextSplit::Draw(Layout *where)
                   << *this << std::endl;
 
     // Check if we activated new texture units
-    glyphs.CheckTextureUnits(where->textureUnits);
+    glyphs.CheckActiveLayout(where);
 
     if (!printing && !hasLine && !hasTexture && !badSize && cacheEnabled)
         DrawCached(where);
@@ -130,6 +130,8 @@ void TextSplit::Draw(Layout *where)
         XL::Save<Point3> save(where->offset, offset0);
         Identify(where);
     }
+
+    glyphs.RemoveLayout();
 }
 
 
@@ -260,7 +262,6 @@ void TextSplit::DrawDirect(Layout *where)
     coord       y        = pos.y;
     coord       z        = pos.z;
     scale       lw       = where->lineWidth;
-    bool        skip     = false;
     uint        i, max   = str.length();
 
     // Disable drawing of lines if we don't see them.
@@ -309,14 +310,28 @@ void TextSplit::DrawDirect(Layout *where)
             scale gscale = glyph.scalingFactor;
             glScalef(gscale, gscale, gscale);
 
-            if (!skip)
+            setTexture(where);
+            if (where->extrudeDepth > 0.0)
             {
-                setTexture(where);
+                if (setFillColor(where))
+                {
+                    glPushMatrix();
+                    glTranslatef(0.0, 0.0, -where->extrudeDepth);
+                    glCallList(glyph.interior);
+                    glPopMatrix();
+                    glCallList(glyph.interior);
+                }
+                setLineColor(where); // May fail, keep fill color
+                glCallList(glyph.outline);
+                
+            }
+            else
+            {
                 if (setFillColor(where))
                     glCallList(glyph.interior);
+                if (lw > 0.0 && setLineColor(where))
+                    glCallList(glyph.outline);
             }
-            if (setLineColor(where) && lw)
-                glCallList(glyph.outlines[lw]);
 
             x += glyph.advance + spread;
         }

@@ -60,6 +60,9 @@
 #include "examples_menu.h"
 #include "texture_cache.h"
 #include "update_application.h"
+#ifndef TAO_PLAYER
+#include "document_signature.h"
+#endif
 
 #include <iostream>
 #include <sstream>
@@ -792,13 +795,13 @@ void Window::consolidate()
 
 
 #ifndef TAO_PLAYER
-void Window::signDocument()
+void Window::signDocument(text path)
 // ----------------------------------------------------------------------------
-//   Save a file with a given name
+//   Sign all the user files used by the document (or only the main .ddd file)
 // ----------------------------------------------------------------------------
 {
     showMessage(tr("Writing signature..."));
-    QString err = taoWidget->signDocument();
+    QString err = taoWidget->signDocument(path);
     if (!err.isEmpty())
     {
         QMessageBox::warning(this, tr("Error"),
@@ -807,6 +810,16 @@ void Window::signDocument()
     }
 }
 #endif
+
+
+bool Window::isDocumentSigned()
+// ----------------------------------------------------------------------------
+//   Document signature status
+// ----------------------------------------------------------------------------
+{
+    return taoWidget->isDocSigned();
+}
+
 
 bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
@@ -855,6 +868,19 @@ bool Window::saveFile(const QString &fileName)
             }
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
+
+
+#ifndef TAO_PLAYER
+    // Save should keep the signatures valid if they where valid
+    // before the document was modified.
+    {
+        XL::SourceFile &sf = xlRuntime->files[+fileName];
+        std::cerr << "S &sf=" << (void*)&sf << " fileName=" << +fileName << "\n";
+        SignatureInfo *si = sf.GetInfo<SignatureInfo>();
+        if (si)
+            signDocument(+fileName);
+    }
+#endif
 
     // Will update recent file list since file now exists
     setCurrentFile(fileName);

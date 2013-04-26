@@ -93,6 +93,9 @@ public:
     void     addDisplayModeMenu(QString mode, QString label);
     bool     hasStackedWidget() { return (stackedWidget->count() > 1); }
     QString  welcomePath();
+#ifndef CFG_NO_DOC_SIGNATURE
+    bool     isDocumentSigned();
+#endif
 
     bool isUntitled;
     bool isReadOnly;
@@ -130,7 +133,7 @@ public slots:
     void updateDisplayModeCheckMark(QString mode);
     void closeDocument();
 #ifndef TAO_PLAYER
-    void signDocument();
+    void signDocument(text path = "");
 #endif
 
 signals:
@@ -230,7 +233,6 @@ private:
     void     showMessage(QString message, int timeout);
     void     showInfoDialog(QString title, QString msg, QString info = "");
     void     closeToolWindows();
-
 
 private:
     XL::Main *        xlRuntime;

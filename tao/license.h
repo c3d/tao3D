@@ -26,6 +26,9 @@
 #ifndef KEYGEN
 #include "version.h"
 #include "application.h"
+#ifndef CFG_NO_DOC_SIGNATURE
+#include "window.h"
+#endif
 #include <set>
 #endif
 
@@ -81,7 +84,7 @@ public:
 
     static bool CheckImpressOrLicense(text feature)
     {
-        if (Application::isImpress())
+        if (DontCheck())
         {
             debugTraceNotChecked(feature);
             return true;
@@ -94,7 +97,7 @@ public:
 
     static bool HasImpressOrLicense(text feature)
     {
-        if (Application::isImpress())
+        if (DontCheck())
         {
             debugTraceNotChecked(feature);
             return true;
@@ -103,6 +106,19 @@ public:
         {
             return Has(feature);
         }
+    }
+
+    static bool DontCheck()
+    {
+        if (Application::isImpress())
+            return true;
+        bool sig = false;
+#ifndef CFG_NO_DOC_SIGNATURE
+        Window *win = TaoApp->window();
+        if (win)
+            sig = win->isDocumentSigned();
+#endif
+        return sig;
     }
 
     static text hostID();
@@ -182,7 +198,11 @@ private:
             if (checked.count(feature) == 0)
             {
                 debug() << "'" << feature << "' not checked "
-                           "(authorized because edition is Impress)\n";
+                           "(authorized because edition is Impress"
+#ifndef CFG_NO_DOC_SIGNATURE
+                           " or doc is signed)"
+#endif
+                           "\n";
                 checked.insert(feature);
             }
         }

@@ -218,7 +218,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
-      isInvalid(false)
+      isInvalid(false), isDocumentSigned(false)
 {
 #ifdef MACOSX_DISPLAYLINK
     if (DisplayLink == -1)
@@ -452,7 +452,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pendingEvents(), // Nothing transferred from o's event queue
       inDraw(o.inDraw), changeReason(o.changeReason),
       editCursor(o.editCursor),
-      isInvalid(false)
+      isInvalid(false), isDocumentSigned(o.isDocumentSigned)
 {
     setObjectName(QString("Widget"));
 
@@ -793,7 +793,8 @@ void Widget::drawActivities()
     selectionSpace.Draw(NULL);
 
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
-    if (Licenses::UnlicensedCount() > 0)
+    // (except we have a valid signature made by the full version of Tao)
+    if (Licenses::UnlicensedCount() > 0 && !isDocumentSigned)
     {
         GLStateKeeper save;
         SpaceLayout licenseOverlaySpace(this);
@@ -3785,7 +3786,9 @@ int Widget::loadFile(text name)
 {
     purgeTaoInfo();
     TaoSave saveCurrent(current, this);
-    return XL::MAIN->LoadFile(name);
+    int st = XL::MAIN->LoadFile(name);
+    checkDocumentSigned();
+    return st;
 }
 
 
@@ -3884,50 +3887,95 @@ QStringList Widget::listNames()
 
 
 #ifndef TAO_PLAYER
-QString Widget::signDocument()
+static bool isUserFile(QString path)
 // ----------------------------------------------------------------------------
-//   Create a .sig file for each file in a document (except modules/Tao files)
+//   True if file is not a Tao file (tao.xl, etc.) or module
+// ----------------------------------------------------------------------------
+{
+    path = QFileInfo(path).absoluteFilePath();
+    ModuleManager *mmgr = ModuleManager::moduleManager();
+    QList<QDir> exclude;
+    exclude << mmgr->userModuleDir() << mmgr->systemModuleDir()
+            << QDir(Application::applicationDirPath());
+    foreach (QDir dir, exclude)
+        if (path.startsWith(dir.absolutePath()))
+            return false;
+    return true;
+}
+
+
+static QString attachSigatureInfoAndSign(XL::SourceFile &sf)
+// ----------------------------------------------------------------------------
+//   Attach SignatureInfo object to tree and sign file
+// ----------------------------------------------------------------------------
+{
+    SignatureInfo *si = sf.GetInfo<SignatureInfo>();
+    if (!si)
+    {
+        si = new SignatureInfo(sf.name);
+        sf.SetInfo<SignatureInfo>(si);
+    }
+    return si->signFileWithDocKey();
+}
+
+
+QString Widget::signDocument(text path)
+// ----------------------------------------------------------------------------
+//   Create .sig for path or all file in a document (except modules/Tao files)
 // ----------------------------------------------------------------------------
 {
     QString err;
+    using namespace XL;
+    if (path != "")
+    {
+        err = attachSigatureInfoAndSign(MAIN->files[path]);
+    }
+    else
+    {
+        source_files &files = MAIN->files;
+        source_files::iterator it;
+        for (it = files.begin(); it != files.end(); it++)
+        {
+            SourceFile &sf = (*it).second;
+            if (!isUserFile(+sf.name))
+                continue;
+
+            err = attachSigatureInfoAndSign(sf);
+            if (!err.isEmpty())
+                break;
+        }
+    }
+    checkDocumentSigned();
+    return err;
+}
+#endif
+
+
+bool Widget::checkDocumentSigned()
+// ----------------------------------------------------------------------------
+//   Scan all files used by the document, check if they have a SignatureInfo
+// ----------------------------------------------------------------------------
+{
+    bool sig = false;
     using namespace XL;
     source_files &files = MAIN->files;
     source_files::iterator it;
     for (it = files.begin(); it != files.end(); it++)
     {
         SourceFile &sf = (*it).second;
-        QString file = QFileInfo(+sf.name).absoluteFilePath();
-
-        ModuleManager *mmgr = ModuleManager::moduleManager();
-        QList<QDir> exclude;
-        exclude << mmgr->userModuleDir() << mmgr->systemModuleDir()
-                << QDir(Application::applicationDirPath());
-        bool skip = false;
-        foreach (QDir dir, exclude)
-        {
-            if (file.startsWith(dir.absolutePath()))
-            {
-                skip = true;
-                break;
-            }
-        }
-        if (skip)
-            continue;
-
-        // Attach SignatureInfo object to tree and sign file
-        SignatureInfo *si = sf.tree->GetInfo<SignatureInfo>();
+        SignatureInfo *si = sf.GetInfo<SignatureInfo>();
         if (!si)
         {
-            si = new SignatureInfo(sf.name);
-            sf.tree->SetInfo<SignatureInfo>(si);
+            sig = false;
+            break;
         }
-        QString err = si->signFileWithDocKey();
-        if (!err.isEmpty())
-            return err;
+        sig = true;
     }
-    return err;
+    IFTRACE2(lic, fileload)
+        std::cerr << "Document is " << (sig ? "" : "not ") << "signed\n";
+
+    return (isDocumentSigned = sig);
 }
-#endif
 
 
 void Widget::refreshProgram()
@@ -4040,6 +4088,9 @@ void Widget::refreshProgram()
         taoWindow()->clearErrors();
 
     toReload.clear();
+
+    // Update signature status
+    checkDocumentSigned();
 }
 
 

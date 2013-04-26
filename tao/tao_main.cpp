@@ -532,37 +532,25 @@ int Main::LoadFile(text file, bool updateContext,
 //   Call XLR to load file. Attach signature info to tree if file is signed.
 // ----------------------------------------------------------------------------
 {
-#ifndef CFG_NO_DOC_SIGNATURE
-    SignatureInfo * si = NULL;
-    if (!Application::isImpress())
-    {
-        si = new SignatureInfo(file);
-        SignatureInfo::Status st = si->loadAndCheckSignature();
-        if (st != SignatureInfo::SI_VALID)
-        {
-            delete si;
-            si = NULL;
-        }
-    }
-    else
-    {
-        // Tao Impress or Tao Player Pro impose no restriction that could be
-        // lifted by checking a document signature
-    }
-#endif
-
     int ret = XL::Main::LoadFile(file, updateContext, importContext,
                                  importSymbols);
 
 #ifndef CFG_NO_DOC_SIGNATURE
-    if (ret != 0 || !si)
-    {
-        delete si;
-        return ret;
-    }
-
+    // (Re-) check file signature.
     XL::SourceFile &sf = XL::MAIN->files[file];
-    sf.tree->SetInfo<SignatureInfo>(si);
+    SignatureInfo * si = sf.GetInfo<SignatureInfo>();
+    if (!si)
+    {
+        si = new SignatureInfo(file);
+        sf.SetInfo<SignatureInfo>(si);
+    }
+    SignatureInfo::Status st = si->loadAndCheckSignature();
+    if (st != SignatureInfo::SI_VALID)
+    {
+        sf.Remove(si);
+        delete si;
+    }
+    // Now if SourceFile has a SignatureInfo it means it has a valid sigature.
 #endif
 
     return ret;

@@ -256,8 +256,9 @@ public:
     bool        isReadOnly();
     QStringList listNames();
 #ifndef TAO_PLAYER
-    QString      signDocument();
+    QString      signDocument(text path);
 #endif
+    bool         checkDocumentSigned();
 
     // Timing
     ulonglong   now();
@@ -347,6 +348,7 @@ public:
     void        purgeTaoInfo();
 
     FileMonitor & fileMonitor()         { return srcFileMonitor; }
+    bool        isDocSigned() { return isDocumentSigned; }
 
 public:
     static Widget *Tao()                { assert(current); return current; }
@@ -1128,6 +1130,7 @@ private:
 
     std::map<text, text>  xlTranslations;
     bool                  isInvalid;
+    bool                  isDocumentSigned;
 };
 
 

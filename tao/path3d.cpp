@@ -266,12 +266,6 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
             double z1 = -radius * (1 - ca1);
             double z2 = -radius * (1 - ca2);
 
-            // Vector3 last = data[size-1].vertex;
-            // Vector3 lastNormal = last - center;
-            // lastNormal.Normalize();
-            // last += lastNormal * radius * sa1;
-            // last.z -= radius * (1 - ca1);
-
             side.reserve (2*size+2);
             bottom.reserve (2*size+2);
             Vector3 last;

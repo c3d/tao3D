@@ -323,7 +323,6 @@ void TextSplit::DrawDirect(Layout *where)
                 }
                 setLineColor(where); // May fail, keep fill color
                 glCallList(glyph.outline);
-                
             }
             else
             {

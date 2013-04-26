@@ -92,11 +92,13 @@ public:
     typedef std::vector<ControlPoint *> control_points;
     struct VertexData
     {
-        VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
-        VertexData(): vertex(), texture(), normal() {}
-        Vector3  vertex;
-        Vector3  texture;
-        Vector3  normal;
+        VertexData(const Point3& v, const Point3& t)
+            : vertex(v), texture(t), normal(0,0,1), source(NULL) {}
+        VertexData(): vertex(), texture(), normal(), source(NULL) {}
+        Vector3     vertex;
+        Vector3     texture;
+        Vector3     normal;
+        VertexData *source;
     };
     typedef std::vector<VertexData>   Vertices;
     typedef std::vector<VertexData *> DynamicVertices;
@@ -104,6 +106,7 @@ public:
     {
         PolygonData() {}
         ~PolygonData();
+
         Vertices        vertices;
         DynamicVertices allocated;
         Layout *        layout;

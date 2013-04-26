@@ -53,10 +53,12 @@ public:
         Box             texture;
         coord           advance;
         scale           scalingFactor;
-        uint            interior;
-        uint            outline;
         scale           outlineWidth;
         scale           outlineDepth;
+        scale           outlineRadius;
+        uint            outlineCount;
+        uint            outline;
+        uint            interior;
     };
 
 public:

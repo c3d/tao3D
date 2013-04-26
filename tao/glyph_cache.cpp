@@ -381,9 +381,14 @@ bool GlyphCache::Find(const QFont &font,
     if (layout)
     {
         scale depth = layout->extrudeDepth;
+        scale radius = layout->extrudeRadius;
+        uint  outlineCount = layout->extrudeCount;
         bool  widthChange = entry.outlineWidth != lineWidth;
         bool  depthChange = entry.outlineDepth != depth;
-        bool  outlineChange = widthChange || depthChange;
+        bool  radiusChange = entry.outlineRadius != radius;
+        bool  countChange = entry.outlineCount != outlineCount;
+        bool  outlineChange = (widthChange  || depthChange ||
+                               radiusChange || countChange);
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size
@@ -399,15 +404,24 @@ bool GlyphCache::Find(const QFont &font,
 
             if (interior)
             {
-                XL::Save<scale> saveDepth (layout->extrudeDepth, 0.0);
-
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
                     entry.interior = glGenLists(1);
-                glNewList(entry.interior, GL_COMPILE);
-                path.Draw(layout, Vector3(0,0,0),
-                          GL_POLYGON, GLU_TESS_WINDING_ODD);
-                glEndList();
+                if (layout->extrudeDepth > 0.0)
+                {
+                    XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
+                else
+                {
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
             }
 
             if (outlineChange)
@@ -441,6 +455,8 @@ bool GlyphCache::Find(const QFont &font,
 
                 entry.outlineWidth = lineWidth;
                 entry.outlineDepth = depth;
+                entry.outlineRadius = radius;
+                entry.outlineCount = outlineCount;
             }
 
             // Store the new or updated entry
@@ -511,8 +527,9 @@ bool GlyphCache::Find(const QFont &font,
         entry.scalingFactor = fs;
         entry.interior = 0;
         entry.outline = 0;
-        entry.outlineWidth = 1.0;
+        entry.outlineWidth = lineWidth;
         entry.outlineDepth = 0.0;
+        entry.outlineRadius = 0.0;
 
         // Store the new entry
         perFont->Insert(code, entry);
@@ -541,9 +558,14 @@ bool GlyphCache::Find(const QFont &font,
     if (layout)
     {
         scale depth = layout->extrudeDepth;
+        scale radius = layout->extrudeRadius;
+        uint  outlineCount = layout->extrudeCount;
         bool  widthChange = entry.outlineWidth != lineWidth;
         bool  depthChange = entry.outlineDepth != depth;
-        bool  outlineChange = widthChange || depthChange;
+        bool  radiusChange = entry.outlineRadius != radius;
+        bool  countChange = entry.outlineCount != outlineCount;
+        bool  outlineChange = (widthChange  || depthChange ||
+                               radiusChange || countChange);
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size
@@ -559,15 +581,26 @@ bool GlyphCache::Find(const QFont &font,
 
             if (interior)
             {
-                XL::Save<scale> saveDepth (layout->extrudeDepth, 0.0);
-
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
                     entry.interior = glGenLists(1);
-                glNewList(entry.interior, GL_COMPILE);
-                path.Draw(layout, Vector3(0,0,0),
-                          GL_POLYGON, GLU_TESS_WINDING_ODD);
-                glEndList();
+
+                if (layout->extrudeDepth > 0.0)
+                {
+                    XL::Save<scale> saveDepth (layout->extrudeDepth, 0.0);
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
+                else
+                {
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
+
             }
 
             if (outlineChange)
@@ -601,6 +634,8 @@ bool GlyphCache::Find(const QFont &font,
 
                 entry.outlineWidth = lineWidth;
                 entry.outlineDepth = depth;
+                entry.outlineRadius = radius;
+                entry.outlineCount = outlineCount;
             }
 
             // Store the new or updated entry

@@ -231,9 +231,6 @@ void Application::deferredInit()
         return;
     }
 
-    // Create main window
-    win = new Window (xlr, contextFiles);
-
 #ifdef TAO_EDITION
     // Internal or custom build
     QString lic = QString("Tao Presentations %1 %2").arg(TAO_EDITION)
@@ -264,6 +261,9 @@ void Application::deferredInit()
         edition = Application::Discovery;
 #endif
 #endif
+
+    // Create main window
+    win = new Window (xlr, contextFiles);
 
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this

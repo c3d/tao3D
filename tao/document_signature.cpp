@@ -140,11 +140,14 @@ bool SignatureInfo::verify(QByteArray content, QByteArray pubKey,
 
 
 #ifndef TAO_PLAYER
-QString SignatureInfo::signWithDocKey()
+QString SignatureInfo::signFileWithDocKey()
 // ----------------------------------------------------------------------------
 //   Sign the file content (on disk) with the document private key
 // ----------------------------------------------------------------------------
 {
+    IFTRACE2(lic, fileload)
+        debug() << "Signing " << path << " with doc key\n";
+
     QByteArray qpubKeyDoc = BA(pubKeyDoc);
     QByteArray qprivKeyDoc = BA(privKeyDoc);
 
@@ -152,11 +155,14 @@ QString SignatureInfo::signWithDocKey()
                        Application::editionStr() + "\n"
                     "; version " GITREV " (" GITSHA1 ")\n";
 
+    status = SI_VALID;
     QString err = Tao::Crypto::Sign(+path, qpubKeyDoc, qprivKeyDoc, ident);
-    if (err.isEmpty())
-        status = SI_VALID;
-    else
+    if (!err.isEmpty())
+    {
+        IFTRACE2(lic, fileload)
+            debug() << "Error: " << +err << "\n";
         status = SI_FILEERR;
+    }
     return err;
 }
 #endif

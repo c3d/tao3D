@@ -129,6 +129,9 @@ public slots:
     void adjustToScreenResolution(int screen);
     void updateDisplayModeCheckMark(QString mode);
     void closeDocument();
+#ifndef TAO_PLAYER
+    void signDocument();
+#endif
 
 signals:
 #ifndef CFG_NOGIT
@@ -283,6 +286,9 @@ private:
     QAction          *saveAsAct;
     QAction          *saveFontsAct;
     QAction          *consolidateAct;
+#ifndef TAO_PLAYER
+    QAction          *signDocumentAct;
+#endif
 #endif
     QAction          *renderToFileAct;
     QAction          *printAct;

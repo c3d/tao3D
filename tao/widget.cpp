@@ -82,6 +82,9 @@
 #include "tao_info.h"
 #include "preferences_pages.h"
 #include "texture_cache.h"
+#ifndef TAO_PLAYER
+#include "document_signature.h"
+#endif
 
 #include <QDialog>
 #include <QTextCursor>
@@ -3878,6 +3881,53 @@ QStringList Widget::listNames()
     }
     return names;
 }
+
+
+#ifndef TAO_PLAYER
+QString Widget::signDocument()
+// ----------------------------------------------------------------------------
+//   Create a .sig file for each file in a document (except modules/Tao files)
+// ----------------------------------------------------------------------------
+{
+    QString err;
+    using namespace XL;
+    source_files &files = MAIN->files;
+    source_files::iterator it;
+    for (it = files.begin(); it != files.end(); it++)
+    {
+        SourceFile &sf = (*it).second;
+        QString file = QFileInfo(+sf.name).absoluteFilePath();
+
+        ModuleManager *mmgr = ModuleManager::moduleManager();
+        QList<QDir> exclude;
+        exclude << mmgr->userModuleDir() << mmgr->systemModuleDir()
+                << QDir(Application::applicationDirPath());
+        bool skip = false;
+        foreach (QDir dir, exclude)
+        {
+            if (file.startsWith(dir.absolutePath()))
+            {
+                skip = true;
+                break;
+            }
+        }
+        if (skip)
+            continue;
+
+        // Attach SignatureInfo object to tree and sign file
+        SignatureInfo *si = sf.tree->GetInfo<SignatureInfo>();
+        if (!si)
+        {
+            si = new SignatureInfo(sf.name);
+            sf.tree->SetInfo<SignatureInfo>(si);
+        }
+        QString err = si->signFileWithDocKey();
+        if (!err.isEmpty())
+            return err;
+    }
+    return err;
+}
+#endif
 
 
 void Widget::refreshProgram()

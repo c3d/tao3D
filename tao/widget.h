@@ -255,6 +255,9 @@ public:
                     text sh = "group,shape");
     bool        isReadOnly();
     QStringList listNames();
+#ifndef TAO_PLAYER
+    QString      signDocument();
+#endif
 
     // Timing
     ulonglong   now();

@@ -46,7 +46,7 @@ public:
 public:
     Status            loadAndCheckSignature();
 #ifndef TAO_PLAYER
-    QString           signWithDocKey();
+    QString           signFileWithDocKey();
 #endif
 
 protected:

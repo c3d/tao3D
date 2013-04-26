@@ -49,7 +49,8 @@
 #     Disable automatic reload when files change (.ddd, .xl)
 #   DEFINES+=CFG_NOEDIT
 #     Disable functions related to document edition: remove the Edit, Format,
-#     Insert, Arrange and Share menus.
+#     Insert, Arrange and Share menus; remove Save, Save As, Save Fonts,
+#     Sign for Player from the File menu.
 #   DEFINES+=CFG_NOFULLSCREEN
 #     Removes the View>Full screen menu and the related command chooser
 #     entries. Zap the slide_show and toggle_slide_show primitives (they just

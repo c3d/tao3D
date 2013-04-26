@@ -169,7 +169,7 @@ QString Crypto::Sign(QString path, QByteArray pubKey, QByteArray privKey,
         QFile outFile(outPath);
         if (!outFile.open(QFile::WriteOnly))
         {
-            return outPath + ": "  + outFile.errorString() + "\n";
+            return outPath + ": "  + outFile.errorString();
         }
         QTextStream out(&outFile);
         out.setCodec("UTF-8");

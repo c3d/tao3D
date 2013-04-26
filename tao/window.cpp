@@ -791,6 +791,23 @@ void Window::consolidate()
 }
 
 
+#ifndef TAO_PLAYER
+void Window::signDocument()
+// ----------------------------------------------------------------------------
+//   Save a file with a given name
+// ----------------------------------------------------------------------------
+{
+    showMessage(tr("Writing signature..."));
+    QString err = taoWidget->signDocument();
+    if (!err.isEmpty())
+    {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("Cannot save document signature: \n%1.")
+                             .arg(err));
+    }
+}
+#endif
+
 bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   Save a file with a given name
@@ -1610,6 +1627,18 @@ void Window::createActions()
     saveFontsAct = new QAction(tr("Save fonts"), this);
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+
+#ifndef TAO_PLAYER
+    signDocumentAct = NULL;
+    if (Application::isImpress())
+    {
+        signDocumentAct = new QAction(tr("Sign Document for Player"), this);
+        signDocumentAct->setObjectName("signDocument");
+        connect(signDocumentAct, SIGNAL(triggered()),
+                this, SLOT(signDocument()));
+        signDocumentAct->setEnabled(false);
+    }
+#endif
 #endif
 
     renderToFileAct = new QAction(tr("&Render to files..."), this);
@@ -1845,6 +1874,10 @@ void Window::createMenus()
     fileMenu->addAction(saveFontsAct);
 #if 0
     fileMenu->addAction(consolidateAct);
+#endif
+#ifndef TAO_PLAYER
+    if (signDocumentAct)
+        fileMenu->addAction(signDocumentAct);
 #endif
 #endif
     fileMenu->addSeparator();
@@ -2804,6 +2837,10 @@ void Window::setCurrentFile(const QString &fileName)
 
     // Disable close menu if document is the default one
     closeAct->setEnabled(!isTutorial(curFile));
+#ifndef TAO_PLAYER
+    if (signDocumentAct)
+        signDocumentAct->setEnabled(!isTutorial(curFile));
+#endif
 
     // Update the recent file list
     if (!isUntitled && !isTutorial(curFile) && fi.exists())

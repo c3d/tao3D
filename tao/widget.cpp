@@ -787,6 +787,10 @@ void Widget::drawActivities()
     // perform actual rendering
     selectionSpace.Draw(NULL);
 
+    // Clear the topmost layout to avoid conflicts
+    // with following taodyne ad. Fixed #2966.
+    layout->Clear();
+
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
     if (Licenses::UnlicensedCount() > 0)
     {

@@ -578,6 +578,9 @@ void PageLayout::Compute(Layout *where)
     if (top <= bottom)
         return;
 
+    // Save GL state before paginate to fix #2971.
+    GLAllStateKeeper save;
+
     // Begin pagination
     page.BeginLayout(top, bottom, alongY);
 

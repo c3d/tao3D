@@ -60,7 +60,7 @@
 #include "examples_menu.h"
 #include "texture_cache.h"
 #include "update_application.h"
-#ifndef TAO_PLAYER
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
 #include "document_signature.h"
 #endif
 
@@ -793,34 +793,6 @@ void Window::consolidate()
 
 }
 
-
-#ifndef TAO_PLAYER
-void Window::signDocument(text path)
-// ----------------------------------------------------------------------------
-//   Sign all the user files used by the document (or only the main .ddd file)
-// ----------------------------------------------------------------------------
-{
-    showMessage(tr("Writing signature..."));
-    QString err = taoWidget->signDocument(path);
-    if (!err.isEmpty())
-    {
-        QMessageBox::warning(this, tr("Error"),
-                             tr("Cannot save document signature: \n%1.")
-                             .arg(err));
-    }
-}
-#endif
-
-
-bool Window::isDocumentSigned()
-// ----------------------------------------------------------------------------
-//   Document signature status
-// ----------------------------------------------------------------------------
-{
-    return taoWidget->isDocSigned();
-}
-
-
 bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   Save a file with a given name
@@ -870,7 +842,7 @@ bool Window::saveFile(const QString &fileName)
     } while (0); // Flush
 
 
-#ifndef TAO_PLAYER
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     // Save should keep the signatures valid if they where valid
     // before the document was modified.
     {
@@ -919,6 +891,35 @@ bool Window::saveFile(const QString &fileName)
 }
 
 #endif
+
+
+#ifndef CFG_NO_DOC_SIGNATURE
+#ifndef TAO_PLAYER
+void Window::signDocument(text path)
+// ----------------------------------------------------------------------------
+//   Sign all the user files used by the document (or only the main .ddd file)
+// ----------------------------------------------------------------------------
+{
+    showMessage(tr("Writing signature..."));
+    QString err = taoWidget->signDocument(path);
+    if (!err.isEmpty())
+    {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("Cannot save document signature: \n%1.")
+                             .arg(err));
+    }
+}
+#endif
+
+bool Window::isDocumentSigned()
+// ----------------------------------------------------------------------------
+//   Document signature status
+// ----------------------------------------------------------------------------
+{
+    return taoWidget->isDocSigned();
+}
+#endif
+
 
 void Window::openRecentFile()
 // ----------------------------------------------------------------------------
@@ -1654,7 +1655,7 @@ void Window::createActions()
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
 
-#ifndef TAO_PLAYER
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     signDocumentAct = NULL;
     if (Application::isImpress())
     {
@@ -1901,7 +1902,7 @@ void Window::createMenus()
 #if 0
     fileMenu->addAction(consolidateAct);
 #endif
-#ifndef TAO_PLAYER
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     if (signDocumentAct)
         fileMenu->addAction(signDocumentAct);
 #endif
@@ -2863,7 +2864,7 @@ void Window::setCurrentFile(const QString &fileName)
 
     // Disable close menu if document is the default one
     closeAct->setEnabled(!isTutorial(curFile));
-#ifndef TAO_PLAYER
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     if (signDocumentAct)
     {
         bool show = !isReadOnly &&

@@ -82,7 +82,7 @@
 #include "tao_info.h"
 #include "preferences_pages.h"
 #include "texture_cache.h"
-#ifndef TAO_PLAYER
+#ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
 #endif
 
@@ -218,7 +218,10 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
-      isInvalid(false), isDocumentSigned(false)
+      isInvalid(false)
+#ifndef CFG_NO_DOC_SIGNATURE
+      , isDocumentSigned(false)
+#endif
 {
 #ifdef MACOSX_DISPLAYLINK
     if (DisplayLink == -1)
@@ -452,7 +455,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pendingEvents(), // Nothing transferred from o's event queue
       inDraw(o.inDraw), changeReason(o.changeReason),
       editCursor(o.editCursor),
-      isInvalid(false), isDocumentSigned(o.isDocumentSigned)
+      isInvalid(false)
+#ifndef CFG_NO_DOC_SIGNATURE
+    , isDocumentSigned(o.isDocumentSigned)
+#endif
 {
     setObjectName(QString("Widget"));
 
@@ -794,7 +800,11 @@ void Widget::drawActivities()
 
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
     // (except we have a valid signature made by the full version of Tao)
-    if (Licenses::UnlicensedCount() > 0 && !isDocumentSigned)
+    if (Licenses::UnlicensedCount() > 0
+#ifndef CFG_NO_DOC_SIGNATURE
+        && !isDocumentSigned
+#endif
+       )
     {
         GLStateKeeper save;
         SpaceLayout licenseOverlaySpace(this);
@@ -3787,7 +3797,9 @@ int Widget::loadFile(text name)
     purgeTaoInfo();
     TaoSave saveCurrent(current, this);
     int st = XL::MAIN->LoadFile(name);
+#if !defined(CFG_NO_DOC_SIGNATURE)
     checkDocumentSigned();
+#endif
     return st;
 }
 
@@ -3886,6 +3898,7 @@ QStringList Widget::listNames()
 }
 
 
+#ifndef CFG_NO_DOC_SIGNATURE
 #ifndef TAO_PLAYER
 static bool isUserFile(QString path)
 // ----------------------------------------------------------------------------
@@ -3948,7 +3961,7 @@ QString Widget::signDocument(text path)
     checkDocumentSigned();
     return err;
 }
-#endif
+#endif // TAO_PLAYER
 
 
 bool Widget::checkDocumentSigned()
@@ -3976,6 +3989,7 @@ bool Widget::checkDocumentSigned()
 
     return (isDocumentSigned = sig);
 }
+#endif // CFG_NO_DOC_SIGNATURE
 
 
 void Widget::refreshProgram()
@@ -4089,8 +4103,10 @@ void Widget::refreshProgram()
 
     toReload.clear();
 
+#if !defined(CFG_NO_DOC_SIGNATURE)
     // Update signature status
     checkDocumentSigned();
+#endif
 }
 
 

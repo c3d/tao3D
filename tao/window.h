@@ -132,7 +132,7 @@ public slots:
     void adjustToScreenResolution(int screen);
     void updateDisplayModeCheckMark(QString mode);
     void closeDocument();
-#ifndef TAO_PLAYER
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     void signDocument(text path = "");
 #endif
 
@@ -288,7 +288,7 @@ private:
     QAction          *saveAsAct;
     QAction          *saveFontsAct;
     QAction          *consolidateAct;
-#ifndef TAO_PLAYER
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     QAction          *signDocumentAct;
 #endif
 #endif

@@ -599,7 +599,7 @@ bool GlyphCache::Find(const QFont &font,
 
                 if (layout->extrudeDepth > 0.0)
                 {
-                    XL::Save<scale> saveDepth (layout->extrudeDepth, 0.0);
+                    XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
                     glNewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
                               GL_POLYGON, GLU_TESS_WINDING_ODD);

@@ -207,6 +207,96 @@ static inline Vector3 swapXY(Vector3 v)
 }
 
 
+static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
+                        double r1, double z1, double r2, double z2)
+// ----------------------------------------------------------------------------
+//   Extrude a side range
+// ----------------------------------------------------------------------------
+{
+    uint       size = data.size();
+    Vertices   side;
+    VertexData v;
+    Vector3    normal, last;
+
+    side.reserve(2*size+2);
+    for (uint s = 0; s <= size + 1; s++)
+    {
+        v = data[s%size];
+        uint n = (s+1)%size;
+        Vector3 delta = data[n].vertex - v.vertex;
+        Vector3 newNormal = swapXY(delta);
+        
+        if (newNormal.Dot(newNormal) <= 0.0)
+            continue;
+        
+        if (invert)
+            newNormal *= -1.0;
+        
+        if (!s)
+        {
+            normal = newNormal;
+            continue;
+        }
+        
+        Vector3 orig = v.vertex;
+        float dotProduct = newNormal.Dot(normal);
+        if (dotProduct < 0.8)
+        {
+            Vector3 oldPos = v.vertex + r2 * normal;
+            Vector3 newPos = v.vertex + r2 * newNormal;
+            float backstep = (newPos-oldPos).Dot(delta);
+            if (backstep < 0.0)
+            {
+                Vector3 mid = normal + newNormal;
+                mid.Normalize();
+                v.normal = normal;
+                v.vertex += mid * r1;
+                v.vertex.z = z1;
+                side.push_back(v);
+                v.vertex = orig + mid * r2;
+                v.vertex.z = z2;
+                side.push_back(v);
+                v.vertex = orig;
+                
+                normal = newNormal;
+                continue;
+            }
+            else
+            {
+                // If we have a sharp angle, create additional face
+                // so that OpenGL does not interpolate normals
+                for (uint a = 0; a <= 8; a++)
+                {
+                    Vector3 mid = normal * (8-a) + newNormal * a;
+                    mid.Normalize();
+                    v.normal = normal;
+                    v.vertex += mid * r1;
+                    v.vertex.z = z1;
+                    side.push_back(v);
+                    v.vertex = orig + mid * r2;
+                    v.vertex.z = z2;
+                    side.push_back(v);
+                    v.vertex = data[s%size].vertex;
+                }
+            }
+        }
+
+        normal = newNormal;
+        v.normal = normal;
+        v.vertex = orig + r1 * normal;
+        v.vertex.z = z1;
+        side.push_back(v);
+        v.vertex = orig + r2 * normal;
+        v.vertex.z = z2;
+        side.push_back(v);
+
+        last = orig;
+    }
+
+    drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+}
+
+
 static void extrude(PolygonData &poly, Vertices &data, scale depth)
 // ----------------------------------------------------------------------------
 //   Extrude a given set of vertices
@@ -221,10 +311,6 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
 
     scale radius = layout->extrudeRadius;
     int count = layout->extrudeCount;
-
-    Vertices side;
-    VertexData v;
-    Vector3 normal;
 
     int vertexDebugInfo = count < 0;
     if (vertexDebugInfo)
@@ -253,8 +339,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
         if (depth < 2 * radius)
             radius = depth / 2;
 
-        VertexData v1, v2;
-        Vertices bottom;
+        // Check if we need to invert the normals on this contour
         std::vector<int> &invertContourNormal = poly.path->invertContourNormal;
         int invertSize = invertContourNormal.size();
         bool invert = false;
@@ -266,7 +351,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
                     invert = true;
         }
 
-        for (int c = 0; c < 0 * count; c++)
+        for (int c = 0; c < count; c++)
         {
             double a1  = M_PI/2 * c / count;
             double ca1 = cos (a1);
@@ -276,147 +361,25 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             double sa2 = sin (a2);
             double z1 = -radius * (1 - ca1);
             double z2 = -radius * (1 - ca2);
+            double r1 = radius * sa1;
+            double r2 = radius * sa2;
 
-            side.reserve (2*size+2);
-            bottom.reserve (2*size+2);
-            Vector3 last;
-            for (uint s = 0; s < size; s++)
-            {
-                v = data[s];
-                uint n = s+1 < size ? s+1 : 0;
-                Vector3 delta = data[n].vertex - v.vertex;
-                Vector3 newNormal = swapXY(delta);
-
-                DEBUG_NORMAL(v.vertex, Vector3(0,0,1), 0, 1, 0, 25);
-                if (invert)
-                    newNormal *= -1.0;
-
-                if (newNormal.Dot(normal) < 0.8)
-                {
-                    // If we have a sharp angle, create additional face
-                    // so that OpenGL does not interpolate normals
-                    side.push_back(v1);
-                    side.push_back(v2);
-                }
-                normal = newNormal;
-                DEBUG_NORMAL(v1.vertex, v1.normal, 1, 0, 0, 15);
-
-                v1 = v;
-                v1.vertex += normal * radius * sa1;
-                v1.vertex.z = z1;
-
-                v2 = v;
-                v2.vertex += normal * radius * sa2;
-                v2.vertex.z = z2;
-
-                if (s)
-                {
-                    Triangle t(v1.vertex, v2.vertex, last);
-                    Vector3 faceNormal = t.computeNormal();
-                    v1.normal = faceNormal;
-                    v2.normal = faceNormal;
-                    side.push_back(v1);
-                    side.push_back(v2);
-
-                    v1.vertex.z = -depth - v1.vertex.z;
-                    v2.vertex.z = -depth - v2.vertex.z;
-                    v1.normal.z *= -1;
-                    v2.normal.z *= -1;
-                    bottom.push_back(v1);
-                    bottom.push_back(v2);
-                }
-                last = v1.vertex;
-            }
-
-            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
-            drawArrays(GL_TRIANGLE_STRIP, textureUnits, bottom);
-            side.clear();
-            bottom.clear();
+            extrudeSide(data, invert, textureUnits, r1, z1, r2, z2);
+            z1 = -depth - z1;
+            z2 = -depth - z2;
+            extrudeSide(data, invert, textureUnits, r1, z1, r2, z2);
         }
 
         if (depth > 2 * radius)
-        {
-            side.reserve(2*size+2);
-            for (uint s = 0; s <= size + 1; s++)
-            {
-                v = data[s%size];
-                uint n = (s+1)%size;
-                Vector3 delta = data[n].vertex - v.vertex;
-                Vector3 newNormal = swapXY(delta);
-
-                int r = s==0 ? 1 : 0;
-                int g = n==0 ? 1 : 0;
-                int b = (r==0 && g == 0) ? 1 : 0;
-                DEBUG_NORMAL(v.vertex, Vector3(0,0,1), r,g,b, 25);
-
-                if (newNormal.Dot(newNormal) <= 0.0)
-                    continue;
-
-                if (invert)
-                    newNormal *= -1.0;
-
-                if (!s)
-                {
-                    normal = newNormal;
-                    continue;
-                }
-
-                float dotProduct = newNormal.Dot(normal);
-                if (dotProduct < 0.8)
-                {
-                    Vector3 oldPos = v.vertex + radius * normal;
-                    Vector3 newPos = v.vertex + radius * newNormal;
-                    float backstep = (newPos-oldPos).Dot(delta);
-                    if (backstep < 0.0)
-                    {
-                        Vector3 mid = normal + newNormal;
-                        mid.Normalize();
-                        v.normal = normal;
-                        v.vertex += mid * radius;
-                        v.vertex.z -= radius;
-                        side.push_back(v);
-                        v.vertex.z = radius - depth;
-                        side.push_back(v);
-                        v.vertex = data[s%size].vertex;
-
-                        normal = newNormal;
-                        continue;
-                    }
-                    else
-                    {
-                        // If we have a sharp angle, create additional face
-                        // so that OpenGL does not interpolate normals
-                        for (uint a = 0; a <= 8; a++)
-                        {
-                            Vector3 mid = normal * (8-a) + newNormal * a;
-                            mid.Normalize();
-                            v.normal = normal;
-                            DEBUG_NORMAL(v.vertex, mid, r,g,b, 10);
-                            v.vertex += mid * radius;
-                            v.vertex.z = -radius;
-                            side.push_back(v);
-                            v.vertex.z = radius-depth;
-                            side.push_back(v);
-                            v.vertex = data[s%size].vertex;
-                        }
-                    }
-                }
-
-                normal = newNormal;
-                v.normal = normal;
-                DEBUG_NORMAL(v.vertex, normal, r*0.7,g*0.7,b*0.7, 10);
-                v.vertex += normal * radius;
-                v.vertex.z = -radius;
-                side.push_back(v);
-                v.vertex.z = radius-depth;
-                side.push_back(v);
-            }
-
-            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
-        }
+            extrudeSide(data, invert, textureUnits,
+                        radius, -radius, radius, radius - depth);
     }
     else // Optimized case for 0 radius
     {
+        Vertices side;
+        VertexData v;
+        Vector3 normal;
+
         side.reserve(2*size);
         for (uint s = 0; s < size; s++)
         {

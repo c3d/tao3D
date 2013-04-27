@@ -44,6 +44,9 @@ scale GraphicPath::default_steps = 12;
 #define CALLBACK
 #endif
 
+// Set to 1 if shader / per-normal lighting, -1 for regular rendering
+#define INVERT_NORMALS 1
+
 
 GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
@@ -148,7 +151,7 @@ static inline void extrudeFacet(Vertices &side, VertexData &v,
     fn.x *= sa;
     fn.y *= sa;
     if (invert)
-        fn *= -1.0;
+        fn *= INVERT_NORMALS;
 
     v.vertex = vertex;
     v.normal = fn;
@@ -352,7 +355,7 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 {
     poly->vertices.push_back(*vertex);
     VertexData &back = poly->vertices.back();
-    back.normal = Vector3(0, 0, -1);
+    back.normal = Vector3(0, 0, INVERT_NORMALS);
 }
 
 

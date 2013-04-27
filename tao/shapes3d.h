@@ -154,15 +154,11 @@ private:
 
         bool operator==(const Key &o) const
         {
-            return slices == o.slices && stacks == o.stacks &&
-                   fabs(ratio - o.ratio) < TAO_EPSILON;
+            return slices == o.slices && stacks == o.stacks && ratio == o.ratio;
         }
 
         bool operator<(const Key &o) const
         {
-            if((*this) == o)
-                return false;
-
             return slices < o.slices || stacks < o.stacks || ratio < o.ratio;
         }
     };

@@ -132,10 +132,13 @@ static inline Vector3 swapXY(Vector3 v)
 
 static inline void extrudeFacet(Vertices &side, VertexData &v,
                                 Vector3 &orig, Vector3 &normal,
-                                double r, double z, double sa, double ca)
+                                double r, double z, double sa, double ca,
+                                bool invert)
 // ----------------------------------------------------------------------------
 //    Push a facet during extrusion
 // ----------------------------------------------------------------------------
+//    In practice, 'invert' is set for glyphs, which we have rendered with
+//    inverted y. So we also need to invert the normal here.
 {
     Vector3 vertex = orig + r * normal;
     vertex.z = z;
@@ -144,6 +147,8 @@ static inline void extrudeFacet(Vertices &side, VertexData &v,
     fn.z  = ca;
     fn.x *= sa;
     fn.y *= sa;
+    if (invert)
+        fn *= -1.0;
 
     v.vertex = vertex;
     v.normal = fn;
@@ -191,8 +196,8 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
             {
                 Vector3 mid = normal + newNormal;
                 mid.Normalize();
-                extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
-                extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
+                extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1, invert);
+                extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2, invert);
                 v.vertex = orig;                
                 normal = newNormal;
                 continue;
@@ -206,16 +211,16 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                 {
                     Vector3 mid = normal * (MAX-a) + newNormal * a;
                     mid.Normalize();
-                    extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
-                    extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
+                    extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1, invert);
+                    extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2, invert);
                     v.vertex = orig;                
                 }
             }
         }
 
         normal = newNormal;
-        extrudeFacet(side, v, orig, normal, r1, z1, sa1, ca1);
-        extrudeFacet(side, v, orig, normal, r2, z2, sa2, ca2);
+        extrudeFacet(side, v, orig, normal, r1, z1, sa1, ca1, invert);
+        extrudeFacet(side, v, orig, normal, r2, z2, sa2, ca2, invert);
     }
 
     drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);

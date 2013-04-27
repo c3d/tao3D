@@ -375,6 +375,7 @@ static void CALLBACK tessEnd(PolygonData *poly)
         {
             glPushMatrix();
             glTranslatef(0.0, 0.0, -depth);
+            glScalef(1, 1, -1);
             drawArrays(poly->mode, textureUnits, data);
             glPopMatrix();
         }
@@ -1058,6 +1059,7 @@ void GraphicPath::Draw(Layout *layout,
                         // If no tesselation is required, draw back directly
                         glPushMatrix();
                         glTranslatef(0.0, 0.0, -depth);
+                        glScalef(1, 1, -1);
                         drawArrays(mode, textureUnits, data);
                         glPopMatrix();
                     }

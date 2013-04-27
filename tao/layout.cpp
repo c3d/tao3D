@@ -50,7 +50,7 @@ LayoutState::LayoutState()
       visibility(1),
       extrudeDepth(0),
       extrudeRadius(0),
-      extrudeCount(0),
+      extrudeCount(1),
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black

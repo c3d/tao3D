@@ -164,7 +164,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
     Vector3    normal;
 
     side.reserve(2*size+2);
-    for (uint s = 0; s <= size + 1; s++)
+    for (uint s = 0; s <= size + 2; s++)
     {
         v = data[s%size];
         uint n = (s+1)%size;

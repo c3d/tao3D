@@ -141,9 +141,9 @@ static inline void extrudeFacet(Vertices &side, VertexData &v,
     vertex.z = z;
 
     Vector3 fn = normal;
-    fn.z  = -ca;
-    fn.x *= -sa;
-    fn.y *= -sa;
+    fn.z  = ca;
+    fn.x *= sa;
+    fn.y *= sa;
 
     v.vertex = vertex;
     v.normal = fn;
@@ -294,7 +294,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             z1 = -depth - z1;
             z2 = -depth - z2;
             extrudeSide(data, invert, textureUnits,
-                        r1, z1, -sa1, -ca1, r2, z2, -sa2, -ca2);
+                        r2, z2, sa2, -ca2, r1, z1, sa1, -ca1);
         }
 
         if (depth > 2 * radius)

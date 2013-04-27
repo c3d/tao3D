@@ -216,7 +216,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
     uint       size = data.size();
     Vertices   side;
     VertexData v;
-    Vector3    normal, last;
+    Vector3    normal, v1, v2, last, lastInFacet;
 
     side.reserve(2*size+2);
     for (uint s = 0; s <= size + 1; s++)
@@ -249,15 +249,30 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
             {
                 Vector3 mid = normal + newNormal;
                 mid.Normalize();
-                v.normal = normal;
-                v.vertex += mid * r1;
-                v.vertex.z = z1;
+
+                v1 = orig + r1 * mid;
+                v1.z = z1;
+                v2 = orig + r2 * mid;
+                v2.z = z2;
+
+                Vector3 facetNormal = normal;
+                if (z1 != z2)
+                {
+                    Triangle facet(v1, v2, lastInFacet);
+                    facetNormal = facet.computeNormal();
+                    if (invert)
+                        facetNormal *= -1.0;
+                }
+
+                v.vertex = v1;
+                v.normal = facetNormal;
                 side.push_back(v);
-                v.vertex = orig + mid * r2;
-                v.vertex.z = z2;
+                v.vertex = v2;
+                v.normal = facetNormal;
                 side.push_back(v);
-                v.vertex = orig;
-                
+
+                lastInFacet = v.vertex;
+                v.vertex = orig;                
                 normal = newNormal;
                 continue;
             }
@@ -269,27 +284,58 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                 {
                     Vector3 mid = normal * (8-a) + newNormal * a;
                     mid.Normalize();
-                    v.normal = normal;
-                    v.vertex += mid * r1;
-                    v.vertex.z = z1;
+
+                    v1 = orig + r1 * mid;
+                    v1.z = z1;
+                    v2 = orig + r2 * mid;
+                    v2.z = z2;
+
+                    Vector3 facetNormal = normal;
+                    if (z1 != z2)
+                    {
+                        Triangle facet(v1, v2, lastInFacet);
+                        facetNormal = facet.computeNormal();
+                        if (invert)
+                            facetNormal *= -1.0;
+                    }
+
+                    v.vertex = v1;
+                    v.normal = facetNormal;
                     side.push_back(v);
-                    v.vertex = orig + mid * r2;
-                    v.vertex.z = z2;
+                    v.vertex = v2;
+                    v.normal = facetNormal;
                     side.push_back(v);
-                    v.vertex = data[s%size].vertex;
+
+                    lastInFacet = v.vertex;
+                    v.vertex = orig;                
                 }
             }
         }
 
         normal = newNormal;
-        v.normal = normal;
-        v.vertex = orig + r1 * normal;
-        v.vertex.z = z1;
+
+        v1 = orig + r1 * normal;
+        v1.z = z1;
+        v2 = orig + r2 * normal;
+        v2.z = z2;
+
+        Vector3 facetNormal = normal;
+        if (z1 != z2)
+        {
+            Triangle facet(v1, v2, lastInFacet);
+            facetNormal = facet.computeNormal();
+            if (invert)
+                facetNormal *= -1.0;
+        }
+
+        v.vertex = v1;
+        v.normal = facetNormal;
         side.push_back(v);
-        v.vertex = orig + r2 * normal;
-        v.vertex.z = z2;
+        v.vertex = v2;
+        v.normal = facetNormal;
         side.push_back(v);
 
+        lastInFacet = v.vertex;
         last = orig;
     }
 

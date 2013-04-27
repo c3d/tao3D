@@ -367,6 +367,14 @@ static void CALLBACK tessEnd(PolygonData *poly)
     {
         Layout *layout = poly->layout;
         uint64 textureUnits = layout->textureUnits;
+        double depth = layout->extrudeDepth;
+        if (depth > 0.0)
+        {
+            glPushMatrix();
+            glTranslatef(0.0, 0.0, -depth);
+            drawArrays(poly->mode, textureUnits, data);
+            glPopMatrix();
+        }
         drawArrays(poly->mode, textureUnits, data);
         data.clear();
      }

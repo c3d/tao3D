@@ -318,6 +318,7 @@ void TextSplit::DrawDirect(Layout *where)
                 {
                     glPushMatrix();
                     glTranslatef(0.0, 0.0, -where->extrudeDepth);
+                    glScalef(1,1,-1);
                     glCallList(glyph.interior);
                     glPopMatrix();
                     glCallList(glyph.interior);

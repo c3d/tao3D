@@ -694,11 +694,14 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 
     if (where->extrudeDepth > 0.0)
     {
-        if (setFillColor(where))
+        bool hasFill = setFillColor(where);
+        if (hasFill)
             Draw(where, where->offset, GL_POLYGON, tessel);
-        if (setLineColor(where))
+        bool hasLine = setLineColor(where);
+        if (hasLine)
             DrawOutline(where);
-        Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
+        if (hasFill || hasLine)
+            Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
     }
     else
     {

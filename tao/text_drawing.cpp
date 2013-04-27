@@ -313,7 +313,8 @@ void TextSplit::DrawDirect(Layout *where)
             setTexture(where);
             if (where->extrudeDepth > 0.0)
             {
-                if (setFillColor(where))
+                bool hasFill = setFillColor(where);
+                if (hasFill)
                 {
                     glPushMatrix();
                     glTranslatef(0.0, 0.0, -where->extrudeDepth);
@@ -321,8 +322,9 @@ void TextSplit::DrawDirect(Layout *where)
                     glPopMatrix();
                     glCallList(glyph.interior);
                 }
-                setLineColor(where); // May fail, keep fill color
-                glCallList(glyph.outline);
+                bool hasLine = setLineColor(where); // May fail, keep fill color
+                if (hasFill || hasLine)
+                    glCallList(glyph.outline);
             }
             else
             {

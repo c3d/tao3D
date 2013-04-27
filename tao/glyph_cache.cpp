@@ -410,7 +410,7 @@ bool GlyphCache::Find(const QFont &font,
                 glEndList();
             }
 
-            if (outlineChange)
+            if (!entry.outline || outlineChange)
             {
                 if (!entry.outline)
                     entry.outline = glGenLists(1);

@@ -7996,6 +7996,10 @@ Tree_p Widget::extrudeCount(Tree_p self, int count)
 //   Set the extrude count
 // ----------------------------------------------------------------------------
 {
+    if (count < -10)
+        count = -10;
+    else if (count > 10)
+        count = 10;
     layout->Add (new ExtrudeCount(count));
     return XL::xl_true;
 }

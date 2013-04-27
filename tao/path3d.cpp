@@ -117,83 +117,6 @@ static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
 }
 
 
-static void computeNormals(Vertices &data)
-// ----------------------------------------------------------------------------
-//   Compute the normals in the given array
-// ----------------------------------------------------------------------------
-{
-    uint size = data.size();
-
-    for (uint i = 0, n = 0; i < size && n < size; )
-    {
-        uint i1 = 0, i2 = 0;
-        Point3 p0, p1, p2;
-        Vector3 v1, v2, vn;
-        
-        p0 = data[i].vertex;
-        do
-        {
-            ++i1;
-            p1 = data[(i + i1) % size].vertex;
-        }
-        while (p0 == p1 && i1 < size);
-        v1 = p1 - p0;
-        
-        do
-        {
-            ++i2;
-            p2 = data[(i + i1 + i2) % size].vertex;
-        }
-        while (p1 == p2 && (i1 + i2) < size);
-        v2 = p2 - p1;
-        
-        IFTRACE(paths)
-        {
-            std::cerr << "P0 #" << i
-                      << " = x:" << p0.x
-                      << ", y:" << p0.y
-                      << ", z:" << p0.z << std::endl;
-            std::cerr << "P1 #" << (i+i1)%size 
-                      << " = x:" << p1.x
-                      << ", y:" << p1.y << ", z:"
-                      << p1.z << std::endl;
-            std::cerr << "P2 #" << (i+i1+i2) % size
-                      << " = x:" << p2.x
-                      << ", y:" << p2.y
-                      << ", z:" << p2.z << std::endl;
-            std::cerr << "V1 (P1 - P0) = x:" << v1.x
-                      << ", y:" << v1.y
-                      << ", z:" << v1.z << std::endl;
-            std::cerr << "V2 (P2 - P1) = x:" << v2.x
-                      << ", y:" << v2.y
-                      << ", z:" << v2.z << std::endl;
-        }
-        
-        if ((i1 + i2) < size)
-        {
-            Triangle triangle(p0, p1, p2);
-            vn = triangle.computeNormal();
-            
-            for (uint j = (i + i1); j < (i + i1 + i2); j++)
-            {
-                ++n;
-                data[j%size].normal = vn;
-                
-                IFTRACE(paths)
-                    std::cerr << "Normal #" << j % size
-                              << " = x:" << vn.x
-                              << ", y:" << vn.y
-                              << ", z:" << vn.z << std::endl;
-            }
-        }
-        
-        i += i1;
-    }
-    IFTRACE(paths)
-        std::cerr << std::endl;
-}
-
-
 static inline Vector3 swapXY(Vector3 v)
 // ----------------------------------------------------------------------------
 //   Swap X and Y coordinates (rotate 90 degrees)
@@ -207,8 +130,30 @@ static inline Vector3 swapXY(Vector3 v)
 }
 
 
+static inline void extrudeFacet(Vertices &side, VertexData &v,
+                                Vector3 &orig, Vector3 &normal,
+                                double r, double z, double sa, double ca)
+// ----------------------------------------------------------------------------
+//    Push a facet during extrusion
+// ----------------------------------------------------------------------------
+{
+    Vector3 vertex = orig + r * normal;
+    vertex.z = z;
+
+    Vector3 fn = normal;
+    fn.z  = -ca;
+    fn.x *= -sa;
+    fn.y *= -sa;
+
+    v.vertex = vertex;
+    v.normal = fn;
+    side.push_back(v);
+}
+
+
 static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
-                        double r1, double z1, double r2, double z2)
+                        double r1, double z1, double sa1, double ca1,
+                        double r2, double z2, double sa2, double ca2)
 // ----------------------------------------------------------------------------
 //   Extrude a side range
 // ----------------------------------------------------------------------------
@@ -216,7 +161,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
     uint       size = data.size();
     Vertices   side;
     VertexData v;
-    Vector3    normal, v1, v2, last, lastInFacet;
+    Vector3    normal;
 
     side.reserve(2*size+2);
     for (uint s = 0; s <= size + 1; s++)
@@ -225,13 +170,10 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
         uint n = (s+1)%size;
         Vector3 delta = data[n].vertex - v.vertex;
         Vector3 newNormal = swapXY(delta);
-        
         if (newNormal.Dot(newNormal) <= 0.0)
             continue;
-        
         if (invert)
             newNormal *= -1.0;
-        
         if (!s)
         {
             normal = newNormal;
@@ -249,29 +191,8 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
             {
                 Vector3 mid = normal + newNormal;
                 mid.Normalize();
-
-                v1 = orig + r1 * mid;
-                v1.z = z1;
-                v2 = orig + r2 * mid;
-                v2.z = z2;
-
-                Vector3 facetNormal = normal;
-                if (z1 != z2)
-                {
-                    Triangle facet(v1, v2, lastInFacet);
-                    facetNormal = facet.computeNormal();
-                    if (invert)
-                        facetNormal *= -1.0;
-                }
-
-                v.vertex = v1;
-                v.normal = facetNormal;
-                side.push_back(v);
-                v.vertex = v2;
-                v.normal = facetNormal;
-                side.push_back(v);
-
-                lastInFacet = v.vertex;
+                extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
                 v.vertex = orig;                
                 normal = newNormal;
                 continue;
@@ -280,63 +201,21 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
             {
                 // If we have a sharp angle, create additional face
                 // so that OpenGL does not interpolate normals
-                for (uint a = 0; a <= 8; a++)
+                const uint MAX = 5;
+                for (uint a = 0; a <= MAX; a++)
                 {
-                    Vector3 mid = normal * (8-a) + newNormal * a;
+                    Vector3 mid = normal * (MAX-a) + newNormal * a;
                     mid.Normalize();
-
-                    v1 = orig + r1 * mid;
-                    v1.z = z1;
-                    v2 = orig + r2 * mid;
-                    v2.z = z2;
-
-                    Vector3 facetNormal = normal;
-                    if (z1 != z2)
-                    {
-                        Triangle facet(v1, v2, lastInFacet);
-                        facetNormal = facet.computeNormal();
-                        if (invert)
-                            facetNormal *= -1.0;
-                    }
-
-                    v.vertex = v1;
-                    v.normal = facetNormal;
-                    side.push_back(v);
-                    v.vertex = v2;
-                    v.normal = facetNormal;
-                    side.push_back(v);
-
-                    lastInFacet = v.vertex;
+                    extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                    extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
                     v.vertex = orig;                
                 }
             }
         }
 
         normal = newNormal;
-
-        v1 = orig + r1 * normal;
-        v1.z = z1;
-        v2 = orig + r2 * normal;
-        v2.z = z2;
-
-        Vector3 facetNormal = normal;
-        if (z1 != z2)
-        {
-            Triangle facet(v1, v2, lastInFacet);
-            facetNormal = facet.computeNormal();
-            if (invert)
-                facetNormal *= -1.0;
-        }
-
-        v.vertex = v1;
-        v.normal = facetNormal;
-        side.push_back(v);
-        v.vertex = v2;
-        v.normal = facetNormal;
-        side.push_back(v);
-
-        lastInFacet = v.vertex;
-        last = orig;
+        extrudeFacet(side, v, orig, normal, r1, z1, sa1, ca1);
+        extrudeFacet(side, v, orig, normal, r2, z2, sa2, ca2);
     }
 
     drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
@@ -410,15 +289,17 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             double r1 = radius * sa1;
             double r2 = radius * sa2;
 
-            extrudeSide(data, invert, textureUnits, r1, z1, r2, z2);
+            extrudeSide(data, invert, textureUnits,
+                        r1, z1, sa1, ca1, r2, z2, sa2, ca2);
             z1 = -depth - z1;
             z2 = -depth - z2;
-            extrudeSide(data, invert, textureUnits, r1, z1, r2, z2);
+            extrudeSide(data, invert, textureUnits,
+                        r1, z1, -sa1, -ca1, r2, z2, -sa2, -ca2);
         }
 
         if (depth > 2 * radius)
             extrudeSide(data, invert, textureUnits,
-                        radius, -radius, radius, radius - depth);
+                        radius, -radius, 1, 0, radius, radius - depth, 1, 0);
     }
     else // Optimized case for 0 radius
     {
@@ -473,8 +354,6 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     poly->vertices.push_back(*vertex);
-    VertexData &back = poly->vertices.back();
-    back.normal = Vector3(0,0,1);
 }
 
 
@@ -1183,7 +1062,6 @@ void GraphicPath::Draw(Layout *layout,
                     {
                         // If no tesselation is required, draw back directly
                         glPushMatrix();
-                        computeNormals(data);
                         glTranslatef(0.0, 0.0, -depth);
                         drawArrays(mode, textureUnits, data);
                         glPopMatrix();
@@ -1208,7 +1086,6 @@ void GraphicPath::Draw(Layout *layout,
                     else
                     {
                         // If no tesselation is required, draw directly
-                        computeNormals(data);
                         drawArrays(mode, textureUnits, data);
                     }
                 }

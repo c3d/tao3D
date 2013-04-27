@@ -114,7 +114,7 @@ public:
     qreal       Ascent(const QFont &font);
     qreal       Descent(const QFont &font);
     qreal       Leading(const QFont &font);
-    void        ScaleDown(GlyphEntry &entry, scale fontScale);
+    void        ScaleDown(GlyphEntry &, scale fontScale, scale extra);
 
 
 protected:

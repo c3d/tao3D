@@ -705,6 +705,9 @@ Box3 TextSplit::Bounds(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
+
         scale sa = ascent;
         scale sd = descent;
         scale sl = leading;
@@ -774,6 +777,9 @@ Box3 TextSplit::Space(Layout *where)
         // Find the glyph in the glyph cache
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
+
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
 
         scale sa = ascent;
         scale sd = descent;

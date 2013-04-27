@@ -150,7 +150,7 @@ void LightId::Draw(Layout *where)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
 	if(TaoApp->useShaderLighting)
 	    perPixelLighting->Draw(where);

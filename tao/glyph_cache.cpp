@@ -320,16 +320,15 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
-        uint width = ceil(bounds.width());
-        uint height = ceil(bounds.height());
+        uint width = ceil(bw);
+        uint height = ceil(bh);
 
         // Allocate a rectangle where we will put the texture (may resize us)
         BinPacker::Rect rect;
         Allocate(width + 2*aam, height + 2*aam, rect);
 
         // Record glyph information in the entry
-        entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
-                           bounds.width()/fs, bounds.height()/fs);
+        entry.bounds = Box(bx/fs, by/fs, bw/fs, bh/fs);
         entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qc) / fs;
         entry.scalingFactor = fs;
@@ -389,6 +388,13 @@ bool GlyphCache::Find(const QFont &font,
         bool  countChange = entry.outlineCount != outlineCount;
         bool  outlineChange = (widthChange  || depthChange ||
                                radiusChange || countChange);
+        if (radius > 0)
+        {
+            entry.bounds.lower.x -= radius;
+            entry.bounds.lower.y -= radius;
+            entry.bounds.upper.x += radius;
+            entry.bounds.upper.y += radius;
+        }
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size
@@ -512,16 +518,15 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
-        uint width = ceil(bounds.width());
-        uint height = ceil(bounds.height());
+        uint width = ceil(bw);
+        uint height = ceil(bh);
 
         // Allocate a rectangle where we will put the texture (may resize us)
         BinPacker::Rect rect;
         Allocate(width + 2*aam, height + 2*aam, rect);
 
         // Record glyph information in the entry
-        entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
-                           bounds.width()/fs, bounds.height()/fs);
+        entry.bounds = Box(bx/fs, by/fs, bw/fs, bh/fs);
         entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qs) / fs;
         entry.scalingFactor = fs;
@@ -566,6 +571,13 @@ bool GlyphCache::Find(const QFont &font,
         bool  countChange = entry.outlineCount != outlineCount;
         bool  outlineChange = (widthChange  || depthChange ||
                                radiusChange || countChange);
+        if (radius > 0)
+        {
+            entry.bounds.lower.x -= radius;
+            entry.bounds.lower.y -= radius;
+            entry.bounds.upper.x += radius;
+            entry.bounds.upper.y += radius;
+        }
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size

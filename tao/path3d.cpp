@@ -49,7 +49,7 @@ GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : Shape(), startStyle(NONE), endStyle(NONE)
+    : Shape(), startStyle(NONE), endStyle(NONE), invert(false)
 {}
 
 
@@ -270,17 +270,9 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             radius = depth / 2;
 
         // Check if we need to invert the normals on this contour
-        std::vector<int> &invertContourNormal = poly.path->invertContourNormal;
-        int invertSize = invertContourNormal.size();
-        bool invert = false;
-        for (uint s = 0; !invert && s < size; s++)
-        {
-            int index = data[s].index;
-            if (index >= 0 && index < invertSize)
-                if (invertContourNormal[index] < 0)
-                    invert = true;
-        }
+        bool invert = poly.path->invert;
 
+        // Loop on the number of extrusion facets
         for (int c = 0; c < count; c++)
         {
             double a1  = M_PI/2 * c / count;
@@ -359,6 +351,8 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     poly->vertices.push_back(*vertex);
+    VertexData &back = poly->vertices.back();
+    back.normal = Vector3(0, 0, -1);
 }
 
 
@@ -373,31 +367,6 @@ static void CALLBACK tessEnd(PolygonData *poly)
     {
         Layout *layout = poly->layout;
         uint64 textureUnits = layout->textureUnits;
-
-        if (layout->extrudeDepth < 0.0)
-        {
-            GraphicPath *path = poly->path;
-            std::vector<int> &invertContourNormal = path->invertContourNormal;
-            Vector3 v, normal, up, lastDelta;
-            for (uint s = 0; s < size; s++)
-            {
-                v = data[s].vertex;
-                uint n = s+1 < size ? s+1 : 0;
-                Vector3 delta = data[n].vertex - v;
-                int index = data[s].index;
-                if (index >= 0)
-                {
-                    Vector3 normal = swapXY(delta);
-                    double backwards = normal.Dot(lastDelta);
-                    if (backwards > 0.0)
-                        invertContourNormal[index] = 1;
-                    else if (backwards < 0.0)
-                        invertContourNormal[index] = -1;
-                }
-                lastDelta = delta;
-            }
-        }
-
         drawArrays(poly->mode, textureUnits, data);
         data.clear();
      }
@@ -711,12 +680,21 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     else
         tessel = 0;
 
-    if (setFillColor(where))
-        Draw(where, where->offset, GL_POLYGON, tessel);
-    if (setLineColor(where))
-        DrawOutline(where);
-    else if (where->extrudeDepth > 0.0)
+    if (where->extrudeDepth > 0.0)
+    {
+        if (setFillColor(where))
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        if (setLineColor(where))
+            DrawOutline(where);
         Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
+    }
+    else
+    {
+        if (setFillColor(where))
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        if (setLineColor(where))
+            DrawOutline(where);
+    }
 }
 
 
@@ -941,6 +919,7 @@ void GraphicPath::Draw(Layout *layout,
 
         gluTessProperty(tess, GLU_TESS_WINDING_RULE, tesselation);
         gluTessBeginPolygon(tess, &polygon);
+        invert = true;
     }
 
     for (i = begin; i != end; i++)
@@ -1106,8 +1085,6 @@ void GraphicPath::Draw(Layout *layout,
     // End of tesselation
     if (tesselation && tesselation != GL_DEPTH)
     {
-        if (depth < 0.0)
-            invertContourNormal.resize(vertexIndex);
         gluTessEndPolygon(tess);
     }
 }

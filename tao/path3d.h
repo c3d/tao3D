@@ -121,7 +121,7 @@ public:
     Point3              start, position;
     Box3                bounds;
     EndpointStyle       startStyle, endStyle;
-    std::vector<int>    invertContourNormal;
+    bool                invert;
     static scale        default_steps;
 };
 

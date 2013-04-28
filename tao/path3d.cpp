@@ -44,10 +44,6 @@ scale GraphicPath::default_steps = 12;
 #define CALLBACK
 #endif
 
-// Set to 1 if shader / per-normal lighting, -1 for regular rendering
-#define INVERT_NORMALS 1
-
-
 GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
 //   Constructor
@@ -135,8 +131,7 @@ static inline Vector3 swapXY(Vector3 v)
 
 static inline void extrudeFacet(Vertices &side, VertexData &v,
                                 Vector3 &orig, Vector3 &normal,
-                                double r, double z, double sa, double ca,
-                                bool invert)
+                                double r, double z, double sa, double ca)
 // ----------------------------------------------------------------------------
 //    Push a facet during extrusion
 // ----------------------------------------------------------------------------
@@ -150,14 +145,14 @@ static inline void extrudeFacet(Vertices &side, VertexData &v,
     fn.z  = ca;
     fn.x *= sa;
     fn.y *= sa;
-    if (invert)
-        fn *= INVERT_NORMALS;
 
     v.vertex = vertex;
     v.normal = fn;
     side.push_back(v);
 }
 
+
+#define ROUNDING_EPSILON        0.001
 
 static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                         double r1, double z1, double sa1, double ca1,
@@ -177,11 +172,11 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
         v = data[s%size];
         uint n = (s+1)%size;
         Vector3 delta = data[n].vertex - v.vertex;
-        Vector3 newNormal = swapXY(delta);
-        if (newNormal.Dot(newNormal) <= 0.0)
+        if (delta.Dot(delta) <= ROUNDING_EPSILON)
             continue;
+        Vector3 newNormal = swapXY(delta);
         if (invert)
-            newNormal *= -1.0;
+            newNormal *= -1.0; 
         if (!s)
         {
             normal = newNormal;
@@ -190,7 +185,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
         
         Vector3 orig = v.vertex;
         float dotProduct = newNormal.Dot(normal);
-        if (dotProduct < 0.8)
+        if (dotProduct < 0.9)
         {
             Vector3 oldPos = v.vertex + r2 * normal;
             Vector3 newPos = v.vertex + r2 * newNormal;
@@ -199,8 +194,8 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
             {
                 Vector3 mid = normal + newNormal;
                 mid.Normalize();
-                extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1, invert);
-                extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2, invert);
+                extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
                 v.vertex = orig;                
                 normal = newNormal;
                 continue;
@@ -214,16 +209,16 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                 {
                     Vector3 mid = normal * (MAX-a) + newNormal * a;
                     mid.Normalize();
-                    extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1, invert);
-                    extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2, invert);
+                    extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                    extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
                     v.vertex = orig;                
                 }
             }
         }
 
         normal = newNormal;
-        extrudeFacet(side, v, orig, normal, r1, z1, sa1, ca1, invert);
-        extrudeFacet(side, v, orig, normal, r2, z2, sa2, ca2, invert);
+        extrudeFacet(side, v, orig, normal, r1, z1, sa1, ca1);
+        extrudeFacet(side, v, orig, normal, r2, z2, sa2, ca2);
     }
 
     drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
@@ -245,35 +240,18 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
     scale radius = layout->extrudeRadius;
     int count = layout->extrudeCount;
 
-    int vertexDebugInfo = count < 0;
-    if (vertexDebugInfo)
+    bool sharpEdges = count < 0;
+    if (sharpEdges)
         count = -count;
 
-#define DEBUG_NORMAL(v, n, r, g, b, s)                  \
-    if (vertexDebugInfo)                                \
-    {                                                   \
-        glPushAttrib(GL_CURRENT_BIT);                   \
-        glColor4f(r,g,b,1);                             \
-        glLineWidth(1);                                 \
-        glBegin(GL_LINES);                              \
-        Vector3 _center = (v);                          \
-        Vector3 _normal = (n);                          \
-        scale _size = (s);                              \
-        Vector3 _nv = _center + _size * _normal;        \
-        glVertex3f(_center.x, _center.y, _center.z);    \
-        glVertex3f(_nv.x, _nv.y, _nv.z);                \
-        glEnd();                                        \
-        glPopAttrib();                                  \
-    }
+    // Check if we need to invert the normals on this contour
+    bool invert = poly.path->invert;
 
-
+    // Check if there is an extrude radius
     if (radius > 0 && count > 0)
     {
         if (depth < 2 * radius)
             radius = depth / 2;
-
-        // Check if we need to invert the normals on this contour
-        bool invert = poly.path->invert;
 
         // Loop on the number of extrusion facets
         for (int c = 0; c < count; c++)
@@ -289,12 +267,20 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             double r1 = radius * sa1;
             double r2 = radius * sa2;
 
-            extrudeSide(data, invert, textureUnits,
-                        r1, z1, sa1, ca1, r2, z2, sa2, ca2);
+            if (sharpEdges)
+                extrudeSide(data, invert, textureUnits,
+                            r1, z1, sa2, ca2, r2, z2, sa2, ca2);
+            else
+                extrudeSide(data, invert, textureUnits,
+                            r1, z1, sa1, ca1, r2, z2, sa2, ca2);
             z1 = -depth - z1;
             z2 = -depth - z2;
-            extrudeSide(data, invert, textureUnits,
-                        r2, z2, sa2, -ca2, r1, z1, sa1, -ca1);
+            if (sharpEdges)
+                extrudeSide(data, invert, textureUnits,
+                            r2, z2, sa2, -ca2, r1, z1, sa2, -ca2);
+            else
+                extrudeSide(data, invert, textureUnits,
+                            r2, z2, sa2, -ca2, r1, z1, sa1, -ca1);
         }
 
         if (depth > 2 * radius)
@@ -313,7 +299,11 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             v = data[s];
             uint n = s+1 < size ? s+1 : 0;
             Vector3 delta = data[n].vertex - v.vertex;
+            if (delta.Dot(delta) <= ROUNDING_EPSILON)
+                continue;
             Vector3 newNormal = swapXY(delta);
+            if (invert)
+                newNormal *= -1.0;
             
             if (newNormal.Dot(normal) < 0.8)
             {
@@ -355,7 +345,7 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 {
     poly->vertices.push_back(*vertex);
     VertexData &back = poly->vertices.back();
-    back.normal = Vector3(0, 0, INVERT_NORMALS);
+    back.normal = Vector3(0, 0, 1);
 }
 
 
@@ -373,10 +363,13 @@ static void CALLBACK tessEnd(PolygonData *poly)
         double depth = layout->extrudeDepth;
         if (depth > 0.0)
         {
+            bool invert = poly->path->invert;
             glPushMatrix();
             glTranslatef(0.0, 0.0, -depth);
             glScalef(1, 1, -1);
+            glFrontFace(invert ? GL_CCW : GL_CW);
             drawArrays(poly->mode, textureUnits, data);
+            glFrontFace(invert ? GL_CW : GL_CCW);
             glPopMatrix();
         }
         drawArrays(poly->mode, textureUnits, data);
@@ -694,11 +687,14 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 
     if (where->extrudeDepth > 0.0)
     {
-        if (setFillColor(where))
+        bool hasFill = setFillColor(where);
+        if (hasFill)
             Draw(where, where->offset, GL_POLYGON, tessel);
-        if (setLineColor(where))
+        bool hasLine = setLineColor(where);
+        if (hasLine)
             DrawOutline(where);
-        Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
+        if (hasFill || hasLine)
+            Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
     }
     else
     {
@@ -931,7 +927,6 @@ void GraphicPath::Draw(Layout *layout,
 
         gluTessProperty(tess, GLU_TESS_WINDING_RULE, tesselation);
         gluTessBeginPolygon(tess, &polygon);
-        invert = true;
     }
 
     for (i = begin; i != end; i++)
@@ -1060,7 +1055,9 @@ void GraphicPath::Draw(Layout *layout,
                         glPushMatrix();
                         glTranslatef(0.0, 0.0, -depth);
                         glScalef(1, 1, -1);
+                        glFrontFace(GL_CW);
                         drawArrays(mode, textureUnits, data);
+                        glFrontFace(GL_CCW);
                         glPopMatrix();
                     }
                     extrude(polygon, data, depth);
@@ -1188,6 +1185,9 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt, scale sy)
                 int(QPainterPath::LineToElement) == int(LINE_TO) &&
                 int(QPainterPath::CurveToElement) == int(CURVE_TO) &&
                 int(QPainterPath::CurveToDataElement) == int(CURVE_CONTROL));
+
+    if (sy < 0)
+        invert = true;
 
     // Loop on the Qt Path and insert elements
     // Qt paths place CURVE_TO before control points, we place it last

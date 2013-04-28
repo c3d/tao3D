@@ -377,6 +377,7 @@ bool GlyphCache::Find(const QFont &font,
     // Check if we want OpenGL display lists:
     // - If the line width is unknown yet
     // - If there is depth and anything impacting it changed
+    scale extra = 0;
     if (layout)
     {
         scale depth = layout->extrudeDepth;
@@ -388,13 +389,8 @@ bool GlyphCache::Find(const QFont &font,
         bool  countChange = entry.outlineCount != outlineCount;
         bool  outlineChange = (widthChange  || depthChange ||
                                radiusChange || countChange);
-        if (radius > 0)
-        {
-            entry.bounds.lower.x -= radius;
-            entry.bounds.lower.y -= radius;
-            entry.bounds.upper.x += radius;
-            entry.bounds.upper.y += radius;
-        }
+        if (depth > 0)
+            extra = radius;
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size
@@ -471,7 +467,7 @@ bool GlyphCache::Find(const QFont &font,
     }
 
     // Scale down what we pass back to the caller
-    ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
+    ScaleDown(entry, font.pointSizeF() / perFont->baseSize, extra);
     return true;
 }
 
@@ -560,6 +556,7 @@ bool GlyphCache::Find(const QFont &font,
     // Check if we want OpenGL display lists:
     // - If the line width is unknown yet
     // - If there is depth and anything impacting it changed
+    scale extra = 0;
     if (layout)
     {
         scale depth = layout->extrudeDepth;
@@ -571,13 +568,8 @@ bool GlyphCache::Find(const QFont &font,
         bool  countChange = entry.outlineCount != outlineCount;
         bool  outlineChange = (widthChange  || depthChange ||
                                radiusChange || countChange);
-        if (radius > 0)
-        {
-            entry.bounds.lower.x -= radius;
-            entry.bounds.lower.y -= radius;
-            entry.bounds.upper.x += radius;
-            entry.bounds.upper.y += radius;
-        }
+        if (depth > 0)
+            extra = radius;
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size
@@ -656,7 +648,7 @@ bool GlyphCache::Find(const QFont &font,
     }
 
     // Scale down what we pass back to the caller
-    ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
+    ScaleDown(entry, font.pointSizeF() / perFont->baseSize, extra);
     return true;
 }
 
@@ -737,7 +729,7 @@ qreal GlyphCache::Leading(const QFont &font)
 }
 
 
-void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
+void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale, scale extra)
 // ----------------------------------------------------------------------------
 //   Adjust the scale
 // ----------------------------------------------------------------------------
@@ -749,6 +741,15 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
     entry.bounds.upper.y *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
+
+    if (extra > 0)
+    {
+        entry.bounds.lower.x -= extra;
+        entry.bounds.lower.y -= extra;
+        entry.bounds.upper.x += extra;
+        entry.bounds.upper.y += extra;
+        entry.advance += 2*extra;
+    }
 }
 
 TAO_END

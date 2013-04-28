@@ -686,11 +686,11 @@ void StarPolygon::Draw(GraphicPath &path)
 
         for (int i = 0; i < p; i++)
         {
-            double x1 = cx + w1 * sin(a);
-            double y1 = cy + h1 * cos(a);
+            double x1 = cx + w1 * cos(a);
+            double y1 = cy + h1 * sin(a);
             a += da;
-            double x2 = cx + w2 * sin(a);
-            double y2 = cy + h2 * cos(a);
+            double x2 = cx + w2 * cos(a);
+            double y2 = cy + h2 * sin(a);
             a += da;
 
             if (i)
@@ -717,8 +717,8 @@ void StarPolygon::Draw(GraphicPath &path)
                 a += da/2;
             }
 
-            double x1 = cx + w1 * sin(a);
-            double y1 = cy + h1 * cos(a);
+            double x1 = cx + w1 * cos(a);
+            double y1 = cy + h1 * sin(a);
             a += da;
 
             if (i == 0 || 2*i == p)

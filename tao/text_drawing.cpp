@@ -318,14 +318,21 @@ void TextSplit::DrawDirect(Layout *where)
                 {
                     glPushMatrix();
                     glTranslatef(0.0, 0.0, -where->extrudeDepth);
-                    glScalef(1,1,-1);
+                    glScalef(1, 1, -1);
+                    glFrontFace(GL_CCW);
                     glCallList(glyph.interior);
                     glPopMatrix();
+                    glFrontFace(GL_CW);
                     glCallList(glyph.interior);
+                    glFrontFace(GL_CCW);
                 }
                 bool hasLine = setLineColor(where); // May fail, keep fill color
                 if (hasFill || hasLine)
+                {
+                    glFrontFace(GL_CW);
                     glCallList(glyph.outline);
+                    glFrontFace(GL_CCW);
+                }
             }
             else
             {

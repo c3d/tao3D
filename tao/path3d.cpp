@@ -238,7 +238,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
     scale radius = layout->extrudeRadius;
     int count = layout->extrudeCount;
 
-    int sharpEdges = count < 0;
+    bool sharpEdges = count < 0;
     if (sharpEdges)
         count = -count;
 
@@ -292,7 +292,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             z2 = -depth - z2;
             if (sharpEdges)
                 extrudeSide(data, invert, textureUnits,
-                            r2, z2, sa1, -ca1, r1, z1, sa1, -ca1);
+                            r2, z2, sa2, -ca2, r1, z1, sa2, -ca2);
             else
                 extrudeSide(data, invert, textureUnits,
                             r2, z2, sa2, -ca2, r1, z1, sa1, -ca1);

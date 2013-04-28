@@ -777,11 +777,11 @@ void Star::Draw(GraphicPath &path)
 
     for (int i = 0; i < p; i++)
     {
-        double x1 = c.x + w1 * sin(a);
-        double y1 = c.y + h1 * cos(a);
+        double x1 = c.x + w1 * cos(a);
+        double y1 = c.y + h1 * sin(a);
         a += da;
-        double x2 = c.x + w2 * sin(a);
-        double y2 = c.y + h2 * cos(a);
+        double x2 = c.x + w2 * cos(a);
+        double y2 = c.y + h2 * sin(a);
         a += da;
 
         if (i)

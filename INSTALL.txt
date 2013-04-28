@@ -68,6 +68,9 @@ Here is a step-by-tep guide.
   $ make
   $ make -k install   # Note: doc installation fails but we don't care
 
+- Some modules (currently not enabled by default) need the npm command from
+  the NodeJS distribution. Install NodeJS from http://nodejs.org/.
+
 - Get the Tao source code. Put it somewhere under your home directory.
   $ cd
   $ git clone ssh://nano.taodyne.com/~ddd/Work/tao.git
@@ -126,6 +129,10 @@ Configure and build LLVM as follows (will install in
     or
     $ make kit      # Build Tao and create .dmg in ./packaging/macosx
 
+Some modules (currently not enabled by default) need the npm command from
+the NodeJS distribution. Install it with:
+  $ sudo port install nodejs npmjs
+
 Valgrind usage
 
 Install valgrind (version > 3.6.0)
@@ -158,6 +165,9 @@ too.
      $ sudo make install
  - Install Doxygen:
    $ sudo apt-get install doxygen
+ - Some modules (currently not enabled by default) need the npm command from
+   the NodeJS distribution. Install it with:
+     $ sudo apt-get install npm
  - To build a Debian package (.deb) you need:
      $ sudo apt-get install dpkg-dev
  - Configure and build Tao as follows:

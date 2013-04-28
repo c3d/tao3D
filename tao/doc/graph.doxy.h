@@ -1729,20 +1729,42 @@ endpoints_style (s:symbol, e:symbol);
  *
  * When the extrude depth is positive, all shapes will be extruded.
  * The default value is 0, meaning that shapes are not extruded.
- * The extruded border has the line color (@see line_color) if set,
- * the shape color otherwise (@see color).
+ * The extruded border has the line color (see @ref line_color) if set,
+ * the shape color otherwise (see @ref color).
 
- * @p ed is the extrude depth in pixels
+ * @p ed is the extrude depth in pixels.
+ * Here is an example of 3D text.
  *
  * @~french
  * Définit l'épaisseur d'extrusion pour les formes.
  *
- * Lorsaue l'épaisseur d'extrusion est positive, toutes les formes
+ * Lorsque l'épaisseur d'extrusion est positive, toutes les formes
  * seront extrudées. La valeur par défaut est 0, ce qui veut dire que
  * les formes restent plates.
- * Le bord extrudé a la couleur de ligne (@see line_color) si elle est
- * définie, la couleur de l'objet sinon (@see color)
+ * Le bord extrudé a la couleur de ligne (cf. @ref line_color) si elle est
+ * définie, la couleur de l'objet sinon (cf. @ref color)
  * @p ed est la profondeur d'extrusion en pixels.
+ * Voici un exemple de text 3D.
+ *
+ * @~
+ * @code
+light 0
+light_position 1000, 1000, 1000
+locally
+    rotatex 20
+    rotatey 30*time
+    extrude_depth 50
+    text_box 0, 0, 500, 500,
+        vertical_align_center
+        align_center
+        color "yellow"
+        font "Times", 200
+        text "Hello"
+translatey -150
+locally
+    color "pink"
+    sphere 0, 0, 0, 100
+ * @endcode
  */
 extrude_depth (ed:real);
 

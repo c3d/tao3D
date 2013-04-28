@@ -438,7 +438,7 @@ void EllipticalRectangle::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    path.Draw(where, GLU_TESS_WINDING_POSITIVE);
+    path.Draw(where);
 }
 
 
@@ -453,7 +453,7 @@ void EllipticalRectangle::Draw(GraphicPath &path)
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
     double pw = sw*w;
-    double ph = sh*h;
+    double ph = -sh*h;
     if (r < 0.0)
     {
         QPainterPath ellipse;

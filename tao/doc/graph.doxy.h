@@ -1760,13 +1760,83 @@ locally
         color "yellow"
         font "Times", 200
         text "Hello"
-translatey -150
-locally
-    color "pink"
-    sphere 0, 0, 0, 100
  * @endcode
  */
 extrude_depth (ed:real);
+
+/**
+ * @~english
+ * Selects the chamfer radius for extruded shape outlines.
+ *
+ * A positive extrude radius makes it possible to create chamfer around
+ * shapes or text.
+ * @p er is the chamfer radius in pixels.
+ * Here is an example of 3D text with chamfer.
+ *
+ * @~french
+ * Définit le rayon du chamfrein pour les formes extrudées.
+ *
+ * Lorsque le rayon du chamfrein est positif, les formes extrudées
+ * auront un chamfrein du rayon indiqué.
+ * @p er est le rayon du chamfrein en pixels.
+ * Voici un exemple de text 3D avec chamfrein.
+ *
+ * @~
+ * @code
+light 0
+light_position 1000, 1000, 1000
+locally
+    rotatex 20
+    rotatey 30*time
+    extrude_depth 50
+    extrude_radius 20
+    text_box 0, 0, 500, 500,
+        vertical_align_center
+        align_center
+        color "yellow"
+        font "Times", 200
+        text "Hello"
+ * @endcode
+ */
+extrude_radius (er:real);
+
+
+/**
+ * @~english
+ * Selects the number of steps on the chamfer for extruded shapes.
+ *
+ * A positive extrude count creates a smooth rounded chamfer.
+ * A negative extrude count creates a sharp-edged chamfer.
+ * @p ec is the number of steps on the chamfer.
+ * Here is an example of 3D text with chamfer.
+ *
+ * @~french
+ * Définit le nombre de pas sur le chamfrein pour les formes extrudées.
+ *
+ * Un nombre de pas positif crée un chamfrein arrondi.
+ * Un nombre de pas négatf créze un chamfrein à bord francs.
+ * @p ec est le nombre de pas du chamfrein.
+ * Voici un exemple de text 3D avec chamfrein.
+ *
+ * @~
+ * @code
+light 0
+light_position 1000, 1000, 1000
+locally
+    rotatex 20
+    rotatey 30*time
+    extrude_depth 50
+    extrude_radius 20
+    extrude_count seconds mod 5 - 2
+    text_box 0, 0, 500, 500,
+        vertical_align_center
+        align_center
+        color "yellow"
+        font "Times", 200
+        text "Hello"
+ * @endcode
+ */
+extrude_count (ec:integer);
 
 
 #if 0

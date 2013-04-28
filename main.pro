@@ -132,8 +132,8 @@ isEmpty(NO_HELP_VIEWER) {
   !build_pass:message(Will not build help viewer application.)
 }
 
-tao.depends = libxlr libcryptopp
-tao_sign.depends = libxlr libcryptopp tao
+tao.depends = libxlr libcryptopp tao_sign
+tao_sign.depends = libxlr libcryptopp
 keygen.depends = libcryptopp tao
 modules.depends = tao tao_sign crypt
 tests.depends = tao

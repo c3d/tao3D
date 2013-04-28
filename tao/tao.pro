@@ -428,7 +428,7 @@ OTHER_FILES +=  \
     html/module_info_dialog_fr.html \
     tao_fr.ts \
     welcome/welcome.ddd \
-    welcome/lite/welcome.ddd
+    no_welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     inspectordialog.ui \
@@ -488,14 +488,39 @@ xl_files.files = $${SUPPORT_FILES}
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 INSTALLS    += xl_files
 
+isEmpty(NO_DOC_SIGNATURE) {
+  # Keep a local copy of xlr/xlr/builtins.xl (to create the .sig file in .)
+  cp_builtins.commands = cp xlr/xlr/builtins.xl .
+  cp_builtins.target = builtins.xl
+  cp_builtins.depends = xlr/xlr/builtins.xl
+  cp_builtins.CONFIG = no_check_exist
+  QMAKE_CLEAN += builtins.xl
+  QMAKE_EXTRA_TARGETS += cp_builtins
+
+  # Install signed XL files (.xl.sig)
+  SIGN_XL_SOURCES = builtins.xl tao.xl tao_fr.xl
+  TAOTOPSRC=..
+  MODINSTPATH=$$APPINST
+  include(../modules/sign_xl.pri)
+}
+
+# Welcome document
 welcome.path  = $$APPINST/welcome
 isEmpty(NO_WELCOME) {
   welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+  isEmpty(NO_DOC_SIGNATURE):SIGN_XL_SOURCES = welcome/welcome.ddd
 } else {
   !build_pass:message([NO_WELCOME] Welcome screen is disabled.)
   welcome.files = no_welcome/welcome.ddd
+  isEmpty(NO_DOC_SIGNATURE):SIGN_XL_SOURCES = no_welcome/welcome.ddd
 }
 INSTALLS += welcome
+isEmpty(NO_DOC_SIGNATURE) {
+  # Sign welcome.ddd
+  TAOTOPSRC=..
+  MODINSTPATH=$$APPINST/welcome
+  include(../modules/sign_xl.pri)
+}
 
 isEmpty(NO_FONTS) {
   fonts.path  = $$APPINST/fonts

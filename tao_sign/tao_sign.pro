@@ -43,6 +43,15 @@ LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 # Windows needs ws2_32.dll for ntohs() due to tao/crypto.cpp
 win32:LIBS += -lws2_32
 
+# Automatic embedding of Git version
+QMAKE_CLEAN += version.h
+PRE_TARGETDEPS += version.h
+revtarget.target = version.h
+revtarget.commands = ../tao/updaterev.sh "$${TAO_EDITION}"
+revtarget.depends = $$SOURCES \
+    $$HEADERS
+QMAKE_EXTRA_TARGETS += revtarget
+
 # Convenience script to run signing program
 macx:SIGN_CMD  = export DYLD_LIBRARY_PATH=$$PWD/../libxlr ; $$PWD/tao_sign \\\"\\\$$@\\\"
 linux-g++*:SIGN_CMD = export LD_LIBRARY_PATH=$$PWD/../libxlr ; $$PWD/tao_sign \\\"\\\$$@\\\"

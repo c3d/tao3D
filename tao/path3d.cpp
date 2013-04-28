@@ -170,11 +170,11 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
         v = data[s%size];
         uint n = (s+1)%size;
         Vector3 delta = data[n].vertex - v.vertex;
-        Vector3 newNormal = swapXY(delta);
-        if (newNormal.Dot(newNormal) <= 0.0)
+        if (delta.Dot(delta) <= 0.0001)
             continue;
+        Vector3 newNormal = swapXY(delta);
         if (invert)
-            newNormal *= -1.0;
+            newNormal *= -1.0; 
         if (!s)
         {
             normal = newNormal;
@@ -183,7 +183,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
         
         Vector3 orig = v.vertex;
         float dotProduct = newNormal.Dot(normal);
-        if (dotProduct < 0.8)
+        if (dotProduct < 0.9)
         {
             Vector3 oldPos = v.vertex + r2 * normal;
             Vector3 newPos = v.vertex + r2 * newNormal;
@@ -241,23 +241,6 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
     bool sharpEdges = count < 0;
     if (sharpEdges)
         count = -count;
-
-#define DEBUG_NORMAL(v, n, r, g, b, s)                  \
-    if (vertexDebugInfo)                                \
-    {                                                   \
-        glPushAttrib(GL_CURRENT_BIT);                   \
-        glColor4f(r,g,b,1);                             \
-        glLineWidth(1);                                 \
-        glBegin(GL_LINES);                              \
-        Vector3 _center = (v);                          \
-        Vector3 _normal = (n);                          \
-        scale _size = (s);                              \
-        Vector3 _nv = _center + _size * _normal;        \
-        glVertex3f(_center.x, _center.y, _center.z);    \
-        glVertex3f(_nv.x, _nv.y, _nv.z);                \
-        glEnd();                                        \
-        glPopAttrib();                                  \
-    }
 
 
     if (radius > 0 && count > 0)

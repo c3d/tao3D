@@ -152,6 +152,8 @@ static inline void extrudeFacet(Vertices &side, VertexData &v,
 }
 
 
+#define ROUNDING_EPSILON        0.001
+
 static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                         double r1, double z1, double sa1, double ca1,
                         double r2, double z2, double sa2, double ca2)
@@ -170,7 +172,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
         v = data[s%size];
         uint n = (s+1)%size;
         Vector3 delta = data[n].vertex - v.vertex;
-        if (delta.Dot(delta) <= 0.0001)
+        if (delta.Dot(delta) <= ROUNDING_EPSILON)
             continue;
         Vector3 newNormal = swapXY(delta);
         if (invert)
@@ -242,14 +244,14 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
     if (sharpEdges)
         count = -count;
 
+    // Check if we need to invert the normals on this contour
+    bool invert = poly.path->invert;
 
+    // Check if there is an extrude radius
     if (radius > 0 && count > 0)
     {
         if (depth < 2 * radius)
             radius = depth / 2;
-
-        // Check if we need to invert the normals on this contour
-        bool invert = poly.path->invert;
 
         // Loop on the number of extrusion facets
         for (int c = 0; c < count; c++)
@@ -297,7 +299,11 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
             v = data[s];
             uint n = s+1 < size ? s+1 : 0;
             Vector3 delta = data[n].vertex - v.vertex;
+            if (delta.Dot(delta) <= ROUNDING_EPSILON)
+                continue;
             Vector3 newNormal = swapXY(delta);
+            if (invert)
+                newNormal *= -1.0;
             
             if (newNormal.Dot(normal) < 0.8)
             {

@@ -847,7 +847,6 @@ bool Window::saveFile(const QString &fileName)
     // before the document was modified.
     {
         XL::SourceFile &sf = xlRuntime->files[+fileName];
-        std::cerr << "S &sf=" << (void*)&sf << " fileName=" << +fileName << "\n";
         SignatureInfo *si = sf.GetInfo<SignatureInfo>();
         if (si)
             signDocument(+fileName);

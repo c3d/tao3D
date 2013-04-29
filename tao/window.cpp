@@ -845,6 +845,7 @@ bool Window::saveFile(const QString &fileName)
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     // Save should keep the signatures valid if they where valid
     // before the document was modified.
+    if (TaoApp->edition == Application::Impress)
     {
         XL::SourceFile &sf = xlRuntime->files[+fileName];
         SignatureInfo *si = sf.GetInfo<SignatureInfo>();

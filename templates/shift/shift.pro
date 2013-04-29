@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/shift/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = shift.ddd shift.xl
+include(../sign_template.pri)

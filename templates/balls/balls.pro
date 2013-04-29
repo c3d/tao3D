@@ -18,3 +18,6 @@ refract.path = $$APPINST/templates/balls/images/refract
 refract.files = images/refract/*
 
 INSTALLS += files reflect refract
+
+SIGN_XL_SOURCES = balls.ddd
+include(../sign_template.pri)

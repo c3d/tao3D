@@ -32,3 +32,4 @@ doc/doc
 /fix_qt_refs_app
 /config.h
 *.xl.sig
+*.ddd.sig

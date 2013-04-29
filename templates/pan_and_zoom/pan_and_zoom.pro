@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/pan_and_zoom/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = pan_and_zoom.ddd fr.xl
+include(../sign_template.pri)

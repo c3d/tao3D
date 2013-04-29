@@ -205,7 +205,7 @@ bool Shape::setLineColor(Layout *where)
         Color &color = where->lineColor;
         scale width = where->lineWidth;
         scale v = where->visibility * color.alpha;
-        if (v >= 0.01 && width > 0.0)
+        if (v >= 0.01 && (width > 0.0 || where->extrudeDepth > 0.0))
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
@@ -340,7 +340,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     glDisable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
-    path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);
+    path.Draw(where, where->Offset(), GL_LINE_STRIP, 0);
 }
 
 
@@ -438,7 +438,7 @@ void EllipticalRectangle::Draw(Layout *where)
 {
     GraphicPath path;
     Draw(path);
-    path.Draw(where, GLU_TESS_WINDING_POSITIVE);
+    path.Draw(where);
 }
 
 
@@ -453,7 +453,7 @@ void EllipticalRectangle::Draw(GraphicPath &path)
     int sw = w > 0? 1: -1;
     int sh = h > 0? 1: -1;
     double pw = sw*w;
-    double ph = sh*h;
+    double ph = -sh*h;
     if (r < 0.0)
     {
         QPainterPath ellipse;
@@ -686,10 +686,10 @@ void StarPolygon::Draw(GraphicPath &path)
 
         for (int i = 0; i < p; i++)
         {
-            double x1 = cx + w1 * sin(a);
+            double x1 = cx - w1 * sin(a);
             double y1 = cy + h1 * cos(a);
             a += da;
-            double x2 = cx + w2 * sin(a);
+            double x2 = cx - w2 * sin(a);
             double y2 = cy + h2 * cos(a);
             a += da;
 
@@ -717,7 +717,7 @@ void StarPolygon::Draw(GraphicPath &path)
                 a += da/2;
             }
 
-            double x1 = cx + w1 * sin(a);
+            double x1 = cx - w1 * sin(a);
             double y1 = cy + h1 * cos(a);
             a += da;
 
@@ -777,10 +777,10 @@ void Star::Draw(GraphicPath &path)
 
     for (int i = 0; i < p; i++)
     {
-        double x1 = c.x + w1 * sin(a);
+        double x1 = c.x - w1 * sin(a);
         double y1 = c.y + h1 * cos(a);
         a += da;
-        double x2 = c.x + w2 * sin(a);
+        double x2 = c.x - w2 * sin(a);
         double y2 = c.y + h2 * cos(a);
         a += da;
 

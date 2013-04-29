@@ -212,6 +212,33 @@ void Visibility::Draw(Layout *where)
 }
 
 
+void ExtrudeDepth::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Set the extrude depth in the layout
+// ----------------------------------------------------------------------------
+{
+    where->extrudeDepth = depth;
+}
+
+
+void ExtrudeRadius::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Set the extrude radius in the layout
+// ----------------------------------------------------------------------------
+{
+    where->extrudeRadius = radius;
+}
+
+
+void ExtrudeCount::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Set the extrude count in the layout
+// ----------------------------------------------------------------------------
+{
+    where->extrudeCount = count;
+}
+
+
 void LineWidth::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a line width change

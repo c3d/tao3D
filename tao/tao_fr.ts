@@ -258,7 +258,7 @@
         <translation>Impossible de changer le fichier de police : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1415"/>
+        <location filename="module_manager.cpp" line="1418"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
         <translation>ATTENTION : Module binaire incompatible </translation>
@@ -304,7 +304,7 @@
     <message>
         <location filename="remote_selection_frame.ui" line="17"/>
         <source>Frame</source>
-        <translation></translation>
+        <translation>Frame</translation>
     </message>
     <message>
         <location filename="remote_selection_frame.ui" line="29"/>
@@ -393,102 +393,102 @@
 <context>
     <name>Tao::Application</name>
     <message>
-        <location filename="application.cpp" line="520"/>
+        <location filename="application.cpp" line="561"/>
         <source>OpenGL support</source>
         <translation>Support d&apos;OpenGL</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="517"/>
+        <location filename="application.cpp" line="558"/>
         <source>This system (%1, %2, %3) doesn&apos;t support OpenGL 2.0.</source>
         <translation>Cet ordinateur (%1, %2, %3) ne permet pas de faire fonctionner l&apos;application (OpenGL 2.0 ou supérieur est requis).</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="525"/>
+        <location filename="application.cpp" line="566"/>
         <source>FBO support</source>
         <translation>Support des FBOs</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="526"/>
+        <location filename="application.cpp" line="567"/>
         <source>This system doesn&apos;t support Frame Buffer Objects.</source>
         <translation>Cet ordinateur ne permet pas de faire fonctionner l&apos;application (la fonction FBO est requise).</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="591"/>
+        <location filename="application.cpp" line="632"/>
         <source>Information</source>
         <translation>Information</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="592"/>
+        <location filename="application.cpp" line="633"/>
         <source>On this system, graphics and text edges may look jagged.</source>
         <translation>Sur cet ordinateur, il se peut que les graphiques et le texte apparaissent légèrement dentelés.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="623"/>
+        <location filename="application.cpp" line="664"/>
         <source>Checking modules [%1]</source>
         <translation>Vérification des modules [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="636"/>
+        <location filename="application.cpp" line="677"/>
         <source>Updating modules [%1]</source>
         <translation>Mise à jour du module [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="660"/>
+        <location filename="application.cpp" line="701"/>
         <source>Tao Presentations</source>
         <translation>Tao Presentations</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="661"/>
+        <location filename="application.cpp" line="702"/>
         <source>&lt;h3&gt;Reminder&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Rappel&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="663"/>
+        <location filename="application.cpp" line="704"/>
         <source>&lt;p&gt;This is an evaluation copy of Tao Presentations.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Ceci est une version d&apos;évaluation de Tao Presentations.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="666"/>
+        <location filename="application.cpp" line="707"/>
         <source>Buy now</source>
         <translation>Acheter en ligne</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="667"/>
+        <location filename="application.cpp" line="708"/>
         <source>Buy later</source>
         <translation>Acheter plus tard</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="681"/>
+        <location filename="application.cpp" line="722"/>
         <source>http://taodyne.com/taopresentations/buynow</source>
         <translation>http://taodyne.com/taopresentations/acheter</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="887"/>
+        <location filename="application.cpp" line="928"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="895"/>
+        <location filename="application.cpp" line="936"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1067"/>
+        <location filename="application.cpp" line="1108"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1200"/>
-        <location filename="application.cpp" line="1216"/>
-        <location filename="application.cpp" line="1229"/>
-        <location filename="application.cpp" line="1242"/>
+        <location filename="application.cpp" line="1241"/>
+        <location filename="application.cpp" line="1257"/>
+        <location filename="application.cpp" line="1270"/>
+        <location filename="application.cpp" line="1283"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1201"/>
+        <location filename="application.cpp" line="1242"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -499,7 +499,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1217"/>
+        <location filename="application.cpp" line="1258"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -508,7 +508,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1230"/>
+        <location filename="application.cpp" line="1271"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -517,7 +517,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1243"/>
+        <location filename="application.cpp" line="1284"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -915,21 +915,6 @@ Voulez-vouz la supprimer malgré tout ?</translation>
     </message>
 </context>
 <context>
-    <name>Tao::ExamplesMenu</name>
-    <message>
-        <source>Examples</source>
-        <translation type="obsolete">Exemples</translation>
-    </message>
-    <message>
-        <source>Themes</source>
-        <translation type="obsolete">Thèmes</translation>
-    </message>
-    <message>
-        <source>Miscellaneous</source>
-        <translation type="obsolete">Divers</translation>
-    </message>
-</context>
-<context>
     <name>Tao::FetchDialog</name>
     <message>
         <location filename="fetch_dialog.cpp" line="41"/>
@@ -1081,14 +1066,99 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     </message>
     <message>
         <location filename="license_dialog.cpp" line="118"/>
-        <source>&lt;h3&gt;To add new licenses&lt;/h3&gt;&lt;p&gt;If you received license files (with the .taokey extension), copy them into the license folder and restart the application. Your new licenses will be loaded automatically.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Open the license folder&lt;/a&gt;&lt;/center&gt;&lt;h3&gt;Your host identifier:&lt;/h3&gt;&lt;center&gt;%3&lt;/center&gt;</source>
-        <oldsource>&lt;h3&gt;To add new licenses&lt;/h3&gt;&lt;p&gt;If you received license files (with the .taokey extension), copy them into the license folder and restart the application. Your new licenses will be loaded automatically.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Open the license folder&lt;/a&gt;&lt;/center&gt;&lt;p&gt;Your host identifier (hostid):&lt;/p&gt;&lt;center&gt;%3&lt;/center&gt;</oldsource>
-        <translation>&lt;h3&gt;Pour installer de nouvelles licences&lt;/h3&gt;&lt;p&gt;Si vous avez reçu des fichiers de licence (avec l&apos;extension .taokey), copiez-les dans le dossier de licences et redémarrez l&apos;application. Vos licences seront prises en compte automatiquement.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Ouvrir le dossier des licences&lt;/a&gt;&lt;/center&gt;&lt;h3&gt;Identifiant de l&apos;ordinateur :&lt;/h3&gt;&lt;center&gt;%3&lt;/center&gt;</translation>
+        <source>&lt;h3&gt;To add new licenses&lt;/h3&gt;&lt;p&gt;If you received license files (with the .taokey  or .taokey.src extension), copy them into the license folder and restart the application. Your new licenses will be loaded automatically.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Open the license folder&lt;/a&gt;&lt;/center&gt;&lt;h3&gt;Your host identifier:&lt;/h3&gt;&lt;center&gt;%3&lt;/center&gt;</source>
+        <oldsource>&lt;h3&gt;To add new licenses&lt;/h3&gt;&lt;p&gt;If you received license files (with the .taokey extension), copy them into the license folder and restart the application. Your new licenses will be loaded automatically.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Open the license folder&lt;/a&gt;&lt;/center&gt;&lt;h3&gt;Your host identifier:&lt;/h3&gt;&lt;center&gt;%3&lt;/center&gt;</oldsource>
+        <translation>&lt;h3&gt;Pour installer de nouvelles licences&lt;/h3&gt;&lt;p&gt;Si vous avez reçu des fichiers de licence (avec l&apos;extension .taokey ou .taokey.src), copiez-les dans le dossier de licences et redémarrez l&apos;application. Vos licences seront prises en compte automatiquement.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Ouvrir le dossier des licences&lt;/a&gt;&lt;/center&gt;&lt;h3&gt;Identifiant de l&apos;ordinateur :&lt;/h3&gt;&lt;center&gt;%3&lt;/center&gt;</translation>
     </message>
     <message>
-        <location filename="license_dialog.cpp" line="144"/>
+        <location filename="license_dialog.cpp" line="145"/>
         <source>Copy host ID to clipboard</source>
         <translation>Copier l&apos;identifiant dans le presse-papier</translation>
+    </message>
+</context>
+<context>
+    <name>Tao::LicenseDownload</name>
+    <message>
+        <location filename="license_download.cpp" line="289"/>
+        <source>Could not save license file %1: %2</source>
+        <translation>Impossible de sauver le fichier de license %1 (%2)</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="405"/>
+        <source>Invalid authorization string @%1:%2</source>
+        <translation>Clé d&apos;autorisation invalide @%1:%2</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="503"/>
+        <source>Invalid URL</source>
+        <translation>URL invalide</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="505"/>
+        <source>Name of license bundle is missing</source>
+        <translation>Le type de licence (bundle) n&apos;est pas défini</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="507"/>
+        <source>Name of license bundle is empty</source>
+        <translation>Le type de licence (bundle) est vide</translation>
+    </message>
+</context>
+<context>
+    <name>Tao::LicenseDownloadUI</name>
+    <message>
+        <location filename="license_download.cpp" line="642"/>
+        <source>Fetching licenses</source>
+        <translation>Téléchargement des licences</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="643"/>
+        <source>Abort</source>
+        <translation>Annulation</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="668"/>
+        <source>&lt;h3&gt;License Error&lt;/h3&gt;</source>
+        <translation>&lt;h3&gt;Erreur de licence&lt;/h3&gt;</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="669"/>
+        <source>&lt;p&gt;There is a problem with license file:&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;The following error was detected: %2.&lt;/p&gt;&lt;p&gt;The program will now terminate. You need to remove the offending license file before trying to run the application again.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Un problème a été détecté dans le fichier :&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;L&apos;erreur suivante est survenue : %2.&lt;/p&gt;&lt;p&gt;L&apos;application va se terminer. Veuillez supprimer le fichier erroné avant de relancer l&apos;application.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="676"/>
+        <source>&lt;p&gt;Please contact &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; to obtain valid license files.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Contactez &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; pour obtenir des licences.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="693"/>
+        <source>License download error.</source>
+        <translation>Erreur lors du téléchargement d&apos;une licence.</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="703"/>
+        <source>The license described in file &apos;%1&apos; could not be downloaded. The most probable cause is that the maximum number of licences allowed was exceeded. Please contact Taodyne to obtain more licenses.
+The download will be attempted again the next time the application is run. Delete the above file if you do not want this to occur.</source>
+        <translation>La licence décrite dans le fichier &apos;%1&apos; n&apos;a pas pu être téléchargée. La cause la plus probable est que le nombre maximum de licences autorisé a été atteint. Veuillez contacter Taodyne pour obtenir d&apos;autres licences.
+Le téléchargement sera à nouveau tenté lors du prochain lancement de l&apos;application. Si vous ne le souhaitez pas, supprimez le fichier ci-dessus.</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="715"/>
+        <source>Due to a network issue, the license described in file &apos;%1&apos; could not be downloaded.
+The download will be attempted again the next time the application is run.</source>
+        <translation>La licence décrite dans le fichier &apos;%1&apos; n&apos;a pas pu être téléchargée à cause d&apos;un problème réseau.
+Le téléchargement sera à nouveau tenté lors du prochain lancement de l&apos;application.</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="740"/>
+        <source>Tao License Download</source>
+        <translation>Téléchargement de Licence Tao</translation>
+    </message>
+    <message>
+        <location filename="license_download.cpp" line="741"/>
+        <source>Please enter a user name and a password to obtain a license file from %1.</source>
+        <translation>Veuillez entrer un nom d&apos;utilisateur et un mot de passe pour obtenir un fichier de licence depuis : %1.</translation>
     </message>
 </context>
 <context>
@@ -1236,6 +1306,19 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     </message>
 </context>
 <context>
+    <name>Tao::LoginDialog</name>
+    <message>
+        <location filename="login_dialog.cpp" line="47"/>
+        <source>Username</source>
+        <translation>Utilisateur</translation>
+    </message>
+    <message>
+        <location filename="login_dialog.cpp" line="49"/>
+        <source>Password</source>
+        <translation>Mot de passe</translation>
+    </message>
+</context>
+<context>
     <name>Tao::MergeDialog</name>
     <message>
         <location filename="merge_dialog.cpp" line="90"/>
@@ -1288,7 +1371,7 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
         <translation>Impossible de faire l&apos;analyse grammaticale de %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1328"/>
+        <location filename="module_manager.cpp" line="1331"/>
         <source>Do you want to remove the following module from the Tao configuration?
 
 Name: %1
@@ -1299,8 +1382,8 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1333"/>
-        <location filename="module_manager.cpp" line="1354"/>
+        <location filename="module_manager.cpp" line="1336"/>
+        <location filename="module_manager.cpp" line="1357"/>
         <source>
 
 Reason: %1</source>
@@ -1309,14 +1392,14 @@ Reason: %1</source>
 Cause : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1335"/>
-        <location filename="module_manager.cpp" line="1356"/>
-        <location filename="module_manager.cpp" line="1393"/>
+        <location filename="module_manager.cpp" line="1338"/>
+        <location filename="module_manager.cpp" line="1359"/>
+        <location filename="module_manager.cpp" line="1396"/>
         <source>Tao modules</source>
         <translation>Modules Tao</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1350"/>
+        <location filename="module_manager.cpp" line="1353"/>
         <source>Do you want to enable following module?
 
 Name: %1
@@ -1327,27 +1410,27 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1370"/>
+        <location filename="module_manager.cpp" line="1373"/>
         <source>WARNING: Skipping invalid module %1
 </source>
         <translation>ATTENTION : Module invalide : %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1373"/>
+        <location filename="module_manager.cpp" line="1376"/>
         <source>WARNING:   %1
 </source>
         <translation>ATTENTION:   %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1396"/>
+        <location filename="module_manager.cpp" line="1399"/>
         <source>Module %1 cannot be initialized.
 %2</source>
         <translation>Le module %1 ne peut être initalisé.%2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1402"/>
+        <location filename="module_manager.cpp" line="1405"/>
         <source>Module %1 cannot be initialized.</source>
         <translation>Le module %1 ne peut être initalisé.</translation>
     </message>
@@ -1930,102 +2013,102 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::UpdateApplication</name>
     <message>
-        <location filename="update_application.cpp" line="79"/>
+        <location filename="update_application.cpp" line="78"/>
         <source>Tao Presentations Update</source>
         <translation>Mise à jour de Tao Presentations</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="264"/>
+        <location filename="update_application.cpp" line="207"/>
         <source>Checking for update</source>
         <translation>Vérification des mises à jour</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="313"/>
+        <location filename="update_application.cpp" line="256"/>
         <source>Downloading %1 %2...</source>
         <translation>Téléchargement de %1 %2...</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="375"/>
+        <location filename="update_application.cpp" line="318"/>
         <source>&lt;h3&gt;%1 is up to date&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;%1 est à jour&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="376"/>
+        <location filename="update_application.cpp" line="319"/>
         <source>&lt;p&gt;There is no new version available for download.&lt;p&gt;</source>
         <translation>&lt;p&gt;Il n&apos;y a pas de nouvelle version disponible.&lt;p&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="392"/>
+        <location filename="update_application.cpp" line="335"/>
         <source>&lt;h3&gt;Download succesful&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Téléchargement réussi&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="393"/>
+        <location filename="update_application.cpp" line="336"/>
         <source>&lt;p&gt;%1 %2 was downloaded successfully.&lt;/p&gt;&lt;p&gt;To complete the upgrade, you have to quit the application and install the new package.&lt;/p&gt;&lt;p&gt;You may do it at your convenience.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Le téléchargement de %1 %2 s&apos;est terminé.&lt;/p&gt;&lt;p&gt;Pour effectuer la mise à jour, vous devrez quitter l&apos;application et installer la nouvelle version à partir du fichier téléchargé.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="420"/>
+        <location filename="update_application.cpp" line="363"/>
         <source>B/s</source>
         <translation>o/s</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="423"/>
+        <location filename="update_application.cpp" line="366"/>
         <source>KB/s</source>
         <translation>Ko/s</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="426"/>
+        <location filename="update_application.cpp" line="369"/>
         <source>MB/s</source>
         <translation>Mo/s</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="433"/>
+        <location filename="update_application.cpp" line="376"/>
         <source>Downloading Tao Presentations %1%2</source>
         <translation>Téléchargement de Tao Presentations %1%2</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="534"/>
+        <location filename="update_application.cpp" line="477"/>
         <source>&lt;h3&gt;Network error&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Erreur de connexion&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="535"/>
+        <location filename="update_application.cpp" line="478"/>
         <source>&lt;p&gt;Impossible to obtain update information.&lt;/p&gt;&lt;p&gt;Please make sure that you are connected to the Internet and try again.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Impossible de télécharger les informations de mise à jour.&lt;/p&gt;&lt;p&gt;Vérifiez que vous êtes connecté à Internet et essayez à nouveau.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="621"/>
+        <location filename="update_application.cpp" line="564"/>
         <source>&lt;h3&gt;Update available&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Mise à jour disponible&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="622"/>
+        <location filename="update_application.cpp" line="565"/>
         <source>&lt;p&gt;%1 version %2 is available. Do you want to download it now?&lt;/p&gt;</source>
         <translation>&lt;p&gt;%1 version %2 est disponible. Voulez-vous télécharger la mise à jour maintenant ?&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="721"/>
+        <location filename="update_application.cpp" line="664"/>
         <source>&lt;h3&gt;File exists&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Le fichier existe&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="722"/>
+        <location filename="update_application.cpp" line="665"/>
         <source>&lt;p&gt;The selected folder already contains a file called &lt;b&gt;%1&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Save anyway?&lt;/p&gt;</source>
         <translation>&lt;p&gt;Le dossier sélectionné contient déjà un fichier nommé &lt;b&gt;%1&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Voulez-vous le remplacer ?&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="749"/>
+        <location filename="update_application.cpp" line="692"/>
         <source>&lt;h3&gt;Write error&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Erreur d&apos;écriture&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="750"/>
+        <location filename="update_application.cpp" line="693"/>
         <source>&lt;p&gt;The upgrade cannot be saved to &lt;b&gt;%1&lt;/b&gt;.&lt;/p&gt;</source>
         <translation>&lt;p&gt;La mise à jour n&apos;a pas pu être enregistrée dans &lt;b&gt;%1&lt;/b&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="709"/>
+        <location filename="update_application.cpp" line="652"/>
         <source>Select destination folder</source>
         <translation>Choissisez un dossier de destination</translation>
     </message>
@@ -2122,37 +2205,37 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="1346"/>
+        <location filename="widget.cpp" line="1384"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1456"/>
+        <location filename="widget.cpp" line="1494"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1457"/>
+        <location filename="widget.cpp" line="1495"/>
         <source>Invalid file name. Check any % format specification and remember to use %% to insert a percent character.</source>
         <translation>Nom de fichier invalide. Vérifiez que la spécification de format (%) et utilisez %% pour insérer un caractère pourcent.</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2499"/>
+        <location filename="widget.cpp" line="2636"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2505"/>
+        <location filename="widget.cpp" line="2642"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12148"/>
+        <location filename="widget.cpp" line="12349"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12149"/>
+        <location filename="widget.cpp" line="12350"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

@@ -3981,7 +3981,8 @@ bool Widget::checkDocumentSigned()
     {
         SourceFile &sf = (*it).second;
         SignatureInfo *si = sf.GetInfo<SignatureInfo>();
-        if (!si)
+        if (!si ||
+             si->loadAndCheckSignature() != SignatureInfo::SI_VALID)
         {
             sig = false;
             break;

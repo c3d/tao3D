@@ -799,12 +799,12 @@ void Widget::drawActivities()
     selectionSpace.Draw(NULL);
 
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
-    // (except we have a valid signature made by the full version of Tao)
     if (Licenses::UnlicensedCount() > 0
+        || (!Application::isImpress()
 #ifndef CFG_NO_DOC_SIGNATURE
-        && !isDocumentSigned
+            && !isDocumentSigned
 #endif
-       )
+       ))
     {
         GLStateKeeper save;
         SpaceLayout licenseOverlaySpace(this);

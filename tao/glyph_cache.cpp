@@ -320,16 +320,15 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
-        uint width = ceil(bounds.width());
-        uint height = ceil(bounds.height());
+        uint width = ceil(bw);
+        uint height = ceil(bh);
 
         // Allocate a rectangle where we will put the texture (may resize us)
         BinPacker::Rect rect;
         Allocate(width + 2*aam, height + 2*aam, rect);
 
         // Record glyph information in the entry
-        entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
-                           bounds.width()/fs, bounds.height()/fs);
+        entry.bounds = Box(bx/fs, by/fs, bw/fs, bh/fs);
         entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qc) / fs;
         entry.scalingFactor = fs;
@@ -378,12 +377,20 @@ bool GlyphCache::Find(const QFont &font,
     // Check if we want OpenGL display lists:
     // - If the line width is unknown yet
     // - If there is depth and anything impacting it changed
+    scale extra = 0;
     if (layout)
     {
         scale depth = layout->extrudeDepth;
+        scale radius = layout->extrudeRadius;
+        uint  outlineCount = layout->extrudeCount;
         bool  widthChange = entry.outlineWidth != lineWidth;
         bool  depthChange = entry.outlineDepth != depth;
-        bool  outlineChange = widthChange || depthChange;
+        bool  radiusChange = entry.outlineRadius != radius;
+        bool  countChange = entry.outlineCount != outlineCount;
+        bool  outlineChange = (widthChange  || depthChange ||
+                               radiusChange || countChange);
+        if (depth > 0)
+            extra = radius;
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size
@@ -399,18 +406,27 @@ bool GlyphCache::Find(const QFont &font,
 
             if (interior)
             {
-                XL::Save<scale> saveDepth (layout->extrudeDepth, 0.0);
-
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
                     entry.interior = glGenLists(1);
-                glNewList(entry.interior, GL_COMPILE);
-                path.Draw(layout, Vector3(0,0,0),
-                          GL_POLYGON, GLU_TESS_WINDING_ODD);
-                glEndList();
+                if (layout->extrudeDepth > 0.0)
+                {
+                    XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
+                else
+                {
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
             }
 
-            if (outlineChange)
+            if (!entry.outline || outlineChange)
             {
                 if (!entry.outline)
                     entry.outline = glGenLists(1);
@@ -441,6 +457,8 @@ bool GlyphCache::Find(const QFont &font,
 
                 entry.outlineWidth = lineWidth;
                 entry.outlineDepth = depth;
+                entry.outlineRadius = radius;
+                entry.outlineCount = outlineCount;
             }
 
             // Store the new or updated entry
@@ -449,7 +467,7 @@ bool GlyphCache::Find(const QFont &font,
     }
 
     // Scale down what we pass back to the caller
-    ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
+    ScaleDown(entry, font.pointSizeF() / perFont->baseSize, extra);
     return true;
 }
 
@@ -496,23 +514,23 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
-        uint width = ceil(bounds.width());
-        uint height = ceil(bounds.height());
+        uint width = ceil(bw);
+        uint height = ceil(bh);
 
         // Allocate a rectangle where we will put the texture (may resize us)
         BinPacker::Rect rect;
         Allocate(width + 2*aam, height + 2*aam, rect);
 
         // Record glyph information in the entry
-        entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
-                           bounds.width()/fs, bounds.height()/fs);
+        entry.bounds = Box(bx/fs, by/fs, bw/fs, bh/fs);
         entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qs) / fs;
         entry.scalingFactor = fs;
         entry.interior = 0;
         entry.outline = 0;
-        entry.outlineWidth = 1.0;
+        entry.outlineWidth = lineWidth;
         entry.outlineDepth = 0.0;
+        entry.outlineRadius = 0.0;
 
         // Store the new entry
         perFont->Insert(code, entry);
@@ -538,12 +556,20 @@ bool GlyphCache::Find(const QFont &font,
     // Check if we want OpenGL display lists:
     // - If the line width is unknown yet
     // - If there is depth and anything impacting it changed
+    scale extra = 0;
     if (layout)
     {
         scale depth = layout->extrudeDepth;
+        scale radius = layout->extrudeRadius;
+        uint  outlineCount = layout->extrudeCount;
         bool  widthChange = entry.outlineWidth != lineWidth;
         bool  depthChange = entry.outlineDepth != depth;
-        bool  outlineChange = widthChange || depthChange;
+        bool  radiusChange = entry.outlineRadius != radius;
+        bool  countChange = entry.outlineCount != outlineCount;
+        bool  outlineChange = (widthChange  || depthChange ||
+                               radiusChange || countChange);
+        if (depth > 0)
+            extra = radius;
         if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
             // Reset font to original size
@@ -559,15 +585,26 @@ bool GlyphCache::Find(const QFont &font,
 
             if (interior)
             {
-                XL::Save<scale> saveDepth (layout->extrudeDepth, 0.0);
-
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
                     entry.interior = glGenLists(1);
-                glNewList(entry.interior, GL_COMPILE);
-                path.Draw(layout, Vector3(0,0,0),
-                          GL_POLYGON, GLU_TESS_WINDING_ODD);
-                glEndList();
+
+                if (layout->extrudeDepth > 0.0)
+                {
+                    XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
+                else
+                {
+                    glNewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    glEndList();
+                }
+
             }
 
             if (outlineChange)
@@ -601,6 +638,8 @@ bool GlyphCache::Find(const QFont &font,
 
                 entry.outlineWidth = lineWidth;
                 entry.outlineDepth = depth;
+                entry.outlineRadius = radius;
+                entry.outlineCount = outlineCount;
             }
 
             // Store the new or updated entry
@@ -609,7 +648,7 @@ bool GlyphCache::Find(const QFont &font,
     }
 
     // Scale down what we pass back to the caller
-    ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
+    ScaleDown(entry, font.pointSizeF() / perFont->baseSize, extra);
     return true;
 }
 
@@ -690,7 +729,7 @@ qreal GlyphCache::Leading(const QFont &font)
 }
 
 
-void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
+void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale, scale extra)
 // ----------------------------------------------------------------------------
 //   Adjust the scale
 // ----------------------------------------------------------------------------
@@ -702,6 +741,15 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
     entry.bounds.upper.y *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
+
+    if (extra > 0)
+    {
+        entry.bounds.lower.x -= extra;
+        entry.bounds.lower.y -= extra;
+        entry.bounds.upper.x += extra;
+        entry.bounds.upper.y += extra;
+        entry.advance += 2*extra;
+    }
 }
 
 TAO_END

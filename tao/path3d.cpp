@@ -44,12 +44,11 @@ scale GraphicPath::default_steps = 12;
 #define CALLBACK
 #endif
 
-
 GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : Shape(), startStyle(NONE), endStyle(NONE)
+    : Shape(), startStyle(NONE), endStyle(NONE), invert(false)
 {}
 
 
@@ -95,8 +94,7 @@ static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
         {
             glClientActiveTexture( GL_TEXTURE0 + i );
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
-                              tdata);
+            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData), tdata);
         }
     }
 
@@ -118,83 +116,6 @@ static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
 }
 
 
-static void computeNormals(Vertices &data)
-// ----------------------------------------------------------------------------
-//   Compute the normals in the given array
-// ----------------------------------------------------------------------------
-{
-    uint size = data.size();
-
-    for (uint i = 0, n = 0; i < size && n < size; )
-    {
-        uint i1 = 0, i2 = 0;
-        Point3 p0, p1, p2;
-        Vector3 v1, v2, vn;
-        
-        p0 = data[i].vertex;
-        do
-        {
-            ++i1;
-            p1 = data[(i + i1) % size].vertex;
-        }
-        while (p0 == p1 && i1 < size);
-        v1 = p1 - p0;
-        
-        do
-        {
-            ++i2;
-            p2 = data[(i + i1 + i2) % size].vertex;
-        }
-        while (p1 == p2 && (i1 + i2) < size);
-        v2 = p2 - p1;
-        
-        IFTRACE(paths)
-        {
-            std::cerr << "P0 #" << i
-                      << " = x:" << p0.x
-                      << ", y:" << p0.y
-                      << ", z:" << p0.z << std::endl;
-            std::cerr << "P1 #" << (i+i1)%size 
-                      << " = x:" << p1.x
-                      << ", y:" << p1.y << ", z:"
-                      << p1.z << std::endl;
-            std::cerr << "P2 #" << (i+i1+i2) % size
-                      << " = x:" << p2.x
-                      << ", y:" << p2.y
-                      << ", z:" << p2.z << std::endl;
-            std::cerr << "V1 (P1 - P0) = x:" << v1.x
-                      << ", y:" << v1.y
-                      << ", z:" << v1.z << std::endl;
-            std::cerr << "V2 (P2 - P1) = x:" << v2.x
-                      << ", y:" << v2.y
-                      << ", z:" << v2.z << std::endl;
-        }
-        
-        if ((i1 + i2) < size)
-        {
-            Triangle triangle(p0, p1, p2);
-            vn = triangle.computeNormal();
-            
-            for (uint j = (i + i1); j < (i + i1 + i2); j++)
-            {
-                ++n;
-                data[j%size].normal = vn;
-                
-                IFTRACE(paths)
-                    std::cerr << "Normal #" << j % size
-                              << " = x:" << vn.x
-                              << ", y:" << vn.y
-                              << ", z:" << vn.z << std::endl;
-            }
-        }
-        
-        i += i1;
-    }
-    IFTRACE(paths)
-        std::cerr << std::endl;
-}
-
-
 static inline Vector3 swapXY(Vector3 v)
 // ----------------------------------------------------------------------------
 //   Swap X and Y coordinates (rotate 90 degrees)
@@ -208,7 +129,103 @@ static inline Vector3 swapXY(Vector3 v)
 }
 
 
-static void extrude(Layout *layout, Vertices &data, scale depth)
+static inline void extrudeFacet(Vertices &side, VertexData &v,
+                                Vector3 &orig, Vector3 &normal,
+                                double r, double z, double sa, double ca)
+// ----------------------------------------------------------------------------
+//    Push a facet during extrusion
+// ----------------------------------------------------------------------------
+//    In practice, 'invert' is set for glyphs, which we have rendered with
+//    inverted y. So we also need to invert the normal here.
+{
+    Vector3 vertex = orig + r * normal;
+    vertex.z = z;
+
+    Vector3 fn = normal;
+    fn.z  = ca;
+    fn.x *= sa;
+    fn.y *= sa;
+
+    v.vertex = vertex;
+    v.normal = fn;
+    side.push_back(v);
+}
+
+
+#define ROUNDING_EPSILON        0.001
+
+static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
+                        double r1, double z1, double sa1, double ca1,
+                        double r2, double z2, double sa2, double ca2)
+// ----------------------------------------------------------------------------
+//   Extrude a side range
+// ----------------------------------------------------------------------------
+{
+    uint       size = data.size();
+    Vertices   side;
+    VertexData v;
+    Vector3    normal;
+
+    side.reserve(2*size+2);
+    for (uint s = 0; s <= size + 2; s++)
+    {
+        v = data[s%size];
+        uint n = (s+1)%size;
+        Vector3 delta = data[n].vertex - v.vertex;
+        if (delta.Dot(delta) <= ROUNDING_EPSILON)
+            continue;
+        Vector3 newNormal = swapXY(delta);
+        if (invert)
+            newNormal *= -1.0; 
+        if (!s)
+        {
+            normal = newNormal;
+            continue;
+        }
+        
+        Vector3 orig = v.vertex;
+        float dotProduct = newNormal.Dot(normal);
+        if (dotProduct < 0.9)
+        {
+            Vector3 oldPos = v.vertex + r2 * normal;
+            Vector3 newPos = v.vertex + r2 * newNormal;
+            float backstep = (newPos-oldPos).Dot(delta);
+            if (backstep < 0.0)
+            {
+                Vector3 mid = normal + newNormal;
+                mid.Normalize();
+                extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
+                v.vertex = orig;                
+                normal = newNormal;
+                continue;
+            }
+            else
+            {
+                // If we have a sharp angle, create additional face
+                // so that OpenGL does not interpolate normals
+                const uint MAX = 5;
+                for (uint a = 0; a <= MAX; a++)
+                {
+                    Vector3 mid = normal * (MAX-a) + newNormal * a;
+                    mid.Normalize();
+                    extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                    extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
+                    v.vertex = orig;                
+                }
+            }
+        }
+
+        normal = newNormal;
+        extrudeFacet(side, v, orig, normal, r1, z1, sa1, ca1);
+        extrudeFacet(side, v, orig, normal, r2, z2, sa2, ca2);
+    }
+
+    drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+}
+
+
+static void extrude(PolygonData &poly, Vertices &data, scale depth)
 // ----------------------------------------------------------------------------
 //   Extrude a given set of vertices
 // ----------------------------------------------------------------------------
@@ -216,32 +233,27 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
     uint size = data.size();
     if (!size)
         return;
-
+    
+    Layout *layout = poly.layout;
     uint64 textureUnits = layout->textureUnits;
 
     scale radius = layout->extrudeRadius;
     int count = layout->extrudeCount;
 
-    Vertices side;
-    VertexData v;
-    Vector3 normal;
-
-    int vertexDebugInfo = count < 0;
-    if (vertexDebugInfo)
+    bool sharpEdges = count < 0;
+    if (sharpEdges)
         count = -count;
 
+    // Check if we need to invert the normals on this contour
+    bool invert = poly.path->invert;
+
+    // Check if there is an extrude radius
     if (radius > 0 && count > 0)
     {
         if (depth < 2 * radius)
             radius = depth / 2;
 
-        // Compute the shape center
-        Vector3 center;
-        for (uint s = 0; s < size; s++)
-            center += data[s].vertex;
-        center /= size;
-
-        Vertices bottom;
+        // Loop on the number of extrusion facets
         for (int c = 0; c < count; c++)
         {
             double a1  = M_PI/2 * c / count;
@@ -250,142 +262,61 @@ static void extrude(Layout *layout, Vertices &data, scale depth)
             double a2  = M_PI/2 * (c+1) / count;
             double ca2 = cos (a2);
             double sa2 = sin (a2);
+            double z1 = -radius * (1 - ca1);
+            double z2 = -radius * (1 - ca2);
+            double r1 = radius * sa1;
+            double r2 = radius * sa2;
 
-            Vector3 last = data[size-1].vertex;
-            Vector3 lastNormal = last - center;
-            lastNormal.Normalize();
-            last += lastNormal * radius * sa1;
-            last.z -= radius * (1 - ca1);
-
-            side.reserve (2*size+2);
-            bottom.reserve (2*size+2);
-
-            for (uint s = 0; s < size; s++)
-            {
-                v = data[s];
-                Vector3 normal = v.vertex - center;
-                normal.Normalize();
-
-                VertexData v1 = v;
-                v1.vertex += normal * radius * sa1;
-                v1.vertex.z -= radius * (1 - ca1);
-
-                VertexData v2 = v;
-                v2.vertex += normal * radius * sa2;
-                v2.vertex.z -= radius * (1 - ca2);
-
-                Triangle t(v1.vertex, v2.vertex, last);
-                Vector3 faceNormal = t.computeNormal();
-
-                v1.normal = faceNormal;
-                v2.normal = faceNormal;
-                side.push_back(v1);
-                side.push_back(v2);
-
-                if (vertexDebugInfo)
-                {
-                    glPushAttrib(GL_CURRENT_BIT);
-                    glColor4f(1,0,1.0 * s / size,1);
-                    glLineWidth(1);
-                    glBegin(GL_LINES);
-                    Vector3 center = (v1.vertex + v2.vertex + last) / 3;
-                    Vector3 nv = center + 15 * faceNormal;
-                    glVertex3f(center.x, center.y, center.z);
-                    glVertex3f(nv.x, nv.y, nv.z);
-                    glEnd();
-                    glColor4f(0,1.0 * s / size,1,1);
-                    glPointSize(5);
-                    glBegin(GL_POINTS);
-                    glVertex3f(v1.vertex.x, v1.vertex.y, v1.vertex.z);
-                    glVertex3f(v2.vertex.x, v2.vertex.y, v2.vertex.z);
-                    glVertex3f(last.x, last.y, last.z);
-                    glEnd();
-                    glPopAttrib();
-                }
-
-                v1.vertex.z = -depth - v1.vertex.z;
-                v2.vertex.z = -depth - v2.vertex.z;
-                v1.normal.z *= -1;
-                v2.normal.z *= -1;
-                bottom.push_back(v1);
-                bottom.push_back(v2);
-
-                if (vertexDebugInfo)
-                {
-                    glPushAttrib(GL_CURRENT_BIT);
-                    glColor4f(1,0,1.0 * s / size,1);
-                    glLineWidth(1);
-                    glBegin(GL_LINES);
-                    last.z = -depth - last.z;
-                    faceNormal = v2.normal;
-                    Vector3 center = (v1.vertex + v2.vertex + last) / 3;
-                    Vector3 nv = center + 15 * faceNormal;
-                    glVertex3f(center.x, center.y, center.z);
-                    glVertex3f(nv.x, nv.y, nv.z);
-                    glEnd();
-                    glColor4f(0,1.0 * s / size,1,1);
-                    glPointSize(5);
-                    glBegin(GL_POINTS);
-                    glVertex3f(v1.vertex.x, v1.vertex.y, v1.vertex.z);
-                    glVertex3f(v2.vertex.x, v2.vertex.y, v2.vertex.z);
-                    glVertex3f(last.x, last.y, last.z);
-                    glEnd();
-                    glPopAttrib();
-                }
-
-                last = v1.vertex;
-            }
-
-            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
-            drawArrays(GL_TRIANGLE_STRIP, textureUnits, bottom);
-            side.clear();
-            bottom.clear();
+            if (sharpEdges)
+                extrudeSide(data, invert, textureUnits,
+                            r1, z1, sa2, ca2, r2, z2, sa2, ca2);
+            else
+                extrudeSide(data, invert, textureUnits,
+                            r1, z1, sa1, ca1, r2, z2, sa2, ca2);
+            z1 = -depth - z1;
+            z2 = -depth - z2;
+            if (sharpEdges)
+                extrudeSide(data, invert, textureUnits,
+                            r2, z2, sa2, -ca2, r1, z1, sa2, -ca2);
+            else
+                extrudeSide(data, invert, textureUnits,
+                            r2, z2, sa2, -ca2, r1, z1, sa1, -ca1);
         }
 
         if (depth > 2 * radius)
-        {
-            side.reserve(2*size+2);
-            for (uint s = 0; s < size; s++)
-            {
-                v = data[s];
-                Vector3 normal = v.vertex - center;
-                normal.Normalize();
-                v.normal = normal;
-                v.vertex += normal * radius;
-                v.vertex.z = -radius;
-                side.push_back(v);
-                v.vertex.z = radius-depth;
-                side.push_back(v);
-            }
-
-            drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
-        }
+            extrudeSide(data, invert, textureUnits,
+                        radius, -radius, 1, 0, radius, radius - depth, 1, 0);
     }
     else // Optimized case for 0 radius
     {
+        Vertices side;
+        VertexData v;
+        Vector3 normal;
+
         side.reserve(2*size);
         for (uint s = 0; s < size; s++)
         {
             v = data[s];
-            if (s+1 < size)
+            uint n = s+1 < size ? s+1 : 0;
+            Vector3 delta = data[n].vertex - v.vertex;
+            if (delta.Dot(delta) <= ROUNDING_EPSILON)
+                continue;
+            Vector3 newNormal = swapXY(delta);
+            if (invert)
+                newNormal *= -1.0;
+            
+            if (newNormal.Dot(normal) < 0.8)
             {
-                Vector3 delta = data[s+1].vertex - data[s].vertex;
-                if (delta.Length() > 1.0)
-                {
-                    Vector3 newNormal = swapXY(delta);
-                    if (newNormal.Dot(normal) < 0.8)
-                    {
-                        // If we have a sharp angle, create additional face
-                        // so that OpenGL does not interpolate normals
-                        v.normal = normal;
-                        side.push_back(v);
-                        v.vertex.z -= depth;
-                        side.push_back(v);
-                        v.vertex.z = data[s].vertex.z;
-                    }
-                    normal = newNormal;
-                }
+                // If we have a sharp angle, create additional face
+                // so that OpenGL does not interpolate normals
+                v.normal = normal;
+                side.push_back(v);
+                v.vertex.z -= depth;
+                side.push_back(v);
+                v.vertex.z = data[s].vertex.z;
             }
+            normal = newNormal;
+
             v.normal = normal;
             side.push_back(v);
             v.vertex.z -= depth;
@@ -413,7 +344,8 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     poly->vertices.push_back(*vertex);
-    poly->vertices.back().normal.z = 1;
+    VertexData &back = poly->vertices.back();
+    back.normal = Vector3(0, 0, 1);
 }
 
 
@@ -428,8 +360,20 @@ static void CALLBACK tessEnd(PolygonData *poly)
     {
         Layout *layout = poly->layout;
         uint64 textureUnits = layout->textureUnits;
+        double depth = layout->extrudeDepth;
+        if (depth > 0.0)
+        {
+            bool invert = poly->path->invert;
+            glPushMatrix();
+            glTranslatef(0.0, 0.0, -depth);
+            glScalef(1, 1, -1);
+            glFrontFace(invert ? GL_CCW : GL_CW);
+            drawArrays(poly->mode, textureUnits, data);
+            glFrontFace(invert ? GL_CW : GL_CCW);
+            glPopMatrix();
+        }
         drawArrays(poly->mode, textureUnits, data);
-        poly->vertices.clear();
+        data.clear();
      }
 }
 
@@ -441,7 +385,6 @@ static void CALLBACK tessCombine(GLdouble coords[3],
 // ----------------------------------------------------------------------------
 //   Combine vertex data when the polygon self-intersects
 // ----------------------------------------------------------------------------
-
 {
     Point3 pos(coords[0], coords[1], coords[2]);
 
@@ -451,7 +394,7 @@ static void CALLBACK tessCombine(GLdouble coords[3],
     if (vertex[1]) tex += weight[1] * vertex[1]->texture;
     if (vertex[2]) tex += weight[2] * vertex[2]->texture;
     if (vertex[3]) tex += weight[3] * vertex[3]->texture;
-    VertexData *result = new VertexData(pos, tex);
+    VertexData *result = new VertexData(pos, tex, -1);
     polygon->allocated.push_back(result);
     *dataOut = result;
 }
@@ -742,12 +685,24 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     else
         tessel = 0;
 
-    if (setFillColor(where))
-        Draw(where, where->offset, GL_POLYGON, tessel);
-    if (setLineColor(where))
-        DrawOutline(where);
-    else if (where->extrudeDepth > 0.0)
-        Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
+    if (where->extrudeDepth > 0.0)
+    {
+        bool hasFill = setFillColor(where);
+        if (hasFill)
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        bool hasLine = setLineColor(where);
+        if (hasLine)
+            DrawOutline(where);
+        if (hasFill || hasLine)
+            Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
+    }
+    else
+    {
+        if (setFillColor(where))
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        if (setLineColor(where))
+            DrawOutline(where);
+    }
 }
 
 
@@ -947,12 +902,14 @@ void GraphicPath::Draw(Layout *layout,
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
 {
-    PolygonData polygon;        // Polygon information
+    PolygonData polygon (this);        // Polygon information
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
     polygon.layout = layout;
     uint textureUnits = layout->textureUnits;
+    uint vertexIndex = 0;
+    scale depth = layout->extrudeDepth;
 
     // Check if we need to tesselate polygon
     static GLUtesselator *tess = 0;
@@ -978,7 +935,7 @@ void GraphicPath::Draw(Layout *layout,
         Kind        kind = e.kind;
         Point3      pos  = e.position + offset; // Geometry coordinates
         Point3      tex  = e.position / bounds; // Texture coordinates
-        VertexData  here(pos, tex);
+        VertexData  here(pos, tex, vertexIndex++);
         uint        size;
 
         switch (kind)
@@ -1036,7 +993,7 @@ void GraphicPath::Draw(Layout *layout,
                     double mm = m*m;
                     Vector3 vd = mm * v0 + 2*m*t * v1 + tt * v2;
                     Vector3 td = mm * t0 + 2*m*t * t1 + tt * t2;
-                    VertexData intermediate(vd, td);
+                    VertexData intermediate(vd, td, vertexIndex++);
                     data.push_back(intermediate);
                 }
                 break;
@@ -1073,7 +1030,7 @@ void GraphicPath::Draw(Layout *layout,
                     double mmm = m*mm;
                     Vector3 vd = mmm*v0 + 3*mm*t*v1 + 3*m*tt*v2 + ttt*v3;
                     Vector3 td = mmm*t0 + 3*mm*t*t1 + 3*m*tt*t2 + ttt*t3;
-                    VertexData intermediate(vd, td);
+                    VertexData intermediate(vd, td, vertexIndex++);
                     data.push_back(intermediate);
                 }
                 break;
@@ -1090,19 +1047,20 @@ void GraphicPath::Draw(Layout *layout,
             // Get size of previous elements
             if (uint size = data.size())
             {
-                scale depth = layout->extrudeDepth;
                 if (depth > 0.0)
                 {
                     if (!tesselation)
                     {
                         // If no tesselation is required, draw back directly
                         glPushMatrix();
-                        computeNormals(data);
                         glTranslatef(0.0, 0.0, -depth);
+                        glScalef(1, 1, -1);
+                        glFrontFace(GL_CW);
                         drawArrays(mode, textureUnits, data);
+                        glFrontFace(GL_CCW);
                         glPopMatrix();
                     }
-                    extrude(layout, data, depth);
+                    extrude(polygon, data, depth);
                 }
 
                 // Pass the data we had so far to OpenGL and clear it
@@ -1122,7 +1080,6 @@ void GraphicPath::Draw(Layout *layout,
                     else
                     {
                         // If no tesselation is required, draw directly
-                        computeNormals(data);
                         drawArrays(mode, textureUnits, data);
                     }
                 }
@@ -1228,6 +1185,9 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt, scale sy)
                 int(QPainterPath::LineToElement) == int(LINE_TO) &&
                 int(QPainterPath::CurveToElement) == int(CURVE_TO) &&
                 int(QPainterPath::CurveToDataElement) == int(CURVE_CONTROL));
+
+    if (sy < 0)
+        invert = true;
 
     // Loop on the Qt Path and insert elements
     // Qt paths place CURVE_TO before control points, we place it last

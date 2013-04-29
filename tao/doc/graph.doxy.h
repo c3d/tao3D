@@ -1729,22 +1729,114 @@ endpoints_style (s:symbol, e:symbol);
  *
  * When the extrude depth is positive, all shapes will be extruded.
  * The default value is 0, meaning that shapes are not extruded.
- * The extruded border has the line color (@see line_color) if set,
- * the shape color otherwise (@see color).
+ * The extruded border has the line color (see @ref line_color) if set,
+ * the shape color otherwise (see @ref color).
 
- * @p ed is the extrude depth in pixels
+ * @p ed is the extrude depth in pixels.
+ * Here is an example of 3D text.
  *
  * @~french
  * Définit l'épaisseur d'extrusion pour les formes.
  *
- * Lorsaue l'épaisseur d'extrusion est positive, toutes les formes
+ * Lorsque l'épaisseur d'extrusion est positive, toutes les formes
  * seront extrudées. La valeur par défaut est 0, ce qui veut dire que
  * les formes restent plates.
- * Le bord extrudé a la couleur de ligne (@see line_color) si elle est
- * définie, la couleur de l'objet sinon (@see color)
+ * Le bord extrudé a la couleur de ligne (cf. @ref line_color) si elle est
+ * définie, la couleur de l'objet sinon (cf. @ref color)
  * @p ed est la profondeur d'extrusion en pixels.
+ * Voici un exemple de text 3D.
+ *
+ * @~
+ * @code
+light 0
+light_position 1000, 1000, 1000
+locally
+    rotatex 20
+    rotatey 30*time
+    extrude_depth 50
+    text_box 0, 0, 500, 500,
+        vertical_align_center
+        align_center
+        color "yellow"
+        font "Times", 200
+        text "Hello"
+ * @endcode
  */
 extrude_depth (ed:real);
+
+/**
+ * @~english
+ * Selects the chamfer radius for extruded shape outlines.
+ *
+ * A positive extrude radius makes it possible to create chamfer around
+ * shapes or text.
+ * @p er is the chamfer radius in pixels.
+ * Here is an example of 3D text with chamfer.
+ *
+ * @~french
+ * Définit le rayon du chamfrein pour les formes extrudées.
+ *
+ * Lorsque le rayon du chamfrein est positif, les formes extrudées
+ * auront un chamfrein du rayon indiqué.
+ * @p er est le rayon du chamfrein en pixels.
+ * Voici un exemple de text 3D avec chamfrein.
+ *
+ * @~
+ * @code
+light 0
+light_position 1000, 1000, 1000
+locally
+    rotatex 20
+    rotatey 30*time
+    extrude_depth 50
+    extrude_radius 20
+    text_box 0, 0, 500, 500,
+        vertical_align_center
+        align_center
+        color "yellow"
+        font "Times", 200
+        text "Hello"
+ * @endcode
+ */
+extrude_radius (er:real);
+
+
+/**
+ * @~english
+ * Selects the number of steps on the chamfer for extruded shapes.
+ *
+ * A positive extrude count creates a smooth rounded chamfer.
+ * A negative extrude count creates a sharp-edged chamfer.
+ * @p ec is the number of steps on the chamfer.
+ * Here is an example of 3D text with chamfer.
+ *
+ * @~french
+ * Définit le nombre de pas sur le chamfrein pour les formes extrudées.
+ *
+ * Un nombre de pas positif crée un chamfrein arrondi.
+ * Un nombre de pas négatf créze un chamfrein à bord francs.
+ * @p ec est le nombre de pas du chamfrein.
+ * Voici un exemple de text 3D avec chamfrein.
+ *
+ * @~
+ * @code
+light 0
+light_position 1000, 1000, 1000
+locally
+    rotatex 20
+    rotatey 30*time
+    extrude_depth 50
+    extrude_radius 20
+    extrude_count seconds mod 5 - 2
+    text_box 0, 0, 500, 500,
+        vertical_align_center
+        align_center
+        color "yellow"
+        font "Times", 200
+        text "Hello"
+ * @endcode
+ */
+extrude_count (ec:integer);
 
 
 #if 0

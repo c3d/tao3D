@@ -53,10 +53,12 @@ public:
         Box             texture;
         coord           advance;
         scale           scalingFactor;
-        uint            interior;
-        uint            outline;
         scale           outlineWidth;
         scale           outlineDepth;
+        scale           outlineRadius;
+        uint            outlineCount;
+        uint            outline;
+        uint            interior;
     };
 
 public:
@@ -112,7 +114,7 @@ public:
     qreal       Ascent(const QFont &font);
     qreal       Descent(const QFont &font);
     qreal       Leading(const QFont &font);
-    void        ScaleDown(GlyphEntry &entry, scale fontScale);
+    void        ScaleDown(GlyphEntry &, scale fontScale, scale extra);
 
 
 protected:

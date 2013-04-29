@@ -313,17 +313,26 @@ void TextSplit::DrawDirect(Layout *where)
             setTexture(where);
             if (where->extrudeDepth > 0.0)
             {
-                if (setFillColor(where))
+                bool hasFill = setFillColor(where);
+                if (hasFill)
                 {
                     glPushMatrix();
                     glTranslatef(0.0, 0.0, -where->extrudeDepth);
+                    glScalef(1, 1, -1);
+                    glFrontFace(GL_CCW);
                     glCallList(glyph.interior);
                     glPopMatrix();
+                    glFrontFace(GL_CW);
                     glCallList(glyph.interior);
+                    glFrontFace(GL_CCW);
                 }
-                setLineColor(where); // May fail, keep fill color
-                glCallList(glyph.outline);
-                
+                bool hasLine = setLineColor(where); // May fail, keep fill color
+                if (hasFill || hasLine)
+                {
+                    glFrontFace(GL_CW);
+                    glCallList(glyph.outline);
+                    glFrontFace(GL_CCW);
+                }
             }
             else
             {
@@ -703,6 +712,9 @@ Box3 TextSplit::Bounds(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
+
         scale sa = ascent;
         scale sd = descent;
         scale sl = leading;
@@ -772,6 +784,9 @@ Box3 TextSplit::Space(Layout *where)
         // Find the glyph in the glyph cache
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
+
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
 
         scale sa = ascent;
         scale sd = descent;

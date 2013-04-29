@@ -7,12 +7,13 @@
 #   SIGN_XL_SOURCES += filename.xl
 #   include(sign_xl.pri)
 
-isEmpty(MODINSTPATH):error(Please include modules.pri before sign_xl.pri)
+isEmpty(SIGN_XL_INSTPATH):SIGN_XL_INSTPATH=$$MODINSTPATH
+isEmpty(SIGN_XL_INSTPATH):error(Please define SIGN_XL_INSTPATH or include modules.pri before sign_xl.pri)
 
 !isEmpty(SIGN_XL_SOURCES):isEmpty(NO_DOC_SIGNATURE) {
   for(file, SIGN_XL_SOURCES) {
     target = $${file}.sig
-    eval($${target}.path = \$\$MODINSTPATH)
+    eval($${target}.path = \$\$SIGN_XL_INSTPATH)
     eval($${target}.commands = $$TAOTOPSRC/tao_sign/tao_sign.sh -r $$file)
     eval($${target}.files = $$target)
     eval($${target}.depends = $$file)

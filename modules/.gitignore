@@ -11,6 +11,7 @@ lib*.so.*
 *.xl.crypt
 *.xl.sig
 *.xl.crypt.sig
+*.ddd.sig
 */doc/Doxyfile
 */doc/output/
 */*/doc/Doxyfile

@@ -166,7 +166,8 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
-      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
+      runOnNextDraw(true), contextFilesLoaded(false),
+      srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""), lastPageName(""),
@@ -366,7 +367,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true), srcFileMonitor(o.srcFileMonitor),
+      runOnNextDraw(true), contextFilesLoaded(o.contextFilesLoaded),
+      srcFileMonitor(o.srcFileMonitor),
       clearCol(o.clearCol),
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
@@ -799,12 +801,13 @@ void Widget::drawActivities()
     selectionSpace.Draw(NULL);
 
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
-    if (Licenses::UnlicensedCount() > 0
-        || (!Application::isImpress()
+    if (contextFilesLoaded &&
+        (Licenses::UnlicensedCount() > 0
+         || (!Application::isImpress()
 #ifndef CFG_NO_DOC_SIGNATURE
-            && !isDocumentSigned
+             && !isDocumentSigned
 #endif
-       ))
+        )))
     {
         GLStateKeeper save;
         SpaceLayout licenseOverlaySpace(this);
@@ -3813,6 +3816,7 @@ void Widget::loadContextFiles(XL::source_names &files)
     XL::MAIN->LoadContextFiles(files);
     // xlProgram content is destroyed by LoadContextFiles // CaB
     xlProgram = NULL;
+    contextFilesLoaded = true;
 }
 
 

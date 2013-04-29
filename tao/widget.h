@@ -954,6 +954,7 @@ private:
     bool                  inError;
     bool                  mustUpdateDialogs;
     bool                  runOnNextDraw;
+    bool                  contextFilesLoaded;
     FileMonitor           srcFileMonitor;
     QStringList           toReload;
 

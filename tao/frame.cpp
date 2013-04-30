@@ -305,9 +305,16 @@ void FrameInfo::blit()
                                           buffers);
     if (PerformancesPage::texture2DMipmap())
     {
+        // Save current GL state
+        GraphicSave* save = GL.Save();
+
+        // Generate mipmap for fbo
         GL.BindTexture(GL_TEXTURE_2D, textureFBO->texture());
-        GL.GenerateMipMap(GL_TEXTURE_2D);
-        GL.BindTexture(GL_TEXTURE_2D, 0);
+        GL.GenerateMipmap(GL_TEXTURE_2D);
+
+        // Restore GL state
+        GL.Restore(save);
+        GL.Sync();
     }
 }
 

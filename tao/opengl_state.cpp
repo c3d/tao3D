@@ -2426,12 +2426,12 @@ void OpenGLState::HasPixelBlur(bool enable)
 }
 
 
-void OpenGLState::GenerateMipMap(GLenum target)
+void OpenGLState::GenerateMipmap(GLenum target)
 // ----------------------------------------------------------------------------
 //   Generate mipmaps for the current texture target
 // ----------------------------------------------------------------------------
 {
-    GL.Sync(STATE_textures);
+    Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
     glGenerateMipmap(target);
 }
 

@@ -111,7 +111,7 @@ struct FillTexture : Attribute
     FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D)
         : Attribute(), glName(glName), glType(glType) {}
     virtual void Draw(Layout *where);
-    virtual void Evaluate(Layout *) { GL.BindTexture(glType, glName); }
+    virtual void Evaluate(Layout *) { GL.Enable(glType); GL.BindTexture(glType, glName); }
     uint   glName;
     GLenum glType;
 };

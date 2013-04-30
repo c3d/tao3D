@@ -3975,6 +3975,10 @@ bool Widget::checkDocumentSigned()
 //   Scan all files used by the document, check if they have a SignatureInfo
 // ----------------------------------------------------------------------------
 {
+    if (TaoApp->edition == Application::Player ||
+        TaoApp->edition == Application::Design)
+        return false;
+
     bool sig = false;
     using namespace XL;
     source_files &files = MAIN->files;

@@ -84,41 +84,56 @@ public:
 
     static bool CheckImpressOrLicense(text feature)
     {
-        if (DontCheck())
-        {
-            debugTraceNotChecked(feature);
+        if (DontCheck(feature))
             return true;
-        }
         else
-        {
             return Check(feature, false);
-        }
     }
 
     static bool HasImpressOrLicense(text feature)
     {
-        if (DontCheck())
-        {
-            debugTraceNotChecked(feature);
+        if (DontCheck(feature))
             return true;
-        }
         else
-        {
             return Has(feature);
-        }
     }
 
-    static bool DontCheck()
+    static bool DontCheck(text feature)
     {
+        // Cache request for less verbose logging
+        static std::set<text> checked;
+
         if (TaoApp->edition == Application::DesignPro)
+        {
+            IFTRACE(lic)
+            {
+                if (checked.count(feature) == 0)
+                {
+                    debug() << "'" << feature << "' not checked "
+                               "(authorized because edition is Design Pro)\n";
+                    checked.insert(feature);
+                }
+            }
             return true;
-        bool sig = false;
+        }
+
 #ifndef CFG_NO_DOC_SIGNATURE
         Window *win = TaoApp->window();
-        if (win)
-            sig = win->isDocumentSigned();
+        if (win && win->isDocumentSigned())
+        {
+            IFTRACE(lic)
+            {
+                if (checked.count(feature) == 0)
+                {
+                    debug() << "'" << feature << "' not checked "
+                               "(authorized because doc is signed)\n";
+                    checked.insert(feature);
+                }
+            }
+            return true;
+        }
 #endif
-        return sig;
+        return false;
     }
 
     static text hostID();
@@ -187,27 +202,6 @@ private:
 #endif
     bool verify(LicenseFile &lf, text signature);
     static std::ostream & debug();
-
-#ifndef KEYGEN
-    static void debugTraceNotChecked(text feature)
-    {
-        IFTRACE(lic)
-        {
-            // Cache request for less verbose logging
-            static std::set<text> checked;
-            if (checked.count(feature) == 0)
-            {
-                debug() << "'" << feature << "' not checked "
-                           "(authorized because edition is Design Pro"
-#ifndef CFG_NO_DOC_SIGNATURE
-                           " or doc is signed)"
-#endif
-                           "\n";
-                checked.insert(feature);
-            }
-        }
-    }
-#endif
 };
 
 }

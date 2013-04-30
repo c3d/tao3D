@@ -2967,7 +2967,7 @@ TextureUnitState::TextureUnitState()
     }
 }
 
-void TextureUnitState::Sync(TextureUnitState &ns, TextureState &ot)
+void TextureUnitState::Sync(GLuint unit, TextureUnitState &ns, TextureState &ot)
 // ----------------------------------------------------------------------------
 //   Sync the state of a given texture unit to the new state
 // ----------------------------------------------------------------------------
@@ -2980,7 +2980,7 @@ void TextureUnitState::Sync(TextureUnitState &ns, TextureState &ot)
     }
 
     // Check if the matrix changed
-    if (matrix != ns.matrix)
+    if (matrix != ns.matrix && unit < GL.MaxTextureCoords())
     {
         glMatrixMode(GL_TEXTURE);
         matrix = ns.matrix;
@@ -3059,7 +3059,7 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             }
 
             // Synchronise texture unit
-            us.Sync(nus, ot);
+            us.Sync(u, nus, ot);
 
             // Synchronise texture
             ot.Sync(nt);
@@ -3094,7 +3094,7 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
                 // If current matrix is not identity, then we need to
                 // restore it the current default value.
-                if(oldtu.matrix.type != oldtu.matrix.IDENTITY)
+                if(oldtu.matrix.type != oldtu.matrix.IDENTITY && u < GL.MaxTextureCoords())
                 {
                     glMatrixMode(GL_TEXTURE);
                     oldtu.matrix.LoadIdentity();
@@ -3133,7 +3133,7 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
                 }
 
                 // Synchronise texture unit
-                us.Sync(nus, ot);
+                us.Sync(u, nus, ot);
             }
 
             // Synchronise textures

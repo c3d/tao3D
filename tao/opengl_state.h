@@ -211,7 +211,7 @@ struct TextureUnitState
                matrix  == o.matrix;
     }
     bool operator!=(const TextureUnitState &o) { return !operator==(o); }
-    void Sync(TextureUnitState &ns, TextureState &ot);
+    void Sync(GLuint u, TextureUnitState &ns, TextureState &ot);
 
     GLuint      texture;
     GLenum      target, mode;

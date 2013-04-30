@@ -102,8 +102,7 @@
 #   NO_FONTS=1
 #     Do not install font files.
 #   NO_DOC_SIGNATURE=1
-#     Do not include the code to sign documents (Impress) or validate document
-#     signature (Discovery, unlicensed Player).
+#     Do not include the code to sign or validate document signature.
 #
 # 2. To build:
 #

@@ -803,7 +803,9 @@ void Widget::drawActivities()
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
     if (contextFilesLoaded &&
         (Licenses::UnlicensedCount() > 0
-         || (!Application::isImpress()
+         || TaoApp->edition == Application::Player
+         || TaoApp->edition == Application::Design
+         || (TaoApp->edition == Application::PlayerPro
 #ifndef CFG_NO_DOC_SIGNATURE
              && !isDocumentSigned
 #endif

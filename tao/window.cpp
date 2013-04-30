@@ -845,7 +845,7 @@ bool Window::saveFile(const QString &fileName)
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     // Save should keep the signatures valid if they where valid
     // before the document was modified.
-    if (TaoApp->edition == Application::Impress)
+    if (TaoApp->edition == Application::DesignPro)
     {
         XL::SourceFile &sf = xlRuntime->files[+fileName];
         SignatureInfo *si = sf.GetInfo<SignatureInfo>();
@@ -1656,15 +1656,12 @@ void Window::createActions()
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
 
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    signDocumentAct = NULL;
-    if (Application::isImpress())
-    {
-        signDocumentAct = new QAction(tr("Sign Document for Player"), this);
-        signDocumentAct->setObjectName("signDocument");
-        connect(signDocumentAct, SIGNAL(triggered()),
-                this, SLOT(signDocument()));
-        signDocumentAct->setEnabled(false);
-    }
+    signDocumentAct = new QAction(tr("Sign Document for Player Pro Edition"),
+                                  this);
+    signDocumentAct->setObjectName("signDocument");
+    connect(signDocumentAct, SIGNAL(triggered()),
+            this, SLOT(signDocument()));
+    signDocumentAct->setEnabled(TaoApp->edition == Application::DesignPro);
 #endif
 #endif
 
@@ -1903,8 +1900,7 @@ void Window::createMenus()
     fileMenu->addAction(consolidateAct);
 #endif
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    if (signDocumentAct)
-        fileMenu->addAction(signDocumentAct);
+    fileMenu->addAction(signDocumentAct);
 #endif
 #endif
     fileMenu->addSeparator();
@@ -2865,12 +2861,10 @@ void Window::setCurrentFile(const QString &fileName)
     // Disable close menu if document is the default one
     closeAct->setEnabled(!isTutorial(curFile));
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    if (signDocumentAct)
-    {
-        bool show = !isReadOnly &&
-                    !curFile.startsWith(Application::applicationDirPath());
-        signDocumentAct->setEnabled(show);
-    }
+    bool show = !isReadOnly &&
+                !curFile.startsWith(Application::applicationDirPath()) &&
+                 TaoApp->edition == Application::DesignPro;
+    signDocumentAct->setEnabled(show);
 #endif
 
     // Update the recent file list

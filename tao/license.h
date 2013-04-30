@@ -110,7 +110,7 @@ public:
 
     static bool DontCheck()
     {
-        if (Application::isImpress())
+        if (TaoApp->edition == Application::DesignPro)
             return true;
         bool sig = false;
 #ifndef CFG_NO_DOC_SIGNATURE
@@ -198,7 +198,7 @@ private:
             if (checked.count(feature) == 0)
             {
                 debug() << "'" << feature << "' not checked "
-                           "(authorized because edition is Impress"
+                           "(authorized because edition is Design Pro"
 #ifndef CFG_NO_DOC_SIGNATURE
                            " or doc is signed)"
 #endif

@@ -84,14 +84,10 @@ int main(int argc, char **argv)
     {
         if (!strcmp(argv[i], "--version"))
         {
-#ifdef TAO_EDITION
-#define EDSTR TAO_EDITION " "
-#else
 #ifdef TAO_PLAYER
 #define EDSTR "Player "
 #else
 #define EDSTR
-#endif
 #endif
             std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR

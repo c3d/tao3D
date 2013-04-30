@@ -438,7 +438,7 @@ FORMS += error_message_dialog.ui \
 QMAKE_CLEAN += version.h
 PRE_TARGETDEPS += version.h
 revtarget.target = version.h
-revtarget.commands = ./updaterev.sh "$${TAO_EDITION}"
+revtarget.commands = ./updaterev.sh
 revtarget.depends = $$SOURCES \
     $$HEADERS \
     $$FORMS

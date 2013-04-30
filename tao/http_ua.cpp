@@ -33,15 +33,10 @@ HttpUserAgent::HttpUserAgent()
 //    Constructor
 // ----------------------------------------------------------------------------
 {
-#ifdef TAO_EDITION
-   // Get current edition
-   edition = TAO_EDITION;
-#else
 #ifdef TAO_PLAYER
     edition = "player";
 #else
     edition = "unified";
-#endif
 #endif
 
 #if defined(Q_OS_MACX)

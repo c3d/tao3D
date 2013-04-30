@@ -47,7 +47,7 @@ win32:LIBS += -lws2_32
 QMAKE_CLEAN += version.h
 PRE_TARGETDEPS += version.h
 revtarget.target = version.h
-revtarget.commands = ../tao/updaterev.sh "$${TAO_EDITION}"
+revtarget.commands = ../tao/updaterev.sh
 revtarget.depends = $$SOURCES \
     $$HEADERS
 QMAKE_EXTRA_TARGETS += revtarget
@@ -64,38 +64,3 @@ QMAKE_CLEAN += tao_sign.sh
 QMAKE_POST_LINK = $$MAYBE_STRIP_CMD echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
 
 include(../make_install_kludge.pri)
-
-# REVISIT Move into tao.pro
-# "make install" will generate and copy a temporary licence (licence.taokey)
-# if SIGN_APP_LICENSE is defined (to an edition name).
-
-!isEmpty(SIGN_APP_LICENSE) {
-
-  include(expires.pri)
-  !build_pass:message(---)
-  FEATURES = \"Tao Presentations $${SIGN_APP_LICENSE} 1\\..*\"  # Allows any version 1.*
-  !build_pass {
-    message(--- We will install the following licence:)
-    message(---)
-    !isEmpty(EXPIRES):message(--- expires $$EXPIRES)
-    message(--- features $$FEATURES)
-  }
-  !build_pass:message(---)
-  QMAKE_SUBSTITUTES += licence.taokey.notsigned.in
-
-  # Sign and install licence
-  macx:DEP = $$TARGET
-  linux-g++*:DEP = $$TARGET
-  win32:DEP = \$(DESTDIR_TARGET)
-
-  licence.target = licence.taokey
-  licence.commands = cp licence.taokey.notsigned licence.taokey ; ./tao_sign.sh licence.taokey || rm licence.taokey ; cp licence.taokey \"$$APPINST/licenses\"
-  licence.files = licence.taokey
-  licence.path = $$APPINST/licenses
-  licence.depends = $$DEP
-
-  INSTALLS += licence
-  QMAKE_EXTRA_TARGETS += licence
-  QMAKE_CLEAN += licence.taokey
-  QMAKE_DISTCLEAN += licence.taokey.notsigned
-}

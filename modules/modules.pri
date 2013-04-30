@@ -72,8 +72,7 @@ thismod_images.path = $$MODINSTPATH
 thismod_images.files = $$PICTURES
 
 !equals(IS_SDK, true) {
-  # Taodyne build. Sign XL files with Taodyne key so that they are authentified
-  # by unlicensed versions of Tao (Discovery, Player)
+  # Taodyne build. Sign XL files with Taodyne key so that they can be authentified
   SIGN_XL_SOURCES += $${TARGET}.xl
   include(sign_xl.pri)
 }

@@ -231,35 +231,19 @@ void Application::deferredInit()
         return;
     }
 
-#ifdef TAO_EDITION
-    // Internal or custom build
-    QString lic = QString("Tao Presentations %1 %2").arg(TAO_EDITION)
-                                                    .arg(GITREV);
-    if (!Licenses::Check(+lic, true))
-    {
-        exit(15);
-        return;
-    }
-    edition = Application::Other;
-#else
-    // No edition name defined at compile time, this is a
-    // Discovery/Creativity/Impress build - do a runtime license check
-    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
-    QString creat = QString("Tao Presentations Creativity %1").arg(GITREV);
+    QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV);
 #ifdef TAO_PLAYER
-    QString player = QString("Tao Presentations Player %1").arg(GITREV);
-    if (Licenses::Has(+player) || Licenses::Has(+impress))
+    QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV);
+    if (Licenses::Has(+playerPro) || Licenses::Has(+designPro))
+        edition = Application::PlayerPro;
+    else
         edition = Application::Player;
-    else
-        edition = Application::PlayerUnlicensed;
 #else
-    if (Licenses::Has(+impress))
-        edition = Application::Impress;
-    else if (Licenses::Has(+creat))
-        edition = Application::Creativity;
+    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
+    if (Licenses::Has(+designPro) || Licenses::Has(+impress))
+        edition = Application::DesignPro;
     else
-        edition = Application::Discovery;
-#endif
+        edition = Application::Design;
 #endif
 
     // Create main window
@@ -691,7 +675,7 @@ void Application::cleanup()
     if (moduleManager)
         moduleManager->saveConfig();
 
-    if (isDiscovery())
+    if (isTrialVersion())
     {
         // Gentle reminder that Tao is not free
 

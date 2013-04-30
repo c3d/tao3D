@@ -223,10 +223,11 @@ struct TextureUnitState
 
     // REVISIT: The following are here to assure a compatibility with
     // the XL language (these settings can be setted without binding textures)
-    GLenum      minFilt, magFilt;
-    bool        wrapS  : 1;
-    bool        wrapT  : 1;
-    bool        wrapR  : 1;
+    // and also with old versions of Tao.
+    GLenum      minFilt, magFilt; // Default values in Tao depends from preferences
+    bool        wrapS  : 1;       // Default value in Tao is false (in OpenGL, it's true)
+    bool        wrapT  : 1;       // Default value in Tao is false
+    bool        wrapR  : 1;       // Default value in Tao is false
 };
 
 

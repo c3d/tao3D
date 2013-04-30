@@ -2950,7 +2950,7 @@ TextureUnitState::TextureUnitState()
 // ----------------------------------------------------------------------------
     : texture(0), target(GL_TEXTURE_2D), mode(GL_MODULATE), matrix(),
       tex1D(false), tex2D(false), tex3D(false), texCube(false),
-      wrapS(true), wrapT(true), wrapR(true)
+      wrapS(false), wrapT(false), wrapR(false)
 {
     // The default values have to depend from the preferences
     if(PerformancesPage::texture2DMipmap())

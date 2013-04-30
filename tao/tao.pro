@@ -518,7 +518,7 @@ INSTALLS += welcome
 isEmpty(NO_DOC_SIGNATURE) {
   # Sign welcome.ddd
   TAOTOPSRC=..
-  MODINSTPATH=$$APPINST/welcome
+  SIGN_XL_INSTPATH=$$APPINST/welcome
   include(../modules/sign_xl.pri)
 }
 

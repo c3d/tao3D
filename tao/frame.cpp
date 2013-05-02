@@ -75,7 +75,7 @@ void FrameInfo::resize(uint w, uint h)
 //   Change the size of the frame buffer used for rendering
 // ----------------------------------------------------------------------------
 {
-    GLAllStateKeeper save;
+    GraphicSave *save = GL.Save();
     assert(QGLContext::currentContext() ||
            !"FrameInfo::resize without an OpenGL context???");
     
@@ -176,6 +176,8 @@ void FrameInfo::resize(uint w, uint h)
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Resized " << w << "x" << h
                   << " in " << context << "\n";
+
+    GL.Restore(save);
     
     // Clear the contents of the newly created frame buffer
     begin(true);
@@ -305,16 +307,13 @@ void FrameInfo::blit()
                                           buffers);
     if (PerformancesPage::texture2DMipmap())
     {
-        // Save current GL state
         GraphicSave* save = GL.Save();
 
         // Generate mipmap for fbo
+        GL.Enable(GL_TEXTURE_2D);
         GL.BindTexture(GL_TEXTURE_2D, textureFBO->texture());
         GL.GenerateMipmap(GL_TEXTURE_2D);
-
-        // Restore GL state
         GL.Restore(save);
-        GL.Sync();
     }
 }
 

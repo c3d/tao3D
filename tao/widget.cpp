@@ -783,6 +783,10 @@ void Widget::drawActivities()
     setupGL();
     glDepthFunc(GL_ALWAYS);
 
+    // Clear the topmost layout to avoid conflicts
+    // with following taodyne ad. Fixed #2966.
+    layout->Clear();
+
     for (Activity *a = activities; a; a = a->Display()) ;
 
     // Once we have recorded all the shapes in the selection space,

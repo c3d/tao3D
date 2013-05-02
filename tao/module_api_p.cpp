@@ -136,6 +136,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     deleteFileMonitor = FileMonitorApi::deleteFileMonitor;
 
     offlineRendering = Widget::offlineRenderingAPI;
+    currentPageTime = Widget::currentPageTimeAPI;
 }
 
 TAO_END

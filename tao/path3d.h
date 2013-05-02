@@ -45,10 +45,13 @@ struct GraphicPath : Shape
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
-    virtual void        Draw(Layout *where, GLenum tessel);
-    virtual void        Draw(const Vector3 &offset, uint64 texUnits,
-                             GLenum mode, GLenum tessel);
     virtual Box3        Bounds(Layout *layout);
+
+    // Internal drawing routines
+    void                Draw(Layout *where, GLenum tessel);
+    void                Draw(Layout *where,
+                             const Vector3 &offset, GLenum mode, GLenum tessel);
+    void                DrawOutline(Layout *where);
 
     // Absolute coordinates
     GraphicPath&        moveTo(Point3 dst);
@@ -89,20 +92,27 @@ public:
     typedef std::vector<ControlPoint *> control_points;
     struct VertexData
     {
-        VertexData(const Point3& v, const Point3& t): vertex(v), texture(t) {}
-        Vector3  vertex;
-        Vector3  texture;
-        Vector3  normal;
+        VertexData(const Point3& v, const Point3& t, int index)
+            : vertex(v), texture(t), normal(0,0,1), index(index) {}
+        VertexData()
+            : vertex(), texture(), normal(), index(-1) {}
+        Vector3     vertex;
+        Vector3     texture;
+        Vector3     normal;
+        int         index;
     };
     typedef std::vector<VertexData>   Vertices;
     typedef std::vector<VertexData *> DynamicVertices;
     struct PolygonData
     {
-        PolygonData() {}
+        PolygonData(GraphicPath *path): path(path) {}
         ~PolygonData();
+
         Vertices        vertices;
         DynamicVertices allocated;
-        uint64          textureUnits;
+        Layout *        layout;
+        GraphicPath *   path;
+        GLenum          mode;
     };
 
 public:
@@ -111,6 +121,7 @@ public:
     Point3              start, position;
     Box3                bounds;
     EndpointStyle       startStyle, endStyle;
+    bool                invert;
     static scale        default_steps;
 };
 

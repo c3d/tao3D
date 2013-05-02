@@ -26,8 +26,6 @@
 #include "coords.h"
 #include <iostream>
 
-#define TAO_EPSILON 0.0001
-
 TAO_BEGIN
 
 // ============================================================================
@@ -64,13 +62,15 @@ struct Point3
     }
     bool operator == (const Point3&o) const
     {
-        return ((fabs(x - o.x) < TAO_EPSILON) &&
-                (fabs(y - o.y) < TAO_EPSILON) &&
-                (fabs(z - o.z) < TAO_EPSILON));
+        return x == o.x && y == o.y && z == o.z;
     }
     bool operator != (const Point3&o) const
     {
         return ! operator ==(o);
+    }
+    bool AlmostNull(float epsilon = 0.0001)
+    {
+        return fabs(x) < epsilon && fabs(y) < epsilon && fabs(z) < epsilon;
     }
 
     Point3& operator +=(const Vector3& o);
@@ -259,19 +259,16 @@ struct Triangle
     Triangle(const Triangle& t) : v1(t.v1), v2(t.v2), v3(t.v3) {}
 
 
-    Vector3& computeNormal()
+    Vector3 computeNormal()
     // ------------------------------------------------------------------------
     //    Compute normal of the triangle
     // ------------------------------------------------------------------------
     {
-        Vector3 a;
-        Vector3 b;
+        Vector3 a = v1 - v2;
+        Vector3 b = v2 - v3;
         Vector3 normal;
 
-        a = v1 - v2;
-        b = v2 - v3;
-
-        if(a == b)
+        if((a-b).AlmostNull())
             normal = Vector3(0.0, 0.0, -1.0);
         else
             normal = a.Cross(b);
@@ -282,6 +279,7 @@ struct Triangle
 public:
     Point3 v1, v2, v3;
 };
+
 
 
 // ============================================================================

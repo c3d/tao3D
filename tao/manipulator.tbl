@@ -34,7 +34,7 @@ PREFIX(EnableSelection, boolean, "enable_selection_rectangle",
 PREFIX(ShapeAction,  tree,  "on",
        PARM(action_name, text, "The action name")
        PARM(action_code, code, "The code to execute"),
-       RTAO(shapeAction(self,action_name,action_code)),
+       RTAO(shapeAction(self,context,action_name,action_code)),
        GROUP(mouse)
        SYNOPSIS("Associate the specified code to the named action.")
        DESCRIPTION("Associate the specified code to the named action. "
@@ -42,19 +42,19 @@ PREFIX(ShapeAction,  tree,  "on",
                    "the current shape."))
 PREFIX(ShapeClickAction,  tree,  "on_click",
        PARM(t,code, "The code to execute"),
-       RTAO(shapeAction(self,"click",t)),
+       RTAO(shapeAction(self,context,"click",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with click.")
        DESCRIPTION("Associate the specified code to the click"))
 PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        PARM(t,code, "The code to execute"),
-       RTAO(shapeAction(self,"mouseover",t)),
+       RTAO(shapeAction(self,context,"mouseover",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))
 PREFIX(ShapeMouseReleaseAction,  tree,  "on_release",
        PARM(t,code, "The code to execute"),
-       RTAO(shapeAction(self,"release",t)),
+       RTAO(shapeAction(self,context,"release",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))

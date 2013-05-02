@@ -28,7 +28,7 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.004
+    version 1.01
 
 module_description "fr",
     name "Animations"

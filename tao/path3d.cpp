@@ -153,6 +153,7 @@ static inline void extrudeFacet(Vertices &side, VertexData &v,
 
 
 #define ROUNDING_EPSILON        0.001
+#define BACKSTEP_VALUE          0.9
 
 static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                         double r1, double z1, double sa1, double ca1,
@@ -185,7 +186,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
         
         Vector3 orig = v.vertex;
         float dotProduct = newNormal.Dot(normal);
-        if (dotProduct < 0.9)
+        if (dotProduct < BACKSTEP_VALUE)
         {
             Vector3 oldPos = v.vertex + r2 * normal;
             Vector3 newPos = v.vertex + r2 * newNormal;
@@ -294,18 +295,25 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
         Vector3 normal;
 
         side.reserve(2*size);
-        for (uint s = 0; s < size; s++)
+        for (uint s = 0; s <= size + 2; s++)
         {
-            v = data[s];
-            uint n = s+1 < size ? s+1 : 0;
+            v = data[s%size];
+            uint n = (s+1) % size;
             Vector3 delta = data[n].vertex - v.vertex;
             if (delta.Dot(delta) <= ROUNDING_EPSILON)
                 continue;
             Vector3 newNormal = swapXY(delta);
             if (invert)
                 newNormal *= -1.0;
-            
-            if (newNormal.Dot(normal) < 0.8)
+            if (!s)
+            {
+                normal = newNormal;
+                continue;
+            }
+
+            coord origZ = v.vertex.z;
+            float dotProduct = newNormal.Dot(normal);
+            if (dotProduct < BACKSTEP_VALUE)
             {
                 // If we have a sharp angle, create additional face
                 // so that OpenGL does not interpolate normals
@@ -313,7 +321,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
                 side.push_back(v);
                 v.vertex.z -= depth;
                 side.push_back(v);
-                v.vertex.z = data[s].vertex.z;
+                v.vertex.z = origZ;
             }
             normal = newNormal;
 

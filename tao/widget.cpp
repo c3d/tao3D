@@ -2480,8 +2480,8 @@ void Widget::setupGL()
     GL.Enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    GL.TexGen(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    GL.TexGen(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 
     // Really nice perspective calculations
     GL.Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);

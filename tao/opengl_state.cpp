@@ -2246,6 +2246,16 @@ void OpenGLState::TexEnv(GLenum type, GLenum pname, GLint param)
 }
 
 
+void OpenGLState::TexGen(GLenum coord, GLenum pname, GLint param)
+// ----------------------------------------------------------------------------
+//   Control the generation of texture coordinates
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
+    glTexGeni(coord, pname, param);
+}
+
+
 void OpenGLState::TexImage2D(GLenum target, GLint level, GLint internalformat,
                              GLsizei width, GLsizei height, GLint border,
                              GLenum format, GLenum type,

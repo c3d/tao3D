@@ -230,6 +230,7 @@ struct GraphicState
     virtual void BindTexture(GLenum type, GLuint id) = 0;
     virtual void TexParameter(GLenum type, GLenum pname, GLint param) = 0;
     virtual void TexEnv(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexGen(GLenum coord, GLenum pname, GLint param) = 0;
     virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
                             GLsizei width, GLsizei height, GLint border,
                             GLenum format, GLenum type,

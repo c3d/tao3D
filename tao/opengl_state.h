@@ -673,6 +673,7 @@ struct OpenGLState : GraphicState
     virtual void BindTexture(GLenum type, GLuint id);
     virtual void TexParameter(GLenum type, GLenum pname, GLint param);
     virtual void TexEnv(GLenum type, GLenum pname, GLint param);
+    virtual void TexGen(GLenum coord, GLenum pname, GLint param);
     virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
                             GLsizei width, GLsizei height, GLint border,
                             GLenum format, GLenum type,

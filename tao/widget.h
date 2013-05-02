@@ -1099,6 +1099,7 @@ private:
 public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
+    static double         currentPageTimeAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);

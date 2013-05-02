@@ -1160,6 +1160,16 @@ double Widget::currentTimeAPI()
 }
 
 
+double Widget::currentPageTimeAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to currentTime()
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = findTaoWidget();
+    return widget->CurrentTime() - widget->pageStartTime;
+}
+
+
 bool Widget::offlineRenderingAPI()
 // ----------------------------------------------------------------------------
 //   Module interface to inOfflineRendering
@@ -5295,7 +5305,7 @@ Tree_p Widget::transition(Context *, Tree_p self, double dur, Tree_p body)
 //    Define a transition
 // ----------------------------------------------------------------------------
 {
-    if (transitionTree)
+    if (transitionTree || inOfflineRendering)
         // Already running in a transition
         return XL::xl_false;
 

@@ -1,6 +1,17 @@
 Change log for Tao Presentations
 
-1.10 (26-Apr-2013)
+1.20 (02-May-2013)
+
+#2987 Add page time to the module API
+#2985 Extrude radius in top-level layout leaks into the chooser
+#2980 NodeJS module: Typo in on_load_error message
+#2978 Add feature to enable sharp or smooth edges
+#2977 Totally transparent shapes still show up if extrude_radius and extrude_depth are positive
+#2976 Reloading materials module cause an XL error
+#2973 GL error 1281 with text when line_width is 1
+#2967 Compute extrusion normals correctly for complex polygons (find exterior of shape)
+
+1.19 (26-Apr-2013)
 
 #2966 Taodyne logo modified by line_width in topmost layout
 #2965 z-fighting

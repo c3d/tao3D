@@ -320,6 +320,10 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
+        bx = bounds.x();
+        by = bounds.y();
+        bw = bounds.width();
+        bh = bounds.height();
         uint width = ceil(bw);
         uint height = ceil(bh);
 
@@ -514,6 +518,10 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
+        bx = bounds.x();
+        by = bounds.y();
+        bw = bounds.width();
+        bh = bounds.height();
         uint width = ceil(bw);
         uint height = ceil(bh);
 

@@ -126,7 +126,8 @@ quizz_setup Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
     locally
         if page_time < 1 then
-            quizz_index := 0
+            quizz_phase := "question"
+            quizz_index := 1
             quizz_set_url := quizz_url & "set.php?" & prez_code & "&q=" & escT Question & "|" & Img
             quizz_state := "setup"
 
@@ -162,13 +163,13 @@ quizz_draw Question:text, Img:text, Body ->
 
     if openText = "false" then
         story
-            quizz_index := 0
+            quizz_index := 1
             quizz_state := "draw"
             Body
             time
     else
         locally
-            quizz_index := 0
+            quizz_index := 1
             quizz_state := "draw"
             time
             Body
@@ -412,7 +413,7 @@ colorpie 4 -> color "blue"; line_color "blue"
 colorpie 3 -> color "green"; line_color "green"
 colorpie 2 -> color "orange"; line_color "orange"
 colorpie 1 -> color "magenta"; line_color "magenta"
-colorpie 0 -> color "cyan"; line_color "cyan"
+colorpie 6 -> color "cyan"; line_color "cyan"
 colorpie T -> color "gray"; line_color "darkgray"
 
 
@@ -442,7 +443,7 @@ fullpie "answer" ->
         translatex 500
         translatey -400
         draw_start := 0.0
-        draw_pie with 0..quizz_index - 1
+        draw_pie with 1..quizz_index
         text_box 250, 0, 500, 70,
                 color "font"
                 line_color "font"

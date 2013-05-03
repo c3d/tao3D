@@ -44,12 +44,11 @@ scale GraphicPath::default_steps = 12;
 #define CALLBACK
 #endif
 
-
 GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : Shape(), startStyle(NONE), endStyle(NONE)
+    : Shape(), startStyle(NONE), endStyle(NONE), invert(false)
 {}
 
 
@@ -73,23 +72,277 @@ GraphicPath::PolygonData::~PolygonData()
 }
 
 
+static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
+// ----------------------------------------------------------------------------
+//   Draw arrays 
+// ----------------------------------------------------------------------------
+{
+    double *vdata = &data[0].vertex.x;
+    double *tdata = &data[0].texture.x;
+    double *ndata = &data[0].normal.x;
+    GLuint size = data.size();
+
+    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
+    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+
+    // Activate texture coordinates for all used units
+    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    {
+        if(textureUnits & (1 << i))
+        {
+            glClientActiveTexture( GL_TEXTURE0 + i );
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData), tdata);
+        }
+    }
+
+    glDrawArrays(mode, 0, size);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+
+    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    {
+        if(textureUnits & (1 << i))
+        {
+            glClientActiveTexture( GL_TEXTURE0 + i );
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+    }
+
+    // Restore the client active texture
+    glClientActiveTexture(GL_TEXTURE0);
+}
+
+
+static inline Vector3 swapXY(Vector3 v)
+// ----------------------------------------------------------------------------
+//   Swap X and Y coordinates (rotate 90 degrees)
+// ----------------------------------------------------------------------------
+{
+    coord y = v.y;
+    v.y = -v.x;
+    v.x = y;
+    v.Normalize();
+    return v;
+}
+
+
+static inline void extrudeFacet(Vertices &side, VertexData &v,
+                                Vector3 &orig, Vector3 &normal,
+                                double r, double z, double sa, double ca)
+// ----------------------------------------------------------------------------
+//    Push a facet during extrusion
+// ----------------------------------------------------------------------------
+//    In practice, 'invert' is set for glyphs, which we have rendered with
+//    inverted y. So we also need to invert the normal here.
+{
+    Vector3 vertex = orig + r * normal;
+    vertex.z = z;
+
+    Vector3 fn = normal;
+    fn.z  = ca;
+    fn.x *= sa;
+    fn.y *= sa;
+
+    v.vertex = vertex;
+    v.normal = fn;
+    side.push_back(v);
+}
+
+
+#define ROUNDING_EPSILON        0.001
+#define BACKSTEP_VALUE          0.9
+
+static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
+                        double r1, double z1, double sa1, double ca1,
+                        double r2, double z2, double sa2, double ca2)
+// ----------------------------------------------------------------------------
+//   Extrude a side range
+// ----------------------------------------------------------------------------
+{
+    uint       size = data.size();
+    Vertices   side;
+    VertexData v;
+    Vector3    normal;
+
+    side.reserve(2*size+2);
+    for (uint s = 0; s <= size + 2; s++)
+    {
+        v = data[s%size];
+        uint n = (s+1)%size;
+        Vector3 delta = data[n].vertex - v.vertex;
+        if (delta.Dot(delta) <= ROUNDING_EPSILON)
+            continue;
+        Vector3 newNormal = swapXY(delta);
+        if (invert)
+            newNormal *= -1.0; 
+        if (!s)
+        {
+            normal = newNormal;
+            continue;
+        }
+        
+        Vector3 orig = v.vertex;
+        float dotProduct = newNormal.Dot(normal);
+        if (dotProduct < BACKSTEP_VALUE)
+        {
+            Vector3 oldPos = v.vertex + r2 * normal;
+            Vector3 newPos = v.vertex + r2 * newNormal;
+            float backstep = (newPos-oldPos).Dot(delta);
+            if (backstep < 0.0)
+            {
+                Vector3 mid = normal + newNormal;
+                mid.Normalize();
+                extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
+                v.vertex = orig;                
+                normal = newNormal;
+                continue;
+            }
+            else
+            {
+                // If we have a sharp angle, create additional face
+                // so that OpenGL does not interpolate normals
+                const uint MAX = 5;
+                for (uint a = 0; a <= MAX; a++)
+                {
+                    Vector3 mid = normal * (MAX-a) + newNormal * a;
+                    mid.Normalize();
+                    extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
+                    extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
+                    v.vertex = orig;                
+                }
+            }
+        }
+
+        normal = newNormal;
+        extrudeFacet(side, v, orig, normal, r1, z1, sa1, ca1);
+        extrudeFacet(side, v, orig, normal, r2, z2, sa2, ca2);
+    }
+
+    drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+}
+
+
+static void extrude(PolygonData &poly, Vertices &data, scale depth)
+// ----------------------------------------------------------------------------
+//   Extrude a given set of vertices
+// ----------------------------------------------------------------------------
+{
+    uint size = data.size();
+    if (!size)
+        return;
+    
+    Layout *layout = poly.layout;
+    uint64 textureUnits = layout->textureUnits;
+
+    scale radius = layout->extrudeRadius;
+    int count = layout->extrudeCount;
+
+    bool sharpEdges = count < 0;
+    if (sharpEdges)
+        count = -count;
+
+    // Check if we need to invert the normals on this contour
+    bool invert = poly.path->invert;
+
+    // Check if there is an extrude radius
+    if (radius > 0 && count > 0)
+    {
+        if (depth < 2 * radius)
+            radius = depth / 2;
+
+        // Loop on the number of extrusion facets
+        for (int c = 0; c < count; c++)
+        {
+            double a1  = M_PI/2 * c / count;
+            double ca1 = cos (a1);
+            double sa1 = sin (a1);
+            double a2  = M_PI/2 * (c+1) / count;
+            double ca2 = cos (a2);
+            double sa2 = sin (a2);
+            double z1 = -radius * (1 - ca1);
+            double z2 = -radius * (1 - ca2);
+            double r1 = radius * sa1;
+            double r2 = radius * sa2;
+
+            if (sharpEdges)
+                extrudeSide(data, invert, textureUnits,
+                            r1, z1, sa2, ca2, r2, z2, sa2, ca2);
+            else
+                extrudeSide(data, invert, textureUnits,
+                            r1, z1, sa1, ca1, r2, z2, sa2, ca2);
+            z1 = -depth - z1;
+            z2 = -depth - z2;
+            if (sharpEdges)
+                extrudeSide(data, invert, textureUnits,
+                            r2, z2, sa2, -ca2, r1, z1, sa2, -ca2);
+            else
+                extrudeSide(data, invert, textureUnits,
+                            r2, z2, sa2, -ca2, r1, z1, sa1, -ca1);
+        }
+
+        if (depth > 2 * radius)
+            extrudeSide(data, invert, textureUnits,
+                        radius, -radius, 1, 0, radius, radius - depth, 1, 0);
+    }
+    else // Optimized case for 0 radius
+    {
+        Vertices side;
+        VertexData v;
+        Vector3 normal;
+
+        side.reserve(2*size);
+        for (uint s = 0; s <= size + 2; s++)
+        {
+            v = data[s%size];
+            uint n = (s+1) % size;
+            Vector3 delta = data[n].vertex - v.vertex;
+            if (delta.Dot(delta) <= ROUNDING_EPSILON)
+                continue;
+            Vector3 newNormal = swapXY(delta);
+            if (invert)
+                newNormal *= -1.0;
+            if (!s)
+            {
+                normal = newNormal;
+                continue;
+            }
+
+            coord origZ = v.vertex.z;
+            float dotProduct = newNormal.Dot(normal);
+            if (dotProduct < BACKSTEP_VALUE)
+            {
+                // If we have a sharp angle, create additional face
+                // so that OpenGL does not interpolate normals
+                v.normal = normal;
+                side.push_back(v);
+                v.vertex.z -= depth;
+                side.push_back(v);
+                v.vertex.z = origZ;
+            }
+            normal = newNormal;
+
+            v.normal = normal;
+            side.push_back(v);
+            v.vertex.z -= depth;
+            side.push_back(v);
+        }
+
+        drawArrays(GL_TRIANGLE_STRIP, textureUnits, side);
+    }
+}
+
+
 static void CALLBACK tessBegin(GLenum mode, PolygonData *poly)
 // ----------------------------------------------------------------------------
 //   Callback for beginning of rendering
 // ----------------------------------------------------------------------------
 {
-    (void) poly;
-    glBegin(mode);
-}
-
-
-static void CALLBACK tessEnd(PolygonData *poly)
-// ----------------------------------------------------------------------------
-//   Callback for end of rendering
-// ----------------------------------------------------------------------------
-{
-    (void) poly;
-    glEnd();
+    poly->mode = mode;
+    poly->vertices.clear();
 }
 
 
@@ -98,14 +351,38 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 //   Emit a vertex during tesselation
 // ----------------------------------------------------------------------------
 {
-    (void) poly;
-    for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
+    poly->vertices.push_back(*vertex);
+    VertexData &back = poly->vertices.back();
+    back.normal = Vector3(0, 0, 1);
+}
+
+
+static void CALLBACK tessEnd(PolygonData *poly)
+// ----------------------------------------------------------------------------
+//   Callback for end of rendering
+// ----------------------------------------------------------------------------
+{
+    Vertices &data = poly->vertices;
+    uint size = data.size();
+    if (size)
     {
-        //Active texture coordinates only for used units
-        if (poly->textureUnits & (1 << i))
-            glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
-    }
-    glVertex3dv(&vertex->vertex.x);
+        Layout *layout = poly->layout;
+        uint64 textureUnits = layout->textureUnits;
+        double depth = layout->extrudeDepth;
+        if (depth > 0.0)
+        {
+            bool invert = poly->path->invert;
+            glPushMatrix();
+            glTranslatef(0.0, 0.0, -depth);
+            glScalef(1, 1, -1);
+            glFrontFace(invert ? GL_CCW : GL_CW);
+            drawArrays(poly->mode, textureUnits, data);
+            glFrontFace(invert ? GL_CW : GL_CCW);
+            glPopMatrix();
+        }
+        drawArrays(poly->mode, textureUnits, data);
+        data.clear();
+     }
 }
 
 
@@ -116,7 +393,6 @@ static void CALLBACK tessCombine(GLdouble coords[3],
 // ----------------------------------------------------------------------------
 //   Combine vertex data when the polygon self-intersects
 // ----------------------------------------------------------------------------
-
 {
     Point3 pos(coords[0], coords[1], coords[2]);
 
@@ -126,7 +402,7 @@ static void CALLBACK tessCombine(GLdouble coords[3],
     if (vertex[1]) tex += weight[1] * vertex[1]->texture;
     if (vertex[2]) tex += weight[2] * vertex[2]->texture;
     if (vertex[3]) tex += weight[3] * vertex[3]->texture;
-    VertexData *result = new VertexData(pos, tex);
+    VertexData *result = new VertexData(pos, tex, -1);
     polygon->allocated.push_back(result);
     *dataOut = result;
 }
@@ -401,7 +677,7 @@ static void addEndpointToPath(EndpointStyle style,
             break;
         case GraphicPath::NONE:
         default:
-            ;
+            break;
     }
 }
 
@@ -417,213 +693,235 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     else
         tessel = 0;
 
-    if (setFillColor(where))
+    if (where->extrudeDepth > 0.0)
     {
-        Draw(where->offset, where->textureUnits, GL_POLYGON, tessel);
+        bool hasFill = setFillColor(where);
+        if (hasFill)
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        bool hasLine = setLineColor(where);
+        if (hasLine)
+            DrawOutline(where);
+        if (hasFill || hasLine)
+            Draw(where, where->offset, GL_POLYGON, GL_DEPTH);
     }
-    if (setLineColor(where))
+    else
     {
-        GraphicPath outline;
-
-        bool first = true;
-        //bool penultimate = true;
-        bool last = true;
-        Kind endKind = MOVE_TO;
-        Point3 startPoint;
-        Point3 endPoint;
-        Point3* endPointPtr;
-        Vector3 startHeading;
-        Vector3 endHeading;
-        scale length;
-        scale shortenBy;
-
-        path_elements::iterator begin = elements.begin(), end = elements.end();
-        path_elements::iterator p;
-        for (path_elements::iterator i = begin; i != end; i++)
-        {
-            if (first)
-            {
-                shortenBy = getShortenByStyle(startStyle, where->lineWidth);
-                
-                switch ((*i).kind)
-                {
-                case MOVE_TO:
-                    startPoint = (*i).position;
-                    break;
-                case LINE_TO:
-                case CURVE_TO:
-                    // First line
-                    startHeading = (*i).position - startPoint;
-                    length = startHeading.Length();
-                    if (length == 0)
-                    {
-                        startPoint = (*i).position;
-                    }
-                    else
-                    {
-                        startHeading.Normalize();
-                        startHeading *= shortenBy;
-                        if(length > shortenBy)
-                        {
-                            outline.moveTo(startPoint + startHeading);
-                        }
-                        else
-                        {
-                            outline.moveTo(startPoint);
-                            startPoint -= startHeading;
-                        }
-                        p=i;
-                        first = false;
-                    }
-                    break;
-                case CURVE_CONTROL:
-                    // First curve
-                    startHeading = (*i).position - startPoint;
-                    length = startHeading.Length();
-                    if (length == 0)
-                    {
-                        startPoint = (*i).position;
-                    }
-                    else
-                    {
-                        startHeading.Normalize();
-                        startHeading *= shortenBy;
-                        outline.moveTo(startPoint);
-                        startPoint -= startHeading;
-                        p = i;
-                        first = false;
-                    }
-                    break;
-                }
-                
-            }
-            else
-            {
-                if ((*p).position == (*i).position)
-                {
-                    if ((*i).kind == CURVE_TO)
-                    {
-                        p=i;
-                    }
-                }
-                else
-                {
-                    outline.elements.push_back(*p);
-                    p = i;
-                }
-            }
-        }
-        if (!first)
-        {
-            outline.elements.push_back(*p);
-        }
-        
-        path_elements::reverse_iterator rbegin = outline.elements.rbegin();
-        path_elements::reverse_iterator rend = outline.elements.rend();
-        for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
-        {
-            j = i+1;
-            if (last)
-            {
-                shortenBy = getShortenByStyle(endStyle, where->lineWidth);
-                
-                switch ((*i).kind)
-                {
-                case LINE_TO:
-                    // Last line
-                    endKind = LINE_TO;
-                    break;
-                case CURVE_TO:
-                case CURVE_CONTROL:
-                    // Last curve or line
-                    if ((*j).kind == CURVE_CONTROL)
-                        endKind = CURVE_TO;
-                    else
-                        endKind = LINE_TO;
-                    break;
-                case MOVE_TO:
-                    endKind = MOVE_TO;
-                    break;
-                }
-                endPoint = (*i).position;
-                endPointPtr = &(*i).position;
-                endHeading = (*j).position - (*i).position;
-                length = endHeading.Length();
-                if (length == 0)
-                {
-                    endKind = MOVE_TO;
-                }
-                else
-                {
-                    endHeading.Normalize();
-                    endHeading *= shortenBy;
-                    if (endKind == LINE_TO && length > shortenBy)
-                    {
-                        *endPointPtr += endHeading;
-                    }
-                    else
-                    {
-                        endPoint -= endHeading;
-                    }
-                }
-                if (endKind != MOVE_TO)
-                {
-                    last = false;
-                }
-            }
-        }
-        
-
-        // Draw outline of the path.
-        QPainterPath path;
-        if (extractQtPath(outline, path))
-        {
-            // Path is flat: use a QPainterPathStroker
-            QPainterPathStroker stroker;
-            stroker.setWidth(where->lineWidth);
-            stroker.setCapStyle(Qt::FlatCap);
-            stroker.setJoinStyle(Qt::RoundJoin);
-            stroker.setDashPattern(Qt::SolidLine);
-            QPainterPath stroke = stroker.createStroke(path);
-            outline.clear();
-            outline.addQtPath(stroke);
-
-            // Draw the endpoints
-            if (!first)
-            {
-                addEndpointToPath(startStyle,startPoint,startHeading,outline);
-            }
-            if (!last)
-            {
-                addEndpointToPath(endStyle, endPoint, endHeading, outline);
-            }
-            outline.Draw(where->offset, where->textureUnits, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-        }
-        else
-        {
-            // Path is not flat: use GL lines (temporarily)
-            Draw(where->offset, where->textureUnits, GL_LINE_STRIP, 0);
-        }
+        if (setFillColor(where))
+            Draw(where, where->offset, GL_POLYGON, tessel);
+        if (setLineColor(where))
+            DrawOutline(where);
     }
 }
 
 
-void GraphicPath::Draw(const Vector3 &offset,
-                       uint64 texUnits,
+void GraphicPath::DrawOutline(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the outline for the current path
+// ----------------------------------------------------------------------------
+{
+    GraphicPath outline;
+
+    bool first = true;
+    bool last = true;
+    Kind endKind = MOVE_TO;
+    Point3 startPoint;
+    Point3 endPoint;
+    Point3* endPointPtr;
+    Vector3 startHeading;
+    Vector3 endHeading;
+    scale length;
+    scale shortenBy;
+
+    path_elements::iterator begin = elements.begin(), end = elements.end();
+    path_elements::iterator p;
+    for (path_elements::iterator i = begin; i != end; i++)
+    {
+        if (first)
+        {
+            shortenBy = getShortenByStyle(startStyle, where->lineWidth);
+                
+            switch ((*i).kind)
+            {
+            case MOVE_TO:
+                startPoint = (*i).position;
+                break;
+            case LINE_TO:
+            case CURVE_TO:
+                // First line
+                startHeading = (*i).position - startPoint;
+                length = startHeading.Length();
+                if (length == 0)
+                {
+                    startPoint = (*i).position;
+                }
+                else
+                {
+                    startHeading.Normalize();
+                    startHeading *= shortenBy;
+                    if(length > shortenBy)
+                    {
+                        outline.moveTo(startPoint + startHeading);
+                    }
+                    else
+                    {
+                        outline.moveTo(startPoint);
+                        startPoint -= startHeading;
+                    }
+                    p=i;
+                    first = false;
+                }
+                break;
+            case CURVE_CONTROL:
+                // First curve
+                startHeading = (*i).position - startPoint;
+                length = startHeading.Length();
+                if (length == 0)
+                {
+                    startPoint = (*i).position;
+                }
+                else
+                {
+                    startHeading.Normalize();
+                    startHeading *= shortenBy;
+                    outline.moveTo(startPoint);
+                    startPoint -= startHeading;
+                    p = i;
+                    first = false;
+                }
+                break;
+            }
+            
+        }
+        else
+        {
+            if ((*p).position == (*i).position)
+            {
+                if ((*i).kind == CURVE_TO)
+                {
+                    p=i;
+                }
+            }
+            else
+            {
+                outline.elements.push_back(*p);
+                p = i;
+            }
+        }
+    }
+    if (!first)
+    {
+        outline.elements.push_back(*p);
+    }
+        
+    path_elements::reverse_iterator rbegin = outline.elements.rbegin();
+    path_elements::reverse_iterator rend = outline.elements.rend();
+    for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
+    {
+        j = i+1;
+        if (last)
+        {
+            shortenBy = getShortenByStyle(endStyle, where->lineWidth);
+                
+            switch ((*i).kind)
+            {
+            case LINE_TO:
+                // Last line
+                endKind = LINE_TO;
+                break;
+            case CURVE_TO:
+            case CURVE_CONTROL:
+                // Last curve or line
+                if ((*j).kind == CURVE_CONTROL)
+                    endKind = CURVE_TO;
+                else
+                    endKind = LINE_TO;
+                break;
+            case MOVE_TO:
+                endKind = MOVE_TO;
+                break;
+            }
+            endPoint = (*i).position;
+            endPointPtr = &(*i).position;
+            endHeading = (*j).position - (*i).position;
+            length = endHeading.Length();
+            if (length == 0)
+            {
+                endKind = MOVE_TO;
+            }
+            else
+            {
+                endHeading.Normalize();
+                endHeading *= shortenBy;
+                if (endKind == LINE_TO && length > shortenBy)
+                {
+                    *endPointPtr += endHeading;
+                }
+                else
+                {
+                    endPoint -= endHeading;
+                }
+            }
+            if (endKind != MOVE_TO)
+            {
+                last = false;
+            }
+        }
+    }
+        
+
+    // Draw outline of the path.
+    QPainterPath path;
+    if (extractQtPath(outline, path))
+    {
+        // Path is flat: use a QPainterPathStroker
+        QPainterPathStroker stroker;
+        stroker.setWidth(where->lineWidth);
+        stroker.setCapStyle(Qt::FlatCap);
+        stroker.setJoinStyle(Qt::RoundJoin);
+        stroker.setDashPattern(Qt::SolidLine);
+        QPainterPath stroke = stroker.createStroke(path);
+        outline.clear();
+        outline.addQtPath(stroke);
+
+        // Draw the endpoints
+        if (!first)
+        {
+            addEndpointToPath(startStyle,startPoint,startHeading,outline);
+        }
+        if (!last)
+        {
+            addEndpointToPath(endStyle, endPoint, endHeading, outline);
+        }
+        outline.Draw(where, where->offset,
+                     GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+    }
+    else
+    {
+        // Path is not flat: use GL lines (temporarily)
+        Draw(where, where->offset, GL_LINE_STRIP, 0);
+    }
+}
+
+
+void GraphicPath::Draw(Layout *layout,
+                       const Vector3 &offset,
                        GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
 {
-    PolygonData polygon;        // Polygon information
+    PolygonData polygon (this);        // Polygon information
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
-    polygon.textureUnits = texUnits;
+    polygon.layout = layout;
+    uint textureUnits = layout->textureUnits;
+    uint vertexIndex = 0;
+    scale depth = layout->extrudeDepth;
 
     // Check if we need to tesselate polygon
     static GLUtesselator *tess = 0;
-    if (tesselation)
+    if (tesselation && tesselation != GL_DEPTH)
     {
         if (!tess)
         {
@@ -645,7 +943,7 @@ void GraphicPath::Draw(const Vector3 &offset,
         Kind        kind = e.kind;
         Point3      pos  = e.position + offset; // Geometry coordinates
         Point3      tex  = e.position / bounds; // Texture coordinates
-        VertexData  here(pos, tex);
+        VertexData  here(pos, tex, vertexIndex++);
         uint        size;
 
         switch (kind)
@@ -703,7 +1001,7 @@ void GraphicPath::Draw(const Vector3 &offset,
                     double mm = m*m;
                     Vector3 vd = mm * v0 + 2*m*t * v1 + tt * v2;
                     Vector3 td = mm * t0 + 2*m*t * t1 + tt * t2;
-                    VertexData intermediate(vd, td);
+                    VertexData intermediate(vd, td, vertexIndex++);
                     data.push_back(intermediate);
                 }
                 break;
@@ -740,7 +1038,7 @@ void GraphicPath::Draw(const Vector3 &offset,
                     double mmm = m*mm;
                     Vector3 vd = mmm*v0 + 3*mm*t*v1 + 3*m*tt*v2 + ttt*v3;
                     Vector3 td = mmm*t0 + 3*mm*t*t1 + 3*m*tt*t2 + ttt*t3;
-                    VertexData intermediate(vd, td);
+                    VertexData intermediate(vd, td, vertexIndex++);
                     data.push_back(intermediate);
                 }
                 break;
@@ -757,121 +1055,41 @@ void GraphicPath::Draw(const Vector3 &offset,
             // Get size of previous elements
             if (uint size = data.size())
             {
-                // Pass the data we had so far to OpenGL and clear it
-                if (tesselation)
+                if (depth > 0.0)
                 {
-                    gluTessBeginContour(tess);
-                    for (uint j = 0; j < size; j++)
+                    if (!tesselation)
                     {
-                        VertexData *dynv = new VertexData(data[j]);
-                        polygon.allocated.push_back(dynv);
-                        gluTessVertex(tess, &dynv->vertex.x, dynv);
+                        // If no tesselation is required, draw back directly
+                        glPushMatrix();
+                        glTranslatef(0.0, 0.0, -depth);
+                        glScalef(1, 1, -1);
+                        glFrontFace(GL_CW);
+                        drawArrays(mode, textureUnits, data);
+                        glFrontFace(GL_CCW);
+                        glPopMatrix();
                     }
-                    gluTessEndContour(tess);
+                    extrude(polygon, data, depth);
                 }
-                else
+
+                // Pass the data we had so far to OpenGL and clear it
+                if (tesselation != GL_DEPTH)
                 {
-                    // If no tesselation is required, draw directly
-                    double *vdata = &data[0].vertex.x;
-                    double *tdata = &data[0].texture.x;
-                    double *ndata = &data[0].normal.x;
-                    for (uint i = 0, n = 0; i < size && n < size; )
+                    if (tesselation)
                     {
-                        uint i1 = 0, i2 = 0;
-                        Point3 p0, p1, p2;
-                        Vector3 v1, v2, vn;
-
-                        p0 = data[i].vertex;
-                        do {
-                            ++i1;
-                            p1 = data[(i + i1) % size].vertex;
-                        }
-                        while (p0 == p1 && i1 < size);
-                        v1 = p1 - p0;
-
-                        do {
-                            ++i2;
-                            p2 = data[(i + i1 + i2) % size].vertex;
-                        }
-                        while (p1 == p2 && (i1 + i2) < size);
-                        v2 = p2 - p1;
-
-                        IFTRACE(paths)
+                        gluTessBeginContour(tess);
+                        for (uint j = 0; j < size; j++)
                         {
-                            std::cerr << "P0 #" << i
-                                      << " = x:" << p0.x
-                                      << ", y:" << p0.y
-                                      << ", z:" << p0.z << std::endl;
-                            std::cerr << "P1 #" << (i+i1)%size 
-                                      << " = x:" << p1.x
-                                      << ", y:" << p1.y << ", z:"
-                                      << p1.z << std::endl;
-                            std::cerr << "P2 #" << (i+i1+i2) % size
-                                      << " = x:" << p2.x
-                                      << ", y:" << p2.y
-                                      << ", z:" << p2.z << std::endl;
-                            std::cerr << "V1 (P1 - P0) = x:" << v1.x
-                                      << ", y:" << v1.y
-                                      << ", z:" << v1.z << std::endl;
-                            std::cerr << "V2 (P2 - P1) = x:" << v2.x
-                                      << ", y:" << v2.y
-                                      << ", z:" << v2.z << std::endl;
+                            VertexData *dynv = new VertexData(data[j]);
+                            polygon.allocated.push_back(dynv);
+                            gluTessVertex(tess, &dynv->vertex.x, dynv);
                         }
-
-                        if ((i1 + i2) < size)
-                        {
-                            Triangle triangle(p0, p1, p2);
-                            vn = triangle.computeNormal();
-
-                            for (uint j = (i + i1); j < (i + i1 + i2); j++)
-                            {
-                                ++n;
-                                data[j%size].normal = vn;
-
-                                IFTRACE(paths)
-                                    std::cerr << "Normal #" << j % size
-                                              << " = x:" << vn.x
-                                              << ", y:" << vn.y
-                                              << ", z:" << vn.z << std::endl;
-                            }
-                        }
-
-                        i += i1;
+                        gluTessEndContour(tess);
                     }
-                    IFTRACE(paths)
-                        std::cerr << std::endl;
-
-                    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
-                    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
-                    glEnableClientState(GL_VERTEX_ARRAY);
-                    glEnableClientState(GL_NORMAL_ARRAY);
-
-                    //Active texture coordinates for all used units
-                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+                    else
                     {
-                        if(texUnits & (1 << i))
-                        {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
-                            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
-                                              tdata);
-                        }
+                        // If no tesselation is required, draw directly
+                        drawArrays(mode, textureUnits, data);
                     }
-
-                    glDrawArrays(mode, 0, size);
-                    glDisableClientState(GL_VERTEX_ARRAY);
-                    glDisableClientState(GL_NORMAL_ARRAY);
-
-                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
-                    {
-                        if(texUnits & (1 << i))
-                        {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
-                            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-                        }
-                    }
-                    // Restore the client active texture
-                    glClientActiveTexture(GL_TEXTURE0);
                 }
 
                 data.clear();
@@ -883,7 +1101,7 @@ void GraphicPath::Draw(const Vector3 &offset,
     } // Loop on all elements
 
     // End of tesselation
-    if (tesselation)
+    if (tesselation && tesselation != GL_DEPTH)
     {
         gluTessEndPolygon(tess);
     }
@@ -975,6 +1193,9 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt, scale sy)
                 int(QPainterPath::LineToElement) == int(LINE_TO) &&
                 int(QPainterPath::CurveToElement) == int(CURVE_TO) &&
                 int(QPainterPath::CurveToDataElement) == int(CURVE_CONTROL));
+
+    if (sy < 0)
+        invert = true;
 
     // Loop on the Qt Path and insert elements
     // Qt paths place CURVE_TO before control points, we place it last

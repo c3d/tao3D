@@ -172,7 +172,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
-      pageId(0), pageFound(0), pageShown(1), pageTotal(1),
+      pageId(0), pageFound(0), pageShown(1), pageTotal(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
@@ -794,11 +794,19 @@ void Widget::drawActivities()
     setupGL();
     glDepthFunc(GL_ALWAYS);
 
+    // Clear the topmost layout to avoid conflicts
+    // with following taodyne ad. Fixed #2966.
+    layout->Clear();
+
     for (Activity *a = activities; a; a = a->Display()) ;
 
     // Once we have recorded all the shapes in the selection space,
     // perform actual rendering
     selectionSpace.Draw(NULL);
+
+    // Clear the topmost layout to avoid conflicts
+    // with following taodyne ad. Fixed #2966.
+    layout->Clear();
 
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
     if (contextFilesLoaded &&
@@ -1171,6 +1179,16 @@ double Widget::currentTimeAPI()
 }
 
 
+double Widget::currentPageTimeAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to currentTime()
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = findTaoWidget();
+    return widget->CurrentTime() - widget->pageStartTime;
+}
+
+
 bool Widget::offlineRenderingAPI()
 // ----------------------------------------------------------------------------
 //   Module interface to inOfflineRendering
@@ -1304,7 +1322,7 @@ void Widget::runProgram()
                   << " shown=" << pageShown
                   << "\n";
     pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
+    pageTotal = pageId;
     if (pageFound)
     {
         pageShown = pageFound;
@@ -1615,6 +1633,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         frame.begin();
         displayDriver->display();
         frame.end();
+
+        frameCounter++;
 
         QApplication::processEvents();
         CHECK_CANCELED();
@@ -5365,7 +5385,12 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
 {
-    return new Integer(pageTotal ? pageTotal : 1);
+    uint pages = 0;
+    if (pageTotal)
+        pages = pageTotal;
+    else if (pageId)
+        pages = pageId;
+    return new Integer(pages);
 }
 
 
@@ -5410,7 +5435,7 @@ Tree_p Widget::transition(Context *, Tree_p self, double dur, Tree_p body)
 //    Define a transition
 // ----------------------------------------------------------------------------
 {
-    if (transitionTree)
+    if (transitionTree || inOfflineRendering)
         // Already running in a transition
         return XL::xl_false;
 
@@ -8091,6 +8116,40 @@ Integer *Widget::framePixelCount(Tree_p self, float alphaMin)
                     result++;
     }
     return new Integer(result, self->Position());
+}
+
+
+Tree_p Widget::extrudeDepth(Tree_p self, float depth)
+// ----------------------------------------------------------------------------
+//    Set the extrude depth
+// ----------------------------------------------------------------------------
+{
+    layout->Add (new ExtrudeDepth(depth));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::extrudeRadius(Tree_p self, float radius)
+// ----------------------------------------------------------------------------
+//   Set the extrude radius
+// ----------------------------------------------------------------------------
+{
+    layout->Add (new ExtrudeRadius(radius));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::extrudeCount(Tree_p self, int count)
+// ----------------------------------------------------------------------------
+//   Set the extrude count
+// ----------------------------------------------------------------------------
+{
+    if (count < -10)
+        count = -10;
+    else if (count > 10)
+        count = 10;
+    layout->Add (new ExtrudeCount(count));
+    return XL::xl_true;
 }
 
 

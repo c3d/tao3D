@@ -549,6 +549,10 @@ public:
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
     Tree_p      hasTexture(Tree_p self, GLuint unit);
+    Tree_p      extrudeDepth(Tree_p self, float depth);
+    Tree_p      extrudeRadius(Tree_p self, float radius);
+    Tree_p      extrudeCount(Tree_p self, int count);
+
     Integer_p   lightsMask(Tree_p self);
     Tree_p      perPixelLighting(Tree_p self,  bool enable);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
@@ -1105,6 +1109,7 @@ private:
 public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
+    static double         currentPageTimeAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);

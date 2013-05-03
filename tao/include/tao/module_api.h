@@ -50,7 +50,7 @@
 //   since the last public release, then set age to 0.
 
 #define TAO_MODULE_API_CURRENT   30
-#define TAO_MODULE_API_AGE       12
+#define TAO_MODULE_API_AGE       13
 
 // ========================================================================
 //
@@ -517,6 +517,7 @@ struct ModuleApi
     // module may choose to render a placeholder or a single picture, instead
     // of starting the actual playback of the media (including sound).
     bool (*offlineRendering)();
+    double (*currentPageTime)();
 };
 
 }

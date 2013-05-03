@@ -1,5 +1,45 @@
 Change log for Tao Presentations
 
+1.20 (02-May-2013)
+
+#2987 Add page time to the module API
+#2985 Extrude radius in top-level layout leaks into the chooser
+#2980 NodeJS module: Typo in on_load_error message
+#2978 Add feature to enable sharp or smooth edges
+#2977 Totally transparent shapes still show up if extrude_radius and extrude_depth are positive
+#2976 Reloading materials module cause an XL error
+#2973 GL error 1281 with text when line_width is 1
+#2967 Compute extrusion normals correctly for complex polygons (find exterior of shape)
+
+1.19 (26-Apr-2013)
+
+#2966 Taodyne logo modified by line_width in topmost layout
+#2965 z-fighting
+#2948 Make Tao able to download license keys from the web
+#2960 Incorrect message "Page name is already used" when goto_page is used with a transition
+#2938 Windows, Linux: stop animations when application is minimized to save CPU
+#2930 Decode multi-view video formats (5, 8 and 9 views)
+#2850 VLCAudioVideo: allow options that contain spaces
+#2847 Catch exceptions raised by modules
+#2846 Add new aliases unifying totox and toto_x, e.g. translate_x and mouses.
+#2824 Allow user to specify the file names in the Render to Files dialog
+#2823 VLCAudioVideo: do not play in 'offline rendering' mode
+#2822 Add ModuleAPI::offlineRendering()
+#2821 page_number returns incorrect value during and after transition
+#2816 ObjectLoader reports no error when it fails to decode a file
+#2815 No page number showing up on duplicate page error message
+#2807 Add primitive: save_page_thumbnail
+#2806 Add on "pagechange"
+#2804 Add a NodeJS module
+#2794 First call to page_count returns 1 although the documents has two pages
+#2792 Cone normals are always null
+#2791 Chooser is impacted by shaders defined in main layout
+#2784 MacOSX: GL error 1281
+#2783 Crash in TextSpan::Draw when inside a frame texture
+#2782 Add a 'colored_object' without arguments
+#2781 Animate: Add a user-controlled way to adjust for refresh time
+#1448 Add a feature to extrude a 2D shape
+
 1.18 (22-Feb-2013)
 
 #2780 In movie credits template, the final scrolling text does not look good

@@ -91,8 +91,8 @@ int main(int argc, char **argv)
 #endif
             std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR
-#ifdef BUILD_OPTIONS
-            std::cout << "Build options: " << BUILD_OPTIONS << "\n";
+#ifdef CONFIGURE_OPTIONS
+            std::cout << "Configure options: " << CONFIGURE_OPTIONS << "\n";
 #endif
             exit(0);
         }

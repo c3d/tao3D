@@ -1615,6 +1615,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         displayDriver->display();
         frame.end();
 
+        frameCounter++;
+
         QApplication::processEvents();
         CHECK_CANCELED();
 

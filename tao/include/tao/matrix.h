@@ -295,8 +295,8 @@ struct Matrix4
     {
         if (type != o.type)
             return false;
-        for (uint r = 0; r < 3; r++)
-            for (uint c = 0; c < 3; c++)
+        for (uint r = 0; r < 4; r++)
+            for (uint c = 0; c < 4; c++)
                 if (m[r][c] != o.m[r][c])
                     return false;
         return true;

@@ -2149,12 +2149,43 @@ void OpenGLState::GenTextures(uint n, GLuint *textures)
 }
 
 
-void OpenGLState::DeleteTextures(uint n, GLuint *  textures)
+void OpenGLState::DeleteTextures(uint n, GLuint *  ids)
 // ----------------------------------------------------------------------------
 //   Delete named textures
 // ----------------------------------------------------------------------------
 {
-    glDeleteTextures(n, textures);
+    glDeleteTextures(n, ids);
+
+// Remove a texture from the textureState then
+// reset associated textureUnitState if necessary
+#define DELETE_TEXTURE(texturesState, textureUnitsState, id)  \
+    do                                                        \
+    {                                                         \
+        uint unit = texturesState.textures[id].unit;          \
+        texturesState.textures.erase(id);                     \
+        if(unit)                                              \
+        {                                                     \
+            unit = unit - GL_TEXTURE0;                        \
+            textureUnitsState.units[unit].texture = 0;        \
+        }                                                     \
+    } while (0)
+
+    // Remove completly textures from GL state
+    // to avoid conflict with future textures with same ids
+    for(uint i = 0; i < n; i++)
+    {
+        // Get texture id
+        uint id = ids[i];
+
+        // Check if texture exists
+        if(currentTextures.textures.count(id))
+        {
+            DELETE_TEXTURE(currentTextures, currentTextureUnits, id);
+            DELETE_TEXTURE(textures, textureUnits, id);
+        }
+    }
+
+#undef DELETE_TEXTURE
 }
 
 

@@ -57,6 +57,10 @@ usage() {
   echo "              ** Player Pro removes the watermark if the document is signed by Design Pro."
   echo "  youactive   Configure for Tao Presentations YouActive. Same as the regular (\"unified\")"
   echo "              build, but includes additional modules used in the YouActive solution (DIP)."
+  echo "  internal    Configure for an internal build with most features enabled (including"
+  echo "              the less stable ones, not shipped with official Tao editions)".
+  echo "                - This build checks the 'Design Pro' license"
+  echo "                - All default modules are built and packaged, with 120-day licenses."
   echo ""
   echo "QMake options:"
   echo ""
@@ -98,7 +102,6 @@ while [ $# -ne 0 ] ; do
       ;;
     --with-modlic*)
       with_modlic=1
-      FLAGS="$FLAGS SIGN_MODULE_LICENSES=1"
       shift
       ;;
     --silent)
@@ -143,6 +146,11 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS PACKAGE_APPEND=YouActive"
       shift ; done=1
       ;;
+    internal)
+      EDITION=Internal
+      with_modlic=1
+      shift ; done=1
+      ;;
     *)
       done=1
       ;;
@@ -152,9 +160,13 @@ done
 
 # Process what was given
 
-[ "$with_modlic" ] && FLAGS="$FLAGS LICENSE_VALIDITY=120"
+[ "$with_modlic" ] && FLAGS="$FLAGS SIGN_MODULE_LICENSES=1 LICENSE_VALIDITY=120"
 
-FLAGS="$FLAGS DEFINES+=CFG_NOGIT modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"
+if [ "$EDITION" = "Internal" ] ; then
+  :
+else
+  FLAGS="$FLAGS DEFINES+=CFG_NOGIT modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"
+fi
 
 # Default QMake flags for each OS
 osflags() {

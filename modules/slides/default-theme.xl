@@ -187,6 +187,15 @@ theme_right_column Theme:text, Master:text, Body ->
         Body
 
 
+theme_picture Theme:text, "blank", Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_color Theme, "blank", "picture"
+        Body
+
+
 theme_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default picture box (keep consistent with layout below)
@@ -238,6 +247,13 @@ theme_layout Theme:text, "section" ->
 // ----------------------------------------------------------------------------
     flow 0, 50, 1800, 250, "title"
     flow 0, -300, 1800, 150, "subtitle"
+
+
+theme_layout Theme:text, "blank" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 0, 1800, 750, "story"
 
 
 theme_layout Theme:text, Master:text ->

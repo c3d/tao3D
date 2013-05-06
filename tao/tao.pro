@@ -98,6 +98,7 @@ HEADERS +=     activity.h \
     module_info_dialog.h \
     module_manager.h \
     module_renderer.h \
+    nag_screen.h \
     normalize.h \
     page_layout.h \
     path3d.h \
@@ -176,6 +177,7 @@ SOURCES +=     activity.cpp \
     module_info_dialog.cpp \
     module_manager.cpp \
     module_renderer.cpp \
+    nag_screen.cpp \
     normalize.cpp \
     page_layout.cpp \
     path3d.cpp \

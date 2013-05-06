@@ -267,9 +267,9 @@ void Application::deferredInit()
                 info = tr("<p>You have been using Tao Presentations, "
                           "%1 Edition for %2 days.</p>"
                           "<p>By purchasing a %1 Pro license, you will:"
-                          "<ul><li> Help us improve our products,"
-                          "<li> Benefit from additional features "
-                          "and support.</ul>"
+                          "<ul><li> help us improve our products"
+                          "<li> benefit from additional features "
+                          "and support</ul>"
                           "Thank you.</p>")
                         .arg(editionStr()).arg(days);
                 NagScreen nag;

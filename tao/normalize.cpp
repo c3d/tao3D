@@ -95,7 +95,7 @@ Tree *Renormalize::DoInfix(Infix *what)
     {
         if (Infix *il = left->AsInfix())
         {
-            if (il->name == "\n" || il->name == ";")
+            if (il->name == what->name)
             {
                 // Loop on the right to find where we want to attach
                 Infix *last = il->LastStatement();

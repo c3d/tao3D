@@ -10053,6 +10053,11 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     glPopAttrib();
 
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
@@ -10205,6 +10210,11 @@ Integer* Widget::thumbnail(Context *context,
 
     glPopAttrib();
 
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
@@ -10297,6 +10307,11 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 
     glPopAttrib();
 
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     return new Integer(texId, self->Position());
 }
 
@@ -10382,6 +10397,11 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 
     glPopAttrib();
 
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     return new Integer(texId, self->Position());
 }
 
@@ -10466,6 +10486,12 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     GL.TextureSize (w, h);
 
     glPopAttrib();
+
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     return new Integer(texId, self->Position());
 }
 

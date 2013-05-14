@@ -110,6 +110,10 @@
 static int DisplayLink = -1;
 #endif
 
+#ifdef Q_OS_LINUX
+#include "vsync_x11.h"
+#endif
+
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
@@ -151,8 +155,8 @@ static inline QGLFormat TaoGLFormat()
     if (TaoApp->hasGLMultisample)
         options |= QGL::SampleBuffers;
     QGLFormat format(options);
-    int vsi = PerformancesPage::VSync() ? 1 : 0;
-    format.setSwapInterval(vsi);
+    // VSync is set later in the Widget constructor
+    format.setSwapInterval(0);
     return format;
 }
 
@@ -182,6 +186,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       showingEvaluationWatermark(false),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
+#endif
+#ifdef Q_OS_LINUX
+      vsyncState(false),
 #endif
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
@@ -241,6 +248,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 
     // Initialize GLEW when we use it
     glewInit();
+
+    // Sync to VBlank if configured to do so
+    enableVSync(NULL, PerformancesPage::VSync());
 
     // Create the main page we draw on
     space = new SpaceLayout(this);
@@ -393,7 +403,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #endif
       screenShotPath(o.screenShotPath),
       screenShotWithAlpha(o.screenShotWithAlpha),
-      activities(NULL),
+#ifdef Q_OS_LINUX
+      vsyncState(false),
+#endif
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
       selection(o.selection), selectionTrees(o.selectionTrees),
@@ -464,6 +476,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Make this the current context for OpenGL
     makeCurrent();
+
+    // Do not change VSync mode
+    enableVSync(NULL, o.VSyncEnabled());
 
     // Create new layout to draw into
     space = new SpaceLayout(this);
@@ -7160,16 +7175,17 @@ Name_p Widget::enableVSync(Tree_p self, bool enable)
 //   Enable or disable VSYNC (prevent tearing)
 // ----------------------------------------------------------------------------
 {
+    bool prev = false;
+
 #if defined(Q_OS_MACX)
     GLint old = 0;
     CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
-    bool prev = (old != 0);
+    prev = (old != 0);
     if (enable != prev)
     {
         const GLint swapInterval = enable ? 1 : 0;
         CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
     }
-    return prev ? XL::xl_true : XL::xl_false;
 #elif defined(Q_OS_WIN)
     typedef BOOL (*set_fn_t) (int interval);
     typedef int  (*get_fn_t) (void);
@@ -7180,25 +7196,28 @@ Name_p Widget::enableVSync(Tree_p self, bool enable)
     int old = 0;
     if (set_fn && get_fn) {
         old = get_fn();
-        bool prev = (old != 0);
+        prev = (old != 0);
         if (enable != prev)
         {
             int swapInterval = enable ? 1 : 0;
             set_fn(swapInterval);
         }
-        return prev ? XL::xl_true : XL::xl_false;
     }
-    return XL::xl_false;
+#elif defined(Q_OS_LINUX)
+    prev = vsyncState;
+    if (enableVSyncX11(this, enable))
+        vsyncState = enable;
 #else
     // Command not supported, but do it silently
-    return XL::xl_false;
 #endif
+
+    return prev ? XL::xl_true : XL::xl_false;
 }
 
 
 bool Widget::VSyncEnabled()
 // ----------------------------------------------------------------------------
-//   Return true if vsync is enable, false otherwise
+//   Return true if vsync is enabled, false otherwise
 // ----------------------------------------------------------------------------
 {
 #if defined(Q_OS_MACX)
@@ -7211,9 +7230,12 @@ bool Widget::VSyncEnabled()
     int old = 0;
     if (get_fn)
         old = get_fn();
+#elif defined(Q_OS_LINUX)
+    return vsyncState;
 #else
     int old = 0;
 #endif
+
     return (old != 0);
 }
 

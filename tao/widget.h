@@ -1000,6 +1000,9 @@ private:
 #endif
     QString               screenShotPath;
     bool                  screenShotWithAlpha;
+#ifdef Q_OS_LINUX
+    bool                  vsyncState;
+#endif
 
     // Selection
     Activity *            activities;

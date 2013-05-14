@@ -101,10 +101,8 @@ main_chooser ->
     stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice tr "Toggle stereo identification", {toggle_stereo_identify}
-    if not is_available linux then
-        // Dynamically switching VSync is not implemented on Linux (#2035)
-        chooser_choice tr "Enable VSync", {enable_vsync true}
-        chooser_choice tr "Disable VSync", {enable_vsync false}
+    chooser_choice tr "Enable VSync", {enable_vsync true}
+    chooser_choice tr "Disable VSync", {enable_vsync false}
     chooser_choice tr "Reset view", {reset_view}
     chooser_choice tr "Zoom in", {zoom_in}
     chooser_choice tr "Zoom out", {zoom_out}

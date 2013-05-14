@@ -2334,6 +2334,42 @@ void OpenGLState::TexImage3D(GLenum target, GLint level, GLint internalformat,
 }
 
 
+void OpenGLState::CopyTexImage2D(GLenum target, GLint level, GLenum format,
+                                 GLint x, GLint y, GLsizei width, GLsizei height,
+                                 GLint border)
+// ----------------------------------------------------------------------------
+//    Copy pixels into a 2D texture image
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
+    glCopyTexImage2D(target, level, format, x, y, width, height, border);
+}
+
+
+void OpenGLState::CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset,
+                                    GLint yoffset, GLint x, GLint y,
+                                    GLsizei width, GLsizei height)
+// ----------------------------------------------------------------------------
+//    Copy a two-dimensional texture subimage
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
+    glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+}
+
+
+void OpenGLState::CopyTexSubImage3D(GLenum target, GLint level, GLint xoffset,
+                                    GLint yoffset, GLint zoffset, GLint x, GLint y,
+                                    GLsizei width, GLsizei height)
+// ----------------------------------------------------------------------------
+//    Copy a third-dimensional texture subimage
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
+    glCopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height);
+}
+
+
 void OpenGLState::TextureSize(uint width, uint height, uint depth)
 // ----------------------------------------------------------------------------
 //   Set the dimension of the given texture

@@ -687,7 +687,15 @@ struct OpenGLState : GraphicState
                             GLsizei width, GLsizei height, GLsizei depth, GLint border,
                             GLenum format, GLenum type,
                             const GLvoid *pixels );
-
+    virtual void CopyTexImage2D(GLenum target, GLint level, GLenum format,
+                                GLint x, GLint y, GLsizei width, GLsizei height,
+                                GLint border);
+    virtual void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset,
+                                   GLint yoffset, GLint x, GLint y,
+                                   GLsizei width, GLsizei height);
+    virtual void CopyTexSubImage3D(GLenum target, GLint level, GLint xoffset,
+                                   GLint yoffset, GLint zoffset, GLint x, GLint y,
+                                   GLsizei width, GLsizei height);
     virtual void TextureSize(uint width, uint height, uint depth = 0);
     virtual uint TextureWidth();
     virtual uint TextureHeight();

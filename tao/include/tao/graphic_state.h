@@ -244,7 +244,15 @@ struct GraphicState
                             GLsizei width, GLsizei height, GLsizei depth, GLint border,
                             GLenum format, GLenum type,
                             const GLvoid *pixels ) = 0;
-
+    virtual void CopyTexImage2D(GLenum target, GLint level, GLenum format,
+                                GLint x, GLint y, GLsizei width, GLsizei height,
+                                GLint border) = 0;
+    virtual void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset,
+                                   GLint yoffset, GLint x, GLint y,
+                                   GLsizei width, GLsizei height) = 0;
+    virtual void CopyTexSubImage3D(GLenum target, GLint level, GLint xoffset,
+                                   GLint yoffset, GLint zoffset, GLint x, GLint y,
+                                   GLsizei width, GLsizei height) = 0;
     virtual void TextureSize(uint width, uint height, uint depth = 0) = 0;
     virtual uint TextureWidth() = 0;
     virtual uint TextureHeight() = 0;

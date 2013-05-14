@@ -386,8 +386,10 @@ GLuint FrameInfo::depthTexture()
         resizeDepthTexture(w, h);
         if (renderFBO != textureFBO)
             blit();
+
         copyToDepthTexture();
     }
+
     return depthTextureID;
 }
 
@@ -427,11 +429,15 @@ void FrameInfo::copyToDepthTexture()
 // ----------------------------------------------------------------------------
 {
     GLint fbname = 0;
+    GraphicSave* save = GL.Save();
+
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
     glBindFramebuffer(GL_FRAMEBUFFER, textureFBO->handle());
-    glBindTexture(GL_TEXTURE_2D, depthTextureID);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
+    GL.BindTexture(GL_TEXTURE_2D, depthTextureID);
+    GL.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
     glBindFramebuffer(GL_FRAMEBUFFER, fbname);
+
+    GL.Restore(save);
 }
 
 

@@ -483,6 +483,135 @@ step_scale(integer N);
  */
 compute_smooth_step();
 
+
+/**
+ * @~english
+ * Smooth a linear value between 0 and 1
+ * This returns:
+ * - 0 if T<0
+ * - 1 if T>1
+ * - 3*T^2 - 2*T^3 otherwise.
+ * @~french
+ * Adoucit une valeur linéaire entre 0 and 1
+ * Cette fonction retourne
+ * - 0 si T<0
+ * - 1 si T>1
+ * - 3*T^2 - 2*T^3 sinon.
+ */
+smooth(real T);
+
+
+/**
+ * @~english
+ * Smooth a linear value between two values @p Low and @p High
+ * This is equivalent to
+ * @code smooth((T-Low)/(High-Low)) @endcode
+ * @~french
+ * Adoucit une valeur linéaire entre deux valeurs @p Low et @p High
+ * Cette fonction est équivalente à
+ * @code smooth((T-Low)/(High-Low)) @endcode
+ */
+smooth_betwen(real T, real Low, real High);
+
+
+/**
+ * @~english
+ * Return the ratio of the current time interval
+ * @~french
+ * Retourne le taux de complétion pour l'intervalle de temps en cours
+ */
+real ratio;
+
+
+/**
+ * @~english
+ * Return a decreasing ratio of the current time interval (1-ratio)
+ * @see ratio
+ * @~french
+ * Retourne le taux restant pour l'intervalle en cours
+ * @see ratio
+ */
+real down_ratio;
+
+
+/**
+ * @~english
+ * Return a smoothed version of the current interval ratio
+ * @see smooth @see ratio
+ * @~french
+ * Retourne une version adoucie du taux pour l'intervalle de temps actuel
+ * @see smooth @see ratio
+ */
+real smooth_ratio;
+
+
+/**
+ * @~english
+ * Return a smoothed version of the remaining interval ratio
+ * @see smooth @see down_ratio
+ * @~french
+ * Retourne une version adoucie du taux restant pour l'intervalle en cours
+ * @see smooth @see down_ratio
+ */
+real smooth_down_ratio;
+
+
+/**
+ * @~english
+ * Evaluate @p Body while @p Value is between @p A and @p B
+ * The value of @ref ratio grows linearly between 0 and 1, and this also
+ * updates derived variables @see down_ratio, @see smooth_ratio and
+ * @see smooth_down_ratio
+ *
+ * @~french
+ * Evalue @p Body tant que @p Value est entre @p A et @p B
+ * La valeur de @ref ratio croît linéairement entre 0 et 1, et cela
+ * met aussi à jour les variables dérivées @see down_ratio,
+ * @see smooth_ratio and @see smooth_down_ratio
+ */
+
+"Value:real in [A:real..B:real] Body";
+
+
+/**
+ * @~english
+ * Evaluate @p Body while @p Value is between @p A and @p D
+ * The value of @ref ratio grows linearly between 0 and 1 when
+ * @p Value is between @p A and @p B, then stays at 1 until @p Value
+ * reaches @p C, and then decreases linearly to 0 between @p C
+ * and @p D. This also updates derived variables @see down_ratio,
+ * @see smooth_ratio and @see smooth_down_ratio
+ *
+ * @~french
+ * Evalue @p Body tant que @p Value est entre @p A et @p D
+ * La valeur de @ref ratio croît linéairement entre 0 et 1 quand @p
+ * Value est entre @p A et @p B, puis reste à 1 entre @p B et @p C,
+ * puis décroit linéairement jusqu'à 0 entre @p C et @p D. Cela
+ * met aussi à jour les variables dérivées @see down_ratio,
+ * @see smooth_ratio and @see smooth_down_ratio
+ */
+
+"Value:real in [A:real..B:real] Body";
+
+/**
+ * @~english
+ * Shortcut for @code page_time in [A..B]
+ * @~french
+ * Raccourci pour @code page_time in [A..B]
+ */
+
+"[A:real..B:real] Body";
+
+
+/**
+ * @~english
+ * Shortcut for @code page_time in [A..B, C..D]
+ * @~french
+ * Raccourci pour @code page_time in [A..B, C..D]
+ */
+
+"[A:real..B:real, C:real..D:real] Body";
+
 /**
  * @}
  */

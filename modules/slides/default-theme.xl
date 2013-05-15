@@ -118,6 +118,8 @@ theme_style Theme:text, Master:text, Style:text ->
     theme_align Theme, Master, Style
 
 
+theme_style Theme:text, Master:text, Style:text, 1 ->
+    theme_align Theme, Master, Style, 1
 theme_style Theme:text, Master:text, Style:text, Level:integer ->
 // ----------------------------------------------------------------------------
 //    Style for title in normal slides
@@ -187,6 +189,15 @@ theme_right_column Theme:text, Master:text, Body ->
         Body
 
 
+theme_picture Theme:text, "blank", Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_color Theme, "blank", "picture"
+        Body
+
+
 theme_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default picture box (keep consistent with layout below)
@@ -240,6 +251,13 @@ theme_layout Theme:text, "section" ->
     flow 0, -300, 1800, 150, "subtitle"
 
 
+theme_layout Theme:text, "blank" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 0, 1800, 750, "story"
+
+
 theme_layout Theme:text, Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
@@ -286,35 +304,38 @@ theme_item Theme:text, Master:text, Level:integer, Body ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a text item (without bullet)
 // ----------------------------------------------------------------------------
-    theme_style Theme, Master, "story", Level
-    paragraph_break
-    Body
+    text_span
+        theme_style Theme, Master, "story", Level
+        paragraph_break
+        Body
 
 
 theme_bullet Theme:text, Master:text, Level:integer, Body ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a bullet
 // ----------------------------------------------------------------------------
-    theme_style Theme, Master, "story", Level
-    paragraph_break
-    anchor
-        theme_style Theme, Master, "bullet"
-        theme_bullet_picture Theme, Master, Level
-    Body
+    text_span
+        theme_style Theme, Master, "story", Level
+        paragraph_break
+        anchor
+            theme_style Theme, Master, "bullet"
+            theme_bullet_picture Theme, Master, Level
+        Body
 
 
 theme_numbered_item Theme:text, Master:text, Level:integer, Body ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a numbered text item
 // ----------------------------------------------------------------------------
-    theme_style Theme, Master, "number", Level
-    paragraph_break
-    default_item_level := Level
-    text text default_item_number[default_item_level] & ". "
-    theme_style Theme, Master, "story", Level
-    Body
-    default_item_number[default_item_level] := 1 + default_item_number[default_item_level]
-    default_item_number[default_item_level+1] := 1
+    text_span
+        theme_style Theme, Master, "number", Level
+        paragraph_break
+        default_item_level := Level
+        text text default_item_number[default_item_level] & ". "
+        theme_style Theme, Master, "story", Level
+        Body
+        default_item_number[default_item_level] := 1 + default_item_number[default_item_level]
+        default_item_number[default_item_level+1] := 1
 
 
 theme_reset Theme:text ->

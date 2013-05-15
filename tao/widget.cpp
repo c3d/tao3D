@@ -10299,18 +10299,18 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
         layout = NULL;
     } while (0); // State keeper and layout
 
-    // Bind the resulting texture and save current infos
-    uint texId = frame.bind();
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-    GL.TextureSize (w, h);
-
     glPopAttrib();
 
     // As we have use our own GL functions, we need
     // to resync after glPopAttrib to assure that our
     //GL state is consistent with the real GL state. Refs #2970
     GL.Sync();
+
+    // Bind the resulting texture and save current infos
+    uint texId = frame.bind();
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10389,18 +10389,18 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
         layout = NULL;
     } while (0); // State keeper and layout
 
-    // Bind the resulting texture and save current infos
-    uint texId = frame.bind();
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-    GL.TextureSize (w, h);
-
     glPopAttrib();
 
     // As we have use our own GL functions, we need
     // to resync after glPopAttrib to assure that our
     //GL state is consistent with the real GL state. Refs #2970
     GL.Sync();
+
+    // Bind the resulting texture and save current infos
+    uint texId = frame.bind();
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10477,13 +10477,7 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
-    } while (0); // State keeper and layout
-
-    // Bind the resulting texture and save current infos
-    uint texId = frame.bind();
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-    GL.TextureSize (w, h);
+    } while (0); // State keeper and layout 
 
     glPopAttrib();
 
@@ -10491,6 +10485,12 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     // to resync after glPopAttrib to assure that our
     //GL state is consistent with the real GL state. Refs #2970
     GL.Sync();
+
+    // Bind the resulting texture and save current infos
+    uint texId = frame.bind();
+    layout->Add(new FillTexture(texId));
+    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }

@@ -765,8 +765,8 @@ public:
     ClientTextureUnitState & ClientActiveTexture();
 
     // Return the current texture state
-    TextureState &      ActiveTexture();
-    TextureUnitState &  ActiveTextureUnit(bool isDirty = true);
+    TextureState &      ActiveTextureState(bool isDirty = true);
+    TextureUnitState &  ActiveTextureUnitState(bool isDirty = true);
 
     // Return the corresponding clip plane state
     ClipPlaneState &    ClipPlane(GLenum plane);
@@ -779,7 +779,7 @@ private:
     // Return the current texture matrix
     Matrix4 &           TextureMatrix()
     {
-        return ActiveTextureUnit().matrix;
+        return ActiveTextureUnitState().matrix;
     }
 
     // Singleton

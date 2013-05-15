@@ -1538,7 +1538,7 @@ void OpenGLState::Enable(GLenum cap)
     case GL_TEXTURE_3D:
     case GL_TEXTURE_CUBE_MAP:
     {
-        TextureUnitState &st = ActiveTextureUnit();
+        TextureUnitState &st = ActiveTextureUnitState();
         st.Set(cap, true);
         uint unit = activeTexture - GL_TEXTURE0;
         textureUnits.active |= (1ULL << unit);
@@ -1592,7 +1592,7 @@ void OpenGLState::Disable(GLenum cap)
     case GL_TEXTURE_3D:
     case GL_TEXTURE_CUBE_MAP:
     {
-        TextureUnitState &st = ActiveTextureUnit();
+        TextureUnitState &st = ActiveTextureUnitState();
         st.Set(cap, false);
 
         // Don't update active flag if there is always a target enabled
@@ -2095,25 +2095,29 @@ void OpenGLState::ActiveTexture(GLenum active)
 }
 
 
-TextureState &OpenGLState::ActiveTexture()
+TextureState &OpenGLState::ActiveTextureState(bool isDirty)
 // ----------------------------------------------------------------------------
 //    Return the current active texture
 // ----------------------------------------------------------------------------
 {
-    GLuint bound = ActiveTextureUnit().texture;
+    GLuint bound = ActiveTextureUnitState(isDirty).texture;
     TextureState &st = textures.textures[bound];
-    textures.dirty.insert(bound);
 
-    // Mark texture as dirty and push changes on the save stack
-    textures_isDirty = true;
-    if (save)
-        save->save_textures(st);
+    if(isDirty)
+    {
+        textures.dirty.insert(bound);
+
+        // Mark texture as dirty and push changes on the save stack
+        textures_isDirty = true;
+        if (save)
+            save->save_textures(st);
+    }
 
     return st;
 }
 
 
-TextureUnitState &OpenGLState::ActiveTextureUnit(bool isDirty)
+TextureUnitState &OpenGLState::ActiveTextureUnitState(bool isDirty)
 // ----------------------------------------------------------------------------
 //    Return the state of the active texture unit
 // ----------------------------------------------------------------------------
@@ -2195,7 +2199,7 @@ void OpenGLState::BindTexture(GLenum type, GLuint texture)
 // ----------------------------------------------------------------------------
 {
     // Bind the texture to the current texture unit
-    TextureUnitState &tunit = ActiveTextureUnit();
+    TextureUnitState &tunit = ActiveTextureUnitState();
     tunit.texture = texture;
     tunit.target = type;
 
@@ -2225,8 +2229,8 @@ void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
 //   Change parameters for a texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
-    TextureUnitState &tus = ActiveTextureUnit();
+    TextureState &ts = ActiveTextureState();
+    TextureUnitState &tus = ActiveTextureUnitState();
     Q_ASSERT (ts.type == type);
     switch(pname)
     {
@@ -2266,7 +2270,7 @@ void OpenGLState::TexEnv(GLenum type, GLenum pname, GLint param)
 {
     if (type == GL_TEXTURE_ENV && pname == GL_TEXTURE_ENV_MODE)
     {
-        TextureUnitState &tu = ActiveTextureUnit();
+        TextureUnitState &tu = ActiveTextureUnitState();
         tu.mode = param;
     }
     else
@@ -2375,7 +2379,7 @@ void OpenGLState::TextureSize(uint width, uint height, uint depth)
 //   Set the dimension of the given texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
+    TextureState &ts = ActiveTextureState(false);
     ts.width  = width;
     ts.height = height;
     ts.depth  = depth; // If depth = 0, then it's a 2D texture
@@ -2387,7 +2391,7 @@ uint OpenGLState::TextureWidth()
 //   Get the width of the current texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
+    TextureState &ts = ActiveTextureState(false);
     return ts.width;
 }
 
@@ -2397,7 +2401,7 @@ uint OpenGLState::TextureHeight()
 //   Get the height of the current texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
+    TextureState &ts = ActiveTextureState(false);
     return ts.height;
 }
 
@@ -2407,7 +2411,7 @@ uint OpenGLState::TextureDepth()
 //   Get the depth of the current texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
+    TextureState &ts = ActiveTextureState(false);
     return ts.depth;
 }
 
@@ -2417,7 +2421,7 @@ uint OpenGLState::TextureType()
 //   Get the type of the current texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
+    TextureState &ts = ActiveTextureState(false);
     return ts.type;
 }
 
@@ -2427,7 +2431,7 @@ uint OpenGLState::TextureMode()
 //   Get the mode of the current texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
+    TextureState &ts = ActiveTextureState(false);
     return ts.mode;
 }
 
@@ -2437,7 +2441,7 @@ uint OpenGLState::TextureID()
 //   Get the ID of the current texture
 // ----------------------------------------------------------------------------
 {
-    TextureState &ts = ActiveTexture();
+    TextureState &ts = ActiveTextureState(false);
     return ts.id;
 }
 
@@ -2454,7 +2458,7 @@ void OpenGLState::ActivateTextureUnits(uint64 mask)
         if (todo & (1ULL << unit))
         {
             ActiveTexture(GL_TEXTURE0 + unit);
-            TextureUnitState &tu = ActiveTextureUnit();
+            TextureUnitState &tu = ActiveTextureUnitState();
             if(mask & (1ULL << unit))
                 Enable(tu.target);
             else

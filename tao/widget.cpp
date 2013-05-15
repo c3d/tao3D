@@ -6406,16 +6406,24 @@ double Widget::optimalDefaultRefresh()
 //    Set default refresh for best results
 // ----------------------------------------------------------------------------
 {
-    // The optimal value for default_refresh is either:
-    //  - 0.0 when OpenGL refresh is sync'ed with the display, for instance on
-    //    MacOSX with display link, and/or when VSync is enabled;
-    //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
-    //    Using 0.0 in this case would uselessly tax the CPU.
 #ifdef MACOSX_DISPLAYLINK
+    // Refresh as fast as possible, but never more frequently than the current
+    // display's refresh rate (due to the DisplayLink timer)
     return 0.0;
 #endif
-    if (VSyncEnabled())
+    if (VSyncSupported())
+    {
+        // Refresh as fast as possible. That is:
+        // - If VSync is enabled: refresh rate will be limited by the display
+        //   rate.
+        // - If Vsync is supported but currently disabled: refresh will occur
+        //   as fast as possible, not limited by the display rate.
+        //   May be used for performance testing (how many fps can we achieve
+        //   with this CPU/GPU?)
         return 0.0;
+    }
+    // Limit refresh rate to ~60 Hz when VSync is not supported, to avoid
+    // uselessy taxing the CPU
     return 0.016;
 }
 
@@ -7172,15 +7180,12 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
 
 Name_p Widget::enableVSync(Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
-//   Enable or disable VSYNC (prevent tearing)
+//   Enable or disable vertical sync (prevent tearing), return previous state
 // ----------------------------------------------------------------------------
 {
-    bool prev = false;
+    bool prev = VSyncEnabled();
 
 #if defined(Q_OS_MACX)
-    GLint old = 0;
-    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
-    prev = (old != 0);
     if (enable != prev)
     {
         const GLint swapInterval = enable ? 1 : 0;
@@ -7188,15 +7193,9 @@ Name_p Widget::enableVSync(Tree_p self, bool enable)
     }
 #elif defined(Q_OS_WIN)
     typedef BOOL (*set_fn_t) (int interval);
-    typedef int  (*get_fn_t) (void);
     static
     set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
-    static
-    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
-    int old = 0;
-    if (set_fn && get_fn) {
-        old = get_fn();
-        prev = (old != 0);
+    if (set_fn) {
         if (enable != prev)
         {
             int swapInterval = enable ? 1 : 0;
@@ -7204,7 +7203,6 @@ Name_p Widget::enableVSync(Tree_p self, bool enable)
         }
     }
 #elif defined(Q_OS_LINUX)
-    prev = vsyncState;
     if (enableVSyncX11(this, enable))
         vsyncState = enable;
 #else
@@ -7220,9 +7218,12 @@ bool Widget::VSyncEnabled()
 //   Return true if vsync is enabled, false otherwise
 // ----------------------------------------------------------------------------
 {
+    bool enabled = false;
+
 #if defined(Q_OS_MACX)
     GLint old = 0;
     CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+    enabled = (old != 0);
 #elif defined(Q_OS_WIN)
     typedef int  (*get_fn_t) (void);
     static
@@ -7230,13 +7231,33 @@ bool Widget::VSyncEnabled()
     int old = 0;
     if (get_fn)
         old = get_fn();
+    enabled = (old != 0);
 #elif defined(Q_OS_LINUX)
-    return vsyncState;
-#else
-    int old = 0;
+    enabled = vsyncState;
 #endif
 
-    return (old != 0);
+    return enabled;
+}
+
+
+bool Widget::VSyncSupported()
+// ----------------------------------------------------------------------------
+//   Return true if vsync can be set (enableVSync() works), false otherwise
+// ----------------------------------------------------------------------------
+{
+    static bool supported = false, tested = false;
+    if (!tested)
+    {
+        bool prev = enableVSync(NULL, false);
+        bool f = (enableVSync(NULL, true) == XL::xl_true);
+        bool t = (enableVSync(NULL, prev) == XL::xl_true);
+        supported = (!f && t);
+        tested = true;
+        IFTRACE(displaymode)
+            std::cerr << "Setting VSync is " << (supported ? "" : "NOT ")
+                      << "supported\n";
+    }
+    return supported;
 }
 
 
@@ -12892,6 +12913,9 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
 #else
         return XL::xl_false;
 #endif
+
+    if (name->value == "vsync_ctl")
+        return VSyncSupported() ? XL::xl_true : XL::xl_false;
 
     return XL::xl_true;
 }

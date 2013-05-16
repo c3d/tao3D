@@ -292,6 +292,7 @@ void DisplayDriver::displayBackBuffer(void *)
     drawScene();
     drawSelection();
     drawActivities();
+
 }
 
 

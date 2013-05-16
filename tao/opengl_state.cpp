@@ -422,8 +422,9 @@ void OpenGLState::Sync(uint64 which)
              // undefined value of gl_Color in shaders
              glColor4fv(color.Data());
 
-             frontAmbient_isDirty = backAmbient_isDirty = true;
-             frontDiffuse_isDirty = backDiffuse_isDirty = true;
+             // As we have set materials, reset dirty flags
+             frontAmbient_isDirty = backAmbient_isDirty = false;
+             frontDiffuse_isDirty = backDiffuse_isDirty = false;
           }
           else
           {

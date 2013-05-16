@@ -382,6 +382,10 @@ macx {
     FIX_QT_REFS = ../modules/fix_qt_refs
     QMAKE_POST_LINK = $$FIX_QT_REFS "$(TARGET)" \"$$QMAKE_LIBDIR_QT\"
 }
+linux-g++* {
+    HEADERS += vsync_x11.h
+    SOURCES += vsync_x11.cpp
+}
 RESOURCES += tao.qrc
 
 # Files loaded at runtime

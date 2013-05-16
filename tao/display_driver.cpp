@@ -302,6 +302,10 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 //   multisample GL widget, but do support multisample FBOs.
 // ----------------------------------------------------------------------------
 {
+    // Save graphic state
+    GL.Sync(); // Flush current state
+    Tao::GraphicSave *save = GL.Save();
+
     BackBufferFBOParams * o = (BackBufferFBOParams *)obj;
     Q_ASSERT(obj || !"Back buffer FBO display routine received NULL object");
 
@@ -361,15 +365,18 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     GL.Disable(GL_POLYGON_OFFSET_POINT);
 
     GL.Begin(GL_QUADS);
-    glTexCoord2i( 0 , 0);
+    GL.TexCoord( 0 , 0);
     GL.Vertex   (-1, -1);
-    glTexCoord2i( 1 , 0);
+    GL.TexCoord( 1 , 0);
     GL.Vertex   ( 1, -1);
-    glTexCoord2i( 1,  1);
+    GL.TexCoord( 1,  1);
     GL.Vertex   ( 1,  1);
-    glTexCoord2i( 0,  1);
+    GL.TexCoord( 0,  1);
     GL.Vertex   (-1,  1);
     GL.End();
+
+    // Restore state
+    GL.Restore(save);
 }
 
 

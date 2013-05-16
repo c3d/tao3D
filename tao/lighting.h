@@ -120,6 +120,7 @@ struct LightId : Lighting
     LightId(uint id, bool enable);
     ~LightId();
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *where) { Draw(where); }
     uint id;
     bool enable;
     PerPixelLighting* perPixelLighting;

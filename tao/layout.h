@@ -72,7 +72,6 @@ public:
 
     // Lighting states
     uint                lightId;
-    uint64              currentLights; //Current used lights
     uint                perPixelLighting;
     uint                programId;
 

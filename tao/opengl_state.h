@@ -711,8 +711,9 @@ struct OpenGLState : GraphicState
     virtual void GenerateMipmap(GLenum target);
 
     // Lighting
-    void SetLight(GLenum light, bool active);
-    virtual void Light(GLenum light, GLenum pname, const float* params);
+    void           SetLight(GLenum light, bool active);
+    virtual void   Light(GLenum light, GLenum pname, const float* params);
+    virtual uint64 LightsMask();
 
 public:
 #define GS(type, name)                          \

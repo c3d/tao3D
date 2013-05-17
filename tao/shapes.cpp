@@ -163,7 +163,7 @@ bool Shape::setShader(Layout *where)
         if(where->perPixelLighting == where->programId)
         {
             GLint lights = GL.GetUniformLocation(where->programId, "lights");
-            GL.Uniform(lights, (int) where->currentLights);
+            GL.Uniform(lights, (int) GL.LightsMask());
 
             GLint textures = GL.GetUniformLocation(where->programId,"textures");
             GL.Uniform(textures, (int) GL.ActiveTextureUnits());

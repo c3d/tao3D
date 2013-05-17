@@ -413,7 +413,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 // ----------------------------------------------------------------------------
 {
     // Sync lighting state only if we have lights or shaders
-    if(where->currentLights || where->programId)
+    if(GL.LightsMask() || where->programId)
         GL.Sync(STATE_lights);
 
     GL.LoadMatrix();

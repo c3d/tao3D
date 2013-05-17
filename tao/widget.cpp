@@ -4834,7 +4834,6 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
-        where->currentLights = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
         where->programId = 0;
@@ -7740,12 +7739,12 @@ Integer *Widget::framePixelCount(Tree_p self, float alphaMin)
 }
 
 
-Integer_p Widget::lightsMask(Tree_p self)
+Integer_p Widget::lightsMask(Tree_p)
 // ----------------------------------------------------------------------------
 //  Return a bitmask of all current activated lights
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentLights);
+    return new Integer(GL.LightsMask());
 }
 
 
@@ -7764,11 +7763,6 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
-    if (enable)
-        layout->currentLights |= 1 << id;
-    else
-        layout->currentLights ^= 1 << id;
-
     layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;

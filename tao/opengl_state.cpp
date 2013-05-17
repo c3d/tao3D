@@ -2622,6 +2622,16 @@ void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
     }
 }
 
+
+uint64 OpenGLState::LightsMask()
+// ----------------------------------------------------------------------------
+//   Return a bitmask of enable lights
+// ----------------------------------------------------------------------------
+{
+    return lights.active;
+}
+
+
 // ============================================================================
 //
 //    LightState class

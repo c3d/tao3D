@@ -145,7 +145,6 @@ void LightId::Draw(Layout *where)
     where->lightId = GL_LIGHT0 + id;
     if (enable)
     {
-        where->currentLights |= 1 << id;
         GL.Enable(where->lightId);
         GL.Enable(GL_LIGHTING);
         glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -155,9 +154,8 @@ void LightId::Draw(Layout *where)
     }
     else
     {
-        where->currentLights ^= 1 << id;
         GL.Disable(where->lightId);
-        if(! where->currentLights)
+        if(! GL.LightsMask())
         {
             GL.Disable(GL_LIGHTING);
             GL.Disable(GL_COLOR_MATERIAL);

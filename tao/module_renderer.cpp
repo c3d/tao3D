@@ -216,7 +216,7 @@ uint ModuleRenderer::EnabledLights()
 //  Return a bitmask of all current enabled lights
 // ----------------------------------------------------------------------------
 {
-    return currentLayout->currentLights;
+    return GL.LightsMask();
 }
 
 

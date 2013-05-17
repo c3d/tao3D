@@ -111,7 +111,7 @@ void Cube::Draw(Layout *where)
     GL.VertexPointer(3, GL_DOUBLE, 0, vertices);
 
     // Set normals only if we have lights or shaders
-    if(where->currentLights || where->programId)
+    if(GL.LightsMask() || where->programId)
     {
         GL.Sync(STATE_lights);
         GL.EnableClientState(GL_NORMAL_ARRAY);
@@ -135,7 +135,7 @@ void Cube::Draw(Layout *where)
     // Disable texture coordinates after drawing
     disableTexCoord(~0ULL);
 
-    if(where->currentLights || where->programId)
+    if(GL.LightsMask() || where->programId)
         GL.DisableClientState(GL_NORMAL_ARRAY);
 
     GL.DisableClientState(GL_VERTEX_ARRAY);
@@ -163,7 +163,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     GL.VertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
 
     // Set normals only if we have lights or shaders
-    if(where->currentLights || where->programId)
+    if(GL.LightsMask() || where->programId)
     {
         GL.Sync(STATE_lights);
         GL.Enable(GL_NORMALIZE);
@@ -218,7 +218,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     disableTexCoord(~0ULL);
 
     // Disable normals
-    if (where->currentLights || where->programId)
+    if (GL.LightsMask() || where->programId)
     {
         GL.Disable(GL_NORMALIZE);
         GL.DisableClientState(GL_NORMAL_ARRAY);

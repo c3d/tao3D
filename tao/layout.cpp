@@ -52,7 +52,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      lightId(GL_LIGHT0), currentLights(0),
+      lightId(GL_LIGHT0),
       perPixelLighting(0),
       programId(0),
       planarRotation(0), planarScale(1),
@@ -78,7 +78,6 @@ LayoutState::LayoutState(const LayoutState &o)
         lineColor(o.lineColor),
         fillColor(o.fillColor),
         lightId(o.lightId),
-        currentLights(o.currentLights),
         perPixelLighting(o.perPixelLighting),
         programId(o.programId),
         planarRotation(o.planarRotation),
@@ -757,7 +756,6 @@ void LayoutState::InheritState(LayoutState *where)
     fillColor        = where->fillColor;
 
     lightId          = where->lightId;
-    currentLights    = where->currentLights;
     perPixelLighting = where->perPixelLighting;
 
     programId        = where->programId;

@@ -268,7 +268,8 @@ struct GraphicState
     virtual void GenerateMipmap(GLenum target) = 0;
 
     // Lighting
-    virtual void Light(GLenum light, GLenum pname, const float* params) = 0;
+    virtual void   Light(GLenum light, GLenum pname, const float* params) = 0;
+    virtual uint64 LightsMask() = 0;
 };
 
 TAO_END

@@ -75,7 +75,6 @@ void FrameInfo::resize(uint w, uint h)
 //   Change the size of the frame buffer used for rendering
 // ----------------------------------------------------------------------------
 {
-    GraphicSave *save = GL.Save();
     assert(QGLContext::currentContext() ||
            !"FrameInfo::resize without an OpenGL context???");
     
@@ -85,6 +84,8 @@ void FrameInfo::resize(uint w, uint h)
     
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Resize " << w << "x" << h << "\n";
+
+    GraphicSave *save = GL.Save();
 
     // Delete anything we might have
     purge();

@@ -403,6 +403,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #endif
       screenShotPath(o.screenShotPath),
       screenShotWithAlpha(o.screenShotWithAlpha),
+      activities(NULL),
 #ifdef Q_OS_LINUX
       vsyncState(false),
 #endif

@@ -196,6 +196,13 @@ base_slide Title:text, Body ->
     slide_master theme, "slide", Title, Body
 
 
+blank_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Create an empty slide
+// ----------------------------------------------------------------------------
+    slide_master theme, "blank", Title, Body
+
+
 main_title_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide showing the main title of the slide show
@@ -245,6 +252,14 @@ picture_slide Title:text, Body ->
     slide_master theme, "picture", Title,
         title
             text Title
+        picture Body
+
+
+picture_only_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Create a slide for pictures, photos, animations
+// ----------------------------------------------------------------------------
+    blank_slide Title,
         picture Body
 
 

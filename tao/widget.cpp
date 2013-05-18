@@ -10918,8 +10918,8 @@ Tree_p Widget::pushButton(Tree_p self,
 
 
 Integer* Widget::pushButtonTexture(Tree_p self,
-                                 double w, double h, Text_p name,
-                                 Text_p lbl, Tree_p act)
+                                   double w, double h, Text_p name,
+                                   Text_p lbl, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------

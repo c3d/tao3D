@@ -403,10 +403,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #endif
       screenShotPath(o.screenShotPath),
       screenShotWithAlpha(o.screenShotWithAlpha),
-      activities(NULL),
 #ifdef Q_OS_LINUX
       vsyncState(false),
 #endif
+      activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
       selection(o.selection), selectionTrees(o.selectionTrees),

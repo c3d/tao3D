@@ -178,7 +178,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false),
+      drawAllPages(false), animated(true),
       selectionRectangleEnabled(true),
       doMouseTracking(true), runningTransitionCode(false),
       stereoPlane(1), stereoPlanes(1),
@@ -2570,7 +2570,8 @@ void Widget::reset()
 // ----------------------------------------------------------------------------
 {
     resetView();
-    animated = true;
+    if (!animated)
+        taoWindow()->toggleAnimations();
     blanked = false;
     stereoIdent = false;
     pageShown = 1;       // BUG #1986

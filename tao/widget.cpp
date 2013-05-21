@@ -178,7 +178,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false),
+      drawAllPages(false), animated(true),
       selectionRectangleEnabled(true),
       doMouseTracking(true), runningTransitionCode(false),
       stereoPlane(1), stereoPlanes(1),
@@ -406,6 +406,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #ifdef Q_OS_LINUX
       vsyncState(false),
 #endif
+      activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
       selection(o.selection), selectionTrees(o.selectionTrees),
@@ -2569,7 +2570,8 @@ void Widget::reset()
 // ----------------------------------------------------------------------------
 {
     resetView();
-    animated = true;
+    if (!animated)
+        taoWindow()->toggleAnimations();
     blanked = false;
     stereoIdent = false;
     pageShown = 1;       // BUG #1986

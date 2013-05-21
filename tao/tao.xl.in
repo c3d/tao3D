@@ -101,8 +101,9 @@ main_chooser ->
     stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice tr "Toggle stereo identification", {toggle_stereo_identify}
-    chooser_choice tr "Enable VSync", {enable_vsync true}
-    chooser_choice tr "Disable VSync", {enable_vsync false}
+    if is_available vsync_ctl then
+        chooser_choice tr "Enable VSync", {enable_vsync true}
+        chooser_choice tr "Disable VSync", {enable_vsync false}
     chooser_choice tr "Reset view", {reset_view}
     chooser_choice tr "Zoom in", {zoom_in}
     chooser_choice tr "Zoom out", {zoom_out}
@@ -149,7 +150,8 @@ stereoscopy_settings ->
     if has_display_mode vsplitstereo then
         chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
     if has_display_mode alioscopy then
-        chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
+        chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy; display_set bgr := false }
+        chooser_choice tr "Enable stereoscopy (Alioscopy 4K)", {enable_stereoscopy alioscopy; display_set bgr := true}
     if has_display_mode "2dplusdepth" then
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}

@@ -37,10 +37,9 @@ PREFIX
         350     not in out constant variable const var
         360     ! ~
         370     - + * /
-        370     *** **** +++ ++++ --- ----
+        370     ** *** **** ++ +++ ++++ -- --- ----
         401     FUNCTION
         410     function procedure to type iterator
-        420     ** ++ --
         430     &
 
 POSTFIX

@@ -499,6 +499,7 @@ public:
     Name_p      enableVSync(Tree_p self, bool enable);
     double      optimalDefaultRefresh();
     bool        VSyncEnabled();
+    bool        VSyncSupported();
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
@@ -1000,6 +1001,9 @@ private:
 #endif
     QString               screenShotPath;
     bool                  screenShotWithAlpha;
+#ifdef Q_OS_LINUX
+    bool                  vsyncState;
+#endif
 
     // Selection
     Activity *            activities;
@@ -1099,6 +1103,7 @@ private:
 public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
+    static double         currentPageTimeAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);

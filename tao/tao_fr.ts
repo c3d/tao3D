@@ -258,7 +258,7 @@
         <translation>Impossible de changer le fichier de police : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1418"/>
+        <location filename="module_manager.cpp" line="1432"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
         <translation>ATTENTION : Module binaire incompatible </translation>
@@ -1356,22 +1356,22 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::ModuleManager</name>
     <message>
-        <location filename="module_manager.cpp" line="562"/>
+        <location filename="module_manager.cpp" line="563"/>
         <source>New module</source>
         <translation>Nouveau module</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="699"/>
+        <location filename="module_manager.cpp" line="700"/>
         <source>Missing ID, name or version</source>
         <translation>Identifiant, nom ou version manquant</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="704"/>
+        <location filename="module_manager.cpp" line="705"/>
         <source>Could not parse %1</source>
         <translation>Impossible de faire l&apos;analyse grammaticale de %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1331"/>
+        <location filename="module_manager.cpp" line="1332"/>
         <source>Do you want to remove the following module from the Tao configuration?
 
 Name: %1
@@ -1382,8 +1382,8 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1336"/>
-        <location filename="module_manager.cpp" line="1357"/>
+        <location filename="module_manager.cpp" line="1337"/>
+        <location filename="module_manager.cpp" line="1358"/>
         <source>
 
 Reason: %1</source>
@@ -1392,14 +1392,14 @@ Reason: %1</source>
 Cause : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1338"/>
-        <location filename="module_manager.cpp" line="1359"/>
-        <location filename="module_manager.cpp" line="1396"/>
+        <location filename="module_manager.cpp" line="1339"/>
+        <location filename="module_manager.cpp" line="1360"/>
+        <location filename="module_manager.cpp" line="1410"/>
         <source>Tao modules</source>
         <translation>Modules Tao</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1353"/>
+        <location filename="module_manager.cpp" line="1354"/>
         <source>Do you want to enable following module?
 
 Name: %1
@@ -1410,27 +1410,45 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1373"/>
+        <location filename="module_manager.cpp" line="1374"/>
         <source>WARNING: Skipping invalid module %1
 </source>
         <translation>ATTENTION : Module invalide : %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1376"/>
+        <location filename="module_manager.cpp" line="1377"/>
         <source>WARNING:   %1
 </source>
         <translation>ATTENTION:   %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1399"/>
+        <location filename="module_manager.cpp" line="1391"/>
+        <source>Warning</source>
+        <translation>Attention</translation>
+    </message>
+    <message>
+        <location filename="module_manager.cpp" line="1392"/>
+        <source>A duplicate module was found.
+
+&apos;%1&apos; and &apos;%2&apos; share the same identifier (%3), which looks suspicious.
+
+Only the second module will be loaded. You may want to change one UUID.</source>
+        <translation>Un module doublon a été détecté.
+
+&apos;%1&apos; et &apos;%2&apos; ont le même identifiant (%3), ce qui est douteux.
+
+Seul le second module sera chargé. Vous devriez sans doute changer l'UUID de l'un des deux modules.</translation>
+    </message>
+    <message>
+        <location filename="module_manager.cpp" line="1413"/>
         <source>Module %1 cannot be initialized.
 %2</source>
         <translation>Le module %1 ne peut être initalisé.%2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1405"/>
+        <location filename="module_manager.cpp" line="1419"/>
         <source>Module %1 cannot be initialized.</source>
         <translation>Le module %1 ne peut être initalisé.</translation>
     </message>
@@ -2205,37 +2223,37 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="1384"/>
+        <location filename="widget.cpp" line="1398"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1494"/>
+        <location filename="widget.cpp" line="1508"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1495"/>
+        <location filename="widget.cpp" line="1509"/>
         <source>Invalid file name. Check any % format specification and remember to use %% to insert a percent character.</source>
         <translation>Nom de fichier invalide. Vérifiez que la spécification de format (%) et utilisez %% pour insérer un caractère pourcent.</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2636"/>
+        <location filename="widget.cpp" line="2652"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2642"/>
+        <location filename="widget.cpp" line="2658"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12349"/>
+        <location filename="widget.cpp" line="12369"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12350"/>
+        <location filename="widget.cpp" line="12370"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

@@ -264,6 +264,10 @@ void DisplayDriver::displayBackBuffer(void *)
 //   Default, usual 2D rendering into OpenGL back buffer
 // ----------------------------------------------------------------------------
 {
+    // Save GL state
+    GL.Sync(); // Flush current state
+    Tao::GraphicSave* save = GL.Save();
+
     // Are we rendering to the default framebuffer, or a FBO?
     GLint fbname = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
@@ -293,6 +297,7 @@ void DisplayDriver::displayBackBuffer(void *)
     drawSelection();
     drawActivities();
 
+    GL.Restore(save);
 }
 
 

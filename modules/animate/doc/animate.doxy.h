@@ -317,58 +317,30 @@ interpolate_zangle_rt(real S, real TargetZ, real Z);
 
 /**
  * @~english
- * Compute value to be used for fade-in effects
- *
- * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
- * The @a Value argument is typically a time computed using @p page_time
- * The typical usage will be something like:
- @code
- // Fade-in for approximately 4 seconds
- show fade_in(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * Compute value to be used for fade-in effects.
+ * @deprecated Use the square bracket notations instead.
  *
  * @~french
- * Calcule une valeur utilisée pour des effets d'apparition (fade-in)
+ * Calcule une valeur utilisée pour des effets d'apparition (fade-in).
+ * @deprecated Utiliser les notations "crochets".
  *
- * Renvoie une valeur qui passe approximativement de 0.0 à 1.0 sur une
- * durée de @a Duration secondes.
- * Le paramètre @a Value est typiquement un temps basé sur @p page_time
- * Par exemple :
- @code
- // Fait apparaître le cercle en 4 secondes approximativement
- show fade_in(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * @~
+ * @see value_in_interval, page_time_in_interval
  */
 real fade_in(real Value, real Duration);
 
 
 /**
  * @~english
- * Compute value to be used for fade-out effects
- *
- * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
- * The @a Value argument is typically a time computed using @p page_time
- * The typical usage will be something like:
- @code
- // Fade-out for approximately 4 seconds
- show fade_out(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * Compute value to be used for fade-out effects.
+ * @deprecated Use the square bracket notations instead.
  *
  * @~french
- * Calcule une valeur utilisée pour des effets de disparition (fade-out)
+ * Calcule une valeur utilisée pour des effets de disparition (fade-out).
+ * @deprecated Utiliser les notations "crochets".
  *
- * Renvoie une valeur qui passe approximativement de 1.0 à 0.0 sur une
- * durée de @a Duration secondes.
- * Le paramètre @a Value est typiquement un temps basé sur @p page_time
- * Par exemple :
- @code
- // Fait disparaître le cercle en 4 secondes approximativement
- show fade_out(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * @~
+ * @see value_in_interval, page_time_in_interval
  */
 real fade_out(real Value, real Duration);
 

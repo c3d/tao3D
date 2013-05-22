@@ -42,6 +42,7 @@
 #include "../config.h"
 #include "decryption.h"
 #include "normalize.h"
+#include "demangle.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -488,9 +489,12 @@ void signal_handler(int sigid)
             
         Dl_info info;
         if (dladdr(addresses[i], &info))
+        {
+            text sname = info.dli_sname ? demangle(info.dli_sname) : "??";
             size += snprintf(buffer + size, sizeof buffer - size,
-                             "%32s [%s]",
-                             info.dli_sname, info.dli_fname);
+                             "%64s [%s]",
+                             sname.c_str(), info.dli_fname);
+        }
         if (size < sizeof buffer)
             buffer[size++] = '\n';
 

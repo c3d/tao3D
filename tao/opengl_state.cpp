@@ -3201,6 +3201,10 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
                 // Bind empty texture
                 if(ot.id) glBindTexture(ot.type, 0);
+
+                // Reset texture environment mode
+                // REVISIT: Avoid to make it each time. See #3019.
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             }
         }
         units.resize(nmax);

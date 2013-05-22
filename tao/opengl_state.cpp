@@ -317,9 +317,12 @@ void OpenGLState::Sync(uint64 which)
     SYNC(hasPixelBlur,
          // Set all units as dirty in order to apply pixel blur
          // on each texture
-         for(uint i = 0; i < textureUnits.units.size(); i++)
-             textureUnits.dirty |= 1ULL << i;
-         textureUnits_isDirty = true);
+         if(textureUnits.units.size() > 0)
+         {
+             for(uint i = 0; i < textureUnits.units.size(); i++)
+                 textureUnits.dirty |= 1ULL << i;
+             textureUnits_isDirty = true;
+         });
 
     // Current texture unit, then texture bindings - ORDER MATTERS
     SYNC(activeTexture, glActiveTexture(activeTexture));

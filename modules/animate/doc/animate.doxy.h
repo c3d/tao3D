@@ -486,91 +486,157 @@ compute_smooth_step();
 
 /**
  * @~english
- * Smooth a linear value between 0 and 1
+ * Smooth a linear value between 0 and 1.
  * This returns:
- * - 0 if T<0
- * - 1 if T>1
+ * - 0 if T < 0
+ * - 1 if T > 1
  * - 3*T^2 - 2*T^3 otherwise.
  * @~french
- * Adoucit une valeur linéaire entre 0 and 1
- * Cette fonction retourne
- * - 0 si T<0
- * - 1 si T>1
+ * Adoucit une valeur linéaire entre 0 and 1.
+ * Cette fonction retourne :
+ * - 0 si T < 0
+ * - 1 si T > 1
  * - 3*T^2 - 2*T^3 sinon.
+ * @~
+ * @since 1.02 (Tao 1.20)
  */
 smooth(real T);
 
 
 /**
  * @~english
- * Smooth a linear value between two values @p Low and @p High
- * This is equivalent to
+ * Smooth a linear value between two values @p Low and @p High.
+ * This is equivalent to:
  * @code smooth((T-Low)/(High-Low)) @endcode
  * @~french
- * Adoucit une valeur linéaire entre deux valeurs @p Low et @p High
- * Cette fonction est équivalente à
+ * Adoucit une valeur linéaire entre deux valeurs @p Low et @p High.
+ * Cette fonction est équivalente à :
  * @code smooth((T-Low)/(High-Low)) @endcode
+ * @~
+ * @since 1.02 (Tao 1.20)
  */
 smooth_betwen(real T, real Low, real High);
 
 
 /**
  * @~english
- * Return the ratio of the current time interval
+ * Return the ratio of the current interval.
+ * This value is defined only within the body of @ref value_in_interval or
+ * @ref page_time_in_interval.
  * @~french
- * Retourne le taux de complétion pour l'intervalle de temps en cours
+ * Retourne le taux de complétion pour l'intervalle en cours.
+ * Cette valeur n'est définie que dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval.
+ * @~
+ * @since 1.02 (Tao 1.20)
  */
 real ratio;
 
 
 /**
  * @~english
- * Return a decreasing ratio of the current time interval (1-ratio)
- * @see ratio
+ * Return a decreasing ratio of the current interval.
+ * When used inside the body of @ref value_in_interval or
+ * @ref page_time_in_interval, this value is is equal to:
  * @~french
- * Retourne le taux restant pour l'intervalle en cours
+ * Retourne le taux restant pour l'intervalle en cours.
+ * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval, cette valeur est égale à :
+ * @~
+ * @code
+1 - ratio
+ * @endcode
  * @see ratio
+ * @since 1.02 (Tao 1.20)
  */
 real down_ratio;
 
 
 /**
  * @~english
- * Return a smoothed version of the current interval ratio
- * @see smooth @see ratio
+ * Return a smoothed version of the current interval ratio.
+ * When used inside the body of @ref value_in_interval or
+ * @ref page_time_in_interval, this value is is equal to:
  * @~french
- * Retourne une version adoucie du taux pour l'intervalle de temps actuel
- * @see smooth @see ratio
+ * Retourne une version adoucie du taux pour l'intervalle actuel.
+ * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval, cette valeur est égale à :
+ * @~
+ * @code
+smooth ratio
+ * @endcode
+ * @see smooth, ratio
+ * @since 1.02 (Tao 1.20)
  */
 real smooth_ratio;
 
 
 /**
  * @~english
- * Return a smoothed version of the remaining interval ratio
- * @see smooth @see down_ratio
+ * Return a smoothed version of the remaining interval ratio.
+ * When used inside the body of @ref value_in_interval or
+ * @ref page_time_in_interval, this value is is equal to:
  * @~french
- * Retourne une version adoucie du taux restant pour l'intervalle en cours
- * @see smooth @see down_ratio
+ * Retourne une version adoucie du taux restant pour l'intervalle en cours.
+ * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval, cette valeur est égale à :
+ * @~
+ * @see smooth, down_ratio
+ * @since 1.02 (Tao 1.20)
  */
 real smooth_down_ratio;
 
 
 /**
  * @~english
- * Evaluate @p Body while @p Value is between @p A and @p B
- * The value of @ref ratio grows linearly between 0 and 1, and this also
- * updates derived variables @see down_ratio, @see smooth_ratio and
- * @see smooth_down_ratio
+ * Evaluate @p Body while @p Value is between @p A and @p B.
+ * The value of @ref ratio grows linearly between 0.0 (when @p Value is equal to
+ * @p A) and 1.0 (when @p Value is equal to @p B), and this also
+ * updates derived variables @ref down_ratio, @ref smooth_ratio and
+ * @ref smooth_down_ratio.
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
  *
  * @~french
- * Evalue @p Body tant que @p Value est entre @p A et @p B
- * La valeur de @ref ratio croît linéairement entre 0 et 1, et cela
- * met aussi à jour les variables dérivées @see down_ratio,
- * @see smooth_ratio and @see smooth_down_ratio
- */
+ * Evalue @p Body tant que @p Value est entre @p A et @p B.
+ * La valeur de @ref ratio croît linéairement entre 0.0 (lorsque @p Value vaut
+ * @p A) et 1.0 (lorsque @p Value vaut @p B), et cela
+ * met aussi à jour les variables dérivées @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+ * @code
+ Value in [A..B]
+     Body
+ * @endcode
+ *
+ * @~english
+ * For instance:
+ *
+ * @~french
+ * Par exemple:
+ *
+ * @~
+ * @code
+import Animate
 
-"Value:real in [A:real..B:real] Body";
+W -> window_width/3
+color "gray"
+mouse_x in [-W/2 .. 0]
+    color "gray", down_ratio
+mouse_x in [0 .. W/2]
+    color "gray", ratio
+rectangle 0, 0, W, window_height
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ */
+value_in_interval(Value:real, A:real, B:real, Body);
 
 
 /**
@@ -579,38 +645,132 @@ real smooth_down_ratio;
  * The value of @ref ratio grows linearly between 0 and 1 when
  * @p Value is between @p A and @p B, then stays at 1 until @p Value
  * reaches @p C, and then decreases linearly to 0 between @p C
- * and @p D. This also updates derived variables @see down_ratio,
- * @see smooth_ratio and @see smooth_down_ratio
+ * and @p D. This also updates derived variables @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
  *
  * @~french
  * Evalue @p Body tant que @p Value est entre @p A et @p D
  * La valeur de @ref ratio croît linéairement entre 0 et 1 quand @p
  * Value est entre @p A et @p B, puis reste à 1 entre @p B et @p C,
  * puis décroit linéairement jusqu'à 0 entre @p C et @p D. Cela
- * met aussi à jour les variables dérivées @see down_ratio,
- * @see smooth_ratio and @see smooth_down_ratio
- */
+ * met aussi à jour les variables dérivées @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+ * @code
+Value in [A..B, C..D]
+    Body
+ * @endcode
+ *
+ * @~english
+ * For instance:
+ *
+ * @~french
+ * Par exemple :
+ *
+ * @~
+ * @code
+import Animate
 
-"Value:real in [A:real..B:real] Body";
+W -> window_width/3
+mouse_x in [-W/2..-W/4, W/4..W/2]
+    color "gray", ratio
+    rectangle 0, 0, W, window_height
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ */
+value_in_intervals(Value:real, A:real, B:real, C:real, D:real, Body);
 
 /**
  * @~english
- * Shortcut for @code page_time in [A..B]
+ * Shortcut for: page_time in [A..B].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
  * @~french
- * Raccourci pour @code page_time in [A..B]
- */
+ * Raccourci pour: page_time in [A..B].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+ * @code
+[A..B]
+    Body
+ * @endcode
+ * @~english
+ * Here is an example.
+ * @~french
+ * Voici un exemple.
+ * @~
+ * @code
+import Animate
 
-"[A:real..B:real] Body";
+page "The [A..B] notation",
+    clear_color 0, 0, 0, 1
+    text_box 0, 0, window_width, window_height,
+        align_center
+        vertical_align_center
+        font "Arial", 40
+        Print 0, "The [A .. B] notation"
+        Print 2, "is"
+        Print 4, "a cool trick!"
+    text_box 0, 0, window_width-20, window_height,
+        align_right
+        vertical_align_bottom
+        font "Arial", 20
+        color "white"
+        text "Press <return> to restart"
+
+Print Time:real, T:text ->
+    after Time,
+        color "white"
+        [Time .. Time+0.5]
+            color_hsv 30, down_ratio, 1.0
+        text T
+        paragraph_break
+
+key "Return" -> goto_page page_name 1
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ * @see value_in_interval
+ */
+page_time_in_interval(A:real, B:real, Body);
 
 
 /**
  * @~english
- * Shortcut for @code page_time in [A..B, C..D]
+ * Shortcut for: page_time in [A..B, C..D].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
  * @~french
- * Raccourci pour @code page_time in [A..B, C..D]
+ * Raccourci pour: page_time in [A..B, C..D].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+ * @code
+[A..B, C..D]
+    Body
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ * @see value_in_intervals
  */
-
-"[A:real..B:real, C:real..D:real] Body";
+page_time_in_intervals(A:real, B:real, C:real, D:real, Body);
 
 /**
  * @}

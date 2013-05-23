@@ -24,7 +24,11 @@ linux-g++*:DEFINES += CONFIG_LINUX
 QMAKE_CFLAGS           += -Werror
 QMAKE_CXXFLAGS         += -Werror
 QMAKE_CXXFLAGS_DEBUG   += -ggdb
-!win32:QMAKE_CXXFLAGS_RELEASE += -ggdb
+# Mac: this will store full debug info in .o files.
+# No impact on exe size but allows full debug of release build.
+macx:QMAKE_CXXFLAGS_RELEASE += -ggdb
+# To obtain meaningful stack traces in GDB, don't strip binaries
+linux-g++*:QMAKE_STRIP = :
 
 # Avoid linker warnings with Qt >= 4.7.4
 # (Qt commit 0c4ed66e87ef6f76d5b0d67905b587c31ad03a18)

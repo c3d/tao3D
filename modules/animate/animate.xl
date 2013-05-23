@@ -28,7 +28,7 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.01
+    version 1.02
 
 module_description "fr",
     name "Animations"
@@ -279,9 +279,10 @@ page_duration Duration:real, Name:text ->
 // ----------------------------------------------------------------------------
 //   Go to the named page after the given duration
 // ----------------------------------------------------------------------------
-    scheduled_duration := Duration 
-    if page_time > Duration then 
-        goto_page Name 
+    locally
+        scheduled_duration := Duration
+        if page_time > Duration then
+            goto_page Name
 
 
 page_duration Duration:real, Page:integer ->
@@ -366,3 +367,8 @@ Value:real in [A:real .. B:real] Body ->
             Body
 
 
+// The following definitions are used in the documentation
+value_in_interval Value:real, A:real, B:real, Body -> Value in [A..B] Body
+value_in_intervals Value:real, A:real, B:real, C:real, D:real, Body -> Value in [A..B, C..D] Body
+page_time_in_interval A:real, B:real, Body -> [A..B] Body
+page_time_in_intervals A:real, B:real, C:real, D:real, Body -> [A..B, C..D] Body

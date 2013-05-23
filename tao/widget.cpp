@@ -1065,6 +1065,13 @@ bool Widget::refreshNow(QEvent *event)
         event = NULL; // Force full refresh
     }
 
+#if defined(Q_OS_WIN)
+    // #3017: after enabling or disabling quad buffer stereo on one of our
+    // machines (AMD GPU and drivers), QGLContext::currentContext() returns
+    // NULL after ~Widget has returned
+    makeCurrent();
+#endif
+
     // Redraw full scene if required
     if (!event || space->NeedRefresh(event, now))
     {
@@ -1311,6 +1318,11 @@ void Widget::runProgram()
 //   (and only twice to avoid infinite loops). For example, if the page
 //   title is translated, it may not match on the next draw. See #2060.
 {
+#if defined(Q_OS_WIN)
+    // #3017
+    makeCurrent();
+#endif
+
     runProgramOnce();
 
     IFTRACE(pages)

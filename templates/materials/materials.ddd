@@ -209,6 +209,8 @@ draw_materials ->
     locally
         translate 0, 1500, 0
         color 1.0, 0.5, 0.5, 1.0
+        material_ambient 1.0, 0.5, 0.5, 1.0
+        material_diffuse 1.0, 0.5, 0.5, 1.0
         plastic
         sphere 0, 0, 0, 500
 

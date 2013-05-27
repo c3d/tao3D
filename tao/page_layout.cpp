@@ -1141,6 +1141,9 @@ void TextSpan::Save::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     InheritState(where);
+
+    // Save GL state
+    save = GL.Save();
 }
 
 
@@ -1152,6 +1155,9 @@ void TextSpan::Restore::Draw(Layout *where)
     Vector3 offset = where->offset;
     where->InheritState(saved);
     where->offset = offset;
+
+    // Restore GL state
+    GL.Restore(saved->save);
 }
 
 

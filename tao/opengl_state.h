@@ -123,6 +123,21 @@ struct AlphaFunctionState
 };
 
 
+struct PolygonOffsetState
+// ----------------------------------------------------------------------------
+//   Represent polygon offset state
+// ----------------------------------------------------------------------------
+{
+    PolygonOffsetState(GLfloat factor, GLfloat units): factor(factor), units(units) {}
+    bool operator==(const PolygonOffsetState &o)
+    {
+        return factor == o.factor && units == o.units;
+    }
+    bool operator!=(const PolygonOffsetState &o) { return !operator==(o); }
+    GLfloat factor;
+    GLfloat units;
+};
+
 
 // ============================================================================
 //
@@ -594,6 +609,7 @@ struct OpenGLState : GraphicState
     virtual void DepthFunc(GLenum func);
     virtual void ShadeModel(GLenum mode);
     virtual void Hint(GLenum target, GLenum mode);
+    virtual void PolygonOffset(GLfloat factor, GLfloat units);
     virtual void Enable(GLenum cap);
     virtual void Disable(GLenum cap);
 

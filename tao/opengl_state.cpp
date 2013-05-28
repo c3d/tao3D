@@ -133,7 +133,7 @@ OpenGLState::OpenGLState()
 
       matrixMode(GL_MODELVIEW),
       viewport(0, 0, 0, 0), listBase(0), pointSize(1),
-      color(1,1,1,1), clearColor(0,0,0,1),
+      polygonOffset(0, 0), color(1,1,1,1), clearColor(0,0,0,1),
       frontAmbient(0.2,0.2,0.2,1.0), frontDiffuse(0.8,0.8,0.8,1.0),
       frontSpecular(0,0,0,1), frontEmission(0,0,0,1), frontShininess(0),
       backAmbient(0.2,0.2,0.2,1.0), backDiffuse(0.8,0.8,0.8,1.0),
@@ -364,6 +364,8 @@ void OpenGLState::Sync(uint64 which)
          glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
     SYNC(pointSize,
          glPointSize(pointSize));
+    SYNC(polygonOffset,
+         glPolygonOffset(polygonOffset.factor, polygonOffset.units));
     SYNC(clearColor,
          Tao::Color &c = clearColor;
          glClearColor(c.red,c.green,c.blue,c.alpha));
@@ -1520,6 +1522,17 @@ void OpenGLState::Hint(GLenum target, GLenum mode)
         glHint(target, mode);
         break;
     }
+}
+
+
+void OpenGLState::PolygonOffset(GLfloat factor, GLfloat units)
+// ----------------------------------------------------------------------------
+//   Set the scale and units used to calculate depth values
+// ----------------------------------------------------------------------------
+{
+    // Do no set polygon offset if it has not changed
+    PolygonOffsetState newPolygonOffset(factor, units);
+    CHANGE(polygonOffset, newPolygonOffset);
 }
 
 

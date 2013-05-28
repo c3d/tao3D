@@ -443,7 +443,7 @@ void Layout::PolygonOffset()
 // ----------------------------------------------------------------------------
 {
     int offset = polygonOffset++;
-    glPolygonOffset (factorBase + offset * factorIncrement,
+    GL.PolygonOffset(factorBase + offset * factorIncrement,
                      unitBase + offset * unitIncrement);
 }
 
@@ -454,7 +454,7 @@ void Layout::ClearPolygonOffset()
 // ----------------------------------------------------------------------------
 {
     polygonOffset = 0;
-    glPolygonOffset (factorBase, unitBase);
+    GL.PolygonOffset(factorBase, unitBase);
 }
 
 

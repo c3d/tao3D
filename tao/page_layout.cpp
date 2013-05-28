@@ -448,22 +448,22 @@ void PageLayout::DrawSelectionBox(TextSelect *sel,Drawing *child,coord savedY)
                 sel->selBox |= Point3(space.Right(), y, 0);
         }
 
-        glBlendFunc(GL_DST_COLOR, GL_ZERO);
+        GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = sel->textMode ? "text_selection" : "text_highlight";
         XL::Save<Point3> zeroOffset(offset, Point3());
         widget->drawSelection(this, sel->selBox, mode, 0);
         sel->selBox.Empty();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     if (sel->formulaBox.Width() > 0 && sel->formulaBox.Height() > 0)
     {
-        glBlendFunc(GL_DST_COLOR, GL_ZERO);
+         GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = "formula_highlight";
         XL::Save<Point3> zeroOffset(offset, Point3());
         widget->drawSelection(this, sel->formulaBox, mode, 0);
         sel->formulaBox.Empty();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 }
 

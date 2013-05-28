@@ -2626,6 +2626,15 @@ void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
 }
 
 
+void OpenGLState::LightModel(GLenum pname, GLuint param)
+// ----------------------------------------------------------------------------
+//   Set the lighting model parameters
+// ----------------------------------------------------------------------------
+{
+    glLightModeli(pname, param);
+}
+
+
 uint64 OpenGLState::LightsMask()
 // ----------------------------------------------------------------------------
 //   Return a bitmask of enable lights

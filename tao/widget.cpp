@@ -6563,7 +6563,7 @@ void Widget::updateStereoIdentPatterns(int nb)
         for (int i = 0; i < size; i++)
         {
             GLuint tex = stereoIdentPatterns[i].tex;
-            glDeleteTextures(1, &tex);
+            GL.DeleteTextures(1, &tex);
             IFTRACE(fileload)
                 std::cerr << "Deleted texture #" << tex
                           << " (stereo identification for viewpoint #"

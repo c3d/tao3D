@@ -147,7 +147,7 @@ void LightId::Draw(Layout *where)
     {
         GL.Enable(where->lightId);
         GL.Enable(GL_LIGHTING);
-        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+        GL.LightModel(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
         if(TaoApp->useShaderLighting)
             perPixelLighting->Draw(where);

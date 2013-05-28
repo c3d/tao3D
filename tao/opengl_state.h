@@ -713,6 +713,7 @@ struct OpenGLState : GraphicState
     // Lighting
     void           SetLight(GLenum light, bool active);
     virtual void   Light(GLenum light, GLenum pname, const float* params);
+    virtual void   LightModel(GLenum pname, GLuint param);
     virtual uint64 LightsMask();
 
 public:

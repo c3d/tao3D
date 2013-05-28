@@ -269,6 +269,7 @@ struct GraphicState
 
     // Lighting
     virtual void   Light(GLenum light, GLenum pname, const float* params) = 0;
+    virtual void   LightModel(GLenum pname, GLuint param) = 0;
     virtual uint64 LightsMask() = 0;
 };
 

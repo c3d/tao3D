@@ -257,6 +257,11 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
         if (cached->load())
         {
             insert(cached, memLRU);
+            if (GLSize < maxGLSize)
+            {
+                cached->transfer();
+                insert(cached, GL_LRU);
+            }
             printStatistics();
         }
     }
@@ -322,6 +327,12 @@ void TextureCache::reload(CachedTexture *tex)
     {
         insert(tex, memLRU);
         printStatistics();
+
+        if (GLSize > maxGLSize)
+            purgeGLMem();
+
+        tex->transfer();
+        insert(tex, GL_LRU);
     }
 }
 

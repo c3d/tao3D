@@ -104,6 +104,8 @@ struct PerPixelLighting : Lighting
     PerPixelLighting(bool enable = true);
     ~PerPixelLighting();
     virtual void Draw(Layout *where);
+    static uint PerPixelLightingShader() { return pgm->programId(); }
+
     bool enable;
     ShaderProgram* shader;
 

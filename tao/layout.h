@@ -72,7 +72,7 @@ public:
 
     // Lighting states
     uint                lightId;
-    uint                perPixelLighting;
+    bool                perPixelLighting;
     uint                programId;
 
     // Transformations

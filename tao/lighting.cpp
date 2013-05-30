@@ -74,10 +74,13 @@ PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
                 pgm = NULL;
                 failed = true;
             }
+            else
+            {
+                pgm->link();
+            }
         }
     }
-    if (pgm)
-	shader = new ShaderProgram(pgm);
+
 }
 
 
@@ -87,7 +90,7 @@ PerPixelLighting::~PerPixelLighting()
 // ----------------------------------------------------------------------------
 {
     if (shader)
-	delete shader;
+        delete shader;
 }
 
 
@@ -96,26 +99,7 @@ void PerPixelLighting::Draw(Layout *where)
 //   Enable or disable per pixel lighting
 // ----------------------------------------------------------------------------
 {
-    if(shader)
-    {
-        if(enable)
-        {
-            shader->Draw(where);
-            where->perPixelLighting = where->programId;
-        }
-        else
-        {
-            // If there is no other shaders, then deactivate it
-            if(where->perPixelLighting == where->programId)
-            {
-                where->programId = 0;
-                GL.UseProgram(0);
-            }
-
-            where->perPixelLighting = 0;
-        }
-
-    }
+    where->perPixelLighting = enable;
 }
 
 
@@ -148,9 +132,6 @@ void LightId::Draw(Layout *where)
         GL.Enable(where->lightId);
         GL.Enable(GL_LIGHTING);
         GL.LightModel(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-
-        if(TaoApp->useShaderLighting)
-            perPixelLighting->Draw(where);
     }
     else
     {

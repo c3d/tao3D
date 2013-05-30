@@ -53,7 +53,7 @@ LayoutState::LayoutState()
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
       lightId(GL_LIGHT0),
-      perPixelLighting(0),
+      perPixelLighting(TaoApp->useShaderLighting),
       programId(0),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),

@@ -152,35 +152,37 @@ bool Shape::setShader(Layout *where)
     if(where->InIdentify())
         return false;
 
-    // Activate current shader
-    GL.UseProgram(where->programId);
-
     // In order to improve performance of large and complex 3D models,
     // we use a shader based ligting (Feature #1508), which needs some
     // uniform values to have an efficient behaviour.
-    if(where->programId)
+    if(where->perPixelLighting && !where->programId && GL.LightsMask())
     {
-        if(where->perPixelLighting == where->programId)
-        {
-            GLint lights = GL.GetUniformLocation(where->programId, "lights");
-            GL.Uniform(lights, (int) GL.LightsMask());
+        GLuint programId = PerPixelLighting::PerPixelLightingShader();
+        GL.UseProgram(programId);
 
-            GLint textures = GL.GetUniformLocation(where->programId,"textures");
-            GL.Uniform(textures, (int) GL.ActiveTextureUnits());
+        GLint lights = GL.GetUniformLocation(programId, "lights");
+        GL.Uniform(lights, (int) GL.LightsMask());
 
-            GLint vendor = GL.GetUniformLocation(where->programId, "vendor");
-            GL.Uniform(vendor, (int) GL.VendorID());
+        GLint textures = GL.GetUniformLocation(programId,"textures");
+        GL.Uniform(textures, (int) GL.ActiveTextureUnits());
 
-            // Set texture units
-            GLint tex0 = GL.GetUniformLocation(where->programId, "tex0");
-            GL.Uniform(tex0, 0);
-            GLint tex1 = GL.GetUniformLocation(where->programId, "tex1");
-            GL.Uniform(tex1, 1);
-            GLint tex2 = GL.GetUniformLocation(where->programId, "tex2");
-            GL.Uniform(tex2, 2);
-            GLint tex3 = GL.GetUniformLocation(where->programId, "tex3");
-            GL.Uniform(tex3, 3);
-        }
+        GLint vendor = GL.GetUniformLocation(programId, "vendor");
+        GL.Uniform(vendor, (int) GL.VendorID());
+
+        // Set texture units
+        GLint tex0 = GL.GetUniformLocation(programId, "tex0");
+        GL.Uniform(tex0, 0);
+        GLint tex1 = GL.GetUniformLocation(programId, "tex1");
+        GL.Uniform(tex1, 1);
+        GLint tex2 = GL.GetUniformLocation(programId, "tex2");
+        GL.Uniform(tex2, 2);
+        GLint tex3 = GL.GetUniformLocation(programId, "tex3");
+        GL.Uniform(tex3, 3);
+    }
+    else
+    {
+        // Activate current shader
+        GL.UseProgram(where->programId);
     }
 
     return true;

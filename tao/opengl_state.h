@@ -688,6 +688,7 @@ struct OpenGLState : GraphicState
     virtual void DeleteTextures(uint n, GLuint *  textures);
     virtual void BindTexture(GLenum type, GLuint id);
     virtual void TexParameter(GLenum type, GLenum pname, GLint param);
+    virtual void TexUnitParameter(GLenum type, GLenum pname, GLint param);
     virtual void TexEnv(GLenum type, GLenum pname, GLint param);
     virtual void TexGen(GLenum coord, GLenum pname, GLint param);
     virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,

@@ -2247,35 +2247,59 @@ void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
 // ----------------------------------------------------------------------------
 {
     TextureState &ts = ActiveTextureState();
-    TextureUnitState &tus = ActiveTextureUnitState();
     Q_ASSERT (ts.type == type);
     switch(pname)
     {
     case GL_TEXTURE_MIN_FILTER:
         ts.minFilt = param;
-        tus.minFilt = param;  // Update min filter for future textures
         HasPixelBlur(true);   // Enable pixel blur
         break;
     case GL_TEXTURE_MAG_FILTER:
         ts.magFilt = param;
-        tus.magFilt = param;  // Update mag filter for future textures
         HasPixelBlur(true);   // Enable pixel blur
         break;
     case GL_TEXTURE_WRAP_S:
         ts.wrapS = param == GL_REPEAT;
-        tus.wrapS = ts.wrapS; // Update wrap for future textures
         break;
     case GL_TEXTURE_WRAP_T:
         ts.wrapT = param == GL_REPEAT;
-        tus.wrapT = ts.wrapT; // Update wrap for future textures
         break;
     case GL_TEXTURE_WRAP_R:
         ts.wrapR = param == GL_REPEAT;
-        tus.wrapR = ts.wrapR; // Update wrap for future textures
         break;
     default:
         Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
         glTexParameteri(type, pname, param);
+    }
+}
+
+
+void OpenGLState::TexUnitParameter(GLenum /*type*/, GLenum pname, GLint param)
+// ----------------------------------------------------------------------------
+//   Change parameters for a texture unit.
+//   This function is specific to Tao to assure compatibility
+//   with XL language, Refs #2953.
+// ----------------------------------------------------------------------------
+{
+    TextureUnitState &tus = ActiveTextureUnitState();
+    switch(pname)
+    {
+    case GL_TEXTURE_MIN_FILTER:
+        tus.minFilt = param;  // Update min filter for future textures
+        break;
+    case GL_TEXTURE_MAG_FILTER:
+        tus.magFilt = param;  // Update mag filter for future textures
+        break;
+    case GL_TEXTURE_WRAP_S:
+        tus.wrapS = param == GL_REPEAT; // Update wrap for future textures
+        break;
+    case GL_TEXTURE_WRAP_T:
+        tus.wrapT = param == GL_REPEAT; // Update wrap for future textures
+        break;
+    case GL_TEXTURE_WRAP_R:
+        tus.wrapR = param == GL_REPEAT; // Update wrap for future textures
+        break;
+    default: break;
     }
 }
 
@@ -2337,7 +2361,6 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
                            width, height, border, imgSize, data);
     TextureSize(width, height);
 }
-
 
 
 void OpenGLState::TexImage3D(GLenum target, GLint level, GLint internalformat,

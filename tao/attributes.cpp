@@ -140,10 +140,14 @@ void TextureWrap::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
-    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                    s ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                    t ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+    GLenum wrapS = s ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+    GLenum wrapT = t ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 }
 
 
@@ -174,6 +178,7 @@ void TextureMinFilter::Draw(Layout *where)
         filter = GL_LINEAR;
     }
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
 
 
@@ -184,6 +189,7 @@ void TextureMagFilter::Draw(Layout *where)
 {
     (void) where;
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 }
 
 

@@ -279,9 +279,10 @@ page_duration Duration:real, Name:text ->
 // ----------------------------------------------------------------------------
 //   Go to the named page after the given duration
 // ----------------------------------------------------------------------------
-    scheduled_duration := Duration 
-    if page_time > Duration then 
-        goto_page Name 
+    locally
+        scheduled_duration := Duration
+        if page_time > Duration then
+            goto_page Name
 
 
 page_duration Duration:real, Page:integer ->

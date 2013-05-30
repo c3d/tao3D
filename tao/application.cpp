@@ -233,15 +233,18 @@ void Application::deferredInit()
     }
 
     QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV);
+    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
+    QString creativity = QString("Tao Presentations Creativity %1").arg(GITREV);
 #ifdef TAO_PLAYER
     QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV);
-    if (Licenses::Has(+playerPro) || Licenses::Has(+designPro))
+    if (Licenses::Has(+playerPro) || Licenses::Has(+designPro) ||
+        Licenses::Has(+impress) || Licenses::Has(+creativity))
         edition = Application::PlayerPro;
     else
         edition = Application::Player;
 #else
-    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
-    if (Licenses::Has(+designPro) || Licenses::Has(+impress))
+    if (Licenses::Has(+designPro) || Licenses::Has(+impress) ||
+        Licenses::Has(+creativity))
         edition = Application::DesignPro;
     else
         edition = Application::Design;

@@ -95,22 +95,18 @@ Tree *Renormalize::DoInfix(Infix *what)
     {
         if (Infix *il = left->AsInfix())
         {
-            if (il->name == "\n" || il->name == ";")
+            if (il->name == what->name)
             {
                 // Loop on the right to find where we want to attach
                 Infix *last = il->LastStatement();
 
-                // Build the top tree of the result
-                result = new Infix(what->name, il->left, il->right,
-                                   what->Position());
-
-                // Disconnect what we had on the left, now useless
-                il->left = NULL;
-                il->right = NULL;
-
                 // Connect the bottom of what we had on the left
                 last->right = new Infix(what->name, last->right, right,
                                         what->Position());
+
+                // Build the top tree of the result
+                result = new Infix(what->name, il->left, il->right,
+                                   what->Position());
             }
         }
     }

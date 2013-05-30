@@ -508,6 +508,7 @@ public:
     Name_p      enableVSync(Tree_p self, bool enable);
     double      optimalDefaultRefresh();
     bool        VSyncEnabled();
+    bool        VSyncSupported();
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
@@ -1010,6 +1011,9 @@ private:
 #endif
     QString               screenShotPath;
     bool                  screenShotWithAlpha;
+#ifdef Q_OS_LINUX
+    bool                  vsyncState;
+#endif
 
     // Selection
     Activity *            activities;

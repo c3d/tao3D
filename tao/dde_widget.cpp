@@ -90,13 +90,19 @@ bool DDEWidget::ddeInitiate(MSG* message, long* result)
         bool ok;
         ok = (::GlobalGetAtomNameW(appAtom, atomName, _MAX_PATH-1) != 0);
         Q_ASSERT(ok);
-        ok = (::GlobalAddAtomW(atomName) == appAtom);
+        if (ok)
+            ok = (::GlobalAddAtomW(atomName) == appAtom);
         Q_ASSERT(ok);
-        ok = (::GlobalGetAtomNameW(systemTopicAtom, atomName, _MAX_PATH-1)
-              != 0);
+        if (ok)
+            ok = (::GlobalGetAtomNameW(systemTopicAtom, atomName, _MAX_PATH-1)
+                  != 0);
         Q_ASSERT(ok);
-        ok = (::GlobalAddAtomW(atomName) == systemTopicAtom);
+        if (ok)
+            ok = (::GlobalAddAtomW(atomName) == systemTopicAtom);
         Q_ASSERT(ok);
+
+        if (!ok)
+            return false;
 
         // send the WM_DDE_ACK (caller will delete duplicate atoms)
         ::SendMessage((HWND)message->wParam, WM_DDE_ACK, (WPARAM)winId(),
@@ -120,6 +126,8 @@ bool DDEWidget::ddeExecute(MSG* message, long* result)
     ok = (::UnpackDDElParam(WM_DDE_EXECUTE, message->lParam, &unused,
                             (UINT_PTR*)&hData) != 0);
     Q_ASSERT(ok);
+    if (!ok)
+        return false;
 
     QString command = QString::fromWCharArray((LPCWSTR)::GlobalLock(hData));
     ::GlobalUnlock(hData);

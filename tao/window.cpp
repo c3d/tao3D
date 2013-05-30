@@ -1545,6 +1545,7 @@ void Window::onlineDoc()
 }
 
 
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
 void Window::tutorialsPage()
 // ----------------------------------------------------------------------------
 //    Open the tutorials page on the web
@@ -1553,6 +1554,7 @@ void Window::tutorialsPage()
     QString url(tr("http://taodyne.com/taopresentations/1.0/tutorials/"));
     QDesktopServices::openUrl(url);
  }
+#endif
 
 
 void Window::documentWasModified()
@@ -1799,9 +1801,11 @@ void Window::createActions()
         connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
     }
 
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
     tutorialsPageAct->setObjectName("tutorialsPage");
     connect(tutorialsPageAct, SIGNAL(triggered()), this,SLOT(tutorialsPage()));
+#endif
 
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
@@ -1968,7 +1972,11 @@ void Window::createMenus()
     helpMenu->addAction(licensesAct);
     if (onlineDocAct)
         helpMenu->addAction(onlineDocAct);
+#if defined(TAO_PLAYER) && defined(CFG_NONETWORK)
+    // A player with no download capabilities has no need for a tutorials menu
+#else
     helpMenu->addAction(tutorialsPageAct);
+#endif
 
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
     ExamplesMenu * themesMenu = NULL;

@@ -195,7 +195,9 @@ private slots:
     void preferences();
     void licenses();
     void onlineDoc();
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     void tutorialsPage();
+#endif
     void documentWasModified();
     void displayModeTriggered(bool on);
 #ifdef CFG_TIMED_FULLSCREEN
@@ -315,7 +317,9 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     QAction          *tutorialsPageAct;
+#endif
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

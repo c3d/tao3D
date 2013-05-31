@@ -45,6 +45,9 @@ struct Main : public XL::Main
         MAIN = this;
     }
 
+    virtual int  LoadFile(text file, bool updateContext = false,
+                          XL::Context *importContext=0,
+                          XL::Symbols *importSymbols=0);
     virtual text SearchFile(text input);
     virtual bool Refresh(double delay);
     virtual text Decrypt(text input);

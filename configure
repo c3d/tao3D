@@ -20,15 +20,7 @@ usage() {
   echo "Options:"
   echo ""
   echo "  --debug         Build in debug mode (default is release)"
-  echo "  --with-lic      Generate temporary (120-days) license for the application."
-  echo "                    o If edition name is empty or 'discovery', this option does"
-  echo "                      not apply (will give an error). Otherwise it will create"
-  echo "                      a temporary license for the specified Tao edition (but not"
-  echo "                      for modules)."
-  echo "                    o If edition name is 'creativity', 'impress' or 'internal', "
-  echo "                      this option is implicitely enabled."
-  echo "  --with-modlic   Generate temporary (120-days) licenses for modules. This is the"
-  echo "                  default when edition name is 'internal'."
+  echo "  --with-modlic   Generate temporary (120-days) licenses for all licensed modules."
   echo "  --silent        Ignored."
   echo "  --verbose       Show all commands spawned by make (do not add CONFIG+=silent)."
   echo "  --disable-doc   Do not build documentation."
@@ -41,39 +33,36 @@ usage() {
   echo ""
   echo "Edition Name:"
   echo ""
-  echo "  discovery"
-  echo "  creativity"
-  echo "  impress"
-  echo "  <empty>     Configure for the unified edition of Tao Presentations, that is: "
-  echo "              Discovery + Creativity + Impress."
+  echo "  design"
+  echo "  <empty>     Configure for Tao Presentations Design and Design Pro."
   echo "              Edition is determined at run time, depending on the available licenses:"
-  echo "                - 'Tao Presentations Impress <version>'    => Impress"
-  echo "                - 'Tao Presentations Creativity <version>' => Creativity"
-  echo "                - none of the above                        => Discovery"
+  echo "                - 'Tao Presentations Design Pro <version>' => Design Pro"
+  echo "                - 'Tao Presentations Impress <version>'    => Design Pro (compatibility)"
+  echo "                - none of the above                        => Design"
   echo "              All default modules except autostereoscopic displays are built and"
   echo "              packaged, with no license. No application license is bundled."
-  echo "              If edition name is 'creativity' or 'impress',"
-  echo "              a 2-month license is generated for this edition (useful for testing)."
-  echo "              ** Discovery is an evaluation/demo version."
+  echo "              ** Design is an evaluation/demo version."
   echo "                - It shows a watermark (Taodyne logo in the corner)."
   echo "                - It shows a 'Buy' reminder on exit."
-  echo "              ** Creativity is the intermediate version. No 'Buy' reminder, and no"
-  echo "                 watermark unless an unlicensed module is used."
-  echo "              ** Impress allows many modules to work without explicit license."
-  echo "  player      Configure for Tao Presentations Player. A stripped-down version of the"
+  echo "              ** Design Pro allows many modules to work without explicit license."
+  echo "  player      Configure for the Tao Presentations Player and Player Pro."
+  echo "              A stripped-down version of the"
   echo "              regular build, with no template, no documentation, no SDK, and some"
   echo "              limitations (see compile options). VLC is not packaged, it may be"
   echo "              installed separately."
-  echo "              Two licenses are checked at run time: '...Impress...' and '...Player...'."
-  echo "              If either is available, most modules are unlocked, watermark is disabled,"
-  echo "              and no 'Buy' reminder is shown." 
+  echo "              Edition is determined at run time, depending on the available licenses:"
+  echo "                - 'Tao Presentations Player Pro <version>' => Player Pro"
+  echo "                - otherwise                                => Player"
+  echo "              ** Player is an evaluation/demo version."
+  echo "                - It shows a watermark (Taodyne logo in the corner)."
+  echo "                - It shows a 'Buy' reminder on exit."
+  echo "              ** Player Pro removes the watermark if the document is signed by Design Pro."
   echo "  youactive   Configure for Tao Presentations YouActive. Same as the regular (\"unified\")"
   echo "              build, but includes additional modules used in the YouActive solution (DIP)."
   echo "  internal    Configure for an internal build with most features enabled (including"
   echo "              the less stable ones, not shipped with official Tao editions)".
-  echo "              - All default modules are built and packaged, with 120-day licenses."
-  echo "              - Application license is valid for 120 days:"
-  echo "                'Tao Presentations Internal <version>.*'"
+  echo "                - This build checks the 'Design Pro' license"
+  echo "                - All default modules are built and packaged, with 120-day licenses."
   echo ""
   echo "QMake options:"
   echo ""
@@ -83,12 +72,10 @@ usage() {
   echo "Examples:"
   echo ""
   echo "  ./configure"
-  echo "              Configure for the Discovery + Creativity + Impress unified build, in"
-  echo "              release mode. './configure discovery' is equivalent."
-  echo "  ./configure creativity"
-  echo "              Unified build with test license enabling Creativity."
-  echo "  ./configure --debug impress"
-  echo "              Unified build with test license enabling Impress (debug build)."
+  echo "              Configure for the Design + Design Pro unfied build, in"
+  echo "              release mode. './configure design' is equivalent."
+  echo "  ./configure --debug designpro"
+  echo "              Unified build with test license enabling Design Pro (debug build)."
   echo "  ./configure modules+=+some_module"
   echo "              Add module some_module to the modules normally selected"
   echo "              for the unified edition. Note the two + signs, before and after"
@@ -115,13 +102,8 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS CONFIG-=release"
       shift
       ;;
-    --with-lic*)
-      with_lic=1
-      shift
-      ;;
     --with-modlic*)
       with_modlic=1
-      FLAGS="$FLAGS SIGN_MODULE_LICENSES=1"
       shift
       ;;
     --silent)
@@ -147,18 +129,7 @@ while [ $# -ne 0 ] ; do
       with_ccache=1
       shift
       ;;
-    discovery)
-      EDITION="Discovery"
-      shift ; done=1
-      ;;
-    creativity)
-      EDITION="Creativity"
-      with_lic=1
-      shift ; done=1
-      ;;
-    impress)
-      EDITION="Impress"
-      with_lic=1
+    design)
       shift ; done=1
       ;;
     player)
@@ -178,8 +149,8 @@ while [ $# -ne 0 ] ; do
       shift ; done=1
       ;;
     internal)
-      EDITION="Internal"
-      with_lic=1
+      EDITION=Internal
+      with_modlic=1
       shift ; done=1
       ;;
     *)
@@ -191,28 +162,7 @@ done
 
 # Process what was given
 
-if [ -z "$EDITION" -a "$with_lic" ] ; then
-  echo "Error: edition name is required for --with-lic" >&2
-  exit 1
-fi
-
-[ "$with_lic" -o "$with_modlic" ] && FLAGS="$FLAGS LICENSE_VALIDITY=120"
-
-# Make the edition string available to project files:
-# - Set SIGN_APP_LICENSE to the edition name to generate a license
-# - Set TAO_EDITION to empty for unified build, edition name otherwise
-if [ "$EDITION" ] ; then
-  case "$EDITION" in
-    Discovery|Creativity|Impress)
-      ;;
-    *)
-      FLAGS="$FLAGS TAO_EDITION=$EDITION"
-      ;;
-  esac
-  if [ "$with_lic" ] ; then
-    FLAGS="$FLAGS SIGN_APP_LICENSE=$EDITION"
-  fi
-fi
+[ "$with_modlic" ] && FLAGS="$FLAGS SIGN_MODULE_LICENSES=1 LICENSE_VALIDITY=120"
 
 if [ "$EDITION" = "Internal" ] ; then
   :

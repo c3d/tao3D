@@ -20,3 +20,6 @@ OTHER_FILES += guess_game.ddd \
     guess_game.png \
     images/France.svg \
     images/UnitedKingdom.svg
+
+SIGN_XL_SOURCES = guess_game.ddd
+include(../sign_template.pri)

@@ -42,18 +42,15 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 {
     // Read license info
     QString s;
-    if (!Application::isDiscovery())
+    QString name = +Licenses::Name();
+    QString company = +Licenses::Company();
+    if (name != "" || company != "")
     {
-        QString name = +Licenses::Name();
-        QString company = +Licenses::Company();
-        if (name != "" || company != "")
-        {
-            s = QString("<font color=\"" TEXT_COLOR "\">%1</font>")
+        s = QString("<font color=\"" TEXT_COLOR "\">%1</font>")
                 .arg(QString("<b>%1</b><br>%2<br>%3")
                      .arg(tr("This product is licensed to:"))
                      .arg(name).arg(company));
-            licensedTo.setHtml(s);
-        }
+        licensedTo.setHtml(s);
     }
 
     setMask(QPixmap(":/images/splash.png").mask());

@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/rising_text/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = rising_text.ddd rising_text.xl
+include(../sign_template.pri)

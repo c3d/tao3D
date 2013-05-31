@@ -12,3 +12,6 @@ files.path  = $$APPINST/templates/blank
 files.files = template.ini blank.ddd blank.png
 
 INSTALLS += files
+
+SIGN_XL_SOURCES = blank.ddd
+include(../sign_template.pri)

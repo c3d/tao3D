@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/filters/images
 images.files = images/*
  
 INSTALLS += files images
+
+SIGN_XL_SOURCES = filters.ddd
+include(../sign_template.pri)

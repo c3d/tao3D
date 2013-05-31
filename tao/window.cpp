@@ -60,6 +60,9 @@
 #include "examples_menu.h"
 #include "texture_cache.h"
 #include "update_application.h"
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+#include "document_signature.h"
+#endif
 
 #include <iostream>
 #include <sstream>
@@ -790,7 +793,6 @@ void Window::consolidate()
 
 }
 
-
 bool Window::saveFile(const QString &fileName)
 // ----------------------------------------------------------------------------
 //   Save a file with a given name
@@ -839,6 +841,19 @@ bool Window::saveFile(const QString &fileName)
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
+
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+    // Save should keep the signatures valid if they where valid
+    // before the document was modified.
+    if (TaoApp->edition == Application::DesignPro)
+    {
+        XL::SourceFile &sf = xlRuntime->files[+fileName];
+        SignatureInfo *si = sf.GetInfo<SignatureInfo>();
+        if (si)
+            signDocument(+fileName);
+    }
+#endif
+
     // Will update recent file list since file now exists
     setCurrentFile(fileName);
 
@@ -876,6 +891,35 @@ bool Window::saveFile(const QString &fileName)
 }
 
 #endif
+
+
+#ifndef CFG_NO_DOC_SIGNATURE
+#ifndef TAO_PLAYER
+void Window::signDocument(text path)
+// ----------------------------------------------------------------------------
+//   Sign all the user files used by the document (or only the main .ddd file)
+// ----------------------------------------------------------------------------
+{
+    showMessage(tr("Writing signature..."));
+    QString err = taoWidget->signDocument(path);
+    if (!err.isEmpty())
+    {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("Cannot save document signature: \n%1.")
+                             .arg(err));
+    }
+}
+#endif
+
+bool Window::isDocumentSigned()
+// ----------------------------------------------------------------------------
+//   Document signature status
+// ----------------------------------------------------------------------------
+{
+    return taoWidget->isDocSigned();
+}
+#endif
+
 
 void Window::openRecentFile()
 // ----------------------------------------------------------------------------
@@ -1501,6 +1545,7 @@ void Window::onlineDoc()
 }
 
 
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
 void Window::tutorialsPage()
 // ----------------------------------------------------------------------------
 //    Open the tutorials page on the web
@@ -1509,6 +1554,7 @@ void Window::tutorialsPage()
     QString url(tr("http://taodyne.com/taopresentations/1.0/tutorials/"));
     QDesktopServices::openUrl(url);
  }
+#endif
 
 
 void Window::documentWasModified()
@@ -1610,6 +1656,15 @@ void Window::createActions()
     saveFontsAct = new QAction(tr("Save fonts"), this);
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+    signDocumentAct = new QAction(tr("Sign Document for Player Pro Edition"),
+                                  this);
+    signDocumentAct->setObjectName("signDocument");
+    connect(signDocumentAct, SIGNAL(triggered()),
+            this, SLOT(signDocument()));
+    signDocumentAct->setEnabled(TaoApp->edition == Application::DesignPro);
+#endif
 #endif
 
     renderToFileAct = new QAction(tr("&Render to files..."), this);
@@ -1746,9 +1801,11 @@ void Window::createActions()
         connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
     }
 
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
     tutorialsPageAct->setObjectName("tutorialsPage");
     connect(tutorialsPageAct, SIGNAL(triggered()), this,SLOT(tutorialsPage()));
+#endif
 
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
@@ -1846,6 +1903,9 @@ void Window::createMenus()
 #if 0
     fileMenu->addAction(consolidateAct);
 #endif
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+    fileMenu->addAction(signDocumentAct);
+#endif
 #endif
     fileMenu->addSeparator();
     fileMenu->addAction(renderToFileAct);
@@ -1912,7 +1972,11 @@ void Window::createMenus()
     helpMenu->addAction(licensesAct);
     if (onlineDocAct)
         helpMenu->addAction(onlineDocAct);
+#if defined(TAO_PLAYER) && defined(CFG_NONETWORK)
+    // A player with no download capabilities has no need for a tutorials menu
+#else
     helpMenu->addAction(tutorialsPageAct);
+#endif
 
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
     ExamplesMenu * themesMenu = NULL;
@@ -2804,6 +2868,12 @@ void Window::setCurrentFile(const QString &fileName)
 
     // Disable close menu if document is the default one
     closeAct->setEnabled(!isTutorial(curFile));
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+    bool show = !isReadOnly &&
+                !curFile.startsWith(Application::applicationDirPath()) &&
+                 TaoApp->edition == Application::DesignPro;
+    signDocumentAct->setEnabled(show);
+#endif
 
     // Update the recent file list
     if (!isUntitled && !isTutorial(curFile) && fi.exists())

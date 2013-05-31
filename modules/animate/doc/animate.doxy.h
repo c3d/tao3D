@@ -691,7 +691,7 @@ value_in_intervals(Value:real, A:real, B:real, C:real, D:real, Body);
      Body
  * @endcode
  *
- * @since 1.03 (Tao 1.21)
+ * @since 1.03 (Tao 1.30)
  */
 value_in_interval_or_greater(Value:real, A:real, B:real, Body);
 
@@ -735,7 +735,7 @@ Square X:real, S:real -> rectangle X*window_width/4, 0, 100*S, 100*S
 
 key "Return" -> goto_page page_name 1
  * @endcode
- * @since 1.03 (Tao 1.21)
+ * @since 1.03 (Tao 1.30)
  * @see value_in_interval_or_greater
  */
 page_time_in_interval_or_greater(A:real, B:real, Body);

@@ -47,12 +47,15 @@ struct Color
         return *this;
     }
 
-    bool operator==(const Color &o)
+    bool operator ==(const Color& o)
     {
-        return red==o.red && green==o.green && blue==o.blue && alpha==o.alpha;
+        return (red   == o.red    &&
+                blue  == o.blue  &&
+                green == o.green &&
+                alpha == o.alpha);
     }
 
-    bool operator!=(const Color &o)
+    bool operator !=(const Color& o)
     {
         return !operator==(o);
     }

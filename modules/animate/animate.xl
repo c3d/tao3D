@@ -28,7 +28,7 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.004
+    version 1.02
 
 module_description "fr",
     name "Animations"
@@ -279,9 +279,10 @@ page_duration Duration:real, Name:text ->
 // ----------------------------------------------------------------------------
 //   Go to the named page after the given duration
 // ----------------------------------------------------------------------------
-    scheduled_duration := Duration 
-    if page_time > Duration then 
-        goto_page Name 
+    locally
+        scheduled_duration := Duration
+        if page_time > Duration then
+            goto_page Name
 
 
 page_duration Duration:real, Page:integer ->
@@ -296,3 +297,78 @@ page_duration Duration:real ->
 //   Go to the next page after the given duration
 // ----------------------------------------------------------------------------
     page_duration Duration, page_number + 1 
+
+
+
+// ============================================================================
+// 
+//   Specifying something that happens at a given time
+// 
+// ============================================================================
+
+smooth T:real     -> if T < 0 then 0 else if T > 1 then 1 else T^2 * (3 - 2*T)
+smooth_between T:real, Low:real, High:real -> smooth (T - Low) / (High - Low)
+
+ratio             -> 0.0
+down_ratio        -> 1 - ratio
+smooth_ratio      -> smooth ratio
+smooth_down_ratio -> 1 - smooth_ratio
+
+
+[A:real..B:real, C:real..D:real] Body ->
+// ----------------------------------------------------------------------------
+//   Evaluate something during the given intervals
+// ----------------------------------------------------------------------------
+    if page_time in A..D then
+        [A..B]
+            true
+            Body
+        [B..C]
+            ratio := 1
+            Body
+        [C..D]
+            ratio := 1-ratio
+            Body
+
+
+[A:real .. B:real] Body ->
+// ----------------------------------------------------------------------------
+//    Evaluate Body between page times A and B
+// ----------------------------------------------------------------------------
+    if page_time in A..B then
+        if B > A then
+            ratio := (page_time - A) / (B-A)
+            Body
+
+
+Value:real in [A:real..B:real, C:real..D:real] Body ->
+// ----------------------------------------------------------------------------
+//   Evaluate something during the given intervals
+// ----------------------------------------------------------------------------
+    if Value in A..D then
+        Value in [A..B]
+            true
+            Body
+        Value in [B..C]
+            ratio := 1
+            Body
+        Value in [C..D]
+            ratio := 1-ratio
+            Body
+
+
+Value:real in [A:real .. B:real] Body ->
+// ----------------------------------------------------------------------------
+//    Evaluate Body between page times A and B
+// ----------------------------------------------------------------------------
+    if Value in A..B then
+        if B > A then
+            ratio := (Value - A) / (B-A)
+            Body
+
+
+// The following definitions are used in the documentation
+value_in_interval Value:real, A:real, B:real, Body -> Value in [A..B] Body
+value_in_intervals Value:real, A:real, B:real, C:real, D:real, Body -> Value in [A..B, C..D] Body
+page_time_in_interval A:real, B:real, Body -> [A..B] Body
+page_time_in_intervals A:real, B:real, C:real, D:real, Body -> [A..B, C..D] Body

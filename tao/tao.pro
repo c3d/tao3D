@@ -82,6 +82,7 @@ HEADERS +=     activity.h \
     gl_keepers.h \
     glyph_cache.h \
     group_layout.h \
+    http_ua.h \
     info_trash_can.h \
     init_cleanup.h \
     inspectordialog.h \
@@ -165,6 +166,7 @@ SOURCES +=     activity.cpp \
     gl_keepers.cpp \
     glyph_cache.cpp \
     group_layout.cpp \
+    http_ua.cpp \
     info_trash_can.cpp \
     init_cleanup.cpp \
     inspectordialog.cpp \
@@ -350,6 +352,16 @@ contains(DEFINES, CFG_NO_QTWEBKIT) {
 } else {
     QT += webkit
 }
+contains(DEFINES, CFG_NO_LICENSE_DOWNLOAD) {
+    !build_pass:message("[CFG_NO_LICENSE_DOWNLOAD] License download is disabled")
+} else {
+    HEADERS += \
+        license_download.h \
+        login_dialog.h
+    SOURCES += \
+        license_download.cpp \
+        login_dialog.cpp
+}
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
@@ -375,6 +387,10 @@ macx {
     # they may clash
     FIX_QT_REFS = ../modules/fix_qt_refs
     QMAKE_POST_LINK = $$FIX_QT_REFS "$(TARGET)" \"$$QMAKE_LIBDIR_QT\"
+}
+linux-g++* {
+    HEADERS += vsync_x11.h
+    SOURCES += vsync_x11.cpp
 }
 RESOURCES += tao.qrc
 

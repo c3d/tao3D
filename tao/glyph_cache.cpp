@@ -26,6 +26,7 @@
 #include "tao_utf8.h"
 #include "path3d.h"
 #include "tao_gl.h"
+#include "save.h"
 #include <QFontMetricsF>
 
 TAO_BEGIN
@@ -72,18 +73,17 @@ PerFontGlyphCache::~PerFontGlyphCache()
         GlyphEntry &e = (*ci).second;
         if (e.interior)
             GL.DeleteLists(e.interior, 1);
-        GlyphEntry::OutlineMap::iterator it;
-        for (it = e.outlines.begin(); it != e.outlines.end(); it++)
-            GL.DeleteLists((*it).second, 1);
+        if (e.outline)
+            GL.DeleteLists(e.outline, 1);
+
     }
     for (TextMap::iterator ti = texts.begin(); ti != texts.end(); ti++)
     {
         GlyphEntry &e = (*ti).second;
         if (e.interior)
             GL.DeleteLists(e.interior, 1);
-        GlyphEntry::OutlineMap::iterator it;
-        for (it = e.outlines.begin(); it != e.outlines.end(); it++)
-            GL.DeleteLists((*it).second, 1);
+        if (e.outline)
+            GL.DeleteLists(e.outline, 1);
     }
 }
 
@@ -161,7 +161,8 @@ GlyphCache::GlyphCache()
       antiAliasMargin(3),
       texUnits(1),              // Default is texture unit 0 only
       lastFont(NULL),
-      GLcontext(QGLContext::currentContext())
+      GLcontext(QGLContext::currentContext()),
+      layout(NULL)
 {
     image.fill(0);
 }
@@ -195,17 +196,18 @@ void GlyphCache::Clear()
 }
 
 
-void GlyphCache::CheckTextureUnits(uint64 texUnits)
+void GlyphCache::CheckActiveLayout(Layout *where)
 // ----------------------------------------------------------------------------
-//   Check if we use more texture units. If so, need to re-emit texture coords
+//   Check if changes in the layout require us to clear the cache
 // ----------------------------------------------------------------------------
 {
     // Check if there are new texture units active compared to what we had
-    if (texUnits & ~this->texUnits)
+    if(GL.ActiveTextureUnits() & ~this->texUnits)
     {
         Clear();
-        this->texUnits |= texUnits;
+        this->texUnits |= GL.ActiveTextureUnits();
     }
+    layout = where;
 }
 
 
@@ -319,21 +321,26 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
-        uint width = ceil(bounds.width());
-        uint height = ceil(bounds.height());
+        bx = bounds.x();
+        by = bounds.y();
+        bw = bounds.width();
+        bh = bounds.height();
+        uint width = ceil(bw);
+        uint height = ceil(bh);
 
         // Allocate a rectangle where we will put the texture (may resize us)
         BinPacker::Rect rect;
         Allocate(width + 2*aam, height + 2*aam, rect);
 
         // Record glyph information in the entry
-        entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
-                           bounds.width()/fs, bounds.height()/fs);
+        entry.bounds = Box(bx/fs, by/fs, bw/fs, bh/fs);
         entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qc) / fs;
-        entry.interior = 0;
-        entry.outlines.clear();
         entry.scalingFactor = fs;
+        entry.interior = 0;
+        entry.outline = 0;
+        entry.outlineWidth = 1.0;
+        entry.outlineDepth = 0.0;
 
         // Store the new entry
         perFont->Insert(code, entry);
@@ -359,7 +366,8 @@ bool GlyphCache::Find(const QFont &font,
         painter.drawRect(QRectF(x+bounds.x(), y+bounds.y(), 1, 1));
 
         painter.setPen(QColor(255, 0, 0, 80));
-        painter.drawRect(QRectF(rect.x1, rect.y1, rect.x2-rect.x1, rect.y2-rect.y1));
+        painter.drawRect(QRectF(rect.x1, rect.y1,
+                                rect.x2-rect.x1, rect.y2-rect.y1));
 #endif
 
         painter.end();
@@ -371,57 +379,100 @@ bool GlyphCache::Find(const QFont &font,
     // Line width should remain identical even if we scale the font
     lineWidth /= font.pointSizeF() / perFont->baseSize;
 
-    // Check if we want OpenGL display lists
-    if ((interior && !entry.interior) ||
-        (lineWidth > 0 && (!entry.outlines.count(lineWidth))))
+    // Check if we want OpenGL display lists:
+    // - If the line width is unknown yet
+    // - If there is depth and anything impacting it changed
+    scale extra = 0;
+    if (layout)
     {
-        // Reset font to original size
-        QFont scaled(font);
-        scaled.setPointSizeF(perFont->baseSize);
-
-        // Draw glyph into a path
-        QPainterPath qtPath;
-        GraphicPath path;
-
-        qtPath.addText(0, 0, scaled, QString(QChar(code)));
-        path.addQtPath(qtPath, -1);
-        if (interior)
+        scale depth = layout->extrudeDepth;
+        scale radius = layout->extrudeRadius;
+        uint  outlineCount = layout->extrudeCount;
+        bool  widthChange = entry.outlineWidth != lineWidth;
+        bool  depthChange = entry.outlineDepth != depth;
+        bool  radiusChange = entry.outlineRadius != radius;
+        bool  countChange = entry.outlineCount != outlineCount;
+        bool  outlineChange = (widthChange  || depthChange ||
+                               radiusChange || countChange);
+        if (depth > 0)
+            extra = radius;
+        if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
-            // Create an OpenGL display list for the glyph
-            if (!entry.interior)
-                entry.interior = GL.GenLists(1);
-            GL.NewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), texUnits,
-                      GL_POLYGON, GLU_TESS_WINDING_ODD);
-            GL.EndList();
+            // Reset font to original size
+            QFont scaled(font);
+            scaled.setPointSizeF(perFont->baseSize);
+
+            // Draw glyph into a path
+            QPainterPath qtPath;
+            GraphicPath path;
+
+            qtPath.addText(0, 0, scaled, QString(QChar(code)));
+            path.addQtPath(qtPath, -1);
+
+            if (interior)
+            {
+                // Create an OpenGL display list for the glyph
+                if (!entry.interior)
+                    entry.interior = GL.GenLists(1);
+                if (layout->extrudeDepth > 0.0)
+                {
+                    XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
+                    GL.NewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    GL.EndList();
+                }
+                else
+                {
+                    GL.NewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    GL.EndList();
+                }
+            }
+
+            if (!entry.outline || outlineChange)
+            {
+                if (!entry.outline)
+                    entry.outline = GL.GenLists(1);
+
+                if (lineWidth > 0)
+                {
+                    // Render outline in a GL list
+                    QPainterPathStroker stroker;
+                    stroker.setWidth(lineWidth);
+                    stroker.setCapStyle(Qt::FlatCap);
+                    stroker.setJoinStyle(Qt::RoundJoin);
+                    stroker.setDashPattern(Qt::SolidLine);
+                    QPainterPath stroke = stroker.createStroke(qtPath);
+                    GraphicPath strokePath;
+                    strokePath.addQtPath(stroke, -1);
+                    GL.NewList(entry.outline, GL_COMPILE);
+                    strokePath.Draw(layout, Vector3(0,0,0),
+                                    GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+                    GL.EndList();
+                }
+                else if (depth > 0.0)
+                {
+                    // Render outline as a depth border
+                    GL.NewList(entry.outline, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0), GL_POLYGON, GL_DEPTH);
+                    GL.EndList();
+                }
+
+                entry.outlineWidth = lineWidth;
+                entry.outlineDepth = depth;
+                entry.outlineRadius = radius;
+                entry.outlineCount = outlineCount;
+            }
+
+            // Store the new or updated entry
+            perFont->Insert(code, entry);
         }
-
-        if (lineWidth && !entry.outlines.count(lineWidth))
-        {
-            uint outline = GL.GenLists(1);
-            entry.outlines[lineWidth] = outline;
-
-            // Render outline in a GL list
-            QPainterPathStroker stroker;
-            stroker.setWidth(lineWidth);
-            stroker.setCapStyle(Qt::FlatCap);
-            stroker.setJoinStyle(Qt::RoundJoin);
-            stroker.setDashPattern(Qt::SolidLine);
-            QPainterPath stroke = stroker.createStroke(qtPath);
-            GraphicPath strokePath;
-            strokePath.addQtPath(stroke, -1);
-            GL.NewList(outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), texUnits,
-                            GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-            GL.EndList();
-        }
-
-        // Store the new or updated entry
-        perFont->Insert(code, entry);
     }
 
     // Scale down what we pass back to the caller
-    ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
+    ScaleDown(entry, font.pointSizeF() / perFont->baseSize, extra);
     return true;
 }
 
@@ -468,21 +519,27 @@ bool GlyphCache::Find(const QFont &font,
         scale bh = bounds.height();
 
         bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
-        uint width = ceil(bounds.width());
-        uint height = ceil(bounds.height());
+        bx = bounds.x();
+        by = bounds.y();
+        bw = bounds.width();
+        bh = bounds.height();
+        uint width = ceil(bw);
+        uint height = ceil(bh);
 
         // Allocate a rectangle where we will put the texture (may resize us)
         BinPacker::Rect rect;
         Allocate(width + 2*aam, height + 2*aam, rect);
 
         // Record glyph information in the entry
-        entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
-                           bounds.width()/fs, bounds.height()/fs);
+        entry.bounds = Box(bx/fs, by/fs, bw/fs, bh/fs);
         entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qs) / fs;
-        entry.interior = 0;
-        entry.outlines.clear();
         entry.scalingFactor = fs;
+        entry.interior = 0;
+        entry.outline = 0;
+        entry.outlineWidth = lineWidth;
+        entry.outlineDepth = 0.0;
+        entry.outlineRadius = 0.0;
 
         // Store the new entry
         perFont->Insert(code, entry);
@@ -505,58 +562,102 @@ bool GlyphCache::Find(const QFont &font,
     // Line width should remain identical even if we scale the font
     lineWidth /= font.pointSizeF() / perFont->baseSize;
 
-    // Check if we want OpenGL display lists
-    if ((interior && !entry.interior) ||
-        (lineWidth > 0 && (!entry.outlines.count(lineWidth))))
+    // Check if we want OpenGL display lists:
+    // - If the line width is unknown yet
+    // - If there is depth and anything impacting it changed
+    scale extra = 0;
+    if (layout)
     {
-        // Reset font to original size
-        QFont scaled(font);
-        scaled.setPointSizeF(perFont->baseSize);
-
-        // Draw glyph into a path
-        QPainterPath qtPath;
-        GraphicPath path;
-
-        qtPath.addText(0, 0, scaled, QString(+code));
-        path.addQtPath(qtPath, -1);
-
-        if (interior)
+        scale depth = layout->extrudeDepth;
+        scale radius = layout->extrudeRadius;
+        uint  outlineCount = layout->extrudeCount;
+        bool  widthChange = entry.outlineWidth != lineWidth;
+        bool  depthChange = entry.outlineDepth != depth;
+        bool  radiusChange = entry.outlineRadius != radius;
+        bool  countChange = entry.outlineCount != outlineCount;
+        bool  outlineChange = (widthChange  || depthChange ||
+                               radiusChange || countChange);
+        if (depth > 0)
+            extra = radius;
+        if ((!entry.interior && interior) || !entry.outline || outlineChange)
         {
-            // Create an OpenGL display list for the glyph
-            if (!entry.interior)
-                entry.interior = GL.GenLists(1);
-            GL.NewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), texUnits,
-                      GL_POLYGON, GLU_TESS_WINDING_ODD);
-            GL.EndList();
+            // Reset font to original size
+            QFont scaled(font);
+            scaled.setPointSizeF(perFont->baseSize);
+
+            // Draw glyph into a path
+            QPainterPath qtPath;
+            GraphicPath path;
+
+            qtPath.addText(0, 0, scaled, QString(+code));
+            path.addQtPath(qtPath, -1);
+
+            if (interior)
+            {
+                // Create an OpenGL display list for the glyph
+                if (!entry.interior)
+                    entry.interior = GL.GenLists(1);
+
+                if (layout->extrudeDepth > 0.0)
+                {
+                    XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
+                    GL.NewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    GL.EndList();
+                }
+                else
+                {
+                    GL.NewList(entry.interior, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0),
+                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                    GL.EndList();
+                }
+
+            }
+
+            if (outlineChange)
+            {
+                if (!entry.outline)
+                    entry.outline = GL.GenLists(1);
+
+                if (depth > 0.0)
+                {
+                    // Render outline as a depth border
+                    GL.NewList(entry.outline, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0), GL_POLYGON, GL_DEPTH);
+                    GL.EndList();
+                }
+                else
+                {
+                    // Render outline in a GL list
+                    QPainterPathStroker stroker;
+                    stroker.setWidth(lineWidth);
+                    stroker.setCapStyle(Qt::FlatCap);
+                    stroker.setJoinStyle(Qt::RoundJoin);
+                    stroker.setDashPattern(Qt::SolidLine);
+                    QPainterPath stroke = stroker.createStroke(qtPath);
+                    GraphicPath strokePath;
+                    strokePath.addQtPath(stroke, -1);
+                    GL.NewList(entry.outline, GL_COMPILE);
+                    strokePath.Draw(layout, Vector3(0,0,0),
+                                    GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+                    GL.EndList();
+                }
+
+                entry.outlineWidth = lineWidth;
+                entry.outlineDepth = depth;
+                entry.outlineRadius = radius;
+                entry.outlineCount = outlineCount;
+            }
+
+            // Store the new or updated entry
+            perFont->Insert(code, entry);
         }
-
-        if (lineWidth && !entry.outlines.count(lineWidth))
-        {
-            uint outline = GL.GenLists(1);
-            entry.outlines[lineWidth] = outline;
-
-            // Render outline in a GL list
-            QPainterPathStroker stroker;
-            stroker.setWidth(lineWidth);
-            stroker.setCapStyle(Qt::FlatCap);
-            stroker.setJoinStyle(Qt::RoundJoin);
-            stroker.setDashPattern(Qt::SolidLine);
-            QPainterPath stroke = stroker.createStroke(qtPath);
-            GraphicPath strokePath;
-            strokePath.addQtPath(stroke, -1);
-            GL.NewList(outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), texUnits,
-                            GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-            GL.EndList();
-        }
-
-        // Store the new or updated entry
-        perFont->Insert(code, entry);
     }
 
     // Scale down what we pass back to the caller
-    ScaleDown(entry, font.pointSizeF() / perFont->baseSize);
+    ScaleDown(entry, font.pointSizeF() / perFont->baseSize, extra);
     return true;
 }
 
@@ -639,7 +740,7 @@ qreal GlyphCache::Leading(const QFont &font)
 }
 
 
-void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
+void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale, scale extra)
 // ----------------------------------------------------------------------------
 //   Adjust the scale
 // ----------------------------------------------------------------------------
@@ -651,6 +752,15 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
     entry.bounds.upper.y *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
+
+    if (extra > 0)
+    {
+        entry.bounds.lower.x -= extra;
+        entry.bounds.lower.y -= extra;
+        entry.bounds.upper.x += extra;
+        entry.bounds.upper.y += extra;
+        entry.advance += 2*extra;
+    }
 }
 
 TAO_END

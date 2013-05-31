@@ -31,6 +31,7 @@
 #include "repository.h"
 #include "widget.h"
 #include "runtime.h"
+#include "error_message_dialog.h"
 #include <QSettings>
 #include <QHash>
 #include <QMessageBox>
@@ -615,7 +616,7 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                                        "will be ignored:\n";
                             debugPrintShort(m);
                         }
-                        warnDuplicateModule(m);
+                        warnDuplicateModule(m, existing);
                     }
                     else
                     {
@@ -1175,6 +1176,9 @@ bool ModuleManager::loadNative(Context * /*context*/,
                         IFTRACE(modules)
                             debug() << "      Error (return code: "
                                     << st << ")\n";
+                        if (m_p->onLoadError != "")
+                            warnLibraryLoadError(+m_p->name, "",
+                                                 +m_p->onLoadError);
                         return false;
                     }
                 }
@@ -1383,12 +1387,25 @@ void ModuleManager::warnInvalidModule(QString moduleDir, QString cause)
 }
 
 
-void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
+void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m,
+                                        const ModuleInfoPrivate &existing)
 // ----------------------------------------------------------------------------
 //   Tell user of conflicting new module (will be ignored)
 // ----------------------------------------------------------------------------
 {
-    (void)m;
+    if (m.dirname()  != existing.dirname() ||
+        m.importName != existing.importName)
+    {
+        ErrorMessageDialog err;
+        err.setWindowTitle(tr("Warning"));
+        QString msg = tr("A duplicate module was found.\n\n"
+                         "'%1' and '%2' share the same identifier "
+                         "(%3), which looks suspicious.\n\n"
+                         "Only the second module will be loaded. "
+                         "You may want to change one UUID.")
+                .arg(+m.path).arg(+existing.path).arg(+m.id);
+        err.showMessage(msg);
+    }
 }
 
 

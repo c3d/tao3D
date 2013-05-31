@@ -111,6 +111,10 @@
 static int DisplayLink = -1;
 #endif
 
+#ifdef Q_OS_LINUX
+#include "vsync_x11.h"
+#endif
+
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
@@ -152,8 +156,8 @@ static inline QGLFormat TaoGLFormat()
     if (TaoApp->hasGLMultisample)
         options |= QGL::SampleBuffers;
     QGLFormat format(options);
-    int vsi = PerformancesPage::VSync() ? 1 : 0;
-    format.setSwapInterval(vsi);
+    // VSync is set later in the Widget constructor
+    format.setSwapInterval(0);
     return format;
 }
 
@@ -170,19 +174,23 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
-      pageId(0), pageFound(0), pageShown(1), pageTotal(1),
+      pageId(0), pageFound(0), pageShown(1), pageTotal(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false),
+      drawAllPages(false), animated(true),
       selectionRectangleEnabled(true),
-      doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
+      doMouseTracking(true), runningTransitionCode(false),
+      stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
       showingEvaluationWatermark(false),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
+#endif
+#ifdef Q_OS_LINUX
+      vsyncState(false),
 #endif
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
@@ -243,6 +251,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 
     // Initialize GLEW when we use it
     glewInit();
+
+    // Sync to VBlank if configured to do so
+    enableVSync(NULL, PerformancesPage::VSync());
 
     // Create the main page we draw on
     space = new SpaceLayout(this);
@@ -384,6 +395,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       drawAllPages(o.drawAllPages), animated(o.animated), blanked(o.blanked),
       stereoIdent(o.stereoIdent),
       doMouseTracking(o.doMouseTracking),
+      runningTransitionCode(o.runningTransitionCode),
       stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(""),
@@ -394,6 +406,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #endif
       screenShotPath(o.screenShotPath),
       screenShotWithAlpha(o.screenShotWithAlpha),
+#ifdef Q_OS_LINUX
+      vsyncState(false),
+#endif
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -466,6 +481,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Make this the current context for OpenGL
     makeCurrent();
     gl.MakeCurrent();
+
+    // Do not change VSync mode
+    enableVSync(NULL, o.VSyncEnabled());
 
     // Create new layout to draw into
     space = new SpaceLayout(this);
@@ -787,11 +805,19 @@ void Widget::drawActivities()
     setupGL();
     GL.DepthFunc(GL_ALWAYS);
 
+    // Clear the topmost layout to avoid conflicts
+    // with following taodyne ad. Fixed #2966.
+    layout->Clear();
+
     for (Activity *a = activities; a; a = a->Display()) ;
 
     // Once we have recorded all the shapes in the selection space,
     // perform actual rendering
     selectionSpace.Draw(NULL);
+
+    // Clear the topmost layout to avoid conflicts
+    // with following taodyne ad. Fixed #2966.
+    layout->Clear();
 
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
     if (Licenses::UnlicensedCount() > 0)
@@ -966,6 +992,13 @@ void Widget::commitPageChange(bool afterTransition)
         if (pageNames[p] == gotoPageName)
             pageShown = p + 1;
     gotoPageName = "";
+    pageFound = 0;
+
+    lastMouseButtons = 0;
+    selection.clear();
+    selectionTrees.clear();
+    delete textSelection();
+    delete drag();
 
     if (afterTransition)
     {
@@ -973,6 +1006,21 @@ void Widget::commitPageChange(bool afterTransition)
         transitionStartTime = 0;
         transitionDurationValue = 0;
         transitionTree = NULL;
+    }
+
+    if (!inOfflineRendering && pageChangeActions.size())
+    {
+        // REVISIT? Added saveCurrent because I've hit assert(current) during
+        // ctx->Evaluate(), below.
+        TaoSave saveCurrent(current, this);
+
+        page_action_map::iterator i;
+        for (i = pageChangeActions.begin(); i != pageChangeActions.end(); i++)
+        {
+            XL::Context_p ctx = (*i).second.context;
+            XL::Tree_p code = (*i).second.code;
+            ctx->Evaluate(code);
+        }
     }
 
     IFTRACE(pages)
@@ -1022,6 +1070,13 @@ bool Widget::refreshNow(QEvent *event)
         }
         event = NULL; // Force full refresh
     }
+
+#if defined(Q_OS_WIN)
+    // #3017: after enabling or disabling quad buffer stereo on one of our
+    // machines (AMD GPU and drivers), QGLContext::currentContext() returns
+    // NULL after ~Widget has returned
+    makeCurrent();
+#endif
 
     // Redraw full scene if required
     if (!event || space->NeedRefresh(event, now))
@@ -1134,6 +1189,25 @@ double Widget::currentTimeAPI()
 }
 
 
+double Widget::currentPageTimeAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to currentTime()
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = findTaoWidget();
+    return widget->CurrentTime() - widget->pageStartTime;
+}
+
+
+bool Widget::offlineRenderingAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to inOfflineRendering
+// ----------------------------------------------------------------------------
+{
+    return findTaoWidget()->inOfflineRendering;
+}
+
+
 void Widget::makeGLContextCurrent()
 // ----------------------------------------------------------------------------
 //   Make GL context of the current Tao widget the current GL context
@@ -1173,8 +1247,9 @@ void Widget::runProgramOnce()
     if (inError)
         return;
 
-    //Clean actionMap
+    // Clean actionMap
     actionMap.clear();
+    pageChangeActions.clear();
     dfltRefresh = optimalDefaultRefresh();
 
     // Clean text flow
@@ -1217,7 +1292,7 @@ void Widget::runProgramOnce()
     checkErrors(true);
 
     // Clean the end of the old menu list, unless in a transition.
-    if (menuCount >= 0)
+    if (!runningTransitionCode)
     {
         for  (; menuCount < menuItems.count(); menuCount++)
         {
@@ -1249,6 +1324,11 @@ void Widget::runProgram()
 //   (and only twice to avoid infinite loops). For example, if the page
 //   title is translated, it may not match on the next draw. See #2060.
 {
+#if defined(Q_OS_WIN)
+    // #3017
+    makeCurrent();
+#endif
+
     runProgramOnce();
 
     IFTRACE(pages)
@@ -1257,7 +1337,7 @@ void Widget::runProgram()
                   << " shown=" << pageShown
                   << "\n";
     pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
+    pageTotal = pageId;
     if (pageFound)
     {
         pageShown = pageFound;
@@ -1582,6 +1662,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         displayDriver->display();
         frame.end();
 
+        frameCounter++;
+
         QApplication::processEvents();
         CHECK_CANCELED();
 
@@ -1632,6 +1714,105 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     // Redraw
     refreshNow();
+}
+
+
+XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
+                                 text file, double pageTime)
+// ----------------------------------------------------------------------------
+//   Take a snapshot of a page (2D) and save it. Based on renderFrames().
+// ----------------------------------------------------------------------------
+{
+    // Do not re-enter this function
+    static bool inSaveThumbnail = false;
+    if (inSaveThumbnail)
+        return XL::xl_false;
+    XL::Save<bool> noReenter(inSaveThumbnail, true);
+
+    // Create output directory if needed
+    QFileInfo inf(QDir(+currentDocumentFolder()), +file);
+    QString dir = inf.absoluteDir().absolutePath();
+    if (!QDir().mkpath(dir))
+        return XL::xl_false;
+    file = +inf.absoluteFilePath();
+
+    bool ok = false;
+    TaoSave saveCurrent(current, this);
+
+    // Select 2D display. Requires current != NULL.
+    QString disp = "2D";
+    QString prevDisplay;
+    if (!displayDriver->isCurrentDisplayFunctionSameAs(disp))
+    {
+        // Select 2D display function
+        prevDisplay = displayDriver->getDisplayFunction();
+        displayDriver->setDisplayFunction(disp);
+    }
+
+    // Set the initial time we want to set and freeze animations
+    XL::Save<double> setPageTime(pageStartTime, 0);
+    XL::Save<double> setFrozenTime(frozenTime, pageTime);
+    XL::Save<double> saveStartTime(startTime, 0);
+    XL::Save<page_list> savePageNames(pageNames, pageNames);
+    XL::Save<text> savePageName(pageName, transitionPageName);
+
+    GLAllStateKeeper saveGL;
+    XL::Save<double> saveScaling(scaling, scaling);
+
+    // Render with fullscreen size (then later scale)
+    QDesktopWidget *dw = QApplication::desktop();
+    QRect geom = dw->screenGeometry(this);
+    int sw = geom.width();
+    int sh = geom.height();
+    offlineRenderingWidth = sw * displayDriver->windowWidthFactor();
+    offlineRenderingHeight = sh * displayDriver->windowHeightFactor();
+    inOfflineRendering = true;
+
+    // Select page, if not current
+    if (page != -1)
+    {
+        currentTime = pageTime;
+        runProgram();
+        gotoPage(NULL, pageNameAtIndex(NULL, page));
+    }
+
+    // Create a GL frame to render into
+    FrameInfo frame(offlineRenderingWidth, offlineRenderingHeight);
+
+    // Set time and run program
+    currentTime = pageTime;
+
+    if (gotoPageName != "")
+    {
+        IFTRACE(pages)
+                std::cerr << "(thumbnailFile) "
+                          << "Goto page request: '" << gotoPageName
+                          << "' from '" << pageName << "'\n";
+        commitPageChange(false);
+    }
+
+    pageStartTime = startTime = 0; // REVISIT
+    runProgram();
+
+    // Draw the layout in the frame context
+    id = idDepth = 0;
+    space->ClearPolygonOffset();
+    frame.begin();
+    displayDriver->display();
+    frame.end();
+
+    // Save frame to disk
+    QImage img = frame.toImage();
+    QImage scaled = img.scaled(w, h, Qt::KeepAspectRatio,
+                               Qt::SmoothTransformation);
+    ok = scaled.save(+file);
+
+    // Done with offline rendering
+    inOfflineRendering = false;
+    if (!prevDisplay.isEmpty())
+        displayDriver->setDisplayFunction(prevDisplay);
+
+    return ok ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -2421,7 +2602,8 @@ void Widget::reset()
 // ----------------------------------------------------------------------------
 {
     resetView();
-    animated = true;
+    if (!animated)
+        taoWindow()->toggleAnimations();
     blanked = false;
     stereoIdent = false;
     pageShown = 1;       // BUG #1986
@@ -3185,6 +3367,17 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
+#ifdef MACOSX_DISPLAYLINK
+void Widget::sendTimerEvent()
+// ----------------------------------------------------------------------------
+//    Slot that sends a timer event to self
+// ----------------------------------------------------------------------------
+{
+    QTimerEvent e(0);
+    timerEvent(&e);
+}
+#endif
+
 bool Widget::event(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Process event
@@ -3203,8 +3396,11 @@ bool Widget::event(QEvent *event)
             holdOff = false;
             return true;
         }
-        QTimerEvent e(0);
-        timerEvent(&e);
+        // Do not call timerEvent() directly. Doing so may cause some events
+        // to remain stalled in the main event loop for a long time.
+        // This 1ms timer is the solution I found.
+        // See commit comment for details.
+        QTimer::singleShot(1, this, SLOT(sendTimerEvent()));
         return true;
     }
     else if (type == QEvent::MouseMove ||
@@ -3566,9 +3762,7 @@ void Widget::hideEvent(QHideEvent *event)
     // Use case: a primitive implemented in a module calls
     // ModuleApi::setCurrentWidget to show its own stuff: program refresh has
     // to continue normally.
-    // NOTE: There is at least the main window in the widget's stack,
-    // so we check if there is more stacked widgets.
-    if (taoWindow()->stackedWidget->count() > 1)
+    if (taoWindow()->hasStackedWidget())
         return;
 
     bool oldFs = hasAnimations();
@@ -5047,24 +5241,30 @@ XL::Real_p Widget::pageSetPrintTime(Tree_p self, double t)
 }
 
 
-XL::Text_p Widget::gotoPage(Tree_p self, text page)
+XL::Text_p Widget::gotoPage(Tree_p self, text page, bool abortTransitions)
 // ----------------------------------------------------------------------------
 //   Directly go to the given page
 // ----------------------------------------------------------------------------
 {
-    if (transitionStartTime > 0)
-        commitPageChange(true);
-
     text old = pageName;
-    lastMouseButtons = 0;
-    selection.clear();
-    selectionTrees.clear();
-    delete textSelection();
-    delete drag();
     IFTRACE(pages)
-        std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
-    gotoPageName = page;
-    refresh(0); // Not refreshNow(), see #1074
+        std::cerr << "Goto page '" << page
+                  << "' from '" << pageName << "'\n";
+
+    if (transitionStartTime > 0)
+    {
+        if (abortTransitions)
+        {
+            gotoPageName = page;
+            commitPageChange(true);
+            refresh(0);
+        }
+    }
+    else
+    {
+        gotoPageName = page;
+        refresh(0); // Not refreshNow(), see #1074
+    }
     return new Text(old);
 }
 
@@ -5092,7 +5292,12 @@ XL::Integer_p Widget::pageCount(Tree_p self)
 //   Return the number of pages in the current document
 // ----------------------------------------------------------------------------
 {
-    return new Integer(pageTotal ? pageTotal : 1);
+    uint pages = 0;
+    if (pageTotal)
+        pages = pageTotal;
+    else if (pageId)
+        pages = pageId;
+    return new Integer(pages);
 }
 
 
@@ -5137,7 +5342,7 @@ Tree_p Widget::transition(Context *, Tree_p self, double dur, Tree_p body)
 //    Define a transition
 // ----------------------------------------------------------------------------
 {
-    if (transitionTree)
+    if (transitionTree || inOfflineRendering)
         // Already running in a transition
         return XL::xl_false;
 
@@ -5205,11 +5410,7 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
         XL::Save<text> savePageName(pageName, transitionPageName);
         XL::Save<page_map> saveLinks(pageLinks, pageLinks);
         XL::Save<page_list> saveList(pageNames, pageNames);
-        XL::Save<page_list> saveNewList(newPageNames, newPageNames);
-        XL::Save<uint> savePageId(pageId, 0);
         XL::Save<uint> savePageFound(pageFound, 0);
-        XL::Save<uint> savePageShown(pageShown, pageShown);
-        XL::Save<uint> savePageTotal(pageTotal, pageTotal);
         XL::Save<Tree_p> savePageTree(pageTree, pageTree);
 
         for (uint p = 0; p < pageNames.size(); p++)
@@ -5276,7 +5477,7 @@ Tree_p Widget::runTransition(Context *context)
     }
     else
     {
-        menuCount = -1;
+        XL::Save<bool> saveInTransition(runningTransitionCode, true);
         result = context->Evaluate(transitionTree);
     }
     return result;
@@ -5673,11 +5874,24 @@ Integer_p Widget::mouseButtons(Tree_p self)
 }
 
 
-Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
+Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
+                           Tree_p action)
 // ----------------------------------------------------------------------------
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
+    if (name == "pagechange")
+    {
+        if (!pageChangeActions.count(self))
+        {
+            if (!action->Symbols())
+                action->SetSymbols(self->Symbols());
+            ContextAndCode cc(context, action);
+            pageChangeActions[self] = cc;
+        }
+        return XL::xl_true;
+    }
+
     IFTRACE(layoutevents)
         std::cerr << "Register action " << name
                   << " on layout " << layout->PrettyId() << std::endl;
@@ -6212,16 +6426,24 @@ double Widget::optimalDefaultRefresh()
 //    Set default refresh for best results
 // ----------------------------------------------------------------------------
 {
-    // The optimal value for default_refresh is either:
-    //  - 0.0 when OpenGL refresh is sync'ed with the display, for instance on
-    //    MacOSX with display link, and/or when VSync is enabled;
-    //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
-    //    Using 0.0 in this case would uselessly tax the CPU.
 #ifdef MACOSX_DISPLAYLINK
+    // Refresh as fast as possible, but never more frequently than the current
+    // display's refresh rate (due to the DisplayLink timer)
     return 0.0;
 #endif
-    if (VSyncEnabled())
+    if (VSyncSupported())
+    {
+        // Refresh as fast as possible. That is:
+        // - If VSync is enabled: refresh rate will be limited by the display
+        //   rate.
+        // - If Vsync is supported but currently disabled: refresh will occur
+        //   as fast as possible, not limited by the display rate.
+        //   May be used for performance testing (how many fps can we achieve
+        //   with this CPU/GPU?)
         return 0.0;
+    }
+    // Limit refresh rate to ~60 Hz when VSync is not supported, to avoid
+    // uselessy taxing the CPU
     return 0.016;
 }
 
@@ -6978,53 +7200,50 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
 
 Name_p Widget::enableVSync(Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
-//   Enable or disable VSYNC (prevent tearing)
+//   Enable or disable vertical sync (prevent tearing), return previous state
 // ----------------------------------------------------------------------------
 {
+    bool prev = VSyncEnabled();
+
 #if defined(Q_OS_MACX)
-    GLint old = 0;
-    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
-    bool prev = (old != 0);
     if (enable != prev)
     {
         const GLint swapInterval = enable ? 1 : 0;
         CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
     }
-    return prev ? XL::xl_true : XL::xl_false;
 #elif defined(Q_OS_WIN)
     typedef BOOL (*set_fn_t) (int interval);
-    typedef int  (*get_fn_t) (void);
     static
     set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
-    static
-    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
-    int old = 0;
-    if (set_fn && get_fn) {
-        old = get_fn();
-        bool prev = (old != 0);
+    if (set_fn) {
         if (enable != prev)
         {
             int swapInterval = enable ? 1 : 0;
             set_fn(swapInterval);
         }
-        return prev ? XL::xl_true : XL::xl_false;
     }
-    return XL::xl_false;
+#elif defined(Q_OS_LINUX)
+    if (enableVSyncX11(this, enable))
+        vsyncState = enable;
 #else
     // Command not supported, but do it silently
-    return XL::xl_false;
 #endif
+
+    return prev ? XL::xl_true : XL::xl_false;
 }
 
 
 bool Widget::VSyncEnabled()
 // ----------------------------------------------------------------------------
-//   Return true if vsync is enable, false otherwise
+//   Return true if vsync is enabled, false otherwise
 // ----------------------------------------------------------------------------
 {
+    bool enabled = false;
+
 #if defined(Q_OS_MACX)
     GLint old = 0;
     CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+    enabled = (old != 0);
 #elif defined(Q_OS_WIN)
     typedef int  (*get_fn_t) (void);
     static
@@ -7032,10 +7251,33 @@ bool Widget::VSyncEnabled()
     int old = 0;
     if (get_fn)
         old = get_fn();
-#else
-    int old = 0;
+    enabled = (old != 0);
+#elif defined(Q_OS_LINUX)
+    enabled = vsyncState;
 #endif
-    return (old != 0);
+
+    return enabled;
+}
+
+
+bool Widget::VSyncSupported()
+// ----------------------------------------------------------------------------
+//   Return true if vsync can be set (enableVSync() works), false otherwise
+// ----------------------------------------------------------------------------
+{
+    static bool supported = false, tested = false;
+    if (!tested)
+    {
+        bool prev = enableVSync(NULL, false);
+        bool f = (enableVSync(NULL, true) == XL::xl_true);
+        bool t = (enableVSync(NULL, prev) == XL::xl_true);
+        supported = (!f && t);
+        tested = true;
+        IFTRACE(displaymode)
+            std::cerr << "Setting VSync is " << (supported ? "" : "NOT ")
+                      << "supported\n";
+    }
+    return supported;
 }
 
 
@@ -7736,6 +7978,40 @@ Integer *Widget::framePixelCount(Tree_p self, float alphaMin)
                     result++;
     }
     return new Integer(result, self->Position());
+}
+
+
+Tree_p Widget::extrudeDepth(Tree_p self, float depth)
+// ----------------------------------------------------------------------------
+//    Set the extrude depth
+// ----------------------------------------------------------------------------
+{
+    layout->Add (new ExtrudeDepth(depth));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::extrudeRadius(Tree_p self, float radius)
+// ----------------------------------------------------------------------------
+//   Set the extrude radius
+// ----------------------------------------------------------------------------
+{
+    layout->Add (new ExtrudeRadius(radius));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::extrudeCount(Tree_p self, int count)
+// ----------------------------------------------------------------------------
+//   Set the extrude count
+// ----------------------------------------------------------------------------
+{
+    if (count < -10)
+        count = -10;
+    else if (count > 10)
+        count = 10;
+    layout->Add (new ExtrudeCount(count));
+    return XL::xl_true;
 }
 
 
@@ -9411,7 +9687,7 @@ Name_p Widget::textEditKey(Tree_p self, text key)
     // Check if we are changing pages here...
     if (pageLinks.count(key))
     {
-        gotoPage(self, pageLinks[key]);
+        gotoPage(self, pageLinks[key], true);
         return XL::xl_true;
     }
 
@@ -10695,8 +10971,8 @@ Tree_p Widget::pushButton(Tree_p self,
 
 
 Integer* Widget::pushButtonTexture(Tree_p self,
-                                 double w, double h, Text_p name,
-                                 Text_p lbl, Tree_p act)
+                                   double w, double h, Text_p name,
+                                   Text_p lbl, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given push button
 // ----------------------------------------------------------------------------
@@ -11732,7 +12008,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 // ----------------------------------------------------------------------------
 {
     // Do not update menus during transitions
-    if (menuCount < 0)
+    if (runningTransitionCode)
         return XL::xl_false;
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
@@ -11838,7 +12114,7 @@ Tree_p  Widget::menuItemEnable(Tree_p self, text name, bool enable)
 // ----------------------------------------------------------------------------
 {
     // Do not update menus during transitions
-    if (menuCount < 0)
+    if (runningTransitionCode)
         return XL::xl_false;
 
     if (!currentMenu && !currentToolBar)
@@ -11863,7 +12139,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // ----------------------------------------------------------------------------
 {
     // Do not update menus during transitions
-    if (menuCount < 0)
+    if (runningTransitionCode)
         return XL::xl_false;
 
     bool isContextMenu = false;
@@ -12014,7 +12290,7 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
     // Do not update toolbars during transitions
-    if (menuCount < 0)
+    if (runningTransitionCode)
         return XL::xl_false;
 
     QString fullname = +name;
@@ -12102,7 +12378,7 @@ Tree_p  Widget::separator(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     // Do not update toolbars during transitions
-    if (menuCount < 0)
+    if (runningTransitionCode)
         return XL::xl_false;
 
     QString fullname = QString("SEPARATOR_%1").arg(menuCount);
@@ -12684,6 +12960,9 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
 #else
         return XL::xl_false;
 #endif
+
+    if (name->value == "vsync_ctl")
+        return VSyncSupported() ? XL::xl_true : XL::xl_false;
 
     return XL::xl_true;
 }

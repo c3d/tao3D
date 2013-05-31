@@ -34,7 +34,7 @@ TAO_BEGIN
 
 int   Layout::polygonOffset   = 0;
 scale Layout::factorBase      = 0;
-scale Layout::factorIncrement = -0.001; // Experimental value
+scale Layout::factorIncrement = -0.005; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
 bool  Layout::inIdentify      = false;
@@ -49,6 +49,9 @@ LayoutState::LayoutState()
       alongX(), alongY(), alongZ(),
       left(0), right(0), top(0), bottom(0),
       visibility(1),
+      extrudeDepth(0),
+      extrudeRadius(0),
+      extrudeCount(1),
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
@@ -74,6 +77,9 @@ LayoutState::LayoutState(const LayoutState &o)
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
         left(o.left), right(o.right), top(o.top), bottom(o.bottom),
         visibility(o.visibility),
+        extrudeDepth(o.extrudeDepth),
+        extrudeRadius(o.extrudeRadius),
+        extrudeCount(o.extrudeCount),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
@@ -751,6 +757,9 @@ void LayoutState::InheritState(LayoutState *where)
     top              = where->top;
     bottom           = where->bottom;
     visibility       = where->visibility;
+    extrudeDepth     = where->extrudeDepth;
+    extrudeRadius    = where->extrudeRadius;
+    extrudeCount     = where->extrudeCount;
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
@@ -784,6 +793,9 @@ void LayoutState::toDebugString(std::ostream &out) const
     out << "\ttop             = " << top << std::endl;
     out << "\tbottom          = " << bottom << std::endl;
     out << "\tvisibility      = " << visibility << std::endl;
+    out << "\extrudeDepth     = " << extrudeDepth << std::endl;
+    out << "\textrudeRadius   = " << extrudeRadius << std::endl;
+    out << "\textrudeCount    = " << extrudeCount << std::endl;
     out << "\tlineWidth       = " << lineWidth << std::endl;
     out << "\tlineColor       = " << lineColor << std::endl;
     out << "\tfillColor       = " << fillColor << std::endl;

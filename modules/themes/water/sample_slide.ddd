@@ -26,7 +26,7 @@ base_slide "On earth...",
         * "1.5 billion people have no access to drinkable water." fr "1,5 milliard de personnes n'ont pas accès à l'eau potable."
     right_picture
         rotatex -30
-        image_px -50, 120, 700, 525, "http://www.tuxboard.com/photos/2011/03/Carte-Consommation-personnelle-eau-par-pays-640x317.jpg" fr "http://www.droitalenergie.org/wp-content/uploads/2012/03/CARTE-EAU.jpg"
+        image_px -50, 120, 700, 525, "http://www.tuxboard.com/photos/2011/03/Carte-Consommation-personnelle-eau-par-pays-640x317.jpg" fr "http://www.energiesosfutur.org/wp-content/uploads/2012/03/CARTE-EAU.jpg"
 
 
 base_slide "Problems of water management",

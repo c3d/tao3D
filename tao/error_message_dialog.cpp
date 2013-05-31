@@ -76,6 +76,7 @@ bool ErrorMessageDialog::showMessage(const QString & message,
         return false;
     ui->message->setText(message);
     ui->doNotShowAgain->setChecked(doNotShowAgain);
+    adjustSize();
     exec();
     return true;
 }

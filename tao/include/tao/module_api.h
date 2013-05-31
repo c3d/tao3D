@@ -50,7 +50,7 @@
 //   since the last public release, then set age to 0.
 
 #define TAO_MODULE_API_CURRENT   30
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_AGE       13
 
 // ========================================================================
 //
@@ -510,6 +510,15 @@ struct ModuleApi
     void (*fileMonitorRemoveAllPaths)(void *fileMonitor);
     // Delete a file monitor object
     void (*deleteFileMonitor)(void *fileMonitor);
+
+    // Return true if Tao is not currently rendering in real time, such as
+    // when the "Render to files..." mode is active, or when saving a
+    // snapshot of a page with save_thumbnail_file.
+    // Here is a use case: when offLineRendering() is true, a media player
+    // module may choose to render a placeholder or a single picture, instead
+    // of starting the actual playback of the media (including sound).
+    bool (*offlineRendering)();
+    double (*currentPageTime)();
 };
 
 }

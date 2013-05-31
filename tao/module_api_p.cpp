@@ -134,6 +134,9 @@ ModuleApiPrivate::ModuleApiPrivate()
     fileMonitorRemovePath = FileMonitorApi::fileMonitorRemovePath;
     fileMonitorRemoveAllPaths = FileMonitorApi::fileMonitorRemoveAllPaths;
     deleteFileMonitor = FileMonitorApi::deleteFileMonitor;
+
+    offlineRendering = Widget::offlineRenderingAPI;
+    currentPageTime = Widget::currentPageTimeAPI;
 }
 
 TAO_END

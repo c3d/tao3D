@@ -348,9 +348,17 @@ void FrameInfo::purge()
 {
     if (context)
     {
-        if (context != QGLContext::currentContext())
-            context->makeCurrent();
+        if (depthTextureID &&
+            context == QGLContext::currentContext())
+        {
+            // Delete the texture only if the GL context has not changed.
+            // If it has changed, do NOT try to restore the previous context as
+            // it may have been invalidated (see #3017).
+            glDeleteTextures(1, &depthTextureID);
+        }
 
+        // ~QGLFrameBufferObject checks the GL context so it's OK to delete
+        // the pointers unconditionaly
         delete renderFBO;
         if (textureFBO != renderFBO)
             delete textureFBO;

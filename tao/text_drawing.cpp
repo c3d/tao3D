@@ -96,7 +96,7 @@ void TextSplit::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Widget     *widget     = where->Display();
-    bool        hasLine    = setLineColor(where);
+    bool        hasLine    = setLineColor(where) || where->extrudeDepth > 0;
     bool        hasTexture = setTexture(where);
     GlyphCache &glyphs     = widget->glyphs();
     scale       fontSize   = where->font.pointSizeF();
@@ -116,7 +116,7 @@ void TextSplit::Draw(Layout *where)
                   << *this << std::endl;
 
     // Check if we activated new texture units
-    glyphs.CheckTextureUnits(GL.ActiveTextureUnits());
+    glyphs.CheckActiveLayout(where);
 
     if (!printing && !hasLine && !hasTexture && !badSize && cacheEnabled)
         DrawCached(where);
@@ -130,6 +130,8 @@ void TextSplit::Draw(Layout *where)
         XL::Save<Point3> save(where->offset, offset0);
         Identify(where);
     }
+
+    glyphs.RemoveLayout();
 }
 
 
@@ -272,7 +274,6 @@ void TextSplit::DrawDirect(Layout *where)
     coord       y        = pos.y;
     coord       z        = pos.z;
     scale       lw       = where->lineWidth;
-    bool        skip     = false;
     uint        i, max   = str.length();
 
     // Disable drawing of lines if we don't see them.
@@ -321,14 +322,39 @@ void TextSplit::DrawDirect(Layout *where)
             scale gscale = glyph.scalingFactor;
             GL.Scale(gscale, gscale, gscale);
             GL.LoadMatrix();
-            if (!skip)
+
+            setTexture(where);
+            if (where->extrudeDepth > 0.0)
             {
-                setTexture(where);
+                bool hasFill = setFillColor(where);
+                if (hasFill)
+                {
+                    GraphicSave* save = GL.Save();
+                    GL.Translate(0.0, 0.0, -where->extrudeDepth);
+                    GL.Scale(1, 1, -1);
+                    glFrontFace(GL_CCW);
+                    GL.CallList(glyph.interior);
+                    GL.Restore(save);
+                    glFrontFace(GL_CW);
+                    GL.CallList(glyph.interior);
+                    glFrontFace(GL_CCW);
+                }
+
+                bool hasLine = setLineColor(where); // May fail, keep fill color
+                if (hasFill || hasLine)
+                {
+                    glFrontFace(GL_CW);
+                    GL.CallList(glyph.outline);
+                    glFrontFace(GL_CCW);
+                }
+            }
+            else
+            {
                 if (setFillColor(where))
                     GL.CallList(glyph.interior);
+                if (lw > 0.0 && setLineColor(where))
+                    GL.CallList(glyph.outline);
             }
-            if (setLineColor(where) && lw)
-                GL.CallList(glyph.outlines[lw]);
 
             x += glyph.advance + spread;
         }
@@ -703,6 +729,9 @@ Box3 TextSplit::Bounds(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
+
         scale sa = ascent;
         scale sd = descent;
         scale sl = leading;
@@ -772,6 +801,9 @@ Box3 TextSplit::Space(Layout *where)
         // Find the glyph in the glyph cache
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
+
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
 
         scale sa = ascent;
         scale sd = descent;

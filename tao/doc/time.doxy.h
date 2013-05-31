@@ -466,11 +466,17 @@ every (interval:real, body:tree);
  * refresh timer is the screen refresh rate. For most LCD displays this
  * is 60 Hz or 16.6 ms. On this platform, @ref default_refresh is set
  * to 0.0 by default.
- * - On any platform, when vertical synchronization is enabled,
- * default_refresh is initially set to 0.0, and the refresh rate is
- * automatically limited by the VSync clock. When VSync is disabled,
- * however, default_refresh is initially set to 0.016 to avoid uselessly
- * taxing the CPU (that is assuming a 60 Hz display).
+ * - On other platforms, when vertical synchronization is supported,
+ * default_refresh is initially set to 0.0. If VSync is actually
+ * enabled, the refresh rate is then automatically limited by the VSync
+ * clock. When VSync is disabled, however, the refresh rate is not
+ * limited by the display and Tao Presentation will compute as many
+ * frames per second as possible. You may use this configuration for
+ * benchmarking purposes: simply select "Disable VSync" in the command
+ * chooser (escape key). On the other hand, if the platform does not
+ * support setting the VSync mode, default_refresh is initially set to
+ * 0.016 to avoid uselessly taxing the CPU (that is assuming a 60 Hz
+ * display).
  *
  * @returns the previous value of the default refresh interval.
  *
@@ -502,10 +508,15 @@ every (interval:real, body:tree);
  * est égale au taux de rafraîchissement de l'écran. Pour la plupart des
  * écrans LCD ou projecteurs, il s'agit de 60 Hz ou 16.6 ms. Sur cette
  * plateforme, @ref default_refresh vaut 0.0 par défaut.
- * - Sur toutes les plateformes, et lorsque la synchronisation verticale
- * est activée, default_refresh vaut initialement 0.0, et la vitesse de
- * rafraîchissement est automatiquement limitée par l'horloge de
- * synchronisation verticale. Lorsque VSync est désactivée, par contre,
+ * - Sur les autres plateformes, et lorsque la synchronisation verticale
+ * est supportée, default_refresh vaut initialement 0.0. Si VSync est
+ * réellement activée, la vitesse de rafraîchissement est alors
+ * automatiquement limitée par l'horloge de synchronisation verticale.
+ * Mais si VSync est désactivée, Tao Presentations calcule
+ * le plus possible d'images par secondes. Vous pouvez utiliser cette
+ * configuration pour tester les performances d'une machine : sélectionnez
+ * "Désactiver VSync" dans le menu de commande (touche "Échap"). Par contre,
+ * lorsque la plateforme ne permet pas de contrôler le mode de VSync,
  * default_refresh est initialement mise à 0.016 pour éviter d'utiliser
  * inutilement le processeur (on suppose on affichage à 60 Hz).
  *

@@ -47,6 +47,9 @@
 #if defined (CFG_WITH_EULA)
 #include "eula_dialog.h"
 #endif
+#ifndef CFG_NO_LICENSE_DOWNLOAD
+#include "license_download.h"
+#endif
 
 #include <QString>
 #include <QSettings>
@@ -187,6 +190,11 @@ void Application::deferredInit()
                    +syntax.absoluteFilePath(),
                    +stylesheet.absoluteFilePath(),
                    +builtins.absoluteFilePath());
+
+#ifndef CFG_NO_LICENSE_DOWNLOAD
+    licDownload = new LicenseDownloadUI;
+    fetchLicenses();
+#endif
 
     loadLicenses();
 
@@ -410,6 +418,39 @@ void Application::installDDEWidget()
     // would not cause the application to exit
     dde.hide();
 }
+#endif
+
+
+#ifndef CFG_NO_LICENSE_DOWNLOAD
+bool Application::fetchLicenses()
+// ----------------------------------------------------------------------------
+//   Use LicenseDownload object to fetch licenses for any .taokey.src file
+// ----------------------------------------------------------------------------
+{
+    QList<QDir> dirs;
+    dirs << QDir(QDesktopServices::storageLocation(
+                     QDesktopServices::DesktopLocation))
+         << QDir(Application::userLicenseFolderPath())
+         << QDir(Application::appLicenseFolderPath());
+
+    // Add paths given on the command line
+    QString paths = +XL::MAIN->options.license_dirs;
+    foreach (QString path, paths.split(":", QString::SkipEmptyParts))
+    {
+        QFileInfo info(QDir(TaoApp->startDir), path);
+        dirs << QDir(info.absoluteFilePath());
+    }
+
+    QFileInfoList files;
+    foreach (QDir dir, dirs)
+    {
+        files << dir.entryInfoList(QStringList("*.taokey.src"), QDir::Files);
+    }
+    licDownload->processFiles(files);
+
+    return true;
+}
+
 #endif
 
 

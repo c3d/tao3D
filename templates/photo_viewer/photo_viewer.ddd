@@ -78,6 +78,14 @@ page "Photos",
 // ----------------------------------------------------------------------------
 //    A photo viewer on a 3D sphere
 // ----------------------------------------------------------------------------
+    preload T:text ->
+        locally
+            texture T
+    preload Other -> false
+    locally
+        // Load all photos before starting animation for a smooth display
+        preload with files "photos/*.jpg"
+
     pt -> page_time 
     set_position ->
         translate 0, -150, 0

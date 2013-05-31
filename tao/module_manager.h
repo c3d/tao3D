@@ -454,7 +454,8 @@ public:
     virtual bool        askEnable(const ModuleInfoPrivate &m,
                                   QString reason = "");
     virtual void        warnInvalidModule(QString moduleDir, QString cause);
-    virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
+    virtual void        warnDuplicateModule(const ModuleInfoPrivate &m,
+                                            const ModuleInfoPrivate &existing);
     virtual void        warnLibraryLoadError(QString name, QString errorString,
                                              QString moduleSuppliedText = "");
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);

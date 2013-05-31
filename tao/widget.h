@@ -160,6 +160,9 @@ public slots:
                              QString fileName = "frame%0d.png", int firstFrame = 1);
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
     void        addToReloadList(const QString &path) { toReload.append(path); }
+#ifdef MACOSX_DISPLAYLINK
+    void        sendTimerEvent();
+#endif
 
 
 signals:
@@ -357,7 +360,7 @@ public:
     Text_p      page(Context *context, Text_p name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
     Real_p      pageSetPrintTime(Tree_p self, double t);
-    Text_p      gotoPage(Tree_p self, text page);
+    Text_p      gotoPage(Tree_p self, text page, bool abortTransition=false);
     Text_p      pageLabel(Tree_p self);
     Integer_p   pageNumber(Tree_p self);
     Integer_p   pageCount(Tree_p self);
@@ -392,7 +395,7 @@ public:
     Integer_p   screenMouseX(Tree_p self);
     Integer_p   screenMouseY(Tree_p self);
     Integer_p   mouseButtons(Tree_p self);
-    Tree_p      shapeAction(Tree_p self, text name, Tree_p action);
+    Tree_p      shapeAction(Tree_p self, Context_p context, text name, Tree_p action);
 
     // Preserving attributes
     Tree_p      locally(Context *context, Tree_p self, Tree_p t);
@@ -498,6 +501,7 @@ public:
     Name_p      enableVSync(Tree_p self, bool enable);
     double      optimalDefaultRefresh();
     bool        VSyncEnabled();
+    bool        VSyncSupported();
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
@@ -539,6 +543,10 @@ public:
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
     Tree_p      hasTexture(Tree_p self, GLuint unit);
+    Tree_p      extrudeDepth(Tree_p self, float depth);
+    Tree_p      extrudeRadius(Tree_p self, float radius);
+    Tree_p      extrudeCount(Tree_p self, int count);
+
     Integer_p   lightsMask(Tree_p self);
     Tree_p      perPixelLighting(Tree_p self,  bool enable);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
@@ -722,6 +730,8 @@ public:
     Tree*       drawingCache(Context *context, Tree_p self,
                              double version, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
+    Name_p      saveThumbnail(Context *context, Tree_p self, int w, int h,
+                              int page, text file, double pageTime = 0.0);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
                                double w, double h, Tree_p prog);
@@ -906,6 +916,16 @@ private:
     friend class GCThread;
     friend class WidgetSurface;
 
+    struct ContextAndCode
+    {
+        ContextAndCode() : context(0), code(0) {}
+        ContextAndCode(XL::Context_p context, XL::Tree_p code)
+            : context(context), code(code) {}
+        ~ContextAndCode() { context = 0; code = 0; }
+        XL::Context_p context;
+        XL::Tree_p    code;
+    };
+
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
     typedef std::map<text, TextFlow*>        flow_map;
@@ -913,6 +933,7 @@ private:
     typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
     typedef std::map<text, perId_action_map> action_map;
+    typedef std::map<Tree_p, ContextAndCode> page_action_map;
     typedef std::map<Tree_p, GLuint>         GLid_map;
     typedef std::set<Tree_p>                 tree_set;
 
@@ -965,6 +986,7 @@ private:
     bool                  stereoIdent;
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
+    bool                  runningTransitionCode;
     GLint                 mouseTrackingViewport[4];
     int                   stereoPlane, stereoPlanes;
     DisplayDriver *       displayDriver;
@@ -980,6 +1002,9 @@ private:
 #endif
     QString               screenShotPath;
     bool                  screenShotWithAlpha;
+#ifdef Q_OS_LINUX
+    bool                  vsyncState;
+#endif
 
     // Selection
     Activity *            activities;
@@ -987,6 +1012,7 @@ private:
     selection_map         selection;
     tree_set              selectionTrees, selectNextTime;
     action_map            actionMap;
+    page_action_map       pageChangeActions;
     bool                  hadSelection;
     bool                  selectionChanged;
     QEvent *              w_event;
@@ -1078,6 +1104,7 @@ private:
 public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
+    static double         currentPageTimeAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
@@ -1093,6 +1120,7 @@ public:
     static double         trueCurrentTime();
     static void           postEventAPI(int eventType);
     static bool           postEventOnceAPI(int eventType);
+    static bool           offlineRenderingAPI();
 
 private:
     void                  processProgramEvents();

@@ -372,13 +372,16 @@ static void CALLBACK tessEnd(PolygonData *poly)
         if (depth > 0.0)
         {
             bool invert = poly->path->invert;
-            GraphicSave* save = GL.Save();
-            GL.Translate(0.0, 0.0, -depth);
-            GL.Scale(1, 1, -1);
+            GL.Sync();
+            // REVISIT: Replace pushMatrix/popMatrix by
+            // GL.Save() (Find why it occurs a bug with outline). Refs #3040.
+            glPushMatrix();
+            glTranslatef(0.0, 0.0, -depth);
+            glScalef(1, 1, -1);
             glFrontFace(invert ? GL_CCW : GL_CW);
             drawArrays(poly->mode, textureUnits, data);
             glFrontFace(invert ? GL_CW : GL_CCW);
-            GL.Restore(save);
+            glPopMatrix();
         }
         drawArrays(poly->mode, textureUnits, data);
         data.clear();

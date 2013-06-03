@@ -562,6 +562,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 
             // Set new layout as the current layout in the current Widget
             XL::Save<Layout *> saveLayout(widget->layout, this);
+            GLAllStateKeeper save;
 
             IFTRACE(layoutevents)
                 std::cerr << "Evaluating " << body << "\n";

@@ -8201,9 +8201,9 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
     result = context->Evaluate(code);
     program = info->program;
 
-    QString message = program->log();
-    if (message.length())
-        taoWindow()->addError(message);
+    if (!program->isLinked())
+        if (!program->link())
+            taoWindow()->addError(program->log());
 
     layout->Add(new ShaderProgram(program));
     return result;

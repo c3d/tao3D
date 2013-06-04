@@ -200,14 +200,14 @@ void Application::deferredInit()
 
     loadLicenses();
 
+    // Adjust file polling frequency
+    FileMonitorThread::pollInterval = xlr->options.sync_interval;
+
     // Texture cache may only be instantiated after setOrganizationName
     // and setOrganizationDomain because it reads default values from
     // the user's preferences
     textureCache = TextureCache::instance();
     textureCache->setSaveCompressed(xlr->options.tcache_savecomp);
-
-    // Adjust file polling frequency
-    FileMonitorThread::pollInterval = xlr->options.sync_interval;
 
     // Create and start garbage collection thread
     gcThread = new GCThread;

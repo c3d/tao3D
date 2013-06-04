@@ -661,23 +661,58 @@ mouse_x in [-W/2..-W/4, W/4..W/2]
  */
 value_in_intervals(Value:real, A:real, B:real, C:real, D:real, Body);
 
+
 /**
  * @~english
- * Shortcut for: page_time in [A..B].
+ * Evaluate @p Body while @p Value is larger or equal to @p A.
+ * The value of @ref ratio grows linearly between 0.0 (when @p Value is equal to
+ * @p A) and 1.0 (when @p Value is equal to or larger than @p B), and this also
+ * updates derived variables @ref down_ratio, @ref smooth_ratio and
+ * @ref smooth_down_ratio.
  *
  * This function is documented with this name due to limitations
  * in the documentation tool. The recommended notation to use this feature is
  * the following:
  *
  * @~french
- * Raccourci pour: page_time in [A..B].
+ * Evalue @p Body tant que @p Value est supérieure ou égale à @p A.
+ * La valeur de @ref ratio croît linéairement entre 0.0 (lorsque @p Value vaut
+ * @p A) et 1.0 (lorsque @p Value est supérieure ou égale à @p B), et cela
+ * met aussi à jour les variables dérivées @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+ * @code
+ Value in [A..B, ]
+     Body
+ * @endcode
+ *
+ * @since 1.03 (Tao 1.30)
+ */
+value_in_interval_or_greater(Value:real, A:real, B:real, Body);
+
+
+/**
+ * @~english
+ * Shortcut for: page_time in [A..B, ].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Raccourci pour: page_time in [A..B, ].
  *
  * Cette fonction est documentée sous ce nom à cause de
  * limitations de l'outil de génération de cette documentation. La notation
  * recommandée est la suivante :
  * @~
  * @code
-[A..B]
+[A..B, ]
     Body
  * @endcode
  * @~english
@@ -688,36 +723,22 @@ value_in_intervals(Value:real, A:real, B:real, C:real, D:real, Body);
  * @code
 import Animate
 
-page "The [A..B] notation",
-    clear_color 0, 0, 0, 1
-    text_box 0, 0, window_width, window_height,
-        align_center
-        vertical_align_center
-        font "Arial", 40
-        Print 0, "The [A .. B] notation"
-        Print 2, "is"
-        Print 4, "a cool trick!"
-    text_box 0, 0, window_width-20, window_height,
-        align_right
-        vertical_align_bottom
-        font "Arial", 20
-        color "white"
-        text "Press <return> to restart"
+page "The [A..B, ] notation",
+    [0..0.5, ]
+        Square -1, smooth_ratio
+    [0.5..1, ]
+        Square 0, smooth_ratio
+    [1..1.5, ]
+        Square 1, smooth_ratio
 
-Print Time:real, T:text ->
-    after Time,
-        color "white"
-        [Time .. Time+0.5]
-            color_hsv 30, down_ratio, 1.0
-        text T
-        paragraph_break
+Square X:real, S:real -> rectangle X*window_width/4, 0, 100*S, 100*S
 
 key "Return" -> goto_page page_name 1
  * @endcode
- * @since 1.02 (Tao 1.20)
- * @see value_in_interval
+ * @since 1.03 (Tao 1.30)
+ * @see value_in_interval_or_greater
  */
-page_time_in_interval(A:real, B:real, Body);
+page_time_in_interval_or_greater(A:real, B:real, Body);
 
 
 /**

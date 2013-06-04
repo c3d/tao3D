@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/lens_flare/images
 images.files = images/*
  
 INSTALLS += files images
+
+SIGN_XL_SOURCES = lens_flare.ddd
+include(../sign_template.pri)

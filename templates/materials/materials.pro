@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/materials/images
 images.files = images/*
  
 INSTALLS += files images
+
+SIGN_XL_SOURCES = materials.ddd
+include(../sign_template.pri)

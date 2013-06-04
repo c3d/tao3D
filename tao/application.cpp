@@ -50,6 +50,7 @@
 #ifndef CFG_NO_LICENSE_DOWNLOAD
 #include "license_download.h"
 #endif
+#include "nag_screen.h"
 
 #include <QString>
 #include <QSettings>
@@ -231,39 +232,59 @@ void Application::deferredInit()
         return;
     }
 
+    QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV);
+    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
+    QString creativity = QString("Tao Presentations Creativity %1").arg(GITREV);
+#ifdef TAO_PLAYER
+    QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV);
+    if (Licenses::Has(+playerPro) || Licenses::Has(+designPro) ||
+        Licenses::Has(+impress) || Licenses::Has(+creativity))
+        edition = Application::PlayerPro;
+    else
+        edition = Application::Player;
+#else
+    if (Licenses::Has(+designPro) || Licenses::Has(+impress) ||
+        Licenses::Has(+creativity))
+        edition = Application::DesignPro;
+    else
+        edition = Application::Design;
+#endif
+
+#ifndef TAO_PLAYER
+    // Design edition shows nag screen on startup after 30 days
+    if (edition == Design)
+    {
+        QString keyName("FirstRun");
+        QDateTime now = QDateTime::currentDateTime();
+        QDateTime firstRun = QSettings().value(keyName).toDateTime();
+        if (!firstRun.isValid())
+        {
+            QSettings().setValue(keyName, QVariant(now));
+        }
+        else
+        {
+            int days = firstRun.daysTo(now);
+            if (days > 30)
+            {
+                QString info;
+                info = tr("<p>You have been using Tao Presentations, "
+                          "%1 Edition for %2 days.</p>"
+                          "<p>By purchasing a %1 Pro license, you will:"
+                          "<ul><li> benefit from additional features "
+                          "and support"
+                          "<li> help us improve our products</ul>"
+                          "Thank you.</p>")
+                        .arg(editionStr()).arg(days);
+                NagScreen nag;
+                nag.setInformativeText(info);
+                nag.exec();
+            }
+        }
+    }
+#endif
+
     // Create main window
     win = new Window (xlr, contextFiles);
-
-#ifdef TAO_EDITION
-    // Internal or custom build
-    QString lic = QString("Tao Presentations %1 %2").arg(TAO_EDITION)
-                                                    .arg(GITREV);
-    if (!Licenses::Check(+lic, true))
-    {
-        exit(15);
-        return;
-    }
-    edition = Application::Other;
-#else
-    // No edition name defined at compile time, this is a
-    // Discovery/Creativity/Impress build - do a runtime license check
-    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
-    QString creat = QString("Tao Presentations Creativity %1").arg(GITREV);
-#ifdef TAO_PLAYER
-    QString player = QString("Tao Presentations Player %1").arg(GITREV);
-    if (Licenses::Has(+player) || Licenses::Has(+impress))
-        edition = Application::Player;
-    else
-        edition = Application::PlayerUnlicensed;
-#else
-    if (Licenses::Has(+impress))
-        edition = Application::Impress;
-    else if (Licenses::Has(+creat))
-        edition = Application::Creativity;
-    else
-        edition = Application::Discovery;
-#endif
-#endif
 
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this
@@ -375,9 +396,6 @@ void Application::deferredInit()
 
     // We're ready to go
     processCommandLineFile();
-
-    if (isDiscovery())
-        Licenses::IncrementUnlicensedCount();
 }
 
 
@@ -694,34 +712,11 @@ void Application::cleanup()
     if (moduleManager)
         moduleManager->saveConfig();
 
-    if (isDiscovery())
+    if (isTrialVersion())
     {
         // Gentle reminder that Tao is not free
-
-        QString title = tr("Tao Presentations");
-        QString text = tr("<h3>Reminder</h3>");
-        QString info;
-        info = tr("<p>This is an evaluation copy of Tao Presentations.</p>");
-        QMessageBox box;
-        box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-        box.button(QMessageBox::Ok)->setText(tr("Buy now"));
-        box.button(QMessageBox::Cancel)->setText(tr("Buy later"));
-        box.setDefaultButton(QMessageBox::Cancel);
-        box.setWindowTitle(title);
-        box.setText(text);
-        box.setInformativeText(info);
-        // Icon from:
-        // http://www.iconfinder.com/icondetails/61809/64/buy_cart_ecommerce_shopping_webshop_icon
-        // Author: Ivan M. (www.visual-blast.com)
-        // License: free for commercial use, do not redistribute
-        QPixmap pm(":/images/shopping_cart.png");
-        box.setIconPixmap(pm);
-
-        if (box.exec() == QMessageBox::Ok)
-        {
-            QUrl url(tr("http://taodyne.com/taopresentations/buynow"));
-            QDesktopServices::openUrl(url);
-        }
+        NagScreen nag;
+        nag.exec();
     }
 }
 

@@ -9,13 +9,10 @@
 include Makefile.config
 
 # Spaces are evil on Linux
-ifdef TAO_EDITION
-EDSTR=$(TAO_EDITION)_
-endif
 ifdef PACKAGE_APPEND
 APPENDSTR=$(PACKAGE_APPEND)_
 endif
-TAO=Tao_Presentations_$(EDSTR)$(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
+TAO=Tao_Presentations_$(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
 
 OS=$(shell lsb_release -is)
 ifeq ($(OS),)

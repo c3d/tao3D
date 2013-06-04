@@ -12,3 +12,6 @@ files.path  = $$APPINST/templates/sinuous
 files.files = template.ini sinuous.ddd sinuous.png
 
 INSTALLS += files
+
+SIGN_XL_SOURCES = sinuous.ddd
+include(../sign_template.pri)

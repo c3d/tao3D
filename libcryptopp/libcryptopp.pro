@@ -36,6 +36,7 @@ SOURCES = \
     $${SRC}/asn.cpp \
     $${SRC}/authenc.cpp \
     $${SRC}/basecode.cpp \
+    $${SRC}/base64.cpp \
     $${SRC}/bfinit.cpp \
     $${SRC}/cpu.cpp \
     $${SRC}/crc.cpp \

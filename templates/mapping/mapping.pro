@@ -16,3 +16,5 @@ images.files = images/*
  
 INSTALLS += files images
 
+SIGN_XL_SOURCES = mapping.ddd
+include(../sign_template.pri)

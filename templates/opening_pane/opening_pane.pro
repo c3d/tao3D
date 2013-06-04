@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/opening_pane/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = opening_pane.ddd opening_pane.xl flowers.xl
+include(../sign_template.pri)

@@ -12,7 +12,7 @@ module_description
     import_name "KeyboardTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.0
+    version 1.001
 
 module_description "fr",
     name "Thème Clavier"

@@ -12,3 +12,6 @@ files.path  = $$APPINST/templates/pythagorean_theorem
 files.files = template.ini pythagorean.ddd pythagorean.png
 
 INSTALLS += files
+
+SIGN_XL_SOURCES = pythagorean.ddd
+include(../sign_template.pri)

@@ -77,81 +77,12 @@ bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
 }
 
 
-
-bool ModuleRenderer::EnableTexCoords(double* texCoords, uint64 mask)
-// ----------------------------------------------------------------------------
-//   Enable specified coordinates for active textures in the current layout
-// ----------------------------------------------------------------------------
-{
-    Shape::enableTexCoord(texCoords, mask);
-    return true;
-}
-
-
-bool ModuleRenderer::DisableTexCoords(uint64 mask)
-// ----------------------------------------------------------------------------
-//   Disable coordinates for active textures in the current layout
-// ----------------------------------------------------------------------------
-{
-    Shape::disableTexCoord(mask);
-    return true;
-}
-
-
-uint ModuleRenderer::TextureUnit()
-// ----------------------------------------------------------------------------
-//  Return last activated texture unit
-// ----------------------------------------------------------------------------
-{
-    return GL.ActiveTextureUnitIndex() - GL_TEXTURE0;
-}
-
-
-uint64 ModuleRenderer::TextureUnits()
-// ----------------------------------------------------------------------------
-//  Return bitmask of all current activated texture units
-// ----------------------------------------------------------------------------
-{
-    return GL.ActiveTextureUnits();
-}
-
-
-void ModuleRenderer::SetTextureUnits(uint64 mask)
-// ----------------------------------------------------------------------------
-//  Set bitmask of current activated texture units
-// ----------------------------------------------------------------------------
-{
-    GL.ActivateTextureUnits(mask);
-}
-
-
 bool ModuleRenderer::SetTextures()
 // ----------------------------------------------------------------------------
 //   Apply the textures as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setTexture(currentLayout);
-}
-
-
-bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
-// ----------------------------------------------------------------------------
-//   Bind the texture as defined by current layout attributes
-// ----------------------------------------------------------------------------
-{
-    Layout *layout = Widget::Tao()->layout;
-    layout->Add(new FillTexture(id, type));
-    layout->hasAttributes = true;
-    return false;
-}
-
-
-bool ModuleRenderer::HasTexture(uint texUnit)
-// ----------------------------------------------------------------------------
-//  Check if a texture is bound at the specified unit
-// ----------------------------------------------------------------------------
-{
-    return (GL.ActiveTextureUnits() & (1ULL << texUnit)) ? true : false;
 }
 
 
@@ -164,23 +95,6 @@ bool ModuleRenderer::SetShader(int id)
         currentLayout->programId = id;
 
     return Shape::setShader(currentLayout);
-}
-
-
-void ModuleRenderer::BindTexture2D(unsigned int id,
-                                   unsigned int width,
-                                   unsigned int height)
-// ----------------------------------------------------------------------------
-//   Add 2D texture to current layout
-// ----------------------------------------------------------------------------
-{
-    GL.BindTexture(GL_TEXTURE_2D, id);
-    GL.TextureSize(width, height);
-    if (Layout *layout = Widget::Tao()->layout)
-    {
-        layout->Add(new FillTexture(id, GL_TEXTURE_2D));
-        layout->hasAttributes = true;
-    }
 }
 
 
@@ -199,24 +113,6 @@ bool ModuleRenderer::SetLineColor()
 // ----------------------------------------------------------------------------
 {
     return Shape::setLineColor(currentLayout);
-}
-
-
-bool ModuleRenderer::HasPixelBlur(bool enable)
-// ----------------------------------------------------------------------------
-//   Enable or deactivate pixel blur.
-// ----------------------------------------------------------------------------
-{
-    GL.HasPixelBlur(enable);
-    return true;
-}
-
-uint ModuleRenderer::EnabledLights()
-// ----------------------------------------------------------------------------
-//  Return a bitmask of all current enabled lights
-// ----------------------------------------------------------------------------
-{
-    return GL.LightsMask();
 }
 
 

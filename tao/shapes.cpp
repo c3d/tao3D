@@ -975,7 +975,6 @@ void FixedSizePoint::Draw(Layout *where)
     if (setFillColor(where))
     {
         GL.PointSize(radius * where->PrinterScaling());
-        GL.Sync();
         GL.Begin(GL_POINTS);
         GL.Vertex(center.x, center.y, center.z);
         GL.End();

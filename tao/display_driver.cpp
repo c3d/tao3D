@@ -265,7 +265,6 @@ void DisplayDriver::displayBackBuffer(void *)
 // ----------------------------------------------------------------------------
 {
     // Save GL state
-    GL.Sync(); // Flush current state
     Tao::GraphicSave* save = GL.Save();
 
     // Are we rendering to the default framebuffer, or a FBO?
@@ -309,7 +308,6 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 // ----------------------------------------------------------------------------
 {
     // Save graphic state
-    GL.Sync(); // Flush current state
     Tao::GraphicSave *save = GL.Save();
 
     BackBufferFBOParams * o = (BackBufferFBOParams *)obj;

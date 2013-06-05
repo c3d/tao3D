@@ -10294,11 +10294,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         frame.resize(w,h);
         setup(w, h);
 
-        // Need to synchronize GL states
-        // Because we have made a setupGL
-        // just above
-        GL.Sync();
-
         // Evaluate the program
         result = saveAndEvaluate(context, prog);
 
@@ -10454,11 +10449,6 @@ Integer* Widget::thumbnail(Context *context,
         if (Tree_p prog = xlProgram->tree)
             saveAndEvaluate(context, prog);
 
-        // Need to synchronize GL states
-        // Because we have made a setupGL
-        // just above
-        GL.Sync();
-
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
@@ -10548,11 +10538,6 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
         // Define our gradient type
         gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
 
-        // Need to synchronize GL states
-        // Because we have made a setupGL
-        // just above
-        GL.Sync();
-
         // Evaluate the program
         result = saveAndEvaluate(context, prog);
 
@@ -10638,11 +10623,6 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
         // Define our gradient type
         gradient = new QRadialGradient(center_x, center_y, radius);
 
-        // Need to synchronize GL states
-        // Because we have made a setupGL
-        // just above
-        GL.Sync();
-
         // Evaluate the program
         result = saveAndEvaluate(context, prog);
 
@@ -10727,11 +10707,6 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 
         // Define our gradient type
         gradient = new QConicalGradient(center_x, center_y, angle);
-
-        // Need to synchronize GL states
-        // Because we have made a setupGL
-        // just above
-        GL.Sync();
 
         // Evaluate the program
         result = saveAndEvaluate(context, prog);

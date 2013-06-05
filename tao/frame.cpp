@@ -494,7 +494,6 @@ void FrameInfo::bindFrameBufferObject(ModuleApi::fbo * obj)
 // ----------------------------------------------------------------------------
 {
     ((FrameInfo *)obj)->begin();
-    GL.Sync();
 }
 
 
@@ -504,7 +503,6 @@ void FrameInfo::releaseFrameBufferObject(ModuleApi::fbo * obj)
 // ----------------------------------------------------------------------------
 {
     ((FrameInfo *)obj)->end();
-    GL.Sync();
 }
 
 
@@ -514,7 +512,6 @@ unsigned int FrameInfo::frameBufferObjectToTexture(ModuleApi::fbo * obj)
 // ----------------------------------------------------------------------------
 {
     unsigned int tex = ((FrameInfo *)obj)->bind();
-    GL.Sync();
     return tex;
 }
 

@@ -245,7 +245,6 @@ void TextSplit::DrawCached(Layout *where)
 
         // Load model view matrix
         GL.LoadMatrix();
-        GL.Sync();
         GL.DrawArrays(GL_QUADS, 0, count);
 
         GL.DisableClientState(GL_VERTEX_ARRAY);

@@ -61,7 +61,8 @@
        transitions \
        news_feed \
        snowfall \
-       nodejs
+       nodejs \
+       film_strip
 
     OTHER_MODULES =  \
         DIP          \

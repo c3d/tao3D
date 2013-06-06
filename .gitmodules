@@ -1,6 +1,6 @@
 [submodule "tao/xlr"]
 	path = tao/xlr
-	url = git://xlr.git.sourceforge.net/gitroot/xlr/xlr
+	url = git://git.code.sf.net/p/xlr/git
 [submodule "modules/vlc_audio_video"]
 	path = modules/vlc_audio_video
 	url = git://gitorious.org/tao-presentation-modules/vlc_audio_video.git 

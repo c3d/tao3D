@@ -22,7 +22,7 @@ DEB_HOST_ARCH=$$system(dpkg-architecture -qDEB_HOST_ARCH)
     KIT = deb tar
   }
 }
-kit.commands   = $(MAKE) -f Makefile.linux $$KIT
+kit.commands   = for target in $$KIT ; do $(MAKE) -f Makefile.linux \$\$target ; done
 prepare.commands = $(MAKE) -f Makefile.linux prepare
 tar.commands   = $(MAKE) -f Makefile.linux tar
 clean.commands = $(MAKE) -f Makefile.linux clean

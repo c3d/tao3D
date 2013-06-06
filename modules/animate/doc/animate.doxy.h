@@ -317,58 +317,30 @@ interpolate_zangle_rt(real S, real TargetZ, real Z);
 
 /**
  * @~english
- * Compute value to be used for fade-in effects
- *
- * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
- * The @a Value argument is typically a time computed using @p page_time
- * The typical usage will be something like:
- @code
- // Fade-in for approximately 4 seconds
- show fade_in(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * Compute value to be used for fade-in effects.
+ * @deprecated Use the square bracket notations instead.
  *
  * @~french
- * Calcule une valeur utilisée pour des effets d'apparition (fade-in)
+ * Calcule une valeur utilisée pour des effets d'apparition (fade-in).
+ * @deprecated Utiliser les notations "crochets".
  *
- * Renvoie une valeur qui passe approximativement de 0.0 à 1.0 sur une
- * durée de @a Duration secondes.
- * Le paramètre @a Value est typiquement un temps basé sur @p page_time
- * Par exemple :
- @code
- // Fait apparaître le cercle en 4 secondes approximativement
- show fade_in(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * @~
+ * @see value_in_interval, page_time_in_interval
  */
 real fade_in(real Value, real Duration);
 
 
 /**
  * @~english
- * Compute value to be used for fade-out effects
- *
- * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
- * The @a Value argument is typically a time computed using @p page_time
- * The typical usage will be something like:
- @code
- // Fade-out for approximately 4 seconds
- show fade_out(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * Compute value to be used for fade-out effects.
+ * @deprecated Use the square bracket notations instead.
  *
  * @~french
- * Calcule une valeur utilisée pour des effets de disparition (fade-out)
+ * Calcule une valeur utilisée pour des effets de disparition (fade-out).
+ * @deprecated Utiliser les notations "crochets".
  *
- * Renvoie une valeur qui passe approximativement de 1.0 à 0.0 sur une
- * durée de @a Duration secondes.
- * Le paramètre @a Value est typiquement un temps basé sur @p page_time
- * Par exemple :
- @code
- // Fait disparaître le cercle en 4 secondes approximativement
- show fade_out(page_time, 4)
- circle 0, 0, 100
- @endcode
+ * @~
+ * @see value_in_interval, page_time_in_interval
  */
 real fade_out(real Value, real Duration);
 
@@ -482,6 +454,316 @@ step_scale(integer N);
  * Met à jour la valeur de @ref smooth_step
  */
 compute_smooth_step();
+
+
+/**
+ * @~english
+ * Smooth a linear value between 0 and 1.
+ * This returns:
+ * - 0 if T < 0
+ * - 1 if T > 1
+ * - 3*T^2 - 2*T^3 otherwise.
+ * @~french
+ * Adoucit une valeur linéaire entre 0 and 1.
+ * Cette fonction retourne :
+ * - 0 si T < 0
+ * - 1 si T > 1
+ * - 3*T^2 - 2*T^3 sinon.
+ * @~
+ * @since 1.02 (Tao 1.20)
+ */
+smooth(real T);
+
+
+/**
+ * @~english
+ * Smooth a linear value between two values @p Low and @p High.
+ * This is equivalent to:
+ * @code smooth((T-Low)/(High-Low)) @endcode
+ * @~french
+ * Adoucit une valeur linéaire entre deux valeurs @p Low et @p High.
+ * Cette fonction est équivalente à :
+ * @code smooth((T-Low)/(High-Low)) @endcode
+ * @~
+ * @since 1.02 (Tao 1.20)
+ */
+smooth_betwen(real T, real Low, real High);
+
+
+/**
+ * @~english
+ * Return the ratio of the current interval.
+ * This value is defined only within the body of @ref value_in_interval or
+ * @ref page_time_in_interval.
+ * @~french
+ * Retourne le taux de complétion pour l'intervalle en cours.
+ * Cette valeur n'est définie que dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval.
+ * @~
+ * @since 1.02 (Tao 1.20)
+ */
+real ratio;
+
+
+/**
+ * @~english
+ * Return a decreasing ratio of the current interval.
+ * When used inside the body of @ref value_in_interval or
+ * @ref page_time_in_interval, this value is is equal to:
+ * @~french
+ * Retourne le taux restant pour l'intervalle en cours.
+ * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval, cette valeur est égale à :
+ * @~
+ * @code
+1 - ratio
+ * @endcode
+ * @see ratio
+ * @since 1.02 (Tao 1.20)
+ */
+real down_ratio;
+
+
+/**
+ * @~english
+ * Return a smoothed version of the current interval ratio.
+ * When used inside the body of @ref value_in_interval or
+ * @ref page_time_in_interval, this value is is equal to:
+ * @~french
+ * Retourne une version adoucie du taux pour l'intervalle actuel.
+ * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval, cette valeur est égale à :
+ * @~
+ * @code
+smooth ratio
+ * @endcode
+ * @see smooth, ratio
+ * @since 1.02 (Tao 1.20)
+ */
+real smooth_ratio;
+
+
+/**
+ * @~english
+ * Return a smoothed version of the remaining interval ratio.
+ * When used inside the body of @ref value_in_interval or
+ * @ref page_time_in_interval, this value is is equal to:
+ * @~french
+ * Retourne une version adoucie du taux restant pour l'intervalle en cours.
+ * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
+ * @ref page_time_in_interval, cette valeur est égale à :
+ * @~
+ * @see smooth, down_ratio
+ * @since 1.02 (Tao 1.20)
+ */
+real smooth_down_ratio;
+
+
+/**
+ * @~english
+ * Evaluate @p Body while @p Value is between @p A and @p B.
+ * The value of @ref ratio grows linearly between 0.0 (when @p Value is equal to
+ * @p A) and 1.0 (when @p Value is equal to @p B), and this also
+ * updates derived variables @ref down_ratio, @ref smooth_ratio and
+ * @ref smooth_down_ratio.
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Evalue @p Body tant que @p Value est entre @p A et @p B.
+ * La valeur de @ref ratio croît linéairement entre 0.0 (lorsque @p Value vaut
+ * @p A) et 1.0 (lorsque @p Value vaut @p B), et cela
+ * met aussi à jour les variables dérivées @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+ * @code
+ Value in [A..B]
+     Body
+ * @endcode
+ *
+ * @~english
+ * For instance:
+ *
+ * @~french
+ * Par exemple:
+ *
+ * @~
+ * @code
+import Animate
+
+W -> window_width/3
+color "gray"
+mouse_x in [-W/2 .. 0]
+    color "gray", down_ratio
+mouse_x in [0 .. W/2]
+    color "gray", ratio
+rectangle 0, 0, W, window_height
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ */
+value_in_interval(Value:real, A:real, B:real, Body);
+
+
+/**
+ * @~english
+ * Evaluate @p Body while @p Value is between @p A and @p D
+ * The value of @ref ratio grows linearly between 0 and 1 when
+ * @p Value is between @p A and @p B, then stays at 1 until @p Value
+ * reaches @p C, and then decreases linearly to 0 between @p C
+ * and @p D. This also updates derived variables @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Evalue @p Body tant que @p Value est entre @p A et @p D
+ * La valeur de @ref ratio croît linéairement entre 0 et 1 quand @p
+ * Value est entre @p A et @p B, puis reste à 1 entre @p B et @p C,
+ * puis décroit linéairement jusqu'à 0 entre @p C et @p D. Cela
+ * met aussi à jour les variables dérivées @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+ * @code
+Value in [A..B, C..D]
+    Body
+ * @endcode
+ *
+ * @~english
+ * For instance:
+ *
+ * @~french
+ * Par exemple :
+ *
+ * @~
+ * @code
+import Animate
+
+W -> window_width/3
+mouse_x in [-W/2..-W/4, W/4..W/2]
+    color "gray", ratio
+    rectangle 0, 0, W, window_height
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ */
+value_in_intervals(Value:real, A:real, B:real, C:real, D:real, Body);
+
+
+/**
+ * @~english
+ * Evaluate @p Body while @p Value is larger or equal to @p A.
+ * The value of @ref ratio grows linearly between 0.0 (when @p Value is equal to
+ * @p A) and 1.0 (when @p Value is equal to or larger than @p B), and this also
+ * updates derived variables @ref down_ratio, @ref smooth_ratio and
+ * @ref smooth_down_ratio.
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Evalue @p Body tant que @p Value est supérieure ou égale à @p A.
+ * La valeur de @ref ratio croît linéairement entre 0.0 (lorsque @p Value vaut
+ * @p A) et 1.0 (lorsque @p Value est supérieure ou égale à @p B), et cela
+ * met aussi à jour les variables dérivées @ref down_ratio,
+ * @ref smooth_ratio and @ref smooth_down_ratio.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+ * @code
+ Value in [A..B, ]
+     Body
+ * @endcode
+ *
+ * @since 1.03 (Tao 1.30)
+ */
+value_in_interval_or_greater(Value:real, A:real, B:real, Body);
+
+
+/**
+ * @~english
+ * Shortcut for: page_time in [A..B, ].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Raccourci pour: page_time in [A..B, ].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+ * @code
+[A..B, ]
+    Body
+ * @endcode
+ * @~english
+ * Here is an example.
+ * @~french
+ * Voici un exemple.
+ * @~
+ * @code
+import Animate
+
+page "The [A..B, ] notation",
+    [0..0.5, ]
+        Square -1, smooth_ratio
+    [0.5..1, ]
+        Square 0, smooth_ratio
+    [1..1.5, ]
+        Square 1, smooth_ratio
+
+Square X:real, S:real -> rectangle X*window_width/4, 0, 100*S, 100*S
+
+key "Return" -> goto_page page_name 1
+ * @endcode
+ * @since 1.03 (Tao 1.30)
+ * @see value_in_interval_or_greater
+ */
+page_time_in_interval_or_greater(A:real, B:real, Body);
+
+
+/**
+ * @~english
+ * Shortcut for: page_time in [A..B, C..D].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Raccourci pour: page_time in [A..B, C..D].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+ * @code
+[A..B, C..D]
+    Body
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ * @see value_in_intervals
+ */
+page_time_in_intervals(A:real, B:real, C:real, D:real, Body);
 
 /**
  * @}

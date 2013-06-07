@@ -38,3 +38,6 @@ QMAKE_SUBSTITUTES = doc/Doxyfile.in
 DOXYFILE = doc/Doxyfile
 DOXYLANG = en,fr
 include(../modules_doc.pri)
+
+SIGN_XL_SOURCES = default-theme.xl
+include(../sign_xl.pri)

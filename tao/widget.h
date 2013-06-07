@@ -255,6 +255,12 @@ public:
                     text sh = "group,shape");
     bool        isReadOnly();
     QStringList listNames();
+#ifndef CFG_NO_DOC_SIGNATURE
+#ifndef TAO_PLAYER
+    QString      signDocument(text path);
+#endif
+    bool         checkDocumentSigned();
+#endif
 
     // Timing
     ulonglong   now();
@@ -344,6 +350,9 @@ public:
     void        purgeTaoInfo();
 
     FileMonitor & fileMonitor()         { return srcFileMonitor; }
+#ifndef CFG_NO_DOC_SIGNATURE
+    bool        isDocSigned() { return isDocumentSigned; }
+#endif
 
 public:
     static Widget *Tao()                { assert(current); return current; }
@@ -950,6 +959,7 @@ private:
     bool                  inError;
     bool                  mustUpdateDialogs;
     bool                  runOnNextDraw;
+    bool                  contextFilesLoaded;
     FileMonitor           srcFileMonitor;
     QStringList           toReload;
 
@@ -1134,6 +1144,9 @@ private:
 
     std::map<text, text>  xlTranslations;
     bool                  isInvalid;
+#ifndef CFG_NO_DOC_SIGNATURE
+    bool                  isDocumentSigned;
+#endif
 };
 
 

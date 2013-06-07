@@ -12,3 +12,6 @@ files.path  = $$APPINST/templates/glow
 files.files = template.ini glow.ddd glow.png
 
 INSTALLS += files
+
+SIGN_XL_SOURCES = glow.ddd
+include(../sign_template.pri)

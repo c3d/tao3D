@@ -1,5 +1,5 @@
 @INCLUDE = ../../Doxyfile
 PROJECT_NAME = \"Slides\"
-PROJECT_NUMBER = 1.03
-QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.Slides.1.03
+PROJECT_NUMBER = 1.031
+QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.Slides.1.031
 QHP_VIRTUAL_FOLDER = Slides

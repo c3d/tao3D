@@ -21,3 +21,6 @@ piggy.path  = $$APPINST/templates/pigs_fly/piggy
 piggy.files = piggy/*
 
 INSTALLS += files images plane piggy
+
+SIGN_XL_SOURCES = pigs_fly.ddd
+include(../sign_template.pri)

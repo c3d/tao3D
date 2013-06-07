@@ -24,9 +24,6 @@
 
 import Animate
 
-license_check -> check_impress_or_license "Carousel 1.005"
-
-
 
 // ============================================================================
 //
@@ -74,7 +71,6 @@ carousel n:integer, w:integer, d:integer ->
 // ----------------------------------------------------------------------------
 //    Display the carousel
 // ----------------------------------------------------------------------------
-    license_check
     carousel_width := w
     carousel_depth := d
     carousel_count := n

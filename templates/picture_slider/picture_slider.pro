@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/picture_slider/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = picture_slider.ddd
+include(../sign_template.pri)

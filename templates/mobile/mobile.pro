@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/mobile/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = mobile.xl mobile.ddd
+include(../sign_template.pri)

@@ -394,7 +394,7 @@ struct ModuleApi
     //   Licence checking (continued)
     // ------------------------------------------------------------------------
 
-    // If the current build of Tao is Impress, return true. If not Impress:
+    // If the current build of Tao is Impress or Design Pro, return true. Else,
     // return true if a valid license is found for the requested feature name,
     // false otherwise. When no license is found, an information dialog
     // is shown.
@@ -465,7 +465,7 @@ struct ModuleApi
     //   Licence checking (continued)
     // ------------------------------------------------------------------------
 
-    // If the current build of Tao is Impress, return true. If not Impress:
+    // If the current build of Tao is Impress or Design Pro, return true. Else,
     // return true if a valid license is found for the requested feature name,
     // false otherwise.
     bool (*hasImpressOrLicense)(std::string featureName);

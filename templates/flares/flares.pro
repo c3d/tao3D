@@ -12,3 +12,6 @@ files.path  = $$APPINST/templates/flares
 files.files = template.ini flares.ddd flares.png
 
 INSTALLS += files
+
+SIGN_XL_SOURCES = flares.ddd
+include(../sign_template.pri)

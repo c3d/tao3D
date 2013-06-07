@@ -466,6 +466,8 @@ public:
     QString             latestTag(QString moduleDir);
     QStringList         qchFiles();
     void                unloadImported();
+    QDir                userModuleDir() { return QDir(u); }
+    QDir                systemModuleDir() { return QDir(s); }
 
 signals:
     void                checking(QString name);

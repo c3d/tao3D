@@ -32,11 +32,9 @@ import Animate
 // ============================================================================
 // Dynamic variable
 carousel_angle -> 0.0
-carousel_angle := 0.0
 carousel_front -> 1
 
 carousel_count -> 0
-carousel_count := 0
 
 // Size of menu entries
 carousel_width -> 0
@@ -44,7 +42,6 @@ carousel_depth -> 0
 
 // Position of the big picture
 carousel_z -> 0.0
-carousel_z := 0.0
 
 // Setting of hand
 caro_hand_x -> 0.0
@@ -122,26 +119,23 @@ carousel_auto_rotate s:real ->
 //
 // ============================================================================
 
-a -> 0.0
-a:= 0.0
-xs -> 0.0
-xs := 0.0
-zs -> 0.0
-zs := 0.0
-thr -> 2.0 / carousel_count
+carousel_a -> 0.0
+carousel_xs -> 0.0
+carousel_zs -> 0.0
+carousel_thr -> 2.0 / carousel_count
 
 
 carousel_display ->
 // ----------------------------------------------------------------------------
 //   Display the rotating menu
 // ----------------------------------------------------------------------------
-    hand_scale -> 0.1
+    carousel_hand_scale -> 0.1
     compute_smooth_step
-    carousel_angle := -smooth_step + caro_hand_x * hand_scale
+    carousel_angle := -smooth_step + caro_hand_x * carousel_hand_scale
     if abs caro_hand_sy < 0.1 and mouse_buttons = 0 then
         // Encourage adjustment to the next integer position
         caro_hand_x := (0.95 * caro_hand_x +
-        0.05 * floor (caro_hand_x * hand_scale + 0.5) / hand_scale)
+                        0.05 * floor (caro_hand_x * carousel_hand_scale + 0.5) / carousel_hand_scale)
 
     carousel_front := -1
     carousel_items with 1 .. carousel_count
@@ -156,13 +150,14 @@ carousel_items N:integer ->
 //   Display one entry in the rotating menu
 // ----------------------------------------------------------------------------
     locally
-        a := (carousel_angle - N) * 2 * pi / carousel_count
-        xs := sin a
-        zs := cos a
-        if (zs >= (1.0 - thr) and abs(xs) < thr) then
-            carousel_front_item := N
-        if zs * carousel_front >= 0 then
-            translate carousel_width * xs, 0, carousel_depth * zs
-            rotatey -xs * 80
-            color "white", (2 + zs) / 3
+        carousel_a := (carousel_angle - N) * 2 * pi / carousel_count
+        carousel_xs := sin carousel_a
+        carousel_zs := cos carousel_a
+        if carousel_zs >= 1.0 - carousel_thr then
+            if abs(carousel_xs) < carousel_thr then
+                carousel_front_item := N
+        if carousel_zs * carousel_front >= 0 then
+            translate carousel_width * carousel_xs, 0, carousel_depth * carousel_zs
+            rotatey -carousel_xs * 80
+            color "white", (2 + carousel_zs) / 3
             carousel_item N

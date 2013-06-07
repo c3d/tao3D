@@ -33,7 +33,7 @@ theme_background "Water",Master:text ->
         color "white"
         locally
             seconds
-            add_random_drops "rain", 1
+            add_random_drops "water_theme", 5
         // Bind underwater texture
         texture_unit 1
         texture "Water:background.jpg"

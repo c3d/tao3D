@@ -378,9 +378,9 @@ static void CALLBACK tessEnd(PolygonData *poly)
             glPushMatrix();
             glTranslatef(0.0, 0.0, -depth);
             glScalef(1, 1, -1);
-            glFrontFace(invert ? GL_CCW : GL_CW);
+            GL.FrontFace(invert ? GL_CCW : GL_CW);
             drawArrays(poly->mode, textureUnits, data);
-            glFrontFace(invert ? GL_CW : GL_CCW);
+            GL.FrontFace(invert ? GL_CW : GL_CCW);
             glPopMatrix();
         }
         drawArrays(poly->mode, textureUnits, data);
@@ -1072,9 +1072,9 @@ void GraphicPath::Draw(Layout *layout,
                         GraphicSave* save = GL.Save();
                         GL.Translate(0.0, 0.0, -depth);
                         GL.Scale(1, 1, -1);
-                        glFrontFace(GL_CW);
+                        GL.FrontFace(GL_CW);
                         drawArrays(mode, textureUnits, data);
-                        glFrontFace(GL_CCW);
+                        GL.FrontFace(GL_CCW);
                         GL.Restore(save);
                     }
                     extrude(polygon, data, depth);

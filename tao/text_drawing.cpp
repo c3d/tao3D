@@ -331,20 +331,20 @@ void TextSplit::DrawDirect(Layout *where)
                     GraphicSave* save = GL.Save();
                     GL.Translate(0.0, 0.0, -where->extrudeDepth);
                     GL.Scale(1, 1, -1);
-                    glFrontFace(GL_CCW);
+                    GL.FrontFace(GL_CCW);
                     GL.CallList(glyph.interior);
                     GL.Restore(save);
-                    glFrontFace(GL_CW);
+                    GL.FrontFace(GL_CW);
                     GL.CallList(glyph.interior);
-                    glFrontFace(GL_CCW);
+                    GL.FrontFace(GL_CCW);
                 }
 
                 bool hasLine = setLineColor(where); // May fail, keep fill color
                 if (hasFill || hasLine)
                 {
-                    glFrontFace(GL_CW);
+                    GL.FrontFace(GL_CW);
                     GL.CallList(glyph.outline);
-                    glFrontFace(GL_CCW);
+                    GL.FrontFace(GL_CCW);
                 }
             }
             else

@@ -149,6 +149,7 @@ struct GraphicState
     virtual void LineWidth(float width) = 0;
     virtual void LineStipple(GLint factor, GLushort pattern) = 0;
     virtual void CullFace(GLenum mode) = 0;
+    virtual void FrontFace(GLenum mode) = 0;
     virtual void DepthMask(GLboolean flag) = 0;
     virtual void DepthFunc(GLenum func) = 0;
     virtual void ShadeModel(GLenum mode) = 0;

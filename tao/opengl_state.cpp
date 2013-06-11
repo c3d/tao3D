@@ -138,8 +138,8 @@ OpenGLState::OpenGLState()
       frontSpecular(0,0,0,1), frontEmission(0,0,0,1), frontShininess(0),
       backAmbient(0.2,0.2,0.2,1.0), backDiffuse(0.8,0.8,0.8,1.0),
       backSpecular(0,0,0,1), backEmission(0,0,0,1), backShininess(0),
-      shadeMode(GL_SMOOTH), lineWidth(1),
-      stipple(1, -1), cullMode(GL_BACK),
+      shadeMode(GL_SMOOTH), lineWidth(1), stipple(1, -1),
+      cullMode(GL_BACK), frontFace(GL_CCW),
       depthMask(true), depthFunc(GL_LESS),
       textureCompressionHint(GL_DONT_CARE),
       perspectiveCorrectionHint(GL_DONT_CARE),
@@ -377,6 +377,8 @@ void OpenGLState::Sync(uint64 which)
          glLineStipple(stipple.factor, stipple.pattern));
     SYNC(cullMode,
          glCullFace(cullMode));
+    SYNC(frontFace,
+         glFrontFace(frontFace));
     SYNC(depthMask,
          glDepthMask(depthMask));
     SYNC(depthFunc,
@@ -1475,6 +1477,15 @@ void OpenGLState::CullFace(GLenum mode)
 // ----------------------------------------------------------------------------
 {
     CHANGE(cullMode, mode);
+}
+
+
+void OpenGLState::FrontFace(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Define front- and back-facing polygons
+// ----------------------------------------------------------------------------
+{
+    CHANGE(frontFace, mode);
 }
 
 

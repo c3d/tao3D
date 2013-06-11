@@ -605,6 +605,7 @@ struct OpenGLState : GraphicState
     virtual void LineWidth(float width);
     virtual void LineStipple(GLint factor, GLushort pattern);
     virtual void CullFace(GLenum mode);
+    virtual void FrontFace(GLenum mode);
     virtual void DepthMask(GLboolean flag);
     virtual void DepthFunc(GLenum func);
     virtual void ShadeModel(GLenum mode);

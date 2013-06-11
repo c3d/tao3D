@@ -166,22 +166,6 @@ public:
     uint                id;
     uint                charId;
 
-    GLbitfield glSaveBits()
-    {
-        GLbitfield bits = 0;
-        if (hasAttributes)
-            bits |= (GL_LINE_BIT | GL_TEXTURE_BIT);
-        if (hasLighting)
-            bits |= GL_LIGHTING_BIT;
-        if (hasBlending)
-            bits |= GL_COLOR_BUFFER_BIT;
-        if (hasDepthAttr)
-            bits |= GL_DEPTH_BUFFER_BIT;
-        if (hasClipPlanes)
-            bits |= GL_TRANSFORM_BIT;
-        return bits;
-    }
-
 protected:
     // List of drawing elements
     Drawings            items;

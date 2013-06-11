@@ -275,7 +275,7 @@ void PageLayout::Draw(Layout *where)
         return DrawPlaceholder();
 
     // Display all items
-    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     PushLayout(this);
     PageJustifier::Places &all = page.places;
     for (PageJustifier::PlacesIterator p = all.begin(); p != all.end(); p++)
@@ -335,7 +335,7 @@ void PageLayout::DrawSelection(Layout *where)
     }
 
     // Display all items
-    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
@@ -368,7 +368,7 @@ void PageLayout::Identify(Layout *where)
     Compute(where);
 
     // Display all items
-    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;

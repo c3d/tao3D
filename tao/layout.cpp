@@ -305,8 +305,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     Inherit(where);
 
 
@@ -328,8 +327,7 @@ void Layout::DrawSelection(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     Inherit(where);
 
     PushLayout(this);
@@ -352,8 +350,7 @@ void Layout::Identify(Layout *where)
 
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     Inherit(where);
 
 

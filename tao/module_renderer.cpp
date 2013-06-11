@@ -130,8 +130,8 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
-    // Load matrix before draw
-    GL.LoadMatrix();
+    // Synchronise GL states
+    GL.Sync();
 
     try
     {
@@ -159,12 +159,12 @@ void ModuleRenderer::Identify(Layout *where)
     Widget *widget = where->Display();
     if (!widget->inMouseMove())
     {
-        // Load matrix before identify
-        GL.LoadMatrix();
-        
         XL::Save<bool> inIdentify(where->inIdentify, true);
         GL.UseProgram(0); // Necessary for #1464
         currentLayout = where;
+
+        // Synchronise GL states
+        GL.Sync();
         
         try
         {

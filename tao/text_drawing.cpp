@@ -104,7 +104,6 @@ void TextSplit::Draw(Layout *where)
     bool        tooSmall   = fontSize < glyphs.minFontSize &&
                              TaoApp->hasGLMultisample;
     bool        badSize    = tooBig || tooSmall;
-    bool        printing   = where->printing;
     Point3      offset0    = where->Offset();
     IFTRACE(justify)
         std::cerr << "<->TextSplit::Draw(Layout *" << where
@@ -118,7 +117,7 @@ void TextSplit::Draw(Layout *where)
     // Check if we activated new texture units
     glyphs.CheckActiveLayout(where);
 
-    if (!printing && !hasLine && !hasTexture && !badSize && cacheEnabled)
+    if (!hasLine && !hasTexture && !badSize && cacheEnabled)
         DrawCached(where);
     else
         DrawDirect(where);

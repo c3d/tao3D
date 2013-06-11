@@ -70,7 +70,6 @@ void ResetTransform::Draw(Layout *where)
     Widget *widget = where->Display();
     widget->resetModelviewMatrix();
     GL.HasPixelBlur(false);
-    where->has3D = false;
 }
 
 
@@ -87,13 +86,6 @@ void Rotation::Draw(Layout *where)
         GL.HasPixelBlur(true);
     if (amount != 0.0)
     {
-        if (xaxis != 0.0 || yaxis != 0.0)
-            where->has3D = true;
-        else if (zaxis > 0)
-            where->planarRotation += amount;
-        else if (zaxis < 0)
-            where->planarRotation -= amount;
-
         if (where->offset != Vector3())
         {
             GL.Translate(where->offset.x, where->offset.y, where->offset.z);
@@ -137,14 +129,10 @@ void Scale::Draw(Layout *where)
     }
     if (xaxis != 1.0 || yaxis != 1.0)
         GL.HasPixelBlur(true);
-    if (xaxis == yaxis && xaxis == zaxis)
-        where->planarScale *= xaxis;
-    else
-        where->has3D = true;
 }
 
 
-void ClipPlane::Draw(Layout *where)
+void ClipPlane::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Setup a given clip plane
 // ----------------------------------------------------------------------------
@@ -158,7 +146,6 @@ void ClipPlane::Draw(Layout *where)
         GLdouble result[] = { a, b, c, d };
         GL.Enable(GL_CLIP_PLANE0 + plane);
         GL.ClipPlane(GL_CLIP_PLANE0 + plane, result);
-        where->hasClipPlanes = true;
     }
 }
 

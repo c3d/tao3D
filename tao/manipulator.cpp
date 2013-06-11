@@ -1452,7 +1452,6 @@ void RotationManipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     TransformManipulator::Identify(layout);
-    layout->rotationId = layout->id;
 }
 
 
@@ -1539,7 +1538,6 @@ void TranslationManipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     TransformManipulator::Identify(layout);
-    layout->translationId = layout->id;
 }
 
 
@@ -1628,7 +1626,6 @@ void ScaleManipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     TransformManipulator::Identify(layout);
-    layout->translationId = layout->id;
 }
 
 

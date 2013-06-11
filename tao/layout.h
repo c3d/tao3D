@@ -54,7 +54,7 @@ public:
     typedef std::set<int>                       qevent_ids;
 
 public:
-    void                ClearAttributes(bool all = false);
+    void                ClearAttributes();
     static text         ToText(qevent_ids & ids);
     static text         ToText(int type);
     void                InheritState(LayoutState *other);
@@ -79,24 +79,7 @@ public:
     uint                programId;
 
     // Transformations
-    double              planarRotation;
-    double              planarScale;
-    uint                rotationId, translationId, scaleId;
     Matrix4             model;
-
-    // For optimized drawing, we keep track of what changes
-    uint64              hasTextureMatrix; // 64 texture units
-    bool                printing        : 1;
-    bool                hasMatrix       : 1;
-    bool                has3D           : 1;
-    bool                hasAttributes   : 1;
-    bool                hasLighting     : 1;
-    bool                hasBlending     : 1;
-    bool                hasTransform    : 1;
-    bool                hasMaterial     : 1;
-    bool                hasDepthAttr    : 1;
-    bool                hasClipPlanes   : 1;
-    bool                isSelection     : 1;
     bool                groupDrag       : 1;
 };
 

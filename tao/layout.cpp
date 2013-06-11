@@ -58,13 +58,7 @@ LayoutState::LayoutState()
       lightId(GL_LIGHT0),
       perPixelLighting(TaoApp->useShaderLighting),
       programId(0),
-      planarRotation(0), planarScale(1),
-      rotationId(0), translationId(0), scaleId(0),
-      hasTextureMatrix(false), printing(false),
-      hasMatrix(false), has3D(false),
-      hasAttributes(false), hasLighting(false), hasBlending(false),
-      hasTransform(false), hasMaterial(false), hasDepthAttr(false),
-      hasClipPlanes(false), isSelection(false), groupDrag(false)
+      groupDrag(false)
 {}
 
 
@@ -86,38 +80,16 @@ LayoutState::LayoutState(const LayoutState &o)
         lightId(o.lightId),
         perPixelLighting(o.perPixelLighting),
         programId(o.programId),
-        planarRotation(o.planarRotation),
-        planarScale(o.planarScale),
-        rotationId(o.rotationId), translationId(o.translationId),
-        scaleId(o.scaleId),
-        model(o.model),
-        hasTextureMatrix(o.hasTextureMatrix),
-        printing(o.printing),
-        hasMatrix(o.hasMatrix), has3D(o.has3D),
-        hasAttributes(o.hasAttributes),
-        hasLighting(false),
-        hasBlending(false),
-        hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
-        hasClipPlanes(false), isSelection(o.isSelection), groupDrag(false)
+        model(o.model), groupDrag(false)
 {}
 
 
-void LayoutState::ClearAttributes(bool all)
+void LayoutState::ClearAttributes()
 // ----------------------------------------------------------------------------
 //   Reset default state for a layout
 // ----------------------------------------------------------------------------
 {
     LayoutState zero;
-    if (!all)
-    {
-        // Save state modified by Add or before
-        zero.hasMatrix = hasMatrix;
-        zero.hasTextureMatrix = hasTextureMatrix;
-        zero.hasAttributes = hasAttributes;
-        zero.hasLighting = hasLighting;
-        zero.hasDepthAttr = hasDepthAttr;
-        zero.hasClipPlanes = hasClipPlanes;
-    }
     *this = zero;
 }
 
@@ -255,7 +227,7 @@ void Layout::Clear()
     items.clear();
 
     // Initial state has no rotation or attribute changes
-    ClearAttributes(true);
+    ClearAttributes();
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
@@ -766,16 +738,10 @@ void LayoutState::InheritState(LayoutState *where)
     perPixelLighting = where->perPixelLighting;
 
     programId        = where->programId;
-    printing         = where->printing;
 
-    planarRotation   = where->planarRotation;
-    planarScale      = where->planarScale;
     model            = where->model;
 
-    has3D            = where->has3D;
     groupDrag        = where->groupDrag;
-    hasMaterial      = where->hasMaterial;
-    hasTransform     = where->hasTransform;
 }
 
 
@@ -799,9 +765,6 @@ void LayoutState::toDebugString(std::ostream &out) const
     out << "\tfillColor       = " << fillColor << std::endl;
     out << "\tlightId         = " << lightId << std::endl;
     out << "\tprogramId       = " << programId << std::endl;
-    out << "\tprinting        = " << printing << std::endl;
-    out << "\tplanarRotation  = " << planarRotation << std::endl;
-    out << "\tplanarScale     = " << planarScale << std::endl;
 }
 
 

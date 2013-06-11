@@ -159,7 +159,6 @@ void Material::Draw(Layout *where)
 //   Send the corresponding GL material attribute
 // ----------------------------------------------------------------------------
 {
-    where->hasMaterial = true;
     GL.Disable(GL_COLOR_MATERIAL);
     GL.Materialfv(face, function, &args[0]);
 

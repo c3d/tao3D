@@ -406,33 +406,30 @@ void DepthFunc::Draw(Layout *)
 }
 
 
-void BlendFunc::Draw(Layout *where)
+void BlendFunc::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Change the blend function
 // ----------------------------------------------------------------------------
 {
     GL.BlendFunc(sfactor, dfactor);
-    where->hasBlending = true;
 }
 
 
-void BlendFuncSeparate::Draw(Layout *where)
+void BlendFuncSeparate::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Change the blend function separately for alpha and color
 // ----------------------------------------------------------------------------
 {
     GL.BlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
-    where->hasBlending = true;
 }
 
 
-void BlendEquation::Draw(Layout *where)
+void BlendEquation::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Change the blend equation
 // ----------------------------------------------------------------------------
 {
     GL.BlendEquation(equation);
-    where->hasBlending = true;
 }
 
 

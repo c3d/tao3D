@@ -5060,7 +5060,6 @@ void Widget::drawSelection(Layout *where,
     GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id;
-    selectionSpace.isSelection = true;
     saveSelectionColorAndFont(where);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
@@ -5084,7 +5083,6 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
     GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id | HANDLE_SELECTED;
-    selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
     selectionSpace.Draw(NULL);
@@ -5117,7 +5115,6 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id;
-    selectionSpace.isSelection = true;
     call(xlProgram);
     selectionSpace.Draw(where);
 }
@@ -6033,7 +6030,6 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
-    layout->hasMatrix = true;
     layout->Add(new ResetTransform());
     return XL::xl_false;
 }
@@ -6080,13 +6076,11 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    if (!layout->hasTransform)
-    {
+    // Check that matrix mode is modelview
+    if (GL.matrixMode == GL_MODELVIEW)
         layout->model.Rotate(ra, rx, ry, rz);
-    }
 
     layout->Add(new Rotation(ra, rx, ry, rz));
-    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -6123,14 +6117,11 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    if (!layout->hasTransform)
-    {
-        // Update the current model translation
+    // Check that matrix mode is modelview
+    if (GL.matrixMode == GL_MODELVIEW)
         layout->model.Translate(tx, ty, tz);
-    }
 
     layout->Add(new Translation(tx, ty, tz));
-    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -6167,14 +6158,11 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    if (!layout->hasTransform)
-    {
-        // Update the current model scaling
+    // Check that matrix mode is modelview
+    if (GL.matrixMode == GL_MODELVIEW)
         layout->model.Scale(sx, sy, sz);
-    }
 
     layout->Add(new Scale(sx, sy, sz));
-    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -6186,7 +6174,6 @@ Tree_p Widget::clipPlane(Tree_p self, int plane,
 // ----------------------------------------------------------------------------
 {
     layout->Add(new ClipPlane(plane, a, b, c, d));
-    layout->hasClipPlanes = true;
     return XL::xl_true;
 }
 
@@ -6288,7 +6275,6 @@ Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 //   Enable or disable OpenGL depth test
 // ----------------------------------------------------------------------------
 {
-    layout->hasDepthAttr = true;
     layout->Add(new DepthTest(enable));
     return XL::xl_true;
 }
@@ -6299,7 +6285,6 @@ Name_p Widget::depthMask(XL::Tree_p self, bool enable)
 //   Enable or disable OpenGL depth mask
 // ----------------------------------------------------------------------------
 {
-    layout->hasDepthAttr = true;
     layout->Add(new DepthMask(enable));
     return XL::xl_true;
 }
@@ -6324,7 +6309,6 @@ Name_p Widget::blendFunction(Tree_p self, text src, text dst)
     GLenum srcEnum = TextToGLEnum(src, GL_SRC_ALPHA);
     GLenum dstEnum = TextToGLEnum(dst, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFunc(srcEnum, dstEnum));
-    layout->hasBlending = true;
     return XL::xl_true;
 }
 
@@ -6341,7 +6325,6 @@ Name_p Widget::blendFunctionSeparate(Tree_p self,
     GLenum srcaE = TextToGLEnum(srca, GL_SRC_ALPHA);
     GLenum dstaE = TextToGLEnum(dsta, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFuncSeparate(srcE, dstE, srcaE, dstaE));
-    layout->hasBlending = true;
     return XL::xl_true;
 }
 
@@ -6353,7 +6336,6 @@ Name_p Widget::blendEquation(Tree_p self, text eq)
 {
     GLenum eqE = TextToGLEnum(eq, GL_FUNC_ADD);
     layout->Add(new BlendEquation(eqE));
-    layout->hasBlending = true;
     return XL::xl_true;
 }
 
@@ -7426,7 +7408,6 @@ Tree_p Widget::lineWidth(Tree_p self, double lw)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineWidth(lw));
-    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -7437,7 +7418,6 @@ Tree_p Widget::lineStipple(Tree_p self, uint16 pattern, uint16 scale)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineStipple(pattern, scale));
-    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -7577,7 +7557,6 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
     }
 
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     return new XL::Integer(texId);
 }
 
@@ -7607,8 +7586,6 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
         GL.TextureSize(0, 0);
     }
-
-    layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
 }
@@ -7642,8 +7619,6 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
         layout->Add(new FillTexture(texId));
         GL.TextureSize(0, 0);
     }
-
-    layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
 }
@@ -7681,8 +7656,6 @@ Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
         GL.TextureSize(0, 0);
     }
 
-    layout->hasAttributes = true;
-
     return new Integer(texId, self->Position());
 }
 
@@ -7708,7 +7681,6 @@ Integer* Widget::image(Context *context,
     CachedTexture *t = TextureCache::instance()->load(+filename, +docPath);
     layout->Add(new FillTexture(t->id, GL_TEXTURE_2D));
     GL.TextureSize(t->width, t->height);
-    layout->hasAttributes = true;
 
     double w0 = t->width;
     double h0 = t->height;
@@ -7866,13 +7838,9 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
         return XL::xl_false;
     }
 
-    layout->hasTextureMatrix |= 1 << texUnit;
-    bool hadTransform = layout->hasTransform;
-    layout->hasTransform = true;
     layout->Add(new TextureTransform(true));
     Tree_p result = context->Evaluate(code);
     layout->Add(new TextureTransform(false));
-    layout->hasTransform = hadTransform;
     return result;
 }
 
@@ -8039,7 +8007,6 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
-    layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;
 }
@@ -8049,7 +8016,6 @@ Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
 //   Set a light parameter with a single float value
 // ----------------------------------------------------------------------------
 {
-    layout->hasLighting = true;
     layout->Add(new Light(function, value));
     return XL::xl_true;
 }
@@ -8061,7 +8027,6 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (direction)
 // ----------------------------------------------------------------------------
 {
-    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c));
     return XL::xl_true;
 }
@@ -8073,7 +8038,6 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (position, color)
 // ----------------------------------------------------------------------------
 {
-    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c, d));
     return XL::xl_true;
 }
@@ -9203,7 +9167,6 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
     surface->resize(w,h);
     uint texId = surface->bind(doc);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize(w, h);
 
     delete editCursor;
@@ -9891,7 +9854,6 @@ Integer_p Widget::glyphCacheTexture(Tree_p self)
 {
     uint textureID = glyphCache.Texture();
     layout->Add(new FillTexture(textureID, GL_TEXTURE_RECTANGLE_ARB));
-    layout->hasAttributes = true;
     return new Integer(textureID, self->Position());
 }
 
@@ -10326,7 +10288,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize(w, h);
 
     if (withDepth.Pointer())
@@ -10478,7 +10439,6 @@ Integer* Widget::thumbnail(Context *context,
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
 
@@ -10564,7 +10524,6 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -10649,7 +10608,6 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -10734,7 +10692,6 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -10797,7 +10754,6 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
     surface->resize (w,h);
     uint texId = surface->bind(url, progress);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -10843,7 +10799,6 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
     surface->resize (w, h);
     uint texId = surface->bind(txt);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -10883,7 +10838,6 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
     surface->resize (w, h);
     uint texId = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -10925,7 +10879,6 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
     surface->resize (w, h);
     uint texId = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -10967,7 +10920,6 @@ Integer* Widget::pushButtonTexture(Tree_p self,
     surface->resize (w, h);
     uint texId = surface->bind(lbl, act, NULL);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
@@ -11470,7 +11422,6 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
     surface->resize (w, h);
     uint texId = surface->bind(lbl);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());

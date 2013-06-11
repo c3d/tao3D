@@ -45,26 +45,28 @@ rectangle 100, 0, 150, 100
  *
  * @par Colors and materials
  *
- * When lighting is enabled, changing the current color changes the
- * "front and back, ambient and diffuse" material properties.
+ * When lighting is enabled, the final color of a shape is obtained by multiplying
+ * the current color with  "front and back, ambient and diffuse" materials.
  * That is, the following code:
  @code
 // Yellow
 color 1, 1, 0, 1
  @endcode
- * ...is always equivalent to:
+ * ...is equivalent to:
  @code
 // Yellow
-material_ambient 1, 1, 0, 1
-material_diffuse 1, 1, 0, 1
+color 1, 1, 0, 1
+material_ambient 0.2, 0.2, 0.2, 1 // Default value
+material_diffuse 0.8, 0.8, 0.8, 1 // Default value
  @endcode
  * ...which is also equivalent to:
  @code
 // Yellow
-material_back_ambient 1, 1, 0, 1
-material_front_ambient 1, 1, 0, 1
-material_back_diffuse 1, 1, 0, 1
-material_front_diffuse 1, 1, 0, 1
+color 1, 1, 0, 1
+material_back_ambient 0.2, 0.2, 0.2, 1  // Default value
+material_front_ambient 0.2, 0.2, 0.2, 1 // Default value
+material_back_diffuse 0.8, 0.8, 0.8, 1  // Default value
+material_front_diffuse 0.8, 0.8, 0.8, 1 // Default value
  @endcode
  *
  * @par Example
@@ -127,26 +129,28 @@ rectangle 100, 0, 150, 100
  *
  * @par Couleurs et matériaux
  *
- * Lorsqu'au moins une lumière est active, un changement de la couleur
- * courante change la couleur des matériaux <em>front and back, ambient and
+ * Lorsqu'au moins une lumière est active, la couleur d'une forme est obtenue
+ * par le produit de la couleur courante avec la couleur des matériaux <em>front and back, ambient and
  * diffuse</em>. Autrement dit, le code suivant :
  @code
 // Jaune
 color 1, 1, 0, 1
  @endcode
- * ...est toujours équivalent à :
+ * ...est équivalent à :
  @code
 // Jaune
-material_ambient 1, 1, 0, 1
-material_diffuse 1, 1, 0, 1
+color 1, 1, 0, 1
+material_ambient 0.2, 0.2, 0.2, 1 // Valeur par défaut
+material_diffuse 0.8, 0.8, 0.8, 1 // Valeur par défaut
  @endcode
  * ...ou encore :
  @code
 // Jaune
-material_back_ambient 1, 1, 0, 1
-material_front_ambient 1, 1, 0, 1
-material_back_diffuse 1, 1, 0, 1
-material_front_diffuse 1, 1, 0, 1
+color 1, 1, 0, 1
+material_back_ambient 0.2, 0.2, 0.2, 1  // Valeur par défaut
+material_front_ambient 0.2, 0.2, 0.2, 1 // Valeur par défaut
+material_back_diffuse 0.8, 0.8, 0.8, 1  // Valeur par défaut
+material_front_diffuse 0.8, 0.8, 0.8, 1 // Valeur par défaut
  @endcode
  *
  * @par Example
@@ -427,11 +431,15 @@ light_attenuation(c:real, l:real, q:real);
  * Sets the ambient parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0.2, 0.2, 0.2, 1.0)</tt>.
  *
  * @~french
  * Définit la composante couleur ambiante du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0.2, 0.2, 0.2, 1.0)</tt>.
  *
  * @~
  * @see material_front_ambient, material_back_ambient
@@ -444,11 +452,15 @@ material_ambient(r:real, g:real, b:real, a:real);
  * Sets the diffuse parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0.8, 0.8, 0.8, 1.0)</tt>.
  *
  * @~french
  * Définit la composante couleur diffuse du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0.8, 0.8, 0.8, 1.0)</tt>.
  *
  * @~
  * @see material_front_diffuse, material_back_diffuse
@@ -461,11 +473,15 @@ material_diffuse(r:real, g:real, b:real, a:real);
  * Sets the specular parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0, 0, 0, 1)</tt>.
  *
  * @~french
  * Définit la composante couleur spéculaire du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0, 0, 0, 1)</tt>.
  *
  * @~
  * @see material_front_specular, material_back_specular
@@ -478,11 +494,15 @@ material_specular(r:real, g:real, b:real, a:real);
  * Sets the emission parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0, 0, 0, 1)</tt>.
  *
  * @~french
  * Définit la composante couleur d'émission du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
  * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0, 0, 0, 1)</tt>.
  *
  * @~
  * @see material_front_emission, material_back_emission
@@ -495,11 +515,15 @@ material_emission(r:real, g:real, b:real, a:real);
  * Sets the shininess parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, x)</tt>.
+ * @n
+ * The default value is <tt>0</tt>.
  *
  * @~french
  * Définit la brillance du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
  * <tt>glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, x)</tt>.
+ * @n
+ * La valeur par défaut est <tt>0</tt>.
  *
  * @~
  * @see material_front_shininess, material_back_shininess

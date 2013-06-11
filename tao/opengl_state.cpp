@@ -3352,11 +3352,14 @@ void TextureState::Sync(TextureState &ts)
     } while(0)
 
     // Overload filter settings if pixel blur is not required
+    // Note: actually deactivate as we don't know really how to manage
+    // scaled shapes. Refs #2954.
+    /*
     if(! GL.hasPixelBlur)
     {
         ts.minFilt = GL_NEAREST;
         ts.magFilt = GL_NEAREST;
-    }
+    }*/
 
     type = ts.type;
     SYNC_TEXTURE(id, glBindTexture(type, id));

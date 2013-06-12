@@ -206,9 +206,6 @@ void ShaderValue::Draw(Layout *where)
 #endif
             GL.Uniform(id, (int) values[0]);
             break;
-        case GL_FLOAT:
-            GL.Uniform(id, values[0]);
-            break;
         case GL_FLOAT_VEC2:
             GL.Uniform2fv(id, sz/2, &values[0]);
             break;

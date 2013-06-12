@@ -93,6 +93,9 @@ public:
     void     addDisplayModeMenu(QString mode, QString label);
     bool     hasStackedWidget() { return (stackedWidget->count() > 1); }
     QString  welcomePath();
+#ifndef CFG_NO_DOC_SIGNATURE
+    bool     isDocumentSigned();
+#endif
 
     bool isUntitled;
     bool isReadOnly;
@@ -129,6 +132,9 @@ public slots:
     void adjustToScreenResolution(int screen);
     void updateDisplayModeCheckMark(QString mode);
     void closeDocument();
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+    void signDocument(text path = "");
+#endif
 
 signals:
 #ifndef CFG_NOGIT
@@ -189,7 +195,9 @@ private slots:
     void preferences();
     void licenses();
     void onlineDoc();
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     void tutorialsPage();
+#endif
     void documentWasModified();
     void displayModeTriggered(bool on);
 #ifdef CFG_TIMED_FULLSCREEN
@@ -227,7 +235,6 @@ private:
     void     showMessage(QString message, int timeout);
     void     showInfoDialog(QString title, QString msg, QString info = "");
     void     closeToolWindows();
-
 
 private:
     XL::Main *        xlRuntime;
@@ -283,6 +290,9 @@ private:
     QAction          *saveAsAct;
     QAction          *saveFontsAct;
     QAction          *consolidateAct;
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+    QAction          *signDocumentAct;
+#endif
 #endif
     QAction          *renderToFileAct;
     QAction          *printAct;
@@ -307,7 +317,9 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     QAction          *tutorialsPageAct;
+#endif
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/simple_slides/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = simple_slides.ddd theme.xl
+include(../sign_template.pri)

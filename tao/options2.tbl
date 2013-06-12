@@ -12,7 +12,7 @@ OPTVAR(pull_interval, ulong, 5000)
 OPTION(autosync, "Not used", )
 #else
 OPTION(autosync, "Interval for automatic file sync in milliseconds",
-       sync_interval = INTEGER(1000, 100000))
+       sync_interval = INTEGER(10, 100000))
 #endif
 OPTION(autosave, "Interval for automatic save in milliseconds",
        save_interval = INTEGER(1000, 100000))

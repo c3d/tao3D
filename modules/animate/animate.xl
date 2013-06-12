@@ -28,7 +28,7 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.01
+    version 1.03
 
 module_description "fr",
     name "Animations"
@@ -279,9 +279,10 @@ page_duration Duration:real, Name:text ->
 // ----------------------------------------------------------------------------
 //   Go to the named page after the given duration
 // ----------------------------------------------------------------------------
-    scheduled_duration := Duration 
-    if page_time > Duration then 
-        goto_page Name 
+    locally
+        scheduled_duration := Duration
+        if page_time > Duration then
+            goto_page Name
 
 
 page_duration Duration:real, Page:integer ->
@@ -316,7 +317,7 @@ smooth_down_ratio -> 1 - smooth_ratio
 
 [A:real..B:real, C:real..D:real] Body ->
 // ----------------------------------------------------------------------------
-//   Evaluate something during the given intervals
+//   Evaluate Body when page time is in the given intervals
 // ----------------------------------------------------------------------------
     if page_time in A..D then
         [A..B]
@@ -340,9 +341,21 @@ smooth_down_ratio -> 1 - smooth_ratio
             Body
 
 
+[A:real..B:real, ] Body ->
+// ----------------------------------------------------------------------------
+//   Evaluate Body when page time >= A, adjust ratio relative to A..B
+// ----------------------------------------------------------------------------
+    [A..B]
+        true
+        Body
+    if page_time >= B then
+        ratio := 1.0
+        Body
+
+
 Value:real in [A:real..B:real, C:real..D:real] Body ->
 // ----------------------------------------------------------------------------
-//   Evaluate something during the given intervals
+//   Evaluate Body if Value is in the given intervals
 // ----------------------------------------------------------------------------
     if Value in A..D then
         Value in [A..B]
@@ -358,7 +371,7 @@ Value:real in [A:real..B:real, C:real..D:real] Body ->
 
 Value:real in [A:real .. B:real] Body ->
 // ----------------------------------------------------------------------------
-//    Evaluate Body between page times A and B
+//    Evaluate Body if Value is between A and B
 // ----------------------------------------------------------------------------
     if Value in A..B then
         if B > A then
@@ -366,3 +379,22 @@ Value:real in [A:real .. B:real] Body ->
             Body
 
 
+Value:real in [A:real..B:real, ] Body ->
+// ----------------------------------------------------------------------------
+//   Evaluate Body when Value >= A, adjust ratio relative to A..B
+// ----------------------------------------------------------------------------
+    Value in [A..B]
+        true
+        Body
+    if Value >= B then
+        ratio := 1.0
+        Body
+
+
+// The following definitions are used in the documentation
+value_in_interval Value:real, A:real, B:real, Body -> Value in [A..B] Body
+value_in_intervals Value:real, A:real, B:real, C:real, D:real, Body -> Value in [A..B, C..D] Body
+value_in_interval_or_greater Value:real, A:real, B:real, Body -> Value in [A..B, ] Body
+page_time_in_interval A:real, B:real, Body -> [A..B] Body
+page_time_in_intervals A:real, B:real, C:real, D:real, Body -> [A..B, C..D] Body
+page_time_in_interval_or_greater Value:real, A:real, B:real, Body -> [A..B, ] Body

@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/hello_world/images
 images.files = images/*
  
 INSTALLS += files images
+
+SIGN_XL_SOURCES = hello_world.ddd
+include(../sign_template.pri)

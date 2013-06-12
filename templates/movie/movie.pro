@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/movie/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = movie.ddd
+include(../sign_template.pri)

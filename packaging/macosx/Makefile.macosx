@@ -68,13 +68,10 @@ MAYBE_GIT_VERYCLEAN = veryclean.git
 
 endif
 
-ifdef TAO_EDITION
-EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
-endif
 ifdef PACKAGE_APPEND
 APPENDSTR=$(PACKAGE_APPEND) # ends with one space - do not remove this comment!
 endif
-DMG=Tao Presentations $(EDSTR)$(APPENDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
+DMG=Tao Presentations $(APPENDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 
 kit: .dmg_ts
 

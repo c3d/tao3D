@@ -1,5 +1,29 @@
 Change log for Tao Presentations
 
+1.30 (03-Jun-2013)
+
+#3036 Running Tao with -autosync 10 and -tfilemon shows a polling interval of 1000
+#3032 Create FilmStrip module
+#3028 Error window shows "Vertex shader(s) linked, fragment shader(s) linked." (Windows, AMD GPU)
+#3018 Linux: leave some symbols in Tao binaries for easier crash debugging
+#3017 GL error 1284 then crash in FrameInfo::purge when switching to quad buffer
+#3016 Missing check mark on menu action: View>Animations
+#3014 VLCAudioVideo: add movie_next_frame
+#3008 Frequent freezes on Ubuntu after system update (NVIDIA driver 304.88)
+#3007 Animate: Add shortcuts to execute range during a page time interval
+#3006 Error in slides themes when using & to concatenate two text strings
+#3003 Incorrect processing of {} block at end of line with ;
+#3001 Design edition should display a warning when evaluation period has expired
+#2998 Warn if user module has same ID than (obviously different) application module
+#2993 Non-reg tests for Materials module are not reproducible
+#2991 frame_count is not incremented during offline rendering
+#2989 Remove module licenses that are checked with "checkImpressOrLicense"
+#2779 Tao Player: allow unrestricted display of documents signed by Tao Design Pro
+#2579 Change Tao editions: Design, Design Pro, Player, Player Pro
+#2578 Create Player edition
+#2577 Rename Discovery/Impress editions to Design/Design Pro
+#2035 Enable/disable VSync commands have no effect on Linux
+
 1.20 (02-May-2013)
 
 #2987 Add page time to the module API

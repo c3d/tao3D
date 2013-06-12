@@ -15,3 +15,6 @@ photos.path = $$APPINST/templates/photo_viewer/photos
 photos.files = photos/*
 
 INSTALLS += files photos
+
+SIGN_XL_SOURCES = photo_viewer.ddd
+include(../sign_template.pri)

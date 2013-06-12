@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/YouCube/images
 images.files = images/*
 
 INSTALLS += files images
+
+SIGN_XL_SOURCES = YouCube.ddd
+include(../sign_template.pri)

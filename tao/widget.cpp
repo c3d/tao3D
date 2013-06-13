@@ -6146,6 +6146,7 @@ Integer_p Widget::stereoViewpoints()
 //   The number of viewpoints for the current display
 // ----------------------------------------------------------------------------
 {
+    refreshOn(displayDriver->viewPointsChangedEvent());
     return new XL::Integer(Tao()->stereoPlanes);
 }
 

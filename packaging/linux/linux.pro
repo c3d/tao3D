@@ -35,9 +35,11 @@ include (../../version.pri)
 # Minimal version of Qt packages (Ubuntu packaging, see control.in)
 # Note: Use show_deps.sh to maintain the list of dependencies
 QTVER="4:4.7.4"
-QMAKE_SUBSTITUTES = Makefile.config.in
+QMAKE_SUBSTITUTES = Makefile.config.in tao.sh.in
 isEmpty(TAO_PLAYER) {
+  TAOEXE = Tao Presentations
   QMAKE_SUBSTITUTES += control.in
 } else {
+  TAOEXE = Tao Presentations Player
   QMAKE_SUBSTITUTES += control_player.in
 }

@@ -39,7 +39,7 @@ $(TAO):
 	mkdir $(TAO)
 
 $(TAO)/tao: $(TAO) install
-	cd $(TAO) ; mv Tao "Tao Presentations"
+	cd $(TAO) ; mv Tao "$(TAOEXE)"
 	cp tao.sh $(TAO)/tao
 	chmod +x $(TAO)/tao
 
@@ -88,7 +88,7 @@ ifndef NO_SDK
 	$(MAKE) -C ../.. -f Makefile.sdk
 	cp -Rp ../../sdk $(DEBTAO)
 endif
-	cd $(DEBTAO) ; mv Tao "Tao Presentations"
+	cd $(DEBTAO) ; mv Tao "$(TAOEXE)"
 	cp tao.sh $(DEBTAO)/tao
 	chmod +x $(DEBTAO)/tao
 	cp $(CONTROL) debian/DEBIAN/control

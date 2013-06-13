@@ -2585,11 +2585,13 @@ void OpenGLState::SetLight(GLenum light, bool active)
         lights.dirty |= 1ULL << id;
         SAVE(lights);
         lights_isDirty = true;
+        bool updatePosition = false;
 
         if (id >= lights.lights.size())
         {
             lights.lights.resize(id + 1);
             (lights.lights[id]) = LightState(id);
+            updatePosition = true;
         }
 
         (lights.lights[id]).active = active;
@@ -2601,6 +2603,21 @@ void OpenGLState::SetLight(GLenum light, bool active)
         else
             if(lights.active & id)
                 lights.active ^= id;
+
+
+        // As modelview matrix don't have to modify the light position
+        // unless we call glLightfv(GL_LIGHT0, GL_POSITION), we need to
+        // assure to have the correct default light position by setting
+        // the MV matrix to identity just before. Refs #3057.
+        if(active)
+        {
+            GLfloat pos[4]  = {0, 0, 1, 0}; // Default light position
+            GraphicSave* save = GL.Save();
+            GL.MatrixMode(GL_MODELVIEW);
+            GL.LoadIdentity();
+            GL.Light(light, GL_POSITION, pos);
+            GL.Restore(save);
+        }
     }
 }
 

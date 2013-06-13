@@ -3225,12 +3225,12 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
         {
             TextureUnitState &oldtu = units[u];             // Get old texture unit state
             TextureState &ot = ots.textures[oldtu.texture]; // Get old texture state
+            uint unit = GL_TEXTURE0 + u;
 
             // Disable unit only if it was active before
             if(active & (1 << u))
             {
                 // Active texture unit
-                uint unit = GL_TEXTURE0 + u;
                 if(lastUnit != unit)
                 {
                     glActiveTexture(unit);
@@ -3243,24 +3243,31 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
                 if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
                 if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
 
-                // If current matrix is not identity, then we need to
-                // restore it the current default value.
-                if(oldtu.matrix.type != oldtu.matrix.IDENTITY && u < GL.MaxTextureCoords())
-                {
-                    glMatrixMode(GL_TEXTURE);
-                    oldtu.matrix.LoadIdentity();
-                    glLoadMatrixd(oldtu.matrix.Data(false));
-                    // Need to restore to the previous mode,
-                    // so mark it as dirty
-                    GL.matrixMode_isDirty = true;
-                }
-
                 // Bind empty texture
                 if(ot.id) glBindTexture(ot.type, 0);
 
                 // Reset texture environment mode
                 // REVISIT: Avoid to make it each time. See #3019.
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            }
+
+            // If current matrix is not identity, then we need to
+            // restore it the current default value.
+            if(oldtu.matrix.type != oldtu.matrix.IDENTITY && u < GL.MaxTextureCoords())
+            {
+                // Assure to active the correct unit
+                if(lastUnit != unit)
+                {
+                    glActiveTexture(unit);
+                    lastUnit = unit;
+                }
+
+                glMatrixMode(GL_TEXTURE);
+                oldtu.matrix.LoadIdentity();
+                glLoadMatrixd(oldtu.matrix.Data(false));
+                // Need to restore to the previous mode,
+                // so mark it as dirty
+                GL.matrixMode_isDirty = true;
             }
         }
         units.resize(nmax);

@@ -2,5 +2,6 @@
 /Makefile
 /*.tar.bz2
 /control
+/control_player
 /debian
 /*.deb

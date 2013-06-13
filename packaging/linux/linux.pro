@@ -35,4 +35,9 @@ include (../../version.pri)
 # Minimal version of Qt packages (Ubuntu packaging, see control.in)
 # Note: Use show_deps.sh to maintain the list of dependencies
 QTVER="4:4.7.4"
-QMAKE_SUBSTITUTES = Makefile.config.in control.in
+QMAKE_SUBSTITUTES = Makefile.config.in
+isEmpty(TAO_PLAYER) {
+  QMAKE_SUBSTITUTES += control.in
+} else {
+  QMAKE_SUBSTITUTES += control_player.in
+}

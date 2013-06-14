@@ -176,8 +176,15 @@ void ShaderProgram::Draw(Layout *where)
 {
     if (!where->InIdentify())
     {
-        program->bind();
-        where->programId = program->programId();
+        if(program)
+        {
+            program->bind();
+            where->programId = program->programId();
+        }
+        else
+        {
+            where->programId = 0;
+        }
         GL.UseProgram(where->programId);
     }
 }

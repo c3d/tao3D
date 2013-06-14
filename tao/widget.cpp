@@ -8200,6 +8200,16 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //    Note that we compile and evaluate the shader only once
 {
+    Tree_p result = XL::xl_true;
+
+    Name* name = code->AsName();
+    if(name && (name->value == "false"))
+    {
+        // Disable shader program
+        layout->Add(new ShaderProgram());
+        return result;
+    }
+
     if (currentShaderProgram)
     {
         Ooops("Nested shader program $1", self);
@@ -8208,7 +8218,7 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
 
     ShaderProgramInfo *info = self->GetInfo<ShaderProgramInfo>();
     QGLShaderProgram *program = NULL;
-    Tree_p result = XL::xl_true;
+
     if (!info)
     {
         program = new QGLShaderProgram;

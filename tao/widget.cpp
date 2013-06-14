@@ -5268,7 +5268,7 @@ Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
             m->coordinates = unproject(x, y, 0,
                                        m->projection, m->model, m->viewport);
 
-            return saveAndEvaluate(XL::MAIN->context, action);
+            return XL::MAIN->context->Evaluate(action);
         }
     }
     return NULL;
@@ -5545,7 +5545,7 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
             }
 
         clearColor(self, 1, 1, 1, 1);
-        return saveAndEvaluate(context, xlProgram->tree);
+        return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
 }
@@ -5578,7 +5578,7 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
             }
 
         clearColor(self, 1, 1, 1, 1);
-        return saveAndEvaluate(context, xlProgram->tree);
+        return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
 }
@@ -5597,12 +5597,12 @@ Tree_p Widget::runTransition(Context *context)
     if (frozenTime - transitionStartTime > transitionDurationValue)
     {
         commitPageChange(true);
-        result = saveAndEvaluate(context, xlProgram->tree);
+        result = context->Evaluate(xlProgram->tree);
     }
     else
     {
         XL::Save<bool> saveInTransition(runningTransitionCode, true);
-        result = saveAndEvaluate(context, xlProgram->tree);
+        result = context->Evaluate(transitionTree);
     }
     return result;
 }
@@ -5892,7 +5892,7 @@ XL::Real_p Widget::after(Context *context, double delay, Tree_p code)
     else
     {
         XL::Save<double> saveTime(startTime, startTime + delay);
-        saveAndEvaluate(context, code);
+        context->Evaluate(code);
     }
 
     return new XL::Real(elapsed);
@@ -5922,7 +5922,7 @@ XL::Real_p Widget::every(Context *context,
     else
     {
         XL::Save<double> saveTime(startTime, start);
-        saveAndEvaluate(context, code);
+        context->Evaluate(code);
         refreshOn(QEvent::Timer, start + delay);
     }
     return new XL::Real(elapsed);
@@ -10081,7 +10081,7 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
         }
     }
 
-    Tree_p result = saveAndEvaluate(context, body);
+    Tree_p result = context->Evaluate(body);
 
     // After we evaluated the body, add element to the layout
     layout->Add(tbl);

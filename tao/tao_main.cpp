@@ -40,9 +40,12 @@
 #include "tao_utf8.h"
 #include "version.h"
 #include "../config.h"
-#include "decryption.h"
+#include "crypto.h"
 #include "normalize.h"
 #include "opengl_state.h"
+#ifndef CFG_NO_DOC_SIGNATURE
+#include "document_signature.h"
+#endif
 
 #include <QApplication>
 #include <QGLWidget>
@@ -82,14 +85,10 @@ int main(int argc, char **argv)
     {
         if (!strcmp(argv[i], "--version"))
         {
-#ifdef TAO_EDITION
-#define EDSTR TAO_EDITION " "
-#else
 #ifdef TAO_PLAYER
 #define EDSTR "Player "
 #else
 #define EDSTR
-#endif
 #endif
             std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR
@@ -546,6 +545,42 @@ void tao_stack_trace(int fd)
 
 
 TAO_BEGIN
+int Main::LoadFile(text file, bool updateContext,
+                   XL::Context *importContext, XL::Symbols *importSymbols)
+// ----------------------------------------------------------------------------
+//   Call XLR to load file. Attach signature info to tree if file is signed.
+// ----------------------------------------------------------------------------
+{
+    int ret = XL::Main::LoadFile(file, updateContext, importContext,
+                                 importSymbols);
+
+#ifndef CFG_NO_DOC_SIGNATURE
+    if (TaoApp->edition == Application::PlayerPro ||
+        TaoApp->edition == Application::DesignPro)
+    {
+        // (Re-) check file signature.
+        XL::SourceFile &sf = XL::MAIN->files[file];
+        SignatureInfo * si = sf.GetInfo<SignatureInfo>();
+        if (!si)
+        {
+            si = new SignatureInfo(file);
+            sf.SetInfo<SignatureInfo>(si);
+        }
+        SignatureInfo::Status st = si->loadAndCheckSignature();
+        if (st != SignatureInfo::SI_VALID)
+        {
+            sf.Remove(si);
+            delete si;
+        }
+        // Now if SourceFile has a SignatureInfo it means it has a valid
+        // signature.
+    }
+#endif
+
+    return ret;
+}
+
+
 text Main::SearchFile(text file)
 // ----------------------------------------------------------------------------
 //   Find the file in the application path
@@ -591,7 +626,7 @@ text Main::Decrypt(text file)
             QByteArray ba = f.readAll();
             text in;
             in.append(ba.data(), ba.size());
-            return Decryption::Decrypt(in);
+            return Crypto::Decrypt(in);
         }
     }
     return "";

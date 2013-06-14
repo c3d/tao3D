@@ -5,19 +5,24 @@
 #
 # Usage: In module_name/module_name.pro:
 #   CRYPT_XL_SOURCES = filename.xl
-#   include(../crypt_xl.pri)
+#   include(crypt_xl.pri)
 
 isEmpty(MODINSTPATH):error(Please include modules.pri before crypt_xl.pri)
 
 !isEmpty(CRYPT_XL_SOURCES) {
+  for(file, CRYPT_XL_SOURCES) {
+    target = $${file}.crypt
+    eval($${target}.path = \$\$MODINSTPATH)
+    eval($${target}.commands = $$TAOTOPSRC/crypt/crypt.sh <$$file >$$target)
+    eval($${target}.files = $$target)
+    eval($${target}.depends = $$file)
+    eval($${target}.CONFIG = no_check_exist)
+    QMAKE_EXTRA_TARGETS *= $${target}
+    INSTALLS *= $${target}
+    QMAKE_CLEAN *= $${target}
 
-  for(file, CRYPT_XL_SOURCES):CRYPT_XL_FILES += $$replace(file, .xl, .xl.crypt)
-
-  cryptxl.path = $$MODINSTPATH
-  cryptxl.commands = for f in $$CRYPT_XL_SOURCES ; do $$TAOTOPSRC/crypt/crypt.sh <\$\$f >\$\$f.crypt ; done ; cp $$CRYPT_XL_FILES \"$$MODINSTPATH/\"
-  cryptxl.files = $$CRYPT_XL_FILES
-  cryptxl.depends = $$CRYPT_XL_SOURCES
-  QMAKE_EXTRA_TARGETS += cryptxl
-  INSTALLS += cryptxl
-  QMAKE_CLEAN += $$CRYPT_XL_FILES
+    SIGN_XL_SOURCES += $$target
+  }
+  include(sign_xl.pri)
 }
+

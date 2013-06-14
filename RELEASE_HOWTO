@@ -11,8 +11,7 @@ Once:
   $ cd modules ; ./check_changes.sh 1.01
   If some modules changed, increment their version number (typically in
   modulename/modulename.xl, modulename/doc/Doxyfile.in but also where the module
-  checks for licenses: grep for hasLicense, checkLicense, checkImpressOrLicense,
-  check_license, check_impress_or_license).
+  checks for licenses: grep for hasLicense, checkLicense, check_license).
 - Configure for full build (no part of the code #idef'ed out):
   $ ./configure --with-eula internal
 - Make sure Qt translations are up-to-date
@@ -62,10 +61,8 @@ Once:
   products/compare). Use the HTML editor.
 - Update the download URLs in the PrestaShop product pages (under
   modules/Other modules/Multidéclinaison téléchargeable, Configure, top right
-  icon). There is a single package for Discovery, Creativity and Impress, so
-  you use the same URL for all editions.
-- Update the product version in the product pages for Discovery, Creativity,
-  Impress.
+  icon).
+- Update the product version in the product pages.
 - Update the info file for the "Check for update" feature:
     vi /var/www/tao_update_info.ini
 - Update documentation:

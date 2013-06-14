@@ -35,6 +35,7 @@ CONFIG += help
 QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
 !isEmpty(TAO_PLAYER):DEFINES *= TAO_PLAYER
+!isEmpty(NO_DOC_SIGNATURE):DEFINES *= CFG_NO_DOC_SIGNATURE
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -65,7 +66,7 @@ HEADERS +=     activity.h \
     attributes.h \
     binpack.h \
     chooser.h \
-    decryption.h \
+    crypto.h \
     destination_folder_dialog.h \
     dir.h \
     display_driver.h \
@@ -96,6 +97,7 @@ HEADERS +=     activity.h \
     module_info_dialog.h \
     module_manager.h \
     module_renderer.h \
+    nag_screen.h \
     normalize.h \
     page_layout.h \
     path3d.h \
@@ -179,6 +181,7 @@ SOURCES +=     activity.cpp \
     module_info_dialog.cpp \
     module_manager.cpp \
     module_renderer.cpp \
+    nag_screen.cpp \
     normalize.cpp \
     page_layout.cpp \
     path3d.cpp \
@@ -362,10 +365,18 @@ contains(DEFINES, CFG_NO_LICENSE_DOWNLOAD) {
         license_download.cpp \
         login_dialog.cpp
 }
+contains(DEFINES, CFG_NO_DOC_SIGNATURE) {
+    !build_pass:message("[CFG_NO_DOC_SIGNATURE] Document signing and verification is disabled")
+} else {
+    HEADERS += \
+        document_signature.h
+    NOWARN_SOURCES += \
+        document_signature.cpp
+}
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
-NOWARN_SOURCES += decryption.cpp license.cpp
+NOWARN_SOURCES += crypto.cpp license.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -407,7 +418,8 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
     license.cpp \
-    decryption.cpp \
+    crypto.cpp \
+    document_signature.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \
@@ -429,7 +441,7 @@ OTHER_FILES +=  \
     tao_fr.ts \
     welcome/welcome.ddd \
     opengl_state.tbl \
-    welcome/lite/welcome.ddd
+    no_welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     inspectordialog.ui \
@@ -439,7 +451,7 @@ FORMS += error_message_dialog.ui \
 QMAKE_CLEAN += version.h
 PRE_TARGETDEPS += version.h
 revtarget.target = version.h
-revtarget.commands = ./updaterev.sh "$${TAO_EDITION}"
+revtarget.commands = ./updaterev.sh
 revtarget.depends = $$SOURCES \
     $$HEADERS \
     $$FORMS
@@ -489,14 +501,39 @@ xl_files.files = $${SUPPORT_FILES}
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 INSTALLS    += xl_files
 
+isEmpty(NO_DOC_SIGNATURE) {
+  # Keep a local copy of xlr/xlr/builtins.xl (to create the .sig file in .)
+  cp_builtins.commands = cp xlr/xlr/builtins.xl .
+  cp_builtins.target = builtins.xl
+  cp_builtins.depends = xlr/xlr/builtins.xl
+  cp_builtins.CONFIG = no_check_exist
+  QMAKE_CLEAN += builtins.xl
+  QMAKE_EXTRA_TARGETS += cp_builtins
+
+  # Install signed XL files (.xl.sig)
+  SIGN_XL_SOURCES = builtins.xl tao.xl tao_fr.xl
+  TAOTOPSRC=..
+  MODINSTPATH=$$APPINST
+  include(../modules/sign_xl.pri)
+}
+
+# Welcome document
 welcome.path  = $$APPINST/welcome
 isEmpty(NO_WELCOME) {
   welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+  isEmpty(NO_DOC_SIGNATURE):SIGN_XL_SOURCES = welcome/welcome.ddd
 } else {
   !build_pass:message([NO_WELCOME] Welcome screen is disabled.)
   welcome.files = no_welcome/welcome.ddd
+  isEmpty(NO_DOC_SIGNATURE):SIGN_XL_SOURCES = no_welcome/welcome.ddd
 }
 INSTALLS += welcome
+isEmpty(NO_DOC_SIGNATURE) {
+  # Sign welcome.ddd
+  TAOTOPSRC=..
+  SIGN_XL_INSTPATH=$$APPINST/welcome
+  include(../modules/sign_xl.pri)
+}
 
 isEmpty(NO_FONTS) {
   fonts.path  = $$APPINST/fonts

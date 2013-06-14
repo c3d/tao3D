@@ -15,3 +15,6 @@ images.path = $$APPINST/templates/quizz/images
 images.files = images/*
 
 INSTALLS += files # images
+
+SIGN_XL_SOURCES = Quizz.ddd quizz-config.xl
+include(../sign_template.pri)

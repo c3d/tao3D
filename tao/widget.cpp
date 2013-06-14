@@ -83,6 +83,9 @@
 #include "tao_info.h"
 #include "preferences_pages.h"
 #include "texture_cache.h"
+#ifndef CFG_NO_DOC_SIGNATURE
+#include "document_signature.h"
+#endif
 
 #include <QDialog>
 #include <QTextCursor>
@@ -168,9 +171,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
-      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
-      space(NULL), layout(NULL),
-      frameInfo(NULL), path(NULL), table(NULL),
+      runOnNextDraw(true), contextFilesLoaded(false),
+      srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
+      space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
@@ -225,6 +228,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
+#ifndef CFG_NO_DOC_SIGNATURE
+      , isDocumentSigned(false)
+#endif
 {
 #ifdef MACOSX_DISPLAYLINK
     if (DisplayLink == -1)
@@ -373,9 +379,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true), srcFileMonitor(o.srcFileMonitor),
-      clearCol(o.clearCol), space(NULL), layout(NULL),
-      frameInfo(NULL), path(o.path), table(o.table),
+      runOnNextDraw(true), contextFilesLoaded(o.contextFilesLoaded),
+      srcFileMonitor(o.srcFileMonitor),
+      clearCol(o.clearCol),
+      space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName), flows(o.flows),
       pageName(o.pageName), lastPageName(o.lastPageName),
@@ -466,6 +473,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       inDraw(o.inDraw), changeReason(o.changeReason),
       editCursor(o.editCursor),
       isInvalid(false)
+#ifndef CFG_NO_DOC_SIGNATURE
+    , isDocumentSigned(o.isDocumentSigned)
+#endif
 {
     setObjectName(QString("Widget"));
 
@@ -820,7 +830,15 @@ void Widget::drawActivities()
     layout->Clear();
 
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
-    if (Licenses::UnlicensedCount() > 0)
+    if (contextFilesLoaded &&
+        (Licenses::UnlicensedCount() > 0
+         || TaoApp->edition == Application::Player
+         || TaoApp->edition == Application::Design
+         || (TaoApp->edition == Application::PlayerPro
+#ifndef CFG_NO_DOC_SIGNATURE
+             && !isDocumentSigned
+#endif
+        )))
     {
         GLStateKeeper save;
         SpaceLayout licenseOverlaySpace(this);
@@ -3839,7 +3857,11 @@ int Widget::loadFile(text name)
 {
     purgeTaoInfo();
     TaoSave saveCurrent(current, this);
-    return XL::MAIN->LoadFile(name);
+    int st = XL::MAIN->LoadFile(name);
+#if !defined(CFG_NO_DOC_SIGNATURE)
+    checkDocumentSigned();
+#endif
+    return st;
 }
 
 
@@ -3852,6 +3874,7 @@ void Widget::loadContextFiles(XL::source_names &files)
     XL::MAIN->LoadContextFiles(files);
     // xlProgram content is destroyed by LoadContextFiles // CaB
     xlProgram = NULL;
+    contextFilesLoaded = true;
 }
 
 
@@ -3935,6 +3958,105 @@ QStringList Widget::listNames()
     }
     return names;
 }
+
+
+#ifndef CFG_NO_DOC_SIGNATURE
+#ifndef TAO_PLAYER
+static bool isUserFile(QString path)
+// ----------------------------------------------------------------------------
+//   True if file is not a Tao file (tao.xl, etc.) or module
+// ----------------------------------------------------------------------------
+{
+    path = QFileInfo(path).absoluteFilePath();
+    ModuleManager *mmgr = ModuleManager::moduleManager();
+    QList<QDir> exclude;
+    exclude << mmgr->userModuleDir() << mmgr->systemModuleDir()
+            << QDir(Application::applicationDirPath());
+    foreach (QDir dir, exclude)
+        if (path.startsWith(dir.absolutePath()))
+            return false;
+    return true;
+}
+
+
+static QString attachSigatureInfoAndSign(XL::SourceFile &sf)
+// ----------------------------------------------------------------------------
+//   Attach SignatureInfo object to tree and sign file
+// ----------------------------------------------------------------------------
+{
+    SignatureInfo *si = sf.GetInfo<SignatureInfo>();
+    if (!si)
+    {
+        si = new SignatureInfo(sf.name);
+        sf.SetInfo<SignatureInfo>(si);
+    }
+    return si->signFileWithDocKey();
+}
+
+
+QString Widget::signDocument(text path)
+// ----------------------------------------------------------------------------
+//   Create .sig for path or all file in a document (except modules/Tao files)
+// ----------------------------------------------------------------------------
+{
+    QString err;
+    using namespace XL;
+    if (path != "")
+    {
+        err = attachSigatureInfoAndSign(MAIN->files[path]);
+    }
+    else
+    {
+        source_files &files = MAIN->files;
+        source_files::iterator it;
+        for (it = files.begin(); it != files.end(); it++)
+        {
+            SourceFile &sf = (*it).second;
+            if (!isUserFile(+sf.name))
+                continue;
+
+            err = attachSigatureInfoAndSign(sf);
+            if (!err.isEmpty())
+                break;
+        }
+    }
+    checkDocumentSigned();
+    return err;
+}
+#endif // TAO_PLAYER
+
+
+bool Widget::checkDocumentSigned()
+// ----------------------------------------------------------------------------
+//   Scan all files used by the document, check if they have a SignatureInfo
+// ----------------------------------------------------------------------------
+{
+    if (TaoApp->edition == Application::Player ||
+        TaoApp->edition == Application::Design)
+        return false;
+
+    bool sig = false;
+    using namespace XL;
+    source_files &files = MAIN->files;
+    source_files::iterator it;
+    for (it = files.begin(); it != files.end(); it++)
+    {
+        SourceFile &sf = (*it).second;
+        SignatureInfo *si = sf.GetInfo<SignatureInfo>();
+        if (!si ||
+             si->loadAndCheckSignature() != SignatureInfo::SI_VALID)
+        {
+            sig = false;
+            break;
+        }
+        sig = true;
+    }
+    IFTRACE2(lic, fileload)
+        std::cerr << "Document is " << (sig ? "" : "not ") << "signed\n";
+
+    return (isDocumentSigned = sig);
+}
+#endif // CFG_NO_DOC_SIGNATURE
 
 
 void Widget::refreshProgram()
@@ -4047,6 +4169,11 @@ void Widget::refreshProgram()
         taoWindow()->clearErrors();
 
     toReload.clear();
+
+#if !defined(CFG_NO_DOC_SIGNATURE)
+    // Update signature status
+    checkDocumentSigned();
+#endif
 }
 
 
@@ -8093,9 +8220,9 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
     result = context->Evaluate(code);
     program = info->program;
 
-    QString message = program->log();
-    if (message.length())
-        taoWindow()->addError(message);
+    if (!program->isLinked())
+        if (!program->link())
+            taoWindow()->addError(program->log());
 
     layout->Add(new ShaderProgram(program));
     return result;

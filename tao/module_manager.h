@@ -468,6 +468,8 @@ public:
     QStringList         qchFiles();
     void                unloadImported();
     void                updateGraphicStatePointers(GraphicState *newState);
+    QDir                userModuleDir() { return QDir(u); }
+    QDir                systemModuleDir() { return QDir(s); }
 
 signals:
     void                checking(QString name);

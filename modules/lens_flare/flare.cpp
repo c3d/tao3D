@@ -130,14 +130,6 @@ void LensFlare::Draw()
 //   We draw a lens flare centered at the source position and heading
 //   toward the defined target.
 {
-    static bool licensed, tested = false;
-    if (!tested)
-    {
-        licensed = tao->checkImpressOrLicense("LensFlare 1.004");
-        tested = true;
-        Q_UNUSED(licensed);
-    }
-
     // Manually determine if the source is occluded by a previous object.
     // If it is, we draw no one of the flares.
     bool occluded = isOccluded(source);

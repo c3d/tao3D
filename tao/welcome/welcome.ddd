@@ -51,10 +51,11 @@ base_slide "Tao Presentations",
         show_edition tao_edition
 
         // We adjust the color based on the edition of the software
-        show_edition "Impress"          -> color "#A02"; text "Impress"
-        show_edition "Creativity"       -> color "#EA1"; text "Creativity"
-        show_edition "Discovery"        -> color "#063"; text "Discovery"
-        show_edition Other              -> color "#036"; text Other 
+        show_edition "Design Pro"       -> color "#A02"; text "Design Pro"
+        show_edition "Design"           -> color "#EA1"; text "Design"
+        show_edition "Player"           -> color "#063"; text "Player"
+        show_edition "Player Pro"       -> color "#063"; text "Player Pro"
+        show_edition Other              -> color "#036"; text Other
 
     // Manually create an additional text box matching the theme
     box 450, -450, 820, 90,

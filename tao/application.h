@@ -58,8 +58,7 @@ class Application : public QApplication
 // ----------------------------------------------------------------------------
 {
 public:
-    enum TaoEdition { Unknown, Discovery, Creativity, Impress, Player,
-                      PlayerUnlicensed, Other };
+    enum TaoEdition { Unknown, Design, DesignPro, Player, PlayerPro, Other };
 
 public:
     static QPixmap *padlockIcon;
@@ -79,41 +78,30 @@ public:
     static QString appLicenseFolderPath();
     static QString userLicenseFolderPath();
     static double  runTime();
-    static bool    isDiscovery() { return (TaoApp->edition == Discovery); }
-    static bool    isImpress()
+    static bool    isTrialVersion()
     {
-#ifdef TAO_PLAYER
-        return (TaoApp->edition == Player);
-#else
-        return (TaoApp->edition == Impress);
-#endif
+        return (TaoApp->edition == Player || TaoApp->edition == Design);
     }
     static QString editionStr()
     {
-#ifdef TAO_EDITION
-        return QString(TAO_EDITION);
-#else
         switch (TaoApp->edition)
         {
-        case Application::Impress:
-            return "Impress";
-        case Application::Creativity:
-            return "Creativity";
-        case Application::Discovery:
-            return "Discovery";
+        case Application::Design:
+            return "Design";
+        case Application::DesignPro:
+            return "Design Pro";
         case Application::Player:
-        case Application::PlayerUnlicensed:
             return "Player";
+        case Application::PlayerPro:
+            return "Player Pro";
         case Application::Other:
-            Q_ASSERT(!"Unexpected edition value (TAO_EDITION not empty)");
             return "Other";
         case Application::Unknown:
-        default:
             Q_ASSERT(!"Edition not set");
+        default:
+            Q_ASSERT(!"Unexpected edition value");
             return "Unknown";
         }
-
-#endif
     }
 
 public:

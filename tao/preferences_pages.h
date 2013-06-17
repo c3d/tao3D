@@ -164,6 +164,8 @@ protected slots:
     void           textureCacheMaxGLMemChanged(int index);
 
 protected:
+    static void    readAllSettings();
+
     static bool    perPixelLightingDefault();
     static bool    VSyncDefault();
     static bool    texture2DMipmapDefault();
@@ -178,6 +180,19 @@ protected:
     QRadioButton * lightVShader;
     QRadioButton * lightFShader;
     QComboBox    * magCombo, * minCombo, * cacheMemCombo, * cacheGLMemCombo;
+
+protected:
+    static bool    dirty;
+
+                   // Cached values
+    static bool    perPixelLighting_;
+    static bool    VSync_;
+    static bool    texture2DCompress_;
+    static bool    texture2DMipmap_;
+    static int     texture2DMinFilter_;
+    static int     texture2DMagFilter_;
+    static quint64 textureCacheMaxMem_;
+    static quint64 textureCacheMaxGLMem_;
 };
 
 }

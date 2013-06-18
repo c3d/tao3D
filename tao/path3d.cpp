@@ -112,7 +112,7 @@ static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
     }
 
     // Restore the client active texture
-    glClientActiveTexture(GL_TEXTURE0);
+    GL.ClientActiveTexture(GL_TEXTURE0);
 }
 
 

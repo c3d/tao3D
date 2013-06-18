@@ -8307,6 +8307,42 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
 }
 
 
+static inline GLenum getTypeOfActiveUniform(GLuint progId, kstring name,
+                                            int hint = 0)
+// ----------------------------------------------------------------------------
+//   Return type of active uniform 'name' in shader program 'progId', or 0
+// ----------------------------------------------------------------------------
+{
+    // Setting hint to the uniform location improves performance because most
+    // of the time the index has the same value as the location (tested on
+    // MacOSX 10.6.8).
+    // This is probably true on many other platforms, since we could live for
+    // so long without commit efc31e990.
+
+    int uniforms = 0;
+    GL.GetProgram(progId, GL_ACTIVE_UNIFORMS, &uniforms);
+    if (hint >= uniforms)
+        hint = 0;
+
+    GLsizei size = -1;
+    GLsizei length = 0;
+    GLenum type = 0;
+    char uniformName[80];
+    for (int i = hint; i < hint + uniforms; i++)
+    {
+        uint index = i % uniforms;
+        GL.GetActiveUniform(progId, index, sizeof(uniformName) - 1, &length,
+                            &size, &type, uniformName);
+        if (!strcmp(uniformName, name))
+            break;
+        else
+            type = 0;
+    }
+
+    return type;
+}
+
+
 Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Evaluate the code argument as an assignment for the current shader
@@ -8363,24 +8399,11 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
             // Get location for the given uniform
             kstring cname = name->value.c_str();
             GLint uniformLoc = GL.GetUniformLocation(programId, cname);
-            char altName[80];
-            GLsizei length = 0;
-            GLint size = 0;
-            GLenum type = 0;
 
             if (uniformLoc >= 0)
             {
-                // Get index for the given uniform
-                // NOTE: index and uniform location are not the same
-                const GLchar *uniformNames[1];
-                uniformNames[0]= cname;
-                uint index = 0;
-                GL.GetUniformIndices(programId, 1, uniformNames, &index);
-
-                // Retrieve infos of the given uniform
-                GL.GetActiveUniform(programId, index,
-                                    sizeof(altName)-1, &length, &size, &type,
-                                    altName);
+                GLenum type = getTypeOfActiveUniform(programId, cname,
+                                                     uniformLoc);
 
                 // Register that we want to set a shader value
                 layout->Add(new ShaderValue(uniformLoc, type, values));

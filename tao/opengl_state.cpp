@@ -2585,13 +2585,11 @@ void OpenGLState::SetLight(GLenum light, bool active)
         lights.dirty |= 1ULL << id;
         SAVE(lights);
         lights_isDirty = true;
-        bool updatePosition = false;
 
         if (id >= lights.lights.size())
         {
             lights.lights.resize(id + 1);
             (lights.lights[id]) = LightState(id);
-            updatePosition = true;
         }
 
         (lights.lights[id]).active = active;

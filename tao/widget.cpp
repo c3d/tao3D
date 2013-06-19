@@ -7391,7 +7391,7 @@ bool Widget::VSyncSupported()
     static bool supported = false, tested = false;
     if (!tested)
     {
-        bool prev = enableVSync(NULL, false);
+        bool prev = (enableVSync(NULL, false) == XL::xl_true);
         bool f = (enableVSync(NULL, true) == XL::xl_true);
         bool t = (enableVSync(NULL, prev) == XL::xl_true);
         supported = (!f && t);

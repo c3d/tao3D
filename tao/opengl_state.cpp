@@ -1819,15 +1819,6 @@ void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
 }
 
 
-void OpenGLState::GetUniformIndices(uint prg, GLsizei count, const char** names, GLuint* indices)
-// ----------------------------------------------------------------------------
-//   Returns the index of a named uniform block
-// ----------------------------------------------------------------------------
-{
-     SHADER(glGetUniformIndices(prg, count, names, indices));
-}
-
-
 void OpenGLState::GetActiveUniform(uint prg, uint id,
                                    uint bufSize, GLsizei *length,
                                    GLsizei* size, GLenum *type, char* name)

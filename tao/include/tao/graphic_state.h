@@ -185,7 +185,6 @@ struct GraphicState
     // Shaders
     virtual void UseProgram(uint prg) = 0;
     virtual void GetProgram(uint prg, GLenum pname, int* params) = 0;
-    virtual void GetUniformIndices(uint prg, GLsizei count, const char** names, GLuint* indices) = 0;
     virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
                                   GLsizei* size, GLenum* type, char *name) = 0;
 

@@ -372,7 +372,7 @@ CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
 NOWARN_SOURCES += crypto.cpp license.cpp
 
-!macx {
+win32 {
     HEADERS += include/tao/GL/glew.h \
         include/tao/GL/glxew.h \
         include/tao/GL/wglew.h

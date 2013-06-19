@@ -23,7 +23,7 @@
 #include "vsync_x11.h"
 #include <QWidget>
 #include <QX11Info>
-#include "tao/GL/glxew.h"
+#include <GL/glx.h>
 #include <iostream>
 
 TAO_BEGIN

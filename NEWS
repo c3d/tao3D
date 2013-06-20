@@ -9,7 +9,6 @@ Change log for Tao Presentations
 #3017 GL error 1284 then crash in FrameInfo::purge when switching to quad buffer
 #3016 Missing check mark on menu action: View>Animations
 #3014 VLCAudioVideo: add movie_next_frame
-#3013 Alioscopy: add BGR ordering of pixels for 4K displays
 #3008 Frequent freezes on Ubuntu after system update (NVIDIA driver 304.88)
 #3007 Animate: Add shortcuts to execute range during a page time interval
 #3006 Error in slides themes when using & to concatenate two text strings

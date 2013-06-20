@@ -104,14 +104,6 @@ OpenGLState *OpenGLState::current = NULL;
             textures_isDirty = true;                    \
             break;                                      \
         }                                               \
-        case GL_COLOR:                                  \
-        {                                               \
-            SAVE(colorMatrix);                          \
-            Matrix4 &matrix = colorMatrix;              \
-            Code;                                       \
-            colorMatrix_isDirty = true;                 \
-            break;                                      \
-        }                                               \
         }                                               \
     } while(0)
 
@@ -348,14 +340,6 @@ void OpenGLState::Sync(uint64 which)
              matrixMode_isDirty = mmode != matrixMode;
          }
          glLoadMatrixd(projMatrix.Data(false)));
-    SYNC(colorMatrix,
-         if (matrixMode_isDirty || mmode != GL_COLOR)
-         {
-             glMatrixMode(GL_COLOR);
-             mmode = GL_COLOR;
-             matrixMode_isDirty = mmode != matrixMode;
-         }
-         glLoadMatrixd(colorMatrix.Data(false)));
     SYNC(matrixMode,
          glMatrixMode(matrixMode));
     SYNC(bufferMode,

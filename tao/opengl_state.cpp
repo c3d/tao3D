@@ -1819,15 +1819,6 @@ void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
 }
 
 
-void OpenGLState::GetUniformIndices(uint prg, GLsizei count, const char** names, GLuint* indices)
-// ----------------------------------------------------------------------------
-//   Returns the index of a named uniform block
-// ----------------------------------------------------------------------------
-{
-     SHADER(glGetUniformIndices(prg, count, names, indices));
-}
-
-
 void OpenGLState::GetActiveUniform(uint prg, uint id,
                                    uint bufSize, GLsizei *length,
                                    GLsizei* size, GLenum *type, char* name)
@@ -2585,13 +2576,11 @@ void OpenGLState::SetLight(GLenum light, bool active)
         lights.dirty |= 1ULL << id;
         SAVE(lights);
         lights_isDirty = true;
-        bool updatePosition = false;
 
         if (id >= lights.lights.size())
         {
             lights.lights.resize(id + 1);
             (lights.lights[id]) = LightState(id);
-            updatePosition = true;
         }
 
         (lights.lights[id]).active = active;

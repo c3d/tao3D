@@ -139,7 +139,7 @@ OpenGLState::OpenGLState()
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER), shaderProgram(0),
       activeTexture(GL_TEXTURE0), clientActiveTexture(GL_TEXTURE0),
-      hasPixelBlur(false),
+      hasPixelBlur(false), hasMipMapping(PerformancesPage::texture2DMipmap()),
 
 #define GS(type, name)
 #define GFLAG(name)             glflag_##name(false),
@@ -2253,6 +2253,11 @@ void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
     case GL_TEXTURE_WRAP_R:
         ts.wrapR = param == GL_REPEAT;
         break;
+    case GL_GENERATE_MIPMAP:
+        ts.mipMap = param;
+        Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
+        glTexParameteri(type, pname, param);
+        break;
     default:
         Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
         glTexParameteri(type, pname, param);
@@ -2538,9 +2543,21 @@ void OpenGLState::GenerateMipmap(GLenum target)
 //   Generate mipmaps for the current texture target
 // ----------------------------------------------------------------------------
 {
+    TextureState &ts = ActiveTextureState();
+    ts.mipMap = true;
     Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
     glGenerateMipmap(target);
 }
+
+
+void OpenGLState::HasMipMapping(bool mipMap)
+// ----------------------------------------------------------------------------
+//   Enable or disable mipmapping for textures
+// ----------------------------------------------------------------------------
+{
+    CHANGE(hasMipMapping, mipMap);
+}
+
 
 // ============================================================================
 //
@@ -3331,7 +3348,7 @@ TextureState::TextureState(GLuint id)
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
     wrapS(true), wrapT(true), wrapR(true),
-    unit(0), mode(GL_MODULATE)
+    unit(0), mode(GL_MODULATE), mipMap(false)
 {}
 
 
@@ -3363,6 +3380,18 @@ void TextureState::Sync(TextureState &ts)
         ts.minFilt = GL_NEAREST;
         ts.magFilt = GL_NEAREST;
     }*/
+
+
+    if ((!GL.hasMipMapping || !mipMap) &&
+         (ts.minFilt == GL_NEAREST_MIPMAP_NEAREST ||
+          ts.minFilt == GL_LINEAR_MIPMAP_NEAREST  ||
+          ts.minFilt == GL_NEAREST_MIPMAP_LINEAR  ||
+          ts.minFilt == GL_LINEAR_MIPMAP_LINEAR))
+    {
+        // Fallback to GL_LINEAR when a mipmap filter is requested but
+        // mipmapping is not enabled. Refs #3077.
+        ts.minFilt = GL_LINEAR;
+    }
 
     type = ts.type;
     SYNC_TEXTURE(id, glBindTexture(type, id));

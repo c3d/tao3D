@@ -177,6 +177,18 @@ struct TextureMagFilter : Attribute
 };
 
 
+struct TextureMipMap : Attribute
+// ----------------------------------------------------------------------------
+//    Enable or disable mipmapping
+// ----------------------------------------------------------------------------
+{
+    TextureMipMap(bool enable)
+        : Attribute(), enable(enable) {}
+    virtual void Draw(Layout *where);
+    bool  enable;
+};
+
+
 struct TextureTransform : Attribute
 // ----------------------------------------------------------------------------
 //    Record a texture transform

@@ -164,6 +164,8 @@ void FrameInfo::resize(uint w, uint h)
     GL.BindTexture(GL_TEXTURE_2D, tex);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+    if(PerformancesPage::texture2DMipmap())
+        GL.GenerateMipmap(GL_TEXTURE_2D);
     GL.Sync(STATE_textures);
     GL.BindTexture(GL_TEXTURE_2D, 0);
 

@@ -167,16 +167,6 @@ void TextureMinFilter::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
-    if ( !PerformancesPage::texture2DMipmap() &&
-         (filter == GL_NEAREST_MIPMAP_NEAREST ||
-          filter == GL_LINEAR_MIPMAP_NEAREST  ||
-          filter == GL_NEAREST_MIPMAP_LINEAR  ||
-          filter == GL_LINEAR_MIPMAP_LINEAR))
-    {
-        // Fallback to GL_LINEAR when a mipmap filter is requested but texture
-        // was not loaded with mipmapping enabled
-        filter = GL_LINEAR;
-    }
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
     GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
@@ -190,6 +180,16 @@ void TextureMagFilter::Draw(Layout *where)
     (void) where;
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
     GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+}
+
+
+void TextureMipMap::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Enable or disable mipmapping for textures
+// ----------------------------------------------------------------------------
+{
+    (void) where;
+    GL.HasMipMapping(enable);
 }
 
 

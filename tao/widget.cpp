@@ -7950,6 +7950,17 @@ Tree_p Widget::textureMagFilter(Tree_p self, text filter)
 }
 
 
+Tree_p Widget::textureMipMap(Tree_p self, bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable mipmapping for textures
+// ----------------------------------------------------------------------------
+{
+    TextureCache::textureMipmap(enable);
+    layout->Add(new TextureMipMap(enable));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation

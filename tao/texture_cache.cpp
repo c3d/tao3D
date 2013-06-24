@@ -763,8 +763,6 @@ void CachedTexture::transfer()
             TextureCache::instance()->setMinMagFilters(id);
             GL.CompressedTexImage2D(GL_TEXTURE_2D, 0, image.fmt, width, height,
                                     0, image.byteCount(), image.compressed);
-            if (mipmap)
-                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
             copiedSize = GLsize = image.byteCount();
             copiedCompressed = true;
             ADJUST_FOR_MIPMAP_OVERHEAD(GLsize);
@@ -783,8 +781,6 @@ void CachedTexture::transfer()
             GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
                           width, height, 0, GL_RGBA,
                           GL_UNSIGNED_BYTE, texture.bits());
-            if (mipmap)
-                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
             copiedSize = width * height * 4;
 
             GLint cmp = GL_FALSE, cmpsz = copiedSize;
@@ -847,8 +843,6 @@ void CachedTexture::transfer()
         GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
                      width, height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
-        if (mipmap)
-            GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 
         Q_ASSERT(GLsize == 0);
         GLsize = width * height * bytesPerPixel;

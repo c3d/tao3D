@@ -377,6 +377,7 @@ public:
     // That is the reason they are ignored in operator==
     GLuint      unit;
     GLenum      mode;
+    bool        mipMap : 1;
 };
 
 
@@ -726,6 +727,7 @@ struct OpenGLState : GraphicState
     virtual uint64 ActiveTextureUnits();
     virtual void HasPixelBlur(bool enable);
     virtual void GenerateMipmap(GLenum target);
+    virtual void HasMipMapping(bool enable);
 
     // Lighting
     void           SetLight(GLenum light, bool active);

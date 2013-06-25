@@ -772,6 +772,7 @@ void PerformancesPage::setTexture2DMipmap(bool on)
     else
         settings.setValue("Texture2DMipmap", QVariant(on));
     texture2DMipmap_ = on;
+    GL.HasMipMapping(on); // Change GraphicState setting
 }
 
 

@@ -223,12 +223,11 @@ void TextSplit::DrawCached(Layout *where)
     {
         // Bind the glyph texture
         GL.BindTexture(GL_TEXTURE_2D, glyphs.Texture());
-        GLenum blur = GL_LINEAR;
-        if (!GL.hasPixelBlur &&
-            font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
-            blur = GL_NEAREST;
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, blur);
-        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, blur);
+        if (font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
+        {
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        }
         GL.Enable(GL_TEXTURE_2D);
         if (TaoApp->hasGLMultisample)
             GL.Enable(GL_MULTISAMPLE);

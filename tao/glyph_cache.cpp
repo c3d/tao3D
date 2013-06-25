@@ -696,15 +696,14 @@ void GlyphCache::GenerateTexture()
     invert.invertPixels();
     QImage texImg = QGLWidget::convertToGLFormat(invert).mirrored(false, true);
     GL.BindTexture(GL_TEXTURE_2D, texture);
-    GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 texImg.width(), texImg.height(), 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, texImg.bits());
-    GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
     GL.TexParameter(GL_TEXTURE_2D,
                      GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     GL.TexParameter(GL_TEXTURE_2D,
                     GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 texImg.width(), texImg.height(), 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, texImg.bits());
 
     dirty = false;
 }

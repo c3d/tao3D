@@ -371,13 +371,13 @@ public:
     bool        wrapS  : 1;
     bool        wrapT  : 1;
     bool        wrapR  : 1;
+    bool        mipMap : 1;
 
     // REVISIT: The following are here temporarily (for Layout use).
     // They really belong to TextureUnit, which is done for the OpenGLState.
     // That is the reason they are ignored in operator==
     GLuint      unit;
     GLenum      mode;
-    bool        mipMap : 1;
 };
 
 

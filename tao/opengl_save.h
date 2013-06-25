@@ -117,8 +117,10 @@ public:
         for (it = texs.begin(); it != texs.end(); it++)
         {
             GLuint id = (*it).first;
-            TextureState &tex = (*it).second;
-            state.textures[id] = tex;
+            TextureState &tex  = (*it).second;
+            TextureState &ntex = state.textures[id];
+            tex.mipMap = ntex.mipMap; // Mipmap is the only setting not restored
+            ntex = tex;
             state.dirty.insert(id);
         }
         changes.pop_back();

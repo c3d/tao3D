@@ -3348,7 +3348,7 @@ TextureState::TextureState(GLuint id)
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
     wrapS(true), wrapT(true), wrapR(true),
-    unit(0), mode(GL_MODULATE), mipMap(false)
+    mipMap(false), unit(0), mode(GL_MODULATE)
 {}
 
 
@@ -3381,8 +3381,8 @@ void TextureState::Sync(TextureState &ts)
         ts.magFilt = GL_NEAREST;
     }*/
 
-
-    if ((!GL.hasMipMapping || !mipMap) &&
+    bool mipMapping = GL.hasMipMapping && ts.mipMap;
+    if (!mipMapping &&
          (ts.minFilt == GL_NEAREST_MIPMAP_NEAREST ||
           ts.minFilt == GL_LINEAR_MIPMAP_NEAREST  ||
           ts.minFilt == GL_NEAREST_MIPMAP_LINEAR  ||

@@ -586,6 +586,7 @@ extern "C"
     // Alternatively, you may use the GraphicState interface.
     // Display modules must always use the GraphicState functions (when
     // available) to modify the GL state before drawing.
+    // See complete documentation in graphic_state.h.
     extern DLL_PUBLIC
     Tao::GraphicState * graphic_state;
 }

@@ -22,6 +22,100 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
+/*
+
+1. What is the purpose of this class?
+
+The main goal of GraphicState is to define some wrappers
+for the more usal GL and GLU functions in order to prevent redundant
+OpenGL state changes and improve performances in Tao Presentations.
+
+
+2. How can it be used in modules?
+
+To use the optimised graphic state in a module, it is necessary add
+the following code in the corresponding .cpp file in order to define
+the GraphicState pointer:
+
+    #include <tao/module_api.h>
+    #include <tao/graphic_state.h>
+    extern "C" DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
+    #define GL (*graphic_state)
+
+Then just use e.g., GL.Viewport() to get the optimized version
+of glViewport().
+
+To prevent display problem, you can use GraphicSave to save/restore
+to a correct GL state. It is the equivalent to glPush/glPop routines.
+
+e.g:
+   GraphicSave* save = GL.Save();
+   GL.Viewport()
+   GL.Restore(save);
+
+By this way, the viewport is restored to its previous value.
+
+
+3. Can we used direct OpenGL calls ? Under which conditions?
+
+Of course, direct OpenGl calls can always be used in modules, even with some
+function of the optimised GraphicState but under some conditions:
+
+    3.1 Case of direct OpenGL calls only
+
+The only and important condition to use direct OpenGL calls in a module is
+to assure to restore the correct OpenGL state when we exit the module.
+A good way is for instance to use direct OpenGL calls between glPush/glPop routines.
+This condition is fundamental in order to avoid conflict with other modules.
+
+e.g:
+     glPushAttrib();           // Save OpenGL attributes
+     glColor(0.0, 1.0, 0.0);   // Change color using direct OpenGL calls
+     glDrawArray()             // Draw shape
+     glPopAttrib();            // Restore color to its previous value (red)
+
+    3.2 Mix of GraphicState and direct OpenGL calls
+
+To manage this mix, it is necessary to synchronise GraphicState before
+using direct OpenGL calls to assure to have the correct state.
+To make this synchronisation, just call GL.Sync().
+
+e.g:
+    GL.Color()       // Change color
+    GL.BindTexture() // Bind texture
+    GL.Sync()        // Synchronise GraphicState
+    glDrawArrays()   // Draw using direct OpenGL calls
+
+Moreovever, as explained in 3.1, it is fundamental to save/restore
+the correct state when using direct OpenGL calls to prevent conflicts
+with the optimised graphic state (thanks to glPush/glPop routines for instance).
+
+wrong code:
+     GL.Color(1.0, 0.0, 0.0); // Change color to red in GraphicState
+     GL.Sync();               // Synchronise GraphicState
+     glColor(0.0, 1.0, 0.0);  // Change red color to green one
+     GL.Color(1.0, 0.0, 0.0); // Color will be still green as the current
+                              // one in GraphicState is red...
+
+good code:
+     GL.Color(1.0, 0.0, 0.0);  // Change color to red in GraphicState
+     GL.Sync();                // Synchronise GraphicState
+     glPushAttrib();           // Save OpenGL attributes
+     glColor(0.0, 1.0, 0.0);   // Change color using direct OpenGL calls
+     glPopAttrib();            // Restore color to its previous value (red)
+     GL.Color(1.0, 0.0, 0.0);  // Don't do anything as the color is already
+                               // red in GraphicState (and in OpenGL).
+
+
+4. When do I have to synchronise GraphicState?
+
+Excepted for the case mentionned above (3.2), it is not necessary to
+call GL.Sync() each time you use GraphicState given that drawing wrappers
+already made it implicitly. Just use GraphicState functions as if you
+would used OpenGL ones.
+
+*/
+
 #include "coords3d.h"
 #include "matrix.h"
 #include "tao_gl.h"
@@ -47,7 +141,8 @@ struct GraphicState
     GraphicState()              {}
     virtual ~GraphicState()     {}
 
-    // Saving and restoring state
+
+    // Saving and restoring graphic state
     virtual GraphicSave *       Save() = 0;
     virtual void                Restore(GraphicSave *saved) = 0;
 
@@ -55,16 +150,46 @@ struct GraphicState
     virtual void                Sync(uint64 which = ~0ULL) = 0;
     virtual void                Invalidate(uint64 which = ~0ULL) = 0;
 
-    // Return attributes of state
-    virtual uint   MaxTextureCoords() = 0;
-    virtual uint   MaxTextureUnits() = 0;
-    virtual uint   MaxTextureSize() = 0;
-    virtual text   Vendor() = 0;
-    virtual text   Renderer() = 0;
-    virtual text   Version() = 0;
-    virtual coord* ModelViewMatrix() = 0;
-    virtual coord* ProjectionMatrix() = 0;
-    virtual int*   Viewport() = 0;
+
+    // ========================================================================
+    //
+    //   Useful functions (not defined in OpenGL specs)
+    //
+    // ========================================================================
+
+    virtual text   Vendor() = 0;                                             // Return graphic card vendor
+    virtual text   Renderer() = 0;                                           // Return current OpenGL renderer
+    virtual text   Version() = 0;                                            // Return current OpenGL version
+    virtual coord* ModelViewMatrix() = 0;                                    // Return current modelview matrix
+    virtual coord* ProjectionMatrix() = 0;                                   // Return current projection matrix
+    virtual int*   Viewport() = 0;                                           // Return current viewport
+    virtual uint   MaxTextureCoords() = 0;                                   // Return the maximum number of texture coordinates
+    virtual uint   MaxTextureUnits() = 0;                                    // Return the maximum number of texture units
+    virtual uint   MaxTextureSize() = 0;                                     // Return the maximum size of textures
+    virtual void   TextureSize(uint width, uint height, uint depth = 0) = 0; // Set size of current active texture
+    virtual uint   TextureWidth() = 0;                                       // Return width of current active texture
+    virtual uint   TextureHeight() = 0;                                      // Return height of current active texture
+    virtual uint   TextureDepth() = 0;                                       // Return depth of current active texture
+    virtual uint   TextureType() = 0;                                        // Return type of current active texture
+    virtual uint   TextureMode() = 0;                                        // Return mode of current active texture
+    virtual uint   TextureID() = 0;                                          // Return id of current active texture
+    virtual void   ActivateTextureUnits(uint64 mask) = 0;                    // Activate texture units marked in the mask
+    virtual uint   ActiveTextureUnitIndex() = 0;                             // Return the ID of the current active texture
+    virtual uint   ActiveTextureUnitsCount() = 0;                            // Return the number of bound and active textures
+    virtual uint64 ActiveTextureUnits() = 0;                                 // Return the mask of active texture units
+    virtual void   HasPixelBlur(bool enable) = 0;                            // Enable or disable pixel blur on textures
+    virtual uint64 LightsMask() = 0;                                         // Return the mask of enabled lights
+
+
+
+    // ========================================================================
+    //
+    //   OpenGL wrappers (use GL.X instead of glX)
+    //
+    // ========================================================================
+
+
+    // Get graphic attributes
     virtual void   Get(GLenum pname, GLboolean * params) = 0;
     virtual void   Get(GLenum pname, GLfloat * params) = 0;
     virtual void   Get(GLenum pname, GLint * params) = 0;
@@ -253,24 +378,11 @@ struct GraphicState
     virtual void CopyTexSubImage3D(GLenum target, GLint level, GLint xoffset,
                                    GLint yoffset, GLint zoffset, GLint x, GLint y,
                                    GLsizei width, GLsizei height) = 0;
-    virtual void TextureSize(uint width, uint height, uint depth = 0) = 0;
-    virtual uint TextureWidth() = 0;
-    virtual uint TextureHeight() = 0;
-    virtual uint TextureDepth() = 0;
-    virtual uint TextureType() = 0;
-    virtual uint TextureMode() = 0;
-    virtual uint TextureID() = 0;
-    virtual void ActivateTextureUnits(uint64 mask) = 0;
-    virtual uint ActiveTextureUnitIndex() = 0;
-    virtual uint ActiveTextureUnitsCount() = 0;
-    virtual uint64 ActiveTextureUnits() = 0;
-    virtual void HasPixelBlur(bool enable) = 0;
     virtual void GenerateMipmap(GLenum target) = 0;
 
     // Lighting
     virtual void   Light(GLenum light, GLenum pname, const float* params) = 0;
     virtual void   LightModel(GLenum pname, GLuint param) = 0;
-    virtual uint64 LightsMask() = 0;
 };
 
 TAO_END

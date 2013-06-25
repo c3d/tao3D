@@ -979,6 +979,7 @@ void OpenGLState::DrawBuffer(GLenum mode)
 // ----------------------------------------------------------------------------
 {
     CHANGE(bufferMode, mode);
+    Sync(STATE_bufferMode);
 }
 
 

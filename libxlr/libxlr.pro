@@ -114,15 +114,24 @@ linux* {
   LIBS += -Wl,--exclude-libs,ALL
 }
 
-# We need bash, llvm-config
+# We need bash, llvm-config[-2.9]
 !system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
-!system(bash -c \"llvm-config --version >/dev/null\"):error("Can't execute llvm-config")
-
+system(bash -c \"llvm-config-2.9 --version >/dev/null 2>&1\") {
+  !build_pass:message(Found llvm-config-2.9)
+  LLVMCONFIG=llvm-config-2.9
+} else {
+  system(bash -c \"llvm-config --version >/dev/null 2>&1\") {
+    !build_pass:message(Found llvm-config)
+    LLVMCONFIG=llvm-config
+  } else {
+    error("Can't execute llvm-config-2.9 nor llvm-config")
+  }
+}
 # LLVM dependencies
-LLVM_LIBS = $$system(bash -c \"llvm-config --libs\")
-LLVM_LIBS += $$system(bash -c \"llvm-config --ldflags\")
-LLVM_INC = $$system(bash -c \"llvm-config --includedir\")
-LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
+LLVM_LIBS = $$system(bash -c \"$$LLVMCONFIG --libs\")
+LLVM_LIBS += $$system(bash -c \"$$LLVMCONFIG --ldflags\")
+LLVM_INC = $$system(bash -c \"$$LLVMCONFIG --includedir\")
+LLVM_DEF = $$system(bash -c \"$$LLVMCONFIG --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\")
 
 INCLUDEPATH += $$LLVM_INC
 LIBS += $$LLVM_LIBS

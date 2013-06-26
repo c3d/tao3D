@@ -30,6 +30,17 @@ The main goal of GraphicState is to define some wrappers
 for the more usal GL and GLU functions in order to prevent redundant
 OpenGL state changes and improve performances in Tao Presentations.
 
+In a more technical way, it defines three differents states:
+    - The next state: It contains all changes requested by users
+    when calling graphic state functions (GL.X).
+
+    - The current state: It contains a cache of some graphical settings.
+    When synchronising the graphic state, we compare the next state with this cache,
+    and if some settings are different, then only at this moment we send it
+    to the graphic card. By this way, we prevent redundant changes and
+    improve strongly perfomances.
+
+    - The classic OpenGL state: This is the real state in the graphic card.
 
 2. How can it be used in modules?
 
@@ -91,20 +102,34 @@ the correct state when using direct OpenGL calls to prevent conflicts
 with the optimised graphic state (thanks to glPush/glPop routines for instance).
 
 wrong code:
-     GL.Color(1.0, 0.0, 0.0); // Change color to red in GraphicState
-     GL.Sync();               // Synchronise GraphicState
-     glColor(0.0, 1.0, 0.0);  // Change red color to green one
-     GL.Color(1.0, 0.0, 0.0); // Color will be still green as the current
-                              // one in GraphicState is red...
+     GL.Color(1.0, 0.0, 0.0);       // Change color to red in GraphicState
+     GL.Sync();                     // Synchronise GraphicState
+     glColor(0.0, 1.0, 0.0);        // Change red color to green one
+     GL.Color(1.0, 0.0, 0.0);       // Color will be still green as the current
+                                    // one in GraphicState is red...
 
 good code:
-     GL.Color(1.0, 0.0, 0.0);  // Change color to red in GraphicState
-     GL.Sync();                // Synchronise GraphicState
-     glPushAttrib();           // Save OpenGL attributes
-     glColor(0.0, 1.0, 0.0);   // Change color using direct OpenGL calls
-     glPopAttrib();            // Restore color to its previous value (red)
-     GL.Color(1.0, 0.0, 0.0);  // Don't do anything as the color is already
-                               // red in GraphicState (and in OpenGL).
+     GL.Color(1.0, 0.0, 0.0);       // Change color to red in GraphicState
+     GL.Sync();                     // Synchronise GraphicState
+     glPushAttrib();                // Save OpenGL attributes
+     glColor(0.0, 1.0, 0.0);        // Change color using direct OpenGL calls
+     glPopAttrib();                 // Restore color to its previous value (red)
+     GL.Color(1.0, 0.0, 0.0);       // Don't do anything as the color is already
+                                    // red in GraphicState (and in OpenGL).
+
+other good code:
+     GL.Color(1.0, 0.0, 0.0);       // Change color to red in GraphicState
+     GL.Sync();                     // Synchronise GraphicState
+     glPushAttrib();                // Save OpenGL attributes
+     glColor(0.0, 1.0, 0.0);        // Change color using direct OpenGL calls
+     GraphicSave* save = GL.Save(); // Save current graphic state
+     GL.Color();                    // Change color in graphic state
+     GL.Sync();                     // Synchronise graphic state
+     GL.Restore(save);              // Restore color in graphic state
+     GL.Sync();                     // Resynchronise graphic state to assure a consistent with real OpenGL state
+     glPopAttrib();                 // Restore OpenGL color to its previous value (red)
+     GL.Color(1.0, 0.0, 0.0);       // Don't do anything as the color is already
+                                    // red in GraphicState (and in OpenGL).
 
 
 4. When do I have to synchronise GraphicState?
@@ -184,7 +209,7 @@ struct GraphicState
 
     // ========================================================================
     //
-    //   OpenGL wrappers (use GL.X instead of glX)
+    //   OpenGL/GLU wrappers (use GL.X instead of glX/gluX)
     //
     // ========================================================================
 

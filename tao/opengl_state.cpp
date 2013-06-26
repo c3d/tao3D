@@ -139,7 +139,7 @@ OpenGLState::OpenGLState()
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER), shaderProgram(0),
       activeTexture(GL_TEXTURE0), clientActiveTexture(GL_TEXTURE0),
-      hasPixelBlur(false), hasMipMapping(PerformancesPage::texture2DMipmap()),
+      hasPixelBlur(false),
 
 #define GS(type, name)
 #define GFLAG(name)             glflag_##name(false),
@@ -2551,15 +2551,6 @@ void OpenGLState::GenerateMipmap(GLenum target)
 }
 
 
-void OpenGLState::HasMipMapping(bool mipMap)
-// ----------------------------------------------------------------------------
-//   Enable or disable mipmapping for textures
-// ----------------------------------------------------------------------------
-{
-    CHANGE(hasMipMapping, mipMap);
-}
-
-
 // ============================================================================
 //
 //                       Lighting management functions.
@@ -3382,8 +3373,7 @@ void TextureState::Sync(TextureState &ts)
         ts.magFilt = GL_NEAREST;
     }*/
 
-    bool mipMapping = GL.hasMipMapping && ts.mipMap;
-    if (!mipMapping &&
+    if (!ts.mipMap &&
          (ts.minFilt == GL_NEAREST_MIPMAP_NEAREST ||
           ts.minFilt == GL_LINEAR_MIPMAP_NEAREST  ||
           ts.minFilt == GL_NEAREST_MIPMAP_LINEAR  ||

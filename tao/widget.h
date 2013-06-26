@@ -544,7 +544,6 @@ public:
     Tree_p      textureMode(Tree_p self, text mode);
     Tree_p      textureMinFilter(Tree_p self, text filter);
     Tree_p      textureMagFilter(Tree_p self, text filter);
-    Tree_p      textureMipMap(Tree_p self, bool enable);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);
     Integer*    textureHeight(Tree_p self);

@@ -225,6 +225,8 @@ void FrameInfo::begin(bool clearContents)
 {
     // Clear the render FBO
     checkGLContext();
+
+    GL.Sync(STATE_textures);
     int ok = renderFBO->bind();
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
 

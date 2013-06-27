@@ -534,10 +534,10 @@ void DisplayDriver::getCamera(Point3 *pos, Point3 *target, Vector3 *up,
 
 static inline int even(int x)
 // ----------------------------------------------------------------------------
-//   Largest even integer smaller or equal to x
+//   Smallest even integer larger or equal to x
 // ----------------------------------------------------------------------------
 {
-    return (x - (int)fmod(x, 2));
+    return (x+1) & ~1;
 }
 
 

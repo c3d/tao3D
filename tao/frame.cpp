@@ -225,6 +225,8 @@ void FrameInfo::begin(bool clearContents)
 {
     // Clear the render FBO
     checkGLContext();
+
+    GL.Sync(STATE_textures);
     int ok = renderFBO->bind();
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
 
@@ -356,7 +358,7 @@ void FrameInfo::purge()
             // Delete the texture only if the GL context has not changed.
             // If it has changed, do NOT try to restore the previous context as
             // it may have been invalidated (see #3017).
-            glDeleteTextures(1, &depthTextureID);
+            GL.DeleteTextures(1, &depthTextureID);
         }
 
         // ~QGLFrameBufferObject checks the GL context so it's OK to delete

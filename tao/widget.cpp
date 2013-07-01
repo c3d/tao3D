@@ -2543,10 +2543,11 @@ void Widget::setup(double w, double h, const Box *picking)
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------
 {
-#define ROUND(x, r) (x - fmod(x, r))
-    // #806 Rendering artifacts when window is resized (1 px)
-    w = ROUND(w, 2);
-    h = ROUND(h, 2);
+#define ROUNDUP(x) (x+1 - fmod(x+1, 2))
+    // #806, #3094 Rendering artifacts when window is resized (1 px)
+    w = ROUNDUP(w);
+    h = ROUNDUP(h);
+#undef ROUNDUP
 
     // #2784 Make sure we don't pass invalid values to glFrustrum
     if (w == 0) w = 2;
@@ -6146,6 +6147,7 @@ Integer_p Widget::stereoViewpoints()
 //   The number of viewpoints for the current display
 // ----------------------------------------------------------------------------
 {
+    refreshOn(displayDriver->viewPointsChangedEvent());
     return new XL::Integer(Tao()->stereoPlanes);
 }
 
@@ -7390,7 +7392,7 @@ bool Widget::VSyncSupported()
     static bool supported = false, tested = false;
     if (!tested)
     {
-        bool prev = enableVSync(NULL, false);
+        bool prev = (enableVSync(NULL, false) == XL::xl_true);
         bool f = (enableVSync(NULL, true) == XL::xl_true);
         bool t = (enableVSync(NULL, prev) == XL::xl_true);
         supported = (!f && t);

@@ -40,8 +40,12 @@ DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : useInProgress(false), wFactor(1.0), hFactor(1.0)
+    : useInProgress(false), wFactor(1.0), hFactor(1.0),
+      vpEvt(QEvent::registerEventType())
 {
+    IFTRACE2(displaymode, layoutevents)
+        debug() << "ID of 'viewpoints changed' user event: " << vpEvt << "\n";
+
     registerDisplayFunction("2Dplain", displayBackBuffer,
                                        NULL, NULL, NULL);
 
@@ -530,10 +534,10 @@ void DisplayDriver::getCamera(Point3 *pos, Point3 *target, Vector3 *up,
 
 static inline int even(int x)
 // ----------------------------------------------------------------------------
-//   Largest even integer smaller or equal to x
+//   Smallest even integer larger or equal to x
 // ----------------------------------------------------------------------------
 {
-    return (x - (int)fmod(x, 2));
+    return (x+1) & ~1;
 }
 
 
@@ -615,10 +619,15 @@ int DisplayDriver::getEyesNumber()
 
 void DisplayDriver::setStereoPlanes(int planes)
 // ----------------------------------------------------------------------------
-//   Set the number of views per frame (for statistics)
+//   Set the number of views per frame
 // ----------------------------------------------------------------------------
 {
-    Widget::Tao()->stereoPlanes = planes;
+    int &current = Widget::Tao()->stereoPlanes;
+    if (current != planes)
+    {
+        current = planes;
+        Widget::postEventAPI(viewPointsChangedEvent());
+    }
 }
 
 

@@ -147,36 +147,21 @@ Launch Tao with valgrind (it is very very slow)
 
 *** Linux ***
 
-Prerequisites to build Tao: Qt 4.7.4, LLVM 2.9, libxss-dev.
-We provide instructions for Ubuntu (11.10) but other distributions should work,
+We provide instructions for Ubuntu (12.04) but other distributions should work,
 too.
 
- - You may install the full Qt distribution and libxss-dev with:
-   $ sudo apt-get install qt4-dev-tools libqt4-dev libxss-dev
-   You still need to build LLVM from sources as explained below since version
-   2.9 is not currently (August 2011) available pre-packaged.
-   The full Qt distribution does not always include the latest Qt libraries, so
-   you may want to get them separately and build them (see next point).
- - Building LLVM from sources:
-     $ svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_29/final llvm_2.9
-     $ cd llvm_2.9
-     $ ./configure --enable-optimized  # will install in /usr/local
-     $ make -j3
-     $ sudo make install
- - Install Doxygen:
-   $ sudo apt-get install doxygen
+ - You may install the required dependencies with:
+   $ sudo apt-get install qt4-dev-tools libqt4-dev libxss-dev llvm-2.9-dev \
+                          doxygen dpkg-dev
  - Some modules (currently not enabled by default) need the npm command from
    the NodeJS distribution. Install it with:
      $ sudo apt-get install npm
- - To build a Debian package (.deb) you need:
-     $ sudo apt-get install dpkg-dev
  - Configure and build Tao as follows:
-   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.4/bin:$PATH
    $ ./configure
    Then,
    $ make          # Build everything
    or
    $ make install  # Build and install in ./install
    or
-   $ make kit      # Build and create installer in ./packaging/linux
+   $ make kit      # Build and create Tar/Debian installers in ./packaging/linux
 

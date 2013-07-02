@@ -45,28 +45,33 @@ rectangle 100, 0, 150, 100
  *
  * @par Colors and materials
  *
- * When lighting is enabled, the final color of a shape is obtained by multiplying
- * the current color with  "front and back, ambient and diffuse" materials.
- * That is, the following code:
+ * When lighting is enabled, the final color of a shape is obtained by
+ * combining the contributions of the lights with the final material
+ * properties of the shape.
+ * The final material properties (that is, the ones that are passed to OpenGL)
+ * are obtained by multiplying the values passed to the <tt>material_</tt>
+ * primitives by the current color (@ref color). @n
+ * In other words, the current color affects (filters) the material colors.
+ * Use <tt>color "white"</tt> to cancel this effect.
+ * @note This has changed from Tao Presentations 1.30.
+ * - In version 1.30, @ref color is a synonym for "set the front and back,
+ * ambient and diffuse material color".
+ * - In this version, @ref color is combined with the various material colors
+ * (which are shades of gray of 0.8 and 0.2 intensity for diffuse and
+ * ambient, respectively).
+ *
+ * Here is an example of how @ref color affects material colors:
  @code
-// Yellow
-color 1, 1, 0, 1
- @endcode
- * ...is equivalent to:
- @code
-// Yellow
-color 1, 1, 0, 1
-material_ambient 0.2, 0.2, 0.2, 1 // Default value
-material_diffuse 0.8, 0.8, 0.8, 1 // Default value
- @endcode
- * ...which is also equivalent to:
- @code
-// Yellow
-color 1, 1, 0, 1
-material_back_ambient 0.2, 0.2, 0.2, 1  // Default value
-material_front_ambient 0.2, 0.2, 0.2, 1 // Default value
-material_back_diffuse 0.8, 0.8, 0.8, 1  // Default value
-material_front_diffuse 0.8, 0.8, 0.8, 1 // Default value
+light 0
+light_diffuse 1, 1, 1, 1
+light_position 200, 200, 200
+// Yellow materials become red if color "red" is uncommented
+// because (1, 1, 0, 1) * (1, 0, 0, 1) = (1, 0, 0, 1)
+color "white"
+//color "red"
+material_diffuse 1, 1, 0, 1
+material_ambient 1, 1, 0, 1
+sphere 0, 0, 0, 100
  @endcode
  *
  * @par Example
@@ -130,27 +135,33 @@ rectangle 100, 0, 150, 100
  * @par Couleurs et matériaux
  *
  * Lorsqu'au moins une lumière est active, la couleur d'une forme est obtenue
- * par le produit de la couleur courante avec la couleur des matériaux <em>front and back, ambient and
- * diffuse</em>. Autrement dit, le code suivant :
+ * en combinant les contributions de chaque lumière avec les propriétés des
+ * matériaux telles que passées à OpenGL. Ces couleurs de matériaux sont
+ * obtenues en multipliant les valeurs passées au primitives <tt>material_</tt>
+ * par la couleur en cours (@ref color). @n
+ * Autrement dit, la couleur en cours affecte les couleurs de matériaux.
+ * Il suffit d'appeler <tt>color "white"</tt> pour annuler cet effet.
+ * @note Ce comportement a changé par rapport à la version 1.30 de
+ * Tao Presentations :
+ * - Dans la version 1.30, @ref color est un synonyme de "matériau
+ * ambient et diffus sur les deux faces".
+ * - Dans cette version, @ref color est combinée avec les différentes
+ * couleurs de matériaux (les matériaux diffus et ambient sont des
+ * nuances de gris par défaut, d'intensité 0.8 et 0.2
+ * respectivement).
+ *
+ * Voici un exemple de l'influence de @ref color sur les matériaux.
  @code
-// Jaune
-color 1, 1, 0, 1
- @endcode
- * ...est équivalent à :
- @code
-// Jaune
-color 1, 1, 0, 1
-material_ambient 0.2, 0.2, 0.2, 1 // Valeur par défaut
-material_diffuse 0.8, 0.8, 0.8, 1 // Valeur par défaut
- @endcode
- * ...ou encore :
- @code
-// Jaune
-color 1, 1, 0, 1
-material_back_ambient 0.2, 0.2, 0.2, 1  // Valeur par défaut
-material_front_ambient 0.2, 0.2, 0.2, 1 // Valeur par défaut
-material_back_diffuse 0.8, 0.8, 0.8, 1  // Valeur par défaut
-material_front_diffuse 0.8, 0.8, 0.8, 1 // Valeur par défaut
+light 0
+light_diffuse 1, 1, 1, 1
+light_position 200, 200, 200
+// Les matériaux jaunes deviennent rouge si color "red" est activé
+// car (1, 1, 0, 1) * (1, 0, 0, 1) = (1, 0, 0, 1)
+color "white"
+//color "red"
+material_diffuse 1, 1, 0, 1
+material_ambient 1, 1, 0, 1
+sphere 0, 0, 0, 100
  @endcode
  *
  * @par Example

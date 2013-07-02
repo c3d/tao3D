@@ -2809,9 +2809,7 @@ void LightsState::Sync(LightsState &nl)
         // Number of lights decreased, deactivate extra lights
         for (uint l = nmax; l < max; l++)
         {
-            LightState &ls = lights[l];
-            LightState nls;
-            ls.Sync(nls); // Restore to the default state
+            glDisable(GL_LIGHT0 + l);
 
             // Update bitmask
             if(nl.active & (1 << l))
@@ -2945,10 +2943,6 @@ bool ClipPlanesState::Sync(ClipPlanesState &np)
         {
             if(active & (1 << p))
                 glDisable(GL_CLIP_PLANE0 + p);
-
-            ClipPlaneState &ps = planes[p];
-            ClipPlaneState nps;
-            ps.Sync(nps); // Restore to the default state
         }
         planes.resize(nmax);
     }

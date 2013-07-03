@@ -295,11 +295,6 @@ PREFIX(SetTextureMagFilter,  tree,  "texture_mag_filter",
        RTAO(textureMagFilter(self, fn)),
        GROUP(graph)
        SYNOPSIS("Set the texture magnification filter function"))
-PREFIX(SetTextureMipMap,  tree,  "texture_mipmap",
-       PARM(enable, boolean, "The texture magnification function (GL_NEAREST, GL_LINEAR etc.)"),
-       RTAO(textureMipMap(self, enable)),
-       GROUP(graph)
-       SYNOPSIS("Set the texture magnification filter function"))
 PREFIX(ExtrudeDepth,  tree,  "extrude_depth",
        PARM(ed, real, ""),
        RTAO(extrudeDepth(self, ed)),

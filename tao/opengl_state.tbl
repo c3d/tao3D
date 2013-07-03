@@ -66,8 +66,7 @@ GS(GLenum,                  renderMode)
 GS(GLuint,                  shaderProgram)
 GS(GLuint,                  activeTexture)
 GS(GLenum,                  clientActiveTexture)
-GS(bool,                    hasPixelBlur) // Pixels not aligning naturally+
-GS(bool,                    hasMipMapping)// Enable or disable mipmapping
+GS(bool,                    hasPixelBlur) // Pixels not aligning naturally
 
 GCLIENTSTATE(GL_VERTEX_ARRAY)
 GCLIENTSTATE(GL_NORMAL_ARRAY)

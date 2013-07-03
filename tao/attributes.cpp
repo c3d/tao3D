@@ -183,16 +183,6 @@ void TextureMagFilter::Draw(Layout *where)
 }
 
 
-void TextureMipMap::Draw(Layout *where)
-// ----------------------------------------------------------------------------
-//   Enable or disable mipmapping for textures
-// ----------------------------------------------------------------------------
-{
-    (void) where;
-    GL.HasMipMapping(enable);
-}
-
-
 void TextureTransform::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enter or exit texture transform mode

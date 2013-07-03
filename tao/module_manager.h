@@ -325,7 +325,7 @@ public:
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
               native(NULL), context(NULL), inError(false),
-              show_preferences(NULL)
+              show_preferences(NULL), graphicStatePtr(NULL)
             {}
 
         // Configuration attributes
@@ -349,6 +349,7 @@ public:
         QTranslator * translator;
         // Module documentation files, may be empty
         QStringList qchFiles;
+        GraphicState **graphicStatePtr; // May be NULL
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -466,6 +467,7 @@ public:
     QString             latestTag(QString moduleDir);
     QStringList         qchFiles();
     void                unloadImported();
+    void                updateGraphicStatePointers(GraphicState *newState);
     QDir                userModuleDir() { return QDir(u); }
     QDir                systemModuleDir() { return QDir(s); }
 

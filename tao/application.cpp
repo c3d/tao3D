@@ -88,7 +88,6 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
-text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "NVIDIA Corporation", "Intel" };
 QPixmap * Application::padlockIcon = NULL;
 
 Application::Application(int & argc, char ** argv)
@@ -97,7 +96,6 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
-      maxTextureCoords(0), maxTextureUnits(0),
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
@@ -545,6 +543,11 @@ bool Application::checkGL()
 //   Check if GL implementation can be used
 // ----------------------------------------------------------------------------
 {
+    text GLVendor = "?";
+    text GLRenderer = "?";
+    text GLVersionAvailable = "?";
+    text GLExtensionsAvailable = "?";
+
     {
         // We need a valid GL context to read the information strings
         QGLWidget gl;
@@ -552,21 +555,10 @@ bool Application::checkGL()
 
         if (QGLContext::currentContext()->isValid())
         {
-            TaoApp->GLVendor   = getGLText(GL_VENDOR);
-            TaoApp->GLRenderer = getGLText(GL_RENDERER);
-            TaoApp->GLVersionAvailable = getGLText(GL_VERSION);
-            TaoApp->GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
-
-            // Get number of maximum texture units and coords in fragment shaders
-            // (texture units are limited to 4 otherwise)
-            glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
-            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*)&maxTextureUnits);
-            glGetIntegerv(GL_MAX_TEXTURE_SIZE,(GLint*)&maxTextureSize);
-        }
-        else
-        {
-            TaoApp->GLVendor = TaoApp->GLRenderer = TaoApp->GLVersionAvailable
-                    = TaoApp->GLExtensionsAvailable = "?";
+            GLVendor   = getGLText(GL_VENDOR);
+            GLRenderer = getGLText(GL_RENDERER);
+            GLVersionAvailable = getGLText(GL_VERSION);
+            GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
         }
     }
 
@@ -588,28 +580,6 @@ bool Application::checkGL()
     }
 
     useShaderLighting = PerformancesPage::perPixelLighting();
-
-    {
-        // Ask graphic card constructor to OpenGL
-        int vendorNum = 0;
-
-        // Search in vendors list
-        for(int i = 0; i < LAST; i++)
-        {
-            if(! GLVendor.compare(vendorsList[i]))
-            {
-                vendorNum = i;
-                break;
-            }
-        }
-
-        switch(vendorNum)
-        {
-        case 0: vendorID = ATI; break;
-        case 1: vendorID = NVIDIA; break;
-        case 2: vendorID = INTEL; break;
-        }
-    }
 
     {
         QGLWidget gl(QGLFormat(QGL::StereoBuffers));
@@ -654,6 +624,7 @@ bool Application::checkGL()
 
     return true;
 }
+
 
 void Application::checkModules()
 // ----------------------------------------------------------------------------

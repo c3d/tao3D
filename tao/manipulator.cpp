@@ -69,9 +69,9 @@ void Manipulator::DrawSelection(Layout *layout)
     if (sel)
     {
         widget->selectionTrees.insert(self);
-        glPushName(layout->id);
+        GL.PushName(layout->id);
         DrawHandles(layout);
-        glPopName();
+        GL.PopName();
     }
 }
 
@@ -426,7 +426,6 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     Drag   *drag = widget->drag();
     uint    handle = 0;
     uint    selected = widget->selected(layout);
-    layout->fillTextures.clear();
 
     // Don't draw the handles if this is an open container
     if ((selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
@@ -1453,7 +1452,6 @@ void RotationManipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     TransformManipulator::Identify(layout);
-    layout->rotationId = layout->id;
 }
 
 
@@ -1540,7 +1538,6 @@ void TranslationManipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     TransformManipulator::Identify(layout);
-    layout->translationId = layout->id;
 }
 
 
@@ -1629,7 +1626,6 @@ void ScaleManipulator::Identify(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     TransformManipulator::Identify(layout);
-    layout->translationId = layout->id;
 }
 
 

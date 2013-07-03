@@ -65,5 +65,6 @@ typedef void (*sig_t) (int);
 extern void signal_handler(int sig);
 extern void install_signal_handler(sig_t);
 extern void install_first_exception_handler(void);
+extern void tao_stack_trace(int fd);
 
 #endif // TAO_MAIN_H

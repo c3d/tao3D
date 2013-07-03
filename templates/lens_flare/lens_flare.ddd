@@ -71,6 +71,7 @@ page "lens flare",
 //    Main scene
 // -------------------------------------------------
     d -> window_height
+    color "white"
     locally
         milkyway 8000
         sun 100, 300, -300 + 200 * abs (sin (page_time * 0.04))

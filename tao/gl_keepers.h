@@ -27,76 +27,46 @@
 #include "widget.h"
 #include "tao_gl.h"
 #include "application.h"
+#include "opengl_save.h"
 
 TAO_BEGIN
 
-struct GLAttribKeeper
+struct GLAttribKeeper : OpenGLSave
 // ----------------------------------------------------------------------------
 //   Save and restore selected OpenGL attributes
 // ----------------------------------------------------------------------------
 //   By default, all attributes are saved (GL_ALL_ATTRIB_BITS)
 {
     GLAttribKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS)
-        : bits(bits)
-    {
-        if (bits)
-            glPushAttrib(bits);
-    }
-    ~GLAttribKeeper()
-    {
-        if (bits)
-            glPopAttrib();
-    }
-
-private:
-    GLbitfield  bits;
-    GLAttribKeeper(const GLAttribKeeper &) {}
+        : OpenGLSave(~(STATE_mvMatrix | STATE_projMatrix | STATE_viewport))
+    { (void) bits; }
 };
 
 
-struct GLMatrixKeeper
+struct GLMatrixKeeper : OpenGLSave
 // ----------------------------------------------------------------------------
 //   Save and restore the current matrix
 // ----------------------------------------------------------------------------
 //   Caller is responsible for current matrix mode (model or projection view)
 {
     GLMatrixKeeper(bool save=true)
-        : save(save)
-    {
-        if (save)
-            glPushMatrix();
-    }
-    ~GLMatrixKeeper()
-    {
-        if (save)
-            glPopMatrix();
-    }
-
-private:
-    bool        save;
-    GLMatrixKeeper(const GLMatrixKeeper &) {}
+        : OpenGLSave(save ? (STATE_mvMatrix | STATE_projMatrix) : 0)
+    { }
 };
 
 
-struct GLStateKeeper
+struct GLStateKeeper : OpenGLSave
 // ----------------------------------------------------------------------------
 //   Save and restore both selected attributes and the current matrix
 // ----------------------------------------------------------------------------
 {
     GLStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS, bool save = true):
-        attribs(bits), matrix(save) {}
-    ~GLStateKeeper() {}
-
-public:
-    GLAttribKeeper attribs;
-    GLMatrixKeeper matrix;
-
-private:
-    GLStateKeeper(const GLStateKeeper &other);
+        OpenGLSave(save ? OpenGLSave_All : ~(STATE_mvMatrix | STATE_projMatrix))
+    { (void) bits; }
 };
 
 
-struct GLAllStateKeeper : GLStateKeeper
+struct GLAllStateKeeper : OpenGLSave
 // ----------------------------------------------------------------------------
 //   Save and restore both selected attributes and the current matrices
 // ----------------------------------------------------------------------------
@@ -105,54 +75,9 @@ struct GLAllStateKeeper : GLStateKeeper
                      bool saveModel = true,
                      bool saveProjection = true,
                      uint64 saveTextureMatrix = ~0UL)
-        : GLStateKeeper(bits, saveModel),
-          saveProjection(saveProjection),
-          saveTextureMatrix(saveTextureMatrix)
-    {
-        if (saveProjection)
-        {
-            glMatrixMode(GL_PROJECTION);
-            glPushMatrix();
-        }
-
-        for(uint i = 0; i <  TaoApp->maxTextureCoords; i++)
-        {
-            if (saveTextureMatrix & (1 << i))
-            {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glMatrixMode(GL_TEXTURE);
-                glPushMatrix();
-            }
-        }
-
-        glMatrixMode(GL_MODELVIEW);
-    }
-    ~GLAllStateKeeper()
-    {
-        if (saveProjection)
-        {
-            glMatrixMode(GL_PROJECTION);
-            glPopMatrix();
-        }
-
-        for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
-        {
-            if (saveTextureMatrix & (1 << i))
-            {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glMatrixMode(GL_TEXTURE);
-                glPopMatrix();
-            }
-        }
-
-        glMatrixMode(GL_MODELVIEW);
-    }
-
-private:
-    bool        saveProjection;
-    uint64      saveTextureMatrix;
-    uint        maxTextureMatrix;
-    GLAllStateKeeper(const GLStateKeeper &other);
+        : OpenGLSave((saveModel         ? OpenGLSave_All : ~STATE_mvMatrix) &
+                     (saveProjection    ? OpenGLSave_All : ~STATE_projMatrix))
+    { (void) bits; (void) saveTextureMatrix; }
 };
 
 TAO_END

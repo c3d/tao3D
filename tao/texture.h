@@ -31,28 +31,7 @@
 
 TAO_BEGIN
 
-struct ImageTextureInfo : XL::Info
-// ----------------------------------------------------------------------------
-//    Hold information about an image texture
-// ----------------------------------------------------------------------------
-{
-    typedef ImageTextureInfo *data_t;
-    struct  Texture { GLuint id, width, height; };
-    typedef std::map<text, Texture> texture_map;
-    enum { MAX_TEXTURES = 6000 };
-
-    ImageTextureInfo();
-    ~ImageTextureInfo();
-
-    Texture load(text img, text docPath);
-    operator data_t() { return this; }
-    uint        width, height;
-
-    static Texture &defaultTexture();
-};
-
-
-struct AnimatedTextureInfo : ImageTextureInfo
+struct AnimatedTextureInfo : XL::Info
 // ----------------------------------------------------------------------------
 //    Hold information about an image texture
 // ----------------------------------------------------------------------------
@@ -62,15 +41,16 @@ struct AnimatedTextureInfo : ImageTextureInfo
     AnimatedTextureInfo();
     ~AnimatedTextureInfo();
 
-    Texture load(text img);
+    GLuint load(text img);
     GLuint bind(text img);
     operator data_t() { return this; }
 
-    static texture_map textures;
-
 public:
+    GLuint id;
+    uint   width, height;
     QMovie movie;
 };
+
 
 struct TextureIdInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
@@ -79,11 +59,11 @@ struct TextureIdInfo : XL::Info, InfoTrashCan
 {
     TextureIdInfo(): textureId(0)
     {
-        glGenTextures(1, &textureId);
+        GL.GenTextures(1, &textureId);
     }
     ~TextureIdInfo()
     {
-        glDeleteTextures(1, &textureId);
+        GL.DeleteTextures(1, &textureId);
     }
     virtual void Delete()
     {
@@ -91,7 +71,7 @@ struct TextureIdInfo : XL::Info, InfoTrashCan
     }
     GLuint bind()
     {
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        GL.BindTexture(GL_TEXTURE_2D, textureId);
         return textureId;
     }
 

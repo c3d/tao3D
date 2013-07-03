@@ -63,29 +63,10 @@ struct ShaderProgram : Lighting
 //   Activate a shader program
 // ----------------------------------------------------------------------------
 {
-    ShaderProgram(QGLShaderProgram *program): program(program) {}
+    ShaderProgram(QGLShaderProgram *program = NULL): program(program) {}
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *where) { Draw(where); }
     QGLShaderProgram *program;
-};
-
-
-struct ShaderUniformInfo : XL::Info
-// ----------------------------------------------------------------------------
-//   Record information about a uniform variable
-// ----------------------------------------------------------------------------
-{
-    ShaderUniformInfo(GLuint id): id(id) {}
-    GLuint id;
-};
-
-
-struct ShaderAttributeInfo : XL::Info
-// ----------------------------------------------------------------------------
-//   Record information about an attribute variable
-// ----------------------------------------------------------------------------
-{
-    ShaderAttributeInfo(GLuint id): id(id) {}
-    GLuint id;
 };
 
 
@@ -95,11 +76,25 @@ struct ShaderValue : Lighting
 // ----------------------------------------------------------------------------
 {
     typedef std::vector<float> Values;
-    ShaderValue(Name_p name, Values values): name(name), values(values) {}
+    ShaderValue(GLuint location, GLuint type, Values values)
+        : location(location), type(type), values(values) {}
     virtual void Draw(Layout *where);
-    Name_p name;
+    GLuint location;
+    GLuint type;
     Values values;
 };
+
+
+struct ShaderAttribute : ShaderValue
+// ----------------------------------------------------------------------------
+//   Set a shader attribute
+// ----------------------------------------------------------------------------
+{
+    ShaderAttribute(GLuint location, GLuint type, Values values)
+        : ShaderValue(location, type, values) {}
+    virtual void Draw(Layout *where);
+};
+
 
 struct PerPixelLighting : Lighting
 // ----------------------------------------------------------------------------
@@ -109,12 +104,15 @@ struct PerPixelLighting : Lighting
     PerPixelLighting(bool enable = true);
     ~PerPixelLighting();
     virtual void Draw(Layout *where);
+    static uint PerPixelLightingShader() { return pgm->programId(); }
+
     bool enable;
     ShaderProgram* shader;
 
     static QGLShaderProgram* pgm;
     static bool failed;
 };
+
 
 struct LightId : Lighting
 // ----------------------------------------------------------------------------
@@ -124,6 +122,7 @@ struct LightId : Lighting
     LightId(uint id, bool enable);
     ~LightId();
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *where) { Draw(where); }
     uint id;
     bool enable;
     PerPixelLighting* perPixelLighting;

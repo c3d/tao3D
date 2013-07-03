@@ -90,6 +90,10 @@ shader_program
  * of code in which you may use @ref vertex_shader, @ref vertex_shader_file,
  * @ref fragment_shader, @ref fragment_shader_file, @ref geometry_shader, and/or
  * @ref geometry_shader_file to create individual shaders.
+ * To disable the current shader program, use the following code:
+@code
+shader_program false
+@endcode
  *
  * @attention No texture is activated by defaut. In order to use
  * texture coordinates in a shader without texture, it is necessary to
@@ -108,6 +112,10 @@ shader_program
  * @ref vertex_shader_file, @ref fragment_shader, @ref fragment_shader_file,
  * @ref geometry_shader, et/ou @ref geometry_shader_file pour créer et
  * ajouter des shaders.
+ * Pour désactiver le shader courant, utiliser le code suivant:
+@code
+shader_program false
+@endcode
  *
  * @attention Aucune texture n'est activée par défaut. Si vous désirez utiliser
  * les coordonnées de texture dans un shader sans utiliser une texture

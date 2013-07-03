@@ -2288,6 +2288,42 @@ polygon (x:real, y:real, w:real, h:real, p:integer);
  */
 polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
+/**
+ * @~english
+ * Draws a subdivided plane.
+ *
+ * This plane is centered at (@p x, @p y), with width @p w and height @p h,
+ * and is subdivided according to its line @p l and column @p c numbers.
+ *
+ * @note With a convenient subdivision, this plane can be used to make a
+ * displacement mapping.
+ *
+ * Example of a subdivided plane:
+@code
+color "red"
+line_color "blue"
+plane 0, 0, 500, 500, 20, 20
+@endcode
+ *
+ * @~french
+ * Affiche un plan subdivisé.
+ *
+ * Le rectangle est centré en (@p x, @p y), a une largeur de @p w pixels et une
+ * hauteur @p h pixels, et est subdivisé en @p l lignes et @p c colonnes.
+ * Avec une subdivision adaptée, ce plan est bien adapté pour faire un
+ * <em>displacement mapping</em>.
+ *
+ * Exemple de plan subdivisé:
+@code
+color "#DD3311"
+line_color "#EEAA11"
+plane 0, 0, 500, 500, 20, 20
+@endcode
+ * @~
+ * @image html plane.png
+ */
+plane(x:real, y:real, w:real, h:real, l:integer, c:integer);
+
 /** @} */
 
 /**

@@ -26,6 +26,8 @@
 #include "widget.h"
 #include "tao_gl.h"
 #include "application.h"
+#include "gl_keepers.h"
+
 
 TAO_BEGIN
 
@@ -105,43 +107,38 @@ void Cube::Draw(Layout *where)
         { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0},
     };
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, vertices);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.VertexPointer(3, GL_DOUBLE, 0, vertices);
 
     // Set normals only if we have lights or shaders
-    if(where->currentLights || where->programId)
+    if(GL.LightsMask() || where->programId)
     {
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_FLOAT, 0, normals);
+        GL.Sync(STATE_lights);
+        GL.EnableClientState(GL_NORMAL_ARRAY);
+        GL.NormalPointer(GL_FLOAT, 0, normals);
     }
 
     //Active texture coordinates for all used units
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            enableTexCoord((*it).first, textures);
-
+    enableTexCoord(&textures[0][0], ~0ULL);
     setTexture(where);
+    GL.LoadMatrix();
 
     // Draw filled faces
     if (setFillColor(where))
-        glDrawArrays(GL_QUADS, 0, 24);
+        GL.DrawArrays(GL_QUADS, 0, 24);
 
     // Draw wireframe
     if (setLineColor(where))
         for (uint face = 0; face < 6; face++)
-            glDrawArrays(GL_LINE_LOOP, 4*face, 4);
+            GL.DrawArrays(GL_LINE_LOOP, 4*face, 4);
+    
+    // Disable texture coordinates after drawing
+    disableTexCoord(~0ULL);
 
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            disableTexCoord((*it).first);
-    // Restore the client active texture
-    glClientActiveTexture(GL_TEXTURE0);
+    if(GL.LightsMask() || where->programId)
+        GL.DisableClientState(GL_NORMAL_ARRAY);
 
-    if(where->currentLights || where->programId)
-        glDisableClientState(GL_NORMAL_ARRAY);
-
-    glDisableClientState(GL_VERTEX_ARRAY);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 }
 
 
@@ -159,79 +156,75 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 {
     Point3 p = bounds.Center() + where->Offset();
 
-    glPushMatrix();
-    glPushAttrib(GL_ENABLE_BIT);
-    glTranslatef(p.x, p.y, p.z);
-    glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
+    GLAllStateKeeper save;
 
     // Set Vertices
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.VertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
 
     // Set normals only if we have lights or shaders
-    if(where->currentLights || where->programId)
+    if(GL.LightsMask() || where->programId)
     {
-        glEnable(GL_NORMALIZE);
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
+        GL.Sync(STATE_lights);
+        GL.Enable(GL_NORMALIZE);
+        GL.EnableClientState(GL_NORMAL_ARRAY);
+        GL.NormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
     }
 
     //Active texture coordinates for all used units
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            enableTexCoord((*it).first, &mesh->textures[0].x);
+    enableTexCoord(&mesh->textures[0].x, ~0ULL);
+    GL.Translate(p.x, p.y, p.z);
+    GL.Scale(bounds.Width(), bounds.Height(), bounds.Depth());
+    GL.LoadMatrix();
 
     // Apply textures
     setTexture(where);
 
     scale v = where->visibility * where->fillColor.alpha;
     bool drawBackFaces = where->programId || !culling || v != 1.0;
-
     // Optimize drawing of convex
     // shapes in case of no shaders thanks to
     // backface culling (doesn't need to draw back faces)
-    glEnable(GL_CULL_FACE);
+    GL.Enable(GL_CULL_FACE);
     if (drawBackFaces)
     {
         // Use painter algorithm to apply correctly
         // transparency on shapes
         // This was made necessary by Bug #1403.
-        glCullFace(GL_FRONT);
+        GL.CullFace(GL_FRONT);
 
         // Read Only mode of depth buffer
         if (v != 1.0)
-            glDepthMask(false);
+            GL.DepthMask(false);
 
         if (setFillColor(where))
-            glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+            GL.DrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
         if (setLineColor(where))
-            glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
+            GL.DrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
     }
 
     // Draw the stuff in the front
-    glCullFace(GL_BACK);
-    glDepthMask(true);
+    GL.CullFace(GL_BACK);
+    GL.DepthMask(true);
+
     if (setFillColor(where))
-        glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+        GL.DrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
-        glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
-    
-    glDisable(GL_CULL_FACE);
-    glDisableClientState(GL_VERTEX_ARRAY);
+        GL.DrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
+
+    GL.Disable(GL_CULL_FACE);
 
     // Disable texture coordinates
-    for (it = where->fillTextures.begin(); it!=where->fillTextures.end(); it++)
-        if (((*it).second).id)
-            disableTexCoord((*it).first);
-    glClientActiveTexture(GL_TEXTURE0);
+    disableTexCoord(~0ULL);
 
     // Disable normals
-    if (where->currentLights || where->programId)
-        glDisableClientState(GL_NORMAL_ARRAY);
+    if (GL.LightsMask() || where->programId)
+    {
+        GL.Disable(GL_NORMALIZE);
+        GL.DisableClientState(GL_NORMAL_ARRAY);
+    }
 
-    glPopAttrib();
-    glPopMatrix();
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 }
 
 

@@ -196,6 +196,7 @@ public:
     {
         Save() {}
         virtual void        Draw(Layout *where);
+        GraphicSave* save;
     };
     struct Restore : Attribute
     {

@@ -45,130 +45,57 @@ bool Shape::setTexture(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Do not bother with textures if in Identify phase
-    if (where->InIdentify())
-        return !where->fillTextures.empty();
-
-    for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
+    if (!where->InIdentify())
     {
-        //Determine if there is a current and previous texture
-        bool hasCurrent = where->fillTextures.count(i);
-        bool hasPrevious = where->previousTextures.count(i);
+        // Activate current shader
+        setShader(where);
 
-        // If there is a previous texture and no current
-        // then unbind this one.
-        if (hasPrevious && !hasCurrent)
-        {
-            // Unbind the previous texture
-            unbindTexture(where->previousTextures[i]);
-        }
-        else if (hasCurrent && (where->textureUnits & (1 << i)))
-        {
-            // If there is a previous texture with a different type
-            // of the current then unbind the previous before binding current
-            if (hasPrevious)
-            {
-                if (where->fillTextures[i].type !=
-                    where->previousTextures[i].type)
-                {
-                    // Unbind the previous texture
-                    unbindTexture(where->previousTextures[i]);
-                }
-            }
-
-            // Bind the current texture
-            bindTexture(where->fillTextures[i], where->hasPixelBlur);
-        }
+        // Synchronize the GL state
+        GL.Sync(STATE_shaderProgram | STATE_activeTexture | STATE_textures | STATE_textureUnits);
     }
-
-    // Active current shader
-    setShader(where);
-
-    // Update used texture units
-    where->previousTextures = where->fillTextures;
-
-    return !(where->fillTextures.empty());
+    return GL.ActiveTextureUnitsCount() > 0;
 }
 
 
-void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
+
+void Shape::enableTexCoord(double *texCoord, uint64 mask)
 // ----------------------------------------------------------------------------
-//    Bind the given texture
+//    Enable texture coordinates of the specified units
 // ----------------------------------------------------------------------------
 {
-    glActiveTexture(GL_TEXTURE0 + texture.unit);
-    glEnable(texture.type);
-    CachedTexture *cached = NULL;
-    if (texture.type == GL_TEXTURE_2D)
+    uint unit = 0;
+    mask &= GL.ActiveTextureUnits();
+    while (mask)
     {
-        QSharedPointer<TextureCache> cache = TextureCache::instance();
-        cached = cache->bind(texture.id);
-        if (cached)
+        if (mask & (1ULL << unit))
         {
-            // Do not call glTexParameteri directly for min filter, because we
-            // need to deal with the case where minFilt would need mipmapping
-            // but texture has no mipmap
-            cache->setMinFilter(texture.id, texture.minFilt);
-            glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER,
-                            texture.magFilt);
+            GL.ClientActiveTexture(GL_TEXTURE0 + unit);
+            GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+            GL.TexCoordPointer(2, GL_DOUBLE, 0, texCoord);
+            mask &= ~(1ULL << unit);
         }
+        unit++;
     }
-    if (!cached)
-    {
-        glBindTexture(texture.type, texture.id);
-        GLint min, mag;
-        if (hasPixelBlur)
-            min = mag = GL_LINEAR;
-        else
-            min = mag = GL_NEAREST;
-        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
-        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
-    }
-
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
-
-    // Wrap if texture 2D
-    if(texture.type == GL_TEXTURE_2D)
-    {
-        GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-        GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-    }
-
-    if (TaoApp->hasGLMultisample)
-        glEnable(GL_MULTISAMPLE);
 }
 
 
-void Shape::unbindTexture(TextureState& texture)
-// ----------------------------------------------------------------------------
-//    Unbind the given texture
-// ----------------------------------------------------------------------------
-{
-    glActiveTexture(GL_TEXTURE0 + texture.unit);
-    glBindTexture(texture.type, 0);
-    glDisable(texture.type);
-}
-
-
-void Shape::enableTexCoord(uint unit, void *texCoord)
-// ----------------------------------------------------------------------------
-//    Enable texture coordinates of the specified unit
-// ----------------------------------------------------------------------------
-{
-    glClientActiveTexture( GL_TEXTURE0 + unit);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
-}
-
-
-void Shape::disableTexCoord(uint unit)
+void Shape::disableTexCoord(uint64 mask)
 // ----------------------------------------------------------------------------
 //    Disable texture coordinates of the specified unit
 // ----------------------------------------------------------------------------
 {
-    glClientActiveTexture( GL_TEXTURE0 + unit);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    uint unit = 0;
+    mask &= GL.ActiveTextureUnits();
+    while (mask)
+    {
+        if (mask & (1ULL << unit))
+        {
+            GL.ClientActiveTexture( GL_TEXTURE0 + unit);
+            GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+            mask &= ~(1ULL << unit);
+        }
+        unit++;
+    }
 }
 
 
@@ -184,9 +111,9 @@ bool Shape::setFillColor(Layout *where)
         scale v = where->visibility * color.alpha;
         if (v >= 0.01)
         {
-            if (!where->hasMaterial)
-                glColor4f(color.red, color.green, color.blue, v);
+            GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
+            GL.Sync();
             return true;
         }
     }
@@ -207,9 +134,9 @@ bool Shape::setLineColor(Layout *where)
         scale v = where->visibility * color.alpha;
         if (v >= 0.01 && (width > 0.0 || where->extrudeDepth > 0.0))
         {
-            if (!where->hasMaterial)
-                glColor4f(color.red, color.green, color.blue, v);
+            GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
+            GL.Sync();
             return true;
         }
     }
@@ -225,35 +152,37 @@ bool Shape::setShader(Layout *where)
     if(where->InIdentify())
         return false;
 
-    // Activate current shader
-    glUseProgram(where->programId);
-
     // In order to improve performance of large and complex 3D models,
     // we use a shader based ligting (Feature #1508), which needs some
     // uniform values to have an efficient behaviour.
-    if(where->perPixelLighting == where->programId)
+    if(where->perPixelLighting && !where->programId && GL.LightsMask())
     {
-        if(where->programId)
-        {
-            GLint lights = glGetUniformLocation(where->programId, "lights");
-            glUniform1i(lights, where->currentLights);
+        GLuint programId = PerPixelLighting::PerPixelLightingShader();
+        GL.UseProgram(programId);
 
-            GLint textures = glGetUniformLocation(where->programId, "textures");
-            glUniform1i(textures, where->textureUnits);
+        GLint lights = GL.GetUniformLocation(programId, "lights");
+        GL.Uniform(lights, (int) GL.LightsMask());
 
-            GLint vendor = glGetUniformLocation(where->programId, "vendor");
-            glUniform1i(vendor, TaoApp->vendorID);
+        GLint textures = GL.GetUniformLocation(programId,"textures");
+        GL.Uniform(textures, (int) GL.ActiveTextureUnits());
 
-            // Set texture units
-            GLint tex0 = glGetUniformLocation(where->programId, "tex0");
-            glUniform1i(tex0, 0);
-            GLint tex1 = glGetUniformLocation(where->programId, "tex1");
-            glUniform1i(tex1, 1);
-            GLint tex2 = glGetUniformLocation(where->programId, "tex2");
-            glUniform1i(tex2, 2);
-            GLint tex3 = glGetUniformLocation(where->programId, "tex3");
-            glUniform1i(tex3, 3);
-        }
+        GLint vendor = GL.GetUniformLocation(programId, "vendor");
+        GL.Uniform(vendor, (int) GL.VendorID());
+
+        // Set texture units
+        GLint tex0 = GL.GetUniformLocation(programId, "tex0");
+        GL.Uniform(tex0, 0);
+        GLint tex1 = GL.GetUniformLocation(programId, "tex1");
+        GL.Uniform(tex1, 1);
+        GLint tex2 = GL.GetUniformLocation(programId, "tex2");
+        GL.Uniform(tex2, 2);
+        GLint tex3 = GL.GetUniformLocation(programId, "tex3");
+        GL.Uniform(tex3, 3);
+    }
+    else
+    {
+        // Activate current shader
+        GL.UseProgram(where->programId);
     }
 
     return true;
@@ -335,9 +264,9 @@ void PlaceholderRectangle::Draw(Layout *where)
     GraphicPath path;
     Draw(path);
 
-    glColor4f(0.3, 0.7, 0.9, 0.7);
-    glLineWidth(1);
-    glDisable(GL_LINE_STIPPLE);
+    GL.Color(0.3, 0.7, 0.9, 0.7);
+    GL.LineWidth(1);
+    GL.Disable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
     path.Draw(where, where->Offset(), GL_LINE_STRIP, 0);
@@ -1045,24 +974,136 @@ void FixedSizePoint::Draw(Layout *where)
     setTexture(where);
     if (setFillColor(where))
     {
-        glPointSize(radius * where->PrinterScaling());
-        glBegin(GL_POINTS);
-        glVertex3f(center.x, center.y, center.z);
-        glEnd();
+        GL.PointSize(radius * where->PrinterScaling());
+        GL.Begin(GL_POINTS);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.End();
 
 #ifdef CONFIG_LINUX
         // This is a workaround for a bug seen on some Linux distros
         // (e.g. Ubuntu 10.04 running on a system with Intel Mobile 4 graphics)
         // where GL_POINTS are not detected in GL_SELECT mode.
         // Drawing a null-sized quad makes the point selectable.
-        glBegin(GL_QUADS);
-        glVertex3f(center.x, center.y, center.z);
-        glVertex3f(center.x, center.y, center.z);
-        glVertex3f(center.x, center.y, center.z);
-        glVertex3f(center.x, center.y, center.z);
-        glEnd();
+        GL.Begin(GL_QUADS);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.End();
 #endif
     }
+}
+
+
+// ============================================================================
+//
+//    Plane
+//
+// ============================================================================
+
+
+PlaneMesh::PlaneMesh(int lines, int columns)
+// ----------------------------------------------------------------------------
+//   Initialize plane parameters
+// ----------------------------------------------------------------------------
+{
+    // Subdivision steps
+    float stepX = 1.0 / lines;
+    float stepY = 1.0 / columns;
+
+    // Compute vertices and textures coordinates
+    for(int j = 0; j <= columns; j++)
+    {
+        for(int i = 0; i <= lines; i++)
+        {
+            vertices.push_back(Vector3(stepX * i - 0.5, stepY * j - 0.5, 0));
+            textures.push_back(Vector((double) i / lines, (double) j / columns));
+        }
+    }
+
+    // Compute indexes
+    for(int j = 0; j < columns; j++)
+    {
+        for(int i = 0; i < lines; i++)
+        {
+            indices.push_back(j * (lines + 1) + i);
+            indices.push_back(j * (lines + 1) + i + 1);
+            indices.push_back((j + 1) * (lines + 1) + i + 1);
+            indices.push_back((j + 1) * (lines + 1) + i);
+        }
+    }
+}
+
+Plane::PlaneCache Plane::cache;
+
+
+Plane::Plane(float x, float y, float w, float h, int slices, int stacks)
+// ----------------------------------------------------------------------------
+//   Construction
+// ----------------------------------------------------------------------------
+    : center(x, y, 0), width(w), height(h), slices(slices), stacks(stacks)
+{}
+
+
+void Plane::Draw(Layout *where)
+{
+    PlaneMesh * plane = NULL;
+    Key key(slices, stacks);
+    PlaneCache::iterator found = cache.find(key);
+    if (found == cache.end())
+    {
+        // Prune the map if it gets too big
+        while (cache.size() > MAX_PLANES)
+        {
+            PlaneCache::iterator first = cache.begin();
+            delete (*first).second;
+            cache.erase(first);
+        }
+        plane = new PlaneMesh(slices, stacks);
+        cache[key] = plane;
+    }
+    else
+    {
+        plane = (*found).second;
+    }
+
+    Draw(plane, where);
+}
+
+
+void Plane::Draw(PlaneMesh* plane, Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a subdivided plane
+// ----------------------------------------------------------------------------
+{
+    GLAllStateKeeper save;
+
+    GL.Enable(GL_NORMALIZE);
+    GL.Translate(center.x, center.y, 0.0);
+    GL.Scale(width, height, 1.0);
+    GL.Normal(0., 0., 1.);
+
+    // Set vertex coordinates
+    GL.VertexPointer(3, GL_DOUBLE, 0, &plane->vertices[0].x);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+
+    enableTexCoord(&plane->textures[0].x, ~0ULL);
+    setTexture(where);
+
+    GLuint size = stacks * slices * 4;
+
+    // Set fill color defined in Tao
+    if(setFillColor(where))
+        GL.DrawElements(GL_QUADS, size, GL_UNSIGNED_INT, &plane->indices[0]);
+
+    // Set line color defined in Tao
+    if(setLineColor(where))
+        for(GLuint i = 0; i < size; i+= 4)
+            GL.DrawElements(GL_LINE_LOOP, 4 , GL_UNSIGNED_INT, &plane->indices[0] + i);
+
+    disableTexCoord(~0ULL);
+
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 }
 
 TAO_END

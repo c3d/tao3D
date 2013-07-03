@@ -29,54 +29,18 @@
 #include "tao_gl.h"
 #include "application.h"
 #include "texture_cache.h"
+#include "matrix.h"
+#include "opengl_state.h"
 #include <vector>
 #include <set>
 #include <QFont>
 #include <QEvent>
 #include <float.h>
-#include "matrix.h"
 
-#define MAX_TEX_UNITS 64
 
 TAO_BEGIN
-
 struct Widget;
 struct Layout;
-
-struct TextureState
-// ----------------------------------------------------------------------------
-//   The state of the texture we want to preserve
-// ----------------------------------------------------------------------------
-{
-    TextureState(): wrapS(false), wrapT(false),
-                    id(0), unit(0), width(0), height(0),
-                    type(GL_TEXTURE_2D), mode(GL_MODULATE),
-                    minFilt(TextureCache::instance()->minFilter()),
-                    magFilt(TextureCache::instance()->magFilter()) {}
-
-    bool          wrapS, wrapT;
-    GLuint        id, unit;
-    GLuint        width, height;
-    GLenum        type;
-    GLenum        mode;
-    GLenum        minFilt, magFilt;
-};
-
-
-struct ModelState
-// ----------------------------------------------------------------------------
-//   The state of the model we want to preserve
-// ----------------------------------------------------------------------------
-{
-    ModelState(): tx(0), ty(0), tz(0),
-                  sx(1), sy(1), sz(1),
-                  rotation(1, 0, 0, 0) {}
-
-    float tx, ty, tz;     // Translate parameters
-    float sx, sy, sz;     // Scaling parameters
-    Quaternion rotation;  // Rotation parameters
-};
-
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -88,11 +52,9 @@ struct LayoutState
 
 public:
     typedef std::set<int>                       qevent_ids;
-    typedef std::map<uint,TextureState>         tex_list;
-
 
 public:
-    void                ClearAttributes(bool all = false);
+    void                ClearAttributes();
     static text         ToText(qevent_ids & ids);
     static text         ToText(int type);
     void                InheritState(LayoutState *other);
@@ -111,40 +73,14 @@ public:
     Color               lineColor;
     Color               fillColor;
 
-    // Textures parameters
-    TextureState        currentTexture;
-    uint64              textureUnits; //Current used texture units
-    tex_list            previousTextures;
-    tex_list            fillTextures;
-
-    // Lighting parameters
+    // Lighting states
     uint                lightId;
-    uint64              currentLights; //Current used lights
-    uint                perPixelLighting;
+    bool                perPixelLighting;
     uint                programId;
 
     // Transformations
-    double              planarRotation;
-    double              planarScale;
-    uint                rotationId, translationId, scaleId;
     Matrix4             model;
-
-    // For optimized drawing, we keep track of what changes
-    uint64              hasTextureMatrix; // 64 texture units
-    bool                printing        : 1;
-    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
-    bool                hasMatrix       : 1;
-    bool                has3D           : 1;
-    bool                hasAttributes   : 1;
-    bool                hasLighting     : 1;
-    bool                hasBlending     : 1;
-    bool                hasTransform    : 1;
-    bool                hasMaterial     : 1;
-    bool                hasDepthAttr    : 1;
-    bool                hasClipPlanes   : 1;
-    bool                isSelection     : 1;
     bool                groupDrag       : 1;
-
 };
 
 
@@ -212,22 +148,6 @@ public:
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;
-
-    GLbitfield glSaveBits()
-    {
-        GLbitfield bits = 0;
-        if (hasAttributes)
-            bits |= (GL_LINE_BIT | GL_TEXTURE_BIT);
-        if (hasLighting)
-            bits |= GL_LIGHTING_BIT;
-        if (hasBlending)
-            bits |= GL_COLOR_BUFFER_BIT;
-        if (hasDepthAttr)
-            bits |= GL_DEPTH_BUFFER_BIT;
-        if (hasClipPlanes)
-            bits |= GL_TRANSFORM_BIT;
-        return bits;
-    }
 
 protected:
     // List of drawing elements

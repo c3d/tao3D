@@ -26,6 +26,7 @@
 #include "drawing.h"
 #include "color.h"
 #include "tao_gl.h"
+#include "opengl_state.h"
 #include <QFont>
 
 TAO_BEGIN
@@ -38,6 +39,7 @@ struct Attribute : Drawing
     Attribute(): Drawing() {}
     virtual void        DrawSelection(Layout *l)        { Draw(l); }
     virtual void        Identify(Layout *l)             { Draw(l); }
+    virtual void        Evaluate(Layout *)              {}
     virtual Box3        Bounds(Layout *l);
     virtual Box3        Space(Layout *l);
     virtual bool        IsAttribute()                   { return true; }
@@ -107,12 +109,11 @@ struct FillTexture : Attribute
 // ----------------------------------------------------------------------------
 {
     FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D)
-        : Attribute(), glName(glName), glType(glType),
-          minFilt(GL_LINEAR), magFilt(GL_LINEAR) {}
+        : Attribute(), glName(glName), glType(glType) {}
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *) { GL.Enable(glType); GL.BindTexture(glType, glName); }
     uint   glName;
     GLenum glType;
-    GLenum minFilt, magFilt;
 };
 
 

@@ -104,7 +104,6 @@ void TextSplit::Draw(Layout *where)
     bool        tooSmall   = fontSize < glyphs.minFontSize &&
                              TaoApp->hasGLMultisample;
     bool        badSize    = tooBig || tooSmall;
-    bool        printing   = where->printing;
     Point3      offset0    = where->Offset();
     IFTRACE(justify)
         std::cerr << "<->TextSplit::Draw(Layout *" << where
@@ -118,15 +117,15 @@ void TextSplit::Draw(Layout *where)
     // Check if we activated new texture units
     glyphs.CheckActiveLayout(where);
 
-    if (!printing && !hasLine && !hasTexture && !badSize && cacheEnabled)
+    if (!hasLine && !hasTexture && !badSize && cacheEnabled)
         DrawCached(where);
     else
         DrawDirect(where);
 
     IFTRACE(textselect)
     {
-        glDisable(GL_TEXTURE_2D);
-        glColor4f(0.8, 0.4, 0.3, 0.2);
+        GL.Disable(GL_TEXTURE_2D);
+        GL.Color(0.8, 0.4, 0.3, 0.2);
         XL::Save<Point3> save(where->offset, offset0);
         Identify(where);
     }
@@ -223,22 +222,32 @@ void TextSplit::DrawCached(Layout *where)
     if (count && setFillColor(where))
     {
         // Bind the glyph texture
-        glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
-        glEnable(GL_TEXTURE_2D);
+        GL.BindTexture(GL_TEXTURE_2D, glyphs.Texture());
+        if (font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
+        {
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        }
+        GL.Enable(GL_TEXTURE_2D);
         if (TaoApp->hasGLMultisample)
-            glEnable(GL_MULTISAMPLE);
+            GL.Enable(GL_MULTISAMPLE);
 
-        // Assure that the last active texture unit is 0. Fix #1918.
-        glClientActiveTexture(GL_TEXTURE0);
+        // Ensure that the last active texture unit is 0. Fix #1918.
+        GL.ClientActiveTexture(GL_TEXTURE0);
+
         // Draw a list of rectangles with the textures
-        glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
-        glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDrawArrays(GL_QUADS, 0, count);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisable(GL_TEXTURE_2D);
+        GL.VertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+        GL.TexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
+        GL.EnableClientState(GL_VERTEX_ARRAY);
+        GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        // Load model view matrix
+        GL.LoadMatrix();
+        GL.DrawArrays(GL_QUADS, 0, count);
+
+        GL.DisableClientState(GL_VERTEX_ARRAY);
+        GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+        GL.Disable(GL_TEXTURE_2D);
     }
 
     where->offset = Point3(x, y, z);
@@ -306,9 +315,10 @@ void TextSplit::DrawDirect(Layout *where)
                 continue;
 
             GLMatrixKeeper save;
-            glTranslatef(x, y, z);
+            GL.Translate(x, y, z);
             scale gscale = glyph.scalingFactor;
-            glScalef(gscale, gscale, gscale);
+            GL.Scale(gscale, gscale, gscale);
+            GL.LoadMatrix();
 
             setTexture(where);
             if (where->extrudeDepth > 0.0)
@@ -316,30 +326,31 @@ void TextSplit::DrawDirect(Layout *where)
                 bool hasFill = setFillColor(where);
                 if (hasFill)
                 {
-                    glPushMatrix();
-                    glTranslatef(0.0, 0.0, -where->extrudeDepth);
-                    glScalef(1, 1, -1);
-                    glFrontFace(GL_CCW);
-                    glCallList(glyph.interior);
-                    glPopMatrix();
-                    glFrontFace(GL_CW);
-                    glCallList(glyph.interior);
-                    glFrontFace(GL_CCW);
+                    GraphicSave* save = GL.Save();
+                    GL.Translate(0.0, 0.0, -where->extrudeDepth);
+                    GL.Scale(1, 1, -1);
+                    GL.FrontFace(GL_CCW);
+                    GL.CallList(glyph.interior);
+                    GL.Restore(save);
+                    GL.FrontFace(GL_CW);
+                    GL.CallList(glyph.interior);
+                    GL.FrontFace(GL_CCW);
                 }
+
                 bool hasLine = setLineColor(where); // May fail, keep fill color
                 if (hasFill || hasLine)
                 {
-                    glFrontFace(GL_CW);
-                    glCallList(glyph.outline);
-                    glFrontFace(GL_CCW);
+                    GL.FrontFace(GL_CW);
+                    GL.CallList(glyph.outline);
+                    GL.FrontFace(GL_CCW);
                 }
             }
             else
             {
                 if (setFillColor(where))
-                    glCallList(glyph.interior);
+                    GL.CallList(glyph.interior);
                 if (lw > 0.0 && setLineColor(where))
-                    glCallList(glyph.outline);
+                    GL.CallList(glyph.outline);
             }
 
             x += glyph.advance + spread;
@@ -454,12 +465,12 @@ void TextSplit::DrawSelection(Layout *where)
                 sel->formulaMode--;
                 if (!sel->formulaMode)
                 {
-                    glBlendFunc(GL_DST_COLOR, GL_ZERO);
+                    GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
                     text mode = "formula_highlight";
                     XL::Save<Point3> zeroOffset(where->offset, Point3());
                     widget->drawSelection(where, sel->formulaBox, mode, 0);
                     sel->formulaBox.Empty();
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }
             }
         } // if(sel)
@@ -561,9 +572,12 @@ void TextSplit::Identify(Layout *where)
     // Find length of text span and compute per-char spread
     float spread = where->alongX.perSolid;
 
+    // Load model view matrix
+    GL.LoadMatrix();
+
     // Prepare to draw with the quad
-    glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);
-    glEnableClientState(GL_VERTEX_ARRAY);
+    GL.VertexPointer(3, GL_DOUBLE, 0, &quad[0].x);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
 
     // Loop over all characters in the text span
     uint i, next = 0, max = str.length();
@@ -580,8 +594,8 @@ void TextSplit::Identify(Layout *where)
             continue;
 
         if (canSel)
-            glLoadName((charId & ~Widget::SELECTION_MASK) |
-                       Widget::CHARACTER_SELECTED);
+            GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                        Widget::CHARACTER_SELECTED);
 
         sd = descent;
         sh = height;
@@ -594,7 +608,7 @@ void TextSplit::Identify(Layout *where)
         quad[1] = Point3(charX2, charY1, z);
         quad[2] = Point3(charX2, charY2, z);
         quad[3] = Point3(charX1, charY2, z);
-        glDrawArrays(GL_QUADS, 0, 4);
+        GL.DrawArrays(GL_QUADS, 0, 4);
 
         // Advance to next character
         if (unicode == '\n')
@@ -617,8 +631,8 @@ void TextSplit::Identify(Layout *where)
     if (sel && canSel && max <= end)
     {
         charId++;
-        glLoadName((charId & ~Widget::SELECTION_MASK) |
-                   Widget::CHARACTER_SELECTED);
+        GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                    Widget::CHARACTER_SELECTED);
         if (glyphs.Find(font, ' ', glyph, false))
         {
             sd = descent;
@@ -632,13 +646,13 @@ void TextSplit::Identify(Layout *where)
             quad[1] = Point3(charX2, charY1, z);
             quad[2] = Point3(charX2, charY2, z);
             quad[3] = Point3(charX1, charY2, z);
-            glDrawArrays(GL_QUADS, 0, 4);
+            GL.DrawArrays(GL_QUADS, 0, 4);
         }
     }
 
     // Disable drawing with the quad
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
+    GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     where->offset = Point3(x, y, z);
 }
@@ -1425,8 +1439,8 @@ void TextFormula::Identify(Layout *where)
     TextSelect          *sel    = widget->textSelection();
 
     if (!info && where->id)
-        glLoadName((charId & ~Widget::SELECTION_MASK) |
-                   Widget::CHARACTER_SELECTED);
+        GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                    Widget::CHARACTER_SELECTED);
 
     if (sel)
         sel->last = charId + 1;
@@ -1578,8 +1592,8 @@ void TextValue::Identify(Layout *where)
     TextSelect          *sel    = widget->textSelection();
 
     if (!info && where->id)
-        glLoadName((charId & ~Widget::SELECTION_MASK) |
-                   Widget::CHARACTER_SELECTED);
+        GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                    Widget::CHARACTER_SELECTED);
 
     if (sel)
         sel->last = charId + 1;

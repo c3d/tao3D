@@ -268,6 +268,9 @@ void DisplayDriver::displayBackBuffer(void *)
 //   Default, usual 2D rendering into OpenGL back buffer
 // ----------------------------------------------------------------------------
 {
+    // Save GL state
+    Tao::GraphicSave* save = GL.Save();
+
     // Are we rendering to the default framebuffer, or a FBO?
     GLint fbname = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
@@ -275,7 +278,7 @@ void DisplayDriver::displayBackBuffer(void *)
     // Setup viewport
     int w = renderWidth();
     int h = renderHeight();
-    glViewport(0, 0, w, h);
+    GL.Viewport(0, 0, w, h);
 
     // Setup projection and modelview matrices
     setProjectionMatrix(w, h);
@@ -283,11 +286,11 @@ void DisplayDriver::displayBackBuffer(void *)
 
     // If no FBO is bound, select draw buffer
     if (!fbname)
-        glDrawBuffer(GL_BACK);
+        GL.DrawBuffer(GL_BACK);
 
     // Clear color and depth information
     setGlClearColor();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set suitable GL parameters for drawing
     setupGl();
@@ -296,6 +299,8 @@ void DisplayDriver::displayBackBuffer(void *)
     drawScene();
     drawSelection();
     drawActivities();
+
+    GL.Restore(save);
 }
 
 
@@ -306,6 +311,9 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 //   multisample GL widget, but do support multisample FBOs.
 // ----------------------------------------------------------------------------
 {
+    // Save graphic state
+    Tao::GraphicSave *save = GL.Save();
+
     BackBufferFBOParams * o = (BackBufferFBOParams *)obj;
     Q_ASSERT(obj || !"Back buffer FBO display routine received NULL object");
 
@@ -318,7 +326,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     o->resize(w, h);
     o->fbo->begin();
 
-    glViewport(0, 0, w, h);
+    GL.Viewport(0, 0, w, h);
 
     // Setup projection and modelview matrices
     setProjectionMatrix(w, h);
@@ -326,7 +334,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 
     // Clear color and depth information
     setGlClearColor();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set suitable GL parameters for drawing
     setupGl();
@@ -344,35 +352,39 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     // Draw a full-screen textured quad
 
     // Setup viewport and geometry
-    glViewport(0, 0, w, h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL.Viewport(0, 0, w, h);
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     // Select draw buffer
-    glDrawBuffer(GL_BACK);
+    GL.DrawBuffer(GL_BACK);
 
     // Clear depth information, disable color blending so that texture alpha
     // is ignored
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_BLEND);
+    GL.Clear(GL_DEPTH_BUFFER_BIT);
+    GL.Disable(GL_BLEND);
 
     // Not sure why, but without this I often have a blank screen
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_POLYGON_OFFSET_LINE);
-    glDisable(GL_POLYGON_OFFSET_POINT);
+    GL.Disable(GL_POLYGON_OFFSET_FILL);
+    GL.Disable(GL_POLYGON_OFFSET_LINE);
+    GL.Disable(GL_POLYGON_OFFSET_POINT);
 
-    glBegin(GL_QUADS);
-    glTexCoord2i( 0 , 0);
-    glVertex2i  (-1, -1);
-    glTexCoord2i( 1 , 0);
-    glVertex2i  ( 1, -1);
-    glTexCoord2i( 1,  1);
-    glVertex2i  ( 1,  1);
-    glTexCoord2i( 0,  1);
-    glVertex2i  (-1,  1);
-    glEnd();
+    GL.Begin(GL_QUADS);
+    GL.TexCoord( 0 , 0);
+    GL.Vertex   (-1, -1);
+    GL.TexCoord( 1 , 0);
+    GL.Vertex   ( 1, -1);
+    GL.TexCoord( 1,  1);
+    GL.Vertex   ( 1,  1);
+    GL.TexCoord( 0,  1);
+    GL.Vertex   (-1,  1);
+    GL.End();
+
+    // Restore state
+    GL.Restore(save);
 }
 
 
@@ -488,7 +500,7 @@ void DisplayDriver::drawActivities()
 
 void DisplayDriver::setGlClearColor()
 // ----------------------------------------------------------------------------
-//   Call glClearColor with the color specified in the widget
+//   Clear color with the color specified in the widget
 // ----------------------------------------------------------------------------
 {
     Widget::Tao()->setGlClearColor();
@@ -664,13 +676,14 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int)
     getCamera(NULL, NULL, NULL, &toScreen);
 
     // Setup the projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
     double nearRatio = zNear()/toScreen;
     double delta = stereoDelta(i, numCameras);
     double shift = -eyeSeparation() * delta * nearRatio;
     double f = 0.5 * nearRatio / zoom();
-    glFrustum (-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
+    GL.Frustum(-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
+    GL.LoadMatrix();
 }
 
 
@@ -691,8 +704,8 @@ void DisplayDriver::setModelViewMatrix(int i, int)
     getCamera(&cameraPosition, &cameraTarget, &cameraUpVector, &toScreen);
 
     // Setup the model-view matrix
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
     double delta = stereoDelta(i, numCameras);
     double shiftLength = eyeSeparation() * delta;
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
@@ -700,7 +713,7 @@ void DisplayDriver::setModelViewMatrix(int i, int)
     Point3 target = cameraPosition + toTarget;
     Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
 
-    gluLookAt(cameraPosition.x + shift.x,
+    GL.LookAt(cameraPosition.x + shift.x,
               cameraPosition.y + shift.y,
               cameraPosition.z + shift.z,
               target.x + shift.x,

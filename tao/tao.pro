@@ -66,7 +66,6 @@ HEADERS +=     activity.h \
     attributes.h \
     binpack.h \
     chooser.h \
-    color.h \
     crypto.h \
     destination_folder_dialog.h \
     dir.h \
@@ -132,14 +131,19 @@ HEADERS +=     activity.h \
     widget.h \
     widget_surface.h \
     window.h \
+    opengl_state.h \
+    opengl_save.h \
     include/tao/coords.h \
     include/tao/coords3d.h \
+    include/tao/coords4d.h \
+    include/tao/color.h \
     include/tao/matrix.h \
     include/tao/module_api.h \
     include/tao/module_info.h \
     include/tao/tao_gl.h \
     include/tao/tao_info.h \
     include/tao/tao_utf8.h \
+    include/tao/graphic_state.h
 
 SOURCES +=     activity.cpp \
     application.cpp \
@@ -209,7 +213,9 @@ SOURCES +=     activity.cpp \
     update_application.cpp \
     widget.cpp \
     widget_surface.cpp \
-    window.cpp
+    window.cpp \
+    opengl_state.cpp \
+    opengl_save.cpp
 
 win32 {
     HEADERS += dde_widget.h
@@ -434,6 +440,7 @@ OTHER_FILES +=  \
     html/module_info_dialog_fr.html \
     tao_fr.ts \
     welcome/welcome.ddd \
+    opengl_state.tbl \
     no_welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \

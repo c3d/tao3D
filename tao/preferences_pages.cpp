@@ -27,6 +27,7 @@
 #include "application.h"
 #include "module_info_dialog.h"
 #include "tao_gl.h"
+#include "opengl_state.h"
 #include "texture_cache.h"
 
 
@@ -592,6 +593,19 @@ void ModulesPage::doSearch()
 // QSettings group name to read/write performance-related preferences
 #define PERFORMANCES_GROUP "Performances"
 
+// Cache
+bool    PerformancesPage::dirty = true;  // = cache not initialized
+// NB: initial values are irrelevant since they are set on first access
+bool    PerformancesPage::perPixelLighting_ = false;
+bool    PerformancesPage::VSync_ = false;
+bool    PerformancesPage::texture2DCompress_ = false;
+bool    PerformancesPage::texture2DMipmap_ = false;
+int     PerformancesPage::texture2DMinFilter_ = 0;
+int     PerformancesPage::texture2DMagFilter_ = 0;
+quint64 PerformancesPage::textureCacheMaxMem_ = 0ULL;
+quint64 PerformancesPage::textureCacheMaxGLMem_ = 0ULL;
+
+
 PerformancesPage::PerformancesPage(QWidget *parent)
      : QWidget(parent)
 // ----------------------------------------------------------------------------
@@ -601,11 +615,11 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     QGroupBox *info = new QGroupBox(trUtf8("OpenGL\302\256 information"));
     QGridLayout *grid = new QGridLayout;
     grid->addWidget(new QLabel(tr("Vendor:")), 1, 1);
-    grid->addWidget(new QLabel(+TaoApp->GLVendor), 1, 2);
+    grid->addWidget(new QLabel(+GL.Vendor()), 1, 2);
     grid->addWidget(new QLabel(tr("Renderer:")), 2, 1);
-    grid->addWidget(new QLabel(+TaoApp->GLRenderer), 2, 2);
+    grid->addWidget(new QLabel(+GL.Renderer()), 2, 2);
     grid->addWidget(new QLabel(tr("Version:")), 3, 1);
-    grid->addWidget(new QLabel(+TaoApp->GLVersionAvailable), 3, 2);
+    grid->addWidget(new QLabel(+GL.Version()), 3, 2);
     info->setLayout(grid);
 
     QGroupBox *settings = new QGroupBox(trUtf8("OpenGL\302\256 settings"));
@@ -711,7 +725,7 @@ void PerformancesPage::setPerPixelLighting(bool on)
     else
         settings.setValue("PerPixelLighting", QVariant(on));
 
-    TaoApp->useShaderLighting = on;
+    perPixelLighting_ = TaoApp->useShaderLighting = on;
 }
 
 
@@ -727,6 +741,7 @@ void PerformancesPage::setVSync(bool on)
     else
         settings.setValue("VSync", QVariant(on));
     TaoApp->enableVSync(on);
+    VSync_ = on;
 }
 
 
@@ -741,6 +756,7 @@ void PerformancesPage::setTexture2DCompress(bool on)
         settings.remove("Texture2DCompress");
     else
         settings.setValue("Texture2DCompress", QVariant(on));
+    texture2DCompress_ = on;
 }
 
 
@@ -755,6 +771,7 @@ void PerformancesPage::setTexture2DMipmap(bool on)
         settings.remove("Texture2DMipmap");
     else
         settings.setValue("Texture2DMipmap", QVariant(on));
+    texture2DMipmap_ = on;
 }
 
 
@@ -770,6 +787,7 @@ void PerformancesPage::setTexture2DMinFilter(int value)
     else
         settings.setValue("Texture2DMinFilter", QVariant(value));
     TextureCache::instance()->setMinFilter(value);
+    texture2DMinFilter_ = value;
 }
 
 
@@ -795,6 +813,7 @@ void PerformancesPage::setTexture2DMagFilter(int value)
     else
         settings.setValue("Texture2DMagFilter", QVariant(value));
     TextureCache::instance()->setMagFilter(value);
+    texture2DMagFilter_ = value;
 }
 
 
@@ -820,6 +839,7 @@ void PerformancesPage::setTextureCacheMaxMem(quint64 bytes)
     else
         settings.setValue("TextureCacheMaxMem", QVariant(bytes));
     TextureCache::instance()->setMaxMemSize(bytes);
+    textureCacheMaxMem_ = bytes;
 }
 
 
@@ -845,6 +865,7 @@ void PerformancesPage::setTextureCacheMaxGLMem(quint64 bytes)
     else
         settings.setValue("TextureCacheMaxGLMem", QVariant(bytes));
     TextureCache::instance()->setMaxGLSize(bytes);
+    textureCacheMaxGLMem_ = bytes;
 }
 
 
@@ -858,16 +879,45 @@ void PerformancesPage::textureCacheMaxGLMemChanged(int index)
 }
 
 
+void PerformancesPage::readAllSettings()
+// ----------------------------------------------------------------------------
+//   Read all values from user's settings and cache them
+// ----------------------------------------------------------------------------
+{
+    QSettings s;
+    s.beginGroup(PERFORMANCES_GROUP);
+
+#define B(name, dflt)  s.value(name, QVariant(dflt)).toBool()
+#define I(name, dflt)  s.value(name, QVariant(dflt)).toInt()
+#define Q(name, dflt)  s.value(name, QVariant(dflt)).toULongLong()
+
+    perPixelLighting_   = B("PerPixelLighting",   perPixelLightingDefault());
+    VSync_              = B("VSync",              VSyncDefault());
+    texture2DCompress_  = B("Texture2DCompress",  texture2DCompressDefault());
+    texture2DMipmap_    = B("Texture2DMipmap",    texture2DMipmapDefault());
+    texture2DMinFilter_ = I("Texture2DMinFilter", texture2DMinFilterDefault());
+    texture2DMagFilter_ = I("Texture2DMagFilter", texture2DMagFilterDefault());
+    textureCacheMaxMem_ = Q("TextureCacheMaxMem", textureCacheMaxMemDefault());
+    textureCacheMaxGLMem_ =
+                          Q("TextureCacheMaxGLMem",
+                            textureCacheMaxGLMemDefault());
+
+#undef B
+#undef I
+#undef Q
+
+    dirty = false;
+}
+
+
+#define RETURN_CACHED(x)  if (dirty) { readAllSettings(); } ; return x;
+
 bool PerformancesPage::perPixelLighting()
 // ----------------------------------------------------------------------------
 //   Read setting
 // ----------------------------------------------------------------------------
 {
-    bool dflt = perPixelLightingDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    bool pps = settings.value("PerPixelLighting", QVariant(dflt)).toBool();
-    return pps;
+    RETURN_CACHED(perPixelLighting_);
 }
 
 
@@ -876,11 +926,7 @@ bool PerformancesPage::VSync()
 //   Read setting
 // ----------------------------------------------------------------------------
 {
-    bool dflt = VSyncDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    bool enabled = settings.value("VSync", QVariant(dflt)).toBool();
-    return enabled;
+    RETURN_CACHED(VSync_);
 }
 
 
@@ -889,11 +935,7 @@ bool PerformancesPage::texture2DCompress()
 //   Use compressed internal format when a texture is loaded from file?
 // ----------------------------------------------------------------------------
 {
-    bool dflt = texture2DCompressDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    bool ret = settings.value("Texture2DCompress", QVariant(dflt)).toBool();
-    return ret;
+    RETURN_CACHED(texture2DCompress_);
 }
 
 
@@ -902,11 +944,7 @@ bool PerformancesPage::texture2DMipmap()
 //   Create a mipmap when a texture is loaded from file?
 // ----------------------------------------------------------------------------
 {
-    bool dflt = texture2DMipmapDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    bool ret = settings.value("Texture2DMipmap", QVariant(dflt)).toBool();
-    return ret;
+    RETURN_CACHED(texture2DMipmap_);
 }
 
 
@@ -915,11 +953,7 @@ int PerformancesPage::texture2DMinFilter()
 //   Read setting for 2D texture minifying
 // ----------------------------------------------------------------------------
 {
-    int dflt = texture2DMinFilterDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    int ret = settings.value("Texture2DMinFilter", QVariant(dflt)).toInt();
-    return ret;
+    RETURN_CACHED(texture2DMinFilter_);
 }
 
 
@@ -928,11 +962,7 @@ int PerformancesPage::texture2DMagFilter()
 //   Read setting for 2D texture magnifying
 // ----------------------------------------------------------------------------
 {
-    int dflt = texture2DMagFilterDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    int ret = settings.value("Texture2DMagFilter", QVariant(dflt)).toInt();
-    return ret;
+    RETURN_CACHED(texture2DMagFilter_);
 }
 
 
@@ -941,12 +971,7 @@ quint64 PerformancesPage::textureCacheMaxMem()
 //   Read setting for texture cache memory size
 // ----------------------------------------------------------------------------
 {
-    quint64 dflt = textureCacheMaxMemDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    quint64 ret = settings.value("TextureCacheMaxMem",
-                                QVariant(dflt)).toULongLong();
-    return ret;
+    RETURN_CACHED(textureCacheMaxMem_);
 }
 
 
@@ -955,12 +980,7 @@ quint64 PerformancesPage::textureCacheMaxGLMem()
 //   Read setting for texture cache GL memory size
 // ----------------------------------------------------------------------------
 {
-    quint64 dflt = textureCacheMaxGLMemDefault();
-    QSettings settings;
-    settings.beginGroup(PERFORMANCES_GROUP);
-    quint64 ret = settings.value("TextureCacheMaxGLMem",
-                                QVariant(dflt)).toULongLong();
-    return ret;
+    RETURN_CACHED(textureCacheMaxGLMem_);
 }
 
 

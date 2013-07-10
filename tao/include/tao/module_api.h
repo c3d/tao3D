@@ -49,8 +49,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   30
-#define TAO_MODULE_API_AGE       13
+#define TAO_MODULE_API_CURRENT   31
+#define TAO_MODULE_API_AGE       0
 
 // ========================================================================
 //
@@ -111,39 +111,6 @@ struct ModuleApi
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
 
-    // Allow to enable specified texture coordinates before a drawing
-    // according to current application parameters.
-    // After drawing, texture coordinates have to be disable.
-    bool (*EnableTexCoords)(double* texCoord);
-
-    // Allow to disable texture coordinates after a drawing.
-    bool (*DisableTexCoords)();
-
-    // Get the last activated texture unit
-    unsigned int (*TextureUnit)();
-
-    // Get the bimasks of all activated texture units
-    // in the current layout.
-    unsigned int (*TextureUnits)();
-
-    // Set the bimasks of all activated texture units in
-    // the current layout.
-    void (*SetTextureUnits)(uint64 textureUnits);
-
-    // Check if a texture is bound at the specified unit
-    bool (*HasTexture)(unsigned int unit);
-
-    // Allow to bind a new texture in Tao thanks to its id and its type.
-    // For a 2D texture, use BindTexture2D
-    // Always returns false.
-    // Note : Can not be call during drawing.
-    bool (*BindTexture)(unsigned int id, unsigned int type);
-
-    // Adds a "bind 2D texture" command to the current layout.
-    // width and height are the dimensions of the texture in pixels.
-    // Note : Can not be call during drawing.
-    void (*BindTexture2D)(unsigned int id,
-                          unsigned int width, unsigned int height);
 
     // Allow to apply current textures during a drawing.
     bool (*SetTextures)();
@@ -158,14 +125,6 @@ struct ModuleApi
     // Allow to set line color during a drawing according
     // to the current layout attributes.
     bool (*SetLineColor)();
-
-    // Allow to enable or deactivate pixel blur
-    // on textures of the current layout.
-    // It corresponds to GL_LINEAR/GL_NEAREST parameters.
-    bool (*HasPixelBlur)(bool enable);
-
-    // Get the bimasks of all activated lights in the current layout.
-    unsigned int (*EnabledLights)();
 
     // Get the current model matrix.
     // Note : Can not be call during drawing
@@ -335,7 +294,7 @@ struct ModuleApi
 
     // Resize a framebuffer object.
     void               (*resizeFrameBufferObject)(ModuleApi::fbo * obj,
-                                                      uint w, uint h);
+                                                  uint w, uint h);
 
     // Make a framebuffer object the current rendering target.
     // After this call, OpenGL will draw into the framebuffer.
@@ -541,6 +500,8 @@ namespace Tao
     typedef int (*delete_symbols_fn)(XL::Context *);
     typedef int (*module_exit_fn)   ();
     typedef int (*module_preferences_fn) ();
+
+    struct GraphicState;
 }
 
 extern "C"
@@ -602,6 +563,32 @@ extern "C"
     // [Optional]
     DLL_PUBLIC
     int show_preferences();
+
+    // GraphicState pointer
+    //
+    // If this symbol is defined in the module, Tao will store a pointer
+    // to a valid GraphicState object before module_init is called.
+    // The main goal of GraphicState is to prevent redundant OpenGL state
+    // changes for improved performance.
+    //
+    // To use this pointer, add the following to your .cpp file:
+    //  #include <tao/module_api.h>
+    //  #include <tao/graphic_state.h>
+    //  extern "C" DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
+    //  #define GL (*graphic_state)
+    //  /* Then use e.g., GL.Viewport(); instead of glViewport(); etc. */
+    //
+    // Do not copy the graphic_state pointer because it may be changed
+    // by Tao.
+    //
+    // You may use the native OpenGL API in your module provided that the
+    // GL state is properly restored when returning from a callback.
+    // Alternatively, you may use the GraphicState interface.
+    // Display modules must always use the GraphicState functions (when
+    // available) to modify the GL state before drawing.
+    // See complete documentation in graphic_state.h.
+    extern DLL_PUBLIC
+    Tao::GraphicState * graphic_state;
 }
 
 #endif // TAO_MODULE_API_H

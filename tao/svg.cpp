@@ -42,7 +42,7 @@ SvgRendererInfo::~SvgRendererInfo()
 // ----------------------------------------------------------------------------
 {
     renderer_map::iterator i;
-    glDisable(GL_TEXTURE_2D);
+    GL.Disable(GL_TEXTURE_2D);
     for (i = renderers.begin(); i != renderers.end(); i++)
         delete (*i).second;
 }
@@ -93,9 +93,9 @@ GLuint SvgRendererInfo::bind (text file)
 
     if (r)
     {
-        glDisable(GL_TEXTURE_2D);
+        GL.Disable(GL_TEXTURE_2D);
         if (TaoApp->hasGLMultisample)
-            glDisable(GL_MULTISAMPLE);
+            GL.Disable(GL_MULTISAMPLE);
         FramePainter painter(this);
         r->render(&painter);
     }

@@ -23,10 +23,12 @@
 #include "texture_cache.h"
 #include "base.h"
 #include "tao_utf8.h"
+#include "opengl_state.h"
 #include "preferences_pages.h"
 #include "license.h"
 #include "application.h"
 #include "widget.h"
+#include "gl_keepers.h"
 #include <QtEndian>
 
 namespace Tao {
@@ -341,7 +343,7 @@ void TextureCache::setMinMagFilters(GLuint id)
 // ----------------------------------------------------------------------------
 {
     setMinFilter(id, minFilter());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
 }
 
 
@@ -363,7 +365,7 @@ void TextureCache::setMinFilter(GLuint id, GLenum filter)
         // was not loaded with mipmapping enabled
         filter = GL_LINEAR;
     }
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
 
 
@@ -566,7 +568,7 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
       memLRU(this), GLmemLRU(this), saveCompressed(cache.saveCompressed),
       networkReply(NULL), inLoad(false)
 {
-    glGenTextures(1, &id);
+    GL.GenTextures(1, &id);
     if (networked)
     {
         connect(&cache.network, SIGNAL(finished(QNetworkReply*)),
@@ -590,7 +592,10 @@ CachedTexture::~CachedTexture()
 // ----------------------------------------------------------------------------
 {
     purge();
-    glDeleteTextures(1, &id);
+
+    if(Tao::OpenGLState::State())
+        GL.DeleteTextures(1, &id);
+
     if (networkReply)
         networkReply->deleteLater();
     if (path != "")
@@ -752,13 +757,12 @@ void CachedTexture::transfer()
         {
             // Already have compressed texture data
 
-            glBindTexture(GL_TEXTURE_2D, id);
+            GL.BindTexture(GL_TEXTURE_2D, id);
             if (mipmap)
-                glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-            glCompressedTexImage2D(GL_TEXTURE_2D, 0, image.fmt, width, height,
-                                   0, image.byteCount(), image.compressed);
-            if (mipmap)
-                glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+            TextureCache::instance()->setMinMagFilters(id);
+            GL.CompressedTexImage2D(GL_TEXTURE_2D, 0, image.fmt, width, height,
+                                    0, image.byteCount(), image.compressed);
             copiedSize = GLsize = image.byteCount();
             copiedCompressed = true;
             ADJUST_FOR_MIPMAP_OVERHEAD(GLsize);
@@ -769,15 +773,14 @@ void CachedTexture::transfer()
 
             QImage texture = QGLWidget::convertToGLFormat(image.raw);
             bool hasAlpha = image.raw.hasAlphaChannel();
-            GLenum internalFmt = hasAlpha ? GL_COMPRESSED_RGBA : GL_COMPRESSED_RGB;
-            glBindTexture(GL_TEXTURE_2D, id);
+            GLenum internalFmt = hasAlpha?GL_COMPRESSED_RGBA:GL_COMPRESSED_RGB;
+            GL.BindTexture(GL_TEXTURE_2D, id);
             if (mipmap)
-                glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-            glTexImage2D(GL_TEXTURE_2D, 0, internalFmt,
-                         width, height, 0, GL_RGBA,
-                         GL_UNSIGNED_BYTE, texture.bits());
-            if (mipmap)
-                glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+            TextureCache::instance()->setMinMagFilters(id);
+            GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
+                          width, height, 0, GL_RGBA,
+                          GL_UNSIGNED_BYTE, texture.bits());
             copiedSize = width * height * 4;
 
             GLint cmp = GL_FALSE, cmpsz = copiedSize;
@@ -833,14 +836,13 @@ void CachedTexture::transfer()
         int bytesPerPixel = hasAlpha ? 4 : 3;
 
         // Generate the GL texture
-        glBindTexture(GL_TEXTURE_2D, id);
+        GL.BindTexture(GL_TEXTURE_2D, id);
         if (mipmap)
-            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFmt,
+            GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+        TextureCache::instance()->setMinMagFilters(id);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
                      width, height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
-        if (mipmap)
-            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 
         Q_ASSERT(GLsize == 0);
         GLsize = width * height * bytesPerPixel;
@@ -888,19 +890,26 @@ void CachedTexture::purgeGL()
 {
     Q_ASSERT(id);
 
-    // Resize the texture as a 1x1 pixel. Resizing at 0x0 triggers a bug in
-    // the Nvidia driver on MacOS Mountain Lion (#2622)
-    static uint32 zero = 0;
-    glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, &zero);
+    if (Tao::OpenGLState::State())
+    {
+        // Assure we restore a correct GL state after purge.
+        // (Purge phase is often out of the evaluation phase)
+        GLAllStateKeeper save;
 
-    int purged = GLsize;
-    GLsize = 0;
+        // Resize the texture as a 1x1 pixel. Resizing at 0x0 triggers a bug in
+        // the Nvidia driver on MacOS Mountain Lion (#2622)
+        static uint32 zero = 0;
+        GL.BindTexture(GL_TEXTURE_2D, id);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, &zero);
 
-    IFTRACE(texturecache)
-        debug() << "GL -" << bytesToText(purged) << "\n";
-    cache.GLSize -= purged;
+        int purged = GLsize;
+        GLsize = 0;
+        
+        IFTRACE(texturecache)
+            debug() << "GL -" << bytesToText(purged) << "\n";
+        cache.GLSize -= purged;
+    }
 }
 
 
@@ -914,7 +923,8 @@ GLuint CachedTexture::bind()
 
     Q_ASSERT(id);
     Q_ASSERT(transferred());
-    glBindTexture(GL_TEXTURE_2D, id);
+    GL.BindTexture(GL_TEXTURE_2D, id);
+
     return id;
 }
 

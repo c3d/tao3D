@@ -52,6 +52,7 @@ public:
     static QStringList  allDisplayFunctions();
     double              windowWidthFactor()  { return wFactor; }
     double              windowHeightFactor() { return hFactor; }
+    int                 viewPointsChangedEvent() { return vpEvt; }
 
 public:
     // Methods exported by the module API for use by display modules
@@ -87,7 +88,9 @@ public:
     static void         setMouseTrackingViewport(int x, int y, int w, int h);
 
 protected:
-    static void           setStereoPlanes(int planes);
+    void                setStereoPlanes(int planes);
+
+protected:
     static std::ostream & debug();
 
 protected:
@@ -167,6 +170,7 @@ protected:
     bool                  useInProgress;
     // Set by display module to adjust window_width and window_height
     double                wFactor, hFactor;
+    int                   vpEvt;
 
 protected:
     static display_map    map;

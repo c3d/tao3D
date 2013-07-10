@@ -21,6 +21,8 @@
 // ****************************************************************************
 
 #include "raster_text.h"
+#include "gl_keepers.h"
+#include "opengl_state.h"
 #include <stdarg.h>
 #include <iostream>
 
@@ -151,7 +153,7 @@ RasterText::~RasterText()
     QGLContext *context = (QGLContext *)instances.key(this, NULL);
     Q_ASSERT(context || !"Delete RasterText instance not in map");
     context->makeCurrent();
-    glDeleteLists(32+fontOffset, 95);
+    GL.DeleteLists(32+fontOffset, 95);
     current->makeCurrent();
 }
 
@@ -162,12 +164,12 @@ void RasterText::makeRasterFont()
 // ----------------------------------------------------------------------------
 {
     GLuint i;
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    fontOffset = glGenLists (128);
+    GL.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    fontOffset = GL.GenLists(128);
     for (i = 32; i < 127; i++) {
-        glNewList(i+fontOffset, GL_COMPILE);
-            glBitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);
-        glEndList();
+        GL.NewList(i+fontOffset, GL_COMPILE);
+            GL.Bitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);
+        GL.EndList();
     }
 }
 
@@ -202,31 +204,32 @@ int RasterText::printf(const char *format...)
         len = sizeof(text) - 1;
     va_end(ap);
 
-    // Save GL state
-    glPushAttrib(GL_LIGHTING_BIT | GL_LIST_BIT);
-    glDisable(GL_LIGHTING);
+
     GLint prog = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
     if (prog)
-        glUseProgram(0);
+        GL.UseProgram(0);
+    {
+        // Save GL state
+        GLStateKeeper save(GL_LIGHTING_BIT | GL_LIST_BIT);
+        GL.Disable(GL_LIGHTING);
 
-    // Draw background
-    glColor4f(0.0, 0.0, 0.0, 0.5);
-    glWindowPos2d(inst->pos.x, inst->pos.y);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    for (int i = 0; i < 2*len; i++)
-        glBitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
+        // Draw background
+        GL.Color(0.0, 0.0, 0.0, 0.5);
+        GL.WindowPos(inst->pos.x, inst->pos.y);
+        GL.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        for (int i = 0; i < 2*len; i++)
+            GL.Bitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
 
-    // Draw text
-    glColor3f(1.0, 1.0, 1.0);
-    glWindowPos2d(inst->pos.x + 2, inst->pos.y + 1);
-    glListBase(inst->fontOffset);
-    glCallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
+        // Draw text
+        GL.Color(1.0, 1.0, 1.0, 1.0);
+        GL.WindowPos(inst->pos.x + 2, inst->pos.y + 1);
+        GL.ListBase(inst->fontOffset);
+        GL.CallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
+    }
 
-    // Restore GL state
-    glPopAttrib();
     if (prog)
-        glUseProgram(prog);
+        GL.UseProgram(prog);
 
     return len;
 }

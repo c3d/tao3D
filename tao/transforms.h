@@ -92,6 +92,7 @@ struct ClipPlane : Transform
     ClipPlane(int plane, scale a, scale b, scale c, scale d):
         Transform(), plane(plane), a(a), b(b), c(c), d(d) {}
     virtual void Draw(Layout *where);
+    virtual void Evaluate(Layout *) {}
     int plane;
     scale a, b, c, d;
 };

@@ -85,6 +85,7 @@ struct WidgetSurface;
 struct CoordinatesInfo;
 struct MouseFocusTracker;
 struct DisplayDriver;
+struct OpenGLState;
 struct ShaderProgramInfo;
 
 // ----------------------------------------------------------------------------
@@ -340,6 +341,7 @@ public:
     bool        canPaste();
 
     Tree *      shapeAction(text n, GLuint id, int x, int y);
+    Tree_p      saveAndEvaluate(Context *context, Tree_p code);
 
     // Text flows and text management
     TextFlow *  pageLayoutFlow(text f)  { return flows[f]; }
@@ -598,6 +600,8 @@ public:
     // 2D primitive that can be in a path or standalone
     Tree_p      fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s);
     Tree_p      rectangle(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      plane(Tree_p tree, Real_p x, Real_p y, Real_p w,
+                      Real_p h, Integer_p lines_nb, Integer_p columns_nb);
     Tree_p      isoscelesTriangle(Tree_p self,
                                   Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      rightTriangle(Tree_p self,
@@ -807,12 +811,7 @@ public:
     Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
-    Integer*    image(Context *context,
-                      Tree_p self, Real_p x, Real_p y, text filename);
     Tree_p      listFiles(Context *context, Tree_p self, Tree_p pattern);
-    Integer*      imagePx(Context *context,
-                        Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
-                        text filename);
     Infix_p     imageSize(Context *context,
                           Tree_p self, text filename);
 
@@ -852,6 +851,7 @@ public:
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      copySelection();
+
     // Unit conversions
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);
@@ -964,6 +964,7 @@ private:
     QStringList           toReload;
 
     // Rendering
+    OpenGLState           gl;   // Must appear first (ctor and dtor order)
     QGradient*            gradient;
     QColor                clearCol;
     SpaceLayout *         space;

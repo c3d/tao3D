@@ -77,111 +77,12 @@ bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
 }
 
 
-
-bool ModuleRenderer::EnableTexCoords(double* texCoord)
-// ----------------------------------------------------------------------------
-//   Enable specified coordinates for active textures in the current layout
-// ----------------------------------------------------------------------------
-{
-    if(! texCoord)
-        return false;
-
-    std::map<uint, TextureState>::iterator it;
-    for(it = currentLayout->fillTextures.begin();
-        it != currentLayout->fillTextures.end(); it++)
-        if(((*it).second).id)
-            Shape::enableTexCoord((*it).first, texCoord);
-
-    return true;
-}
-
-
-bool ModuleRenderer::DisableTexCoords()
-// ----------------------------------------------------------------------------
-//   Disable coordinates for active textures in the current layout
-// ----------------------------------------------------------------------------
-{
-    std::map<uint, TextureState>::iterator it;
-    for(it = currentLayout->fillTextures.begin();
-        it != currentLayout->fillTextures.end(); it++)
-        if(((*it).second).id)
-            Shape::disableTexCoord((*it).first);
-    glClientActiveTexture(GL_TEXTURE0);
-
-    return true;
-}
-
-
-uint ModuleRenderer::TextureUnit()
-// ----------------------------------------------------------------------------
-//  Return last activated texture unit
-// ----------------------------------------------------------------------------
-{
-    if(currentLayout)
-        return currentLayout->currentTexture.unit;
-    else
-        return Widget::Tao()->layout->currentTexture.unit;
-}
-
-
-uint ModuleRenderer::TextureUnits()
-// ----------------------------------------------------------------------------
-//  Return bitmask of all current activated texture units
-// ----------------------------------------------------------------------------
-{
-    if(currentLayout)
-        return currentLayout->textureUnits;
-    else
-        return Widget::Tao()->layout->textureUnits;
-}
-
-
-void ModuleRenderer::SetTextureUnits(uint64 texUnits)
-// ----------------------------------------------------------------------------
-//  Set bitmask of current activated texture units
-// ----------------------------------------------------------------------------
-{
-    if(currentLayout)
-        currentLayout->textureUnits = texUnits;
-    else
-        Widget::Tao()->layout->textureUnits = texUnits;
-}
-
-
 bool ModuleRenderer::SetTextures()
 // ----------------------------------------------------------------------------
 //   Apply the textures as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setTexture(currentLayout);
-}
-
-
-bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
-// ----------------------------------------------------------------------------
-//   Bind the texture as defined by current layout attributes
-// ----------------------------------------------------------------------------
-{
-    Widget::Tao()->layout->currentTexture.id = id;
-    Widget::Tao()->layout->currentTexture.type = type;
-
-    Widget::Tao()->layout->Add(new FillTexture(id, type));
-    Widget::Tao()->layout->hasAttributes = true;
-    return false;
-}
-
-
-bool ModuleRenderer::HasTexture(uint texUnit)
-// ----------------------------------------------------------------------------
-//  Check if a texture is bound at the specified unit
-// ----------------------------------------------------------------------------
-{
-    if(texUnit > TaoApp->maxTextureUnits)
-        return false;
-
-    uint hasTexture = currentLayout->textureUnits & (1 << texUnit);
-
-    return hasTexture ? true : false;
 }
 
 
@@ -194,22 +95,6 @@ bool ModuleRenderer::SetShader(int id)
         currentLayout->programId = id;
 
     return Shape::setShader(currentLayout);
-}
-
-
-void ModuleRenderer::BindTexture2D(unsigned int id, unsigned int width,
-                                   unsigned int height)
-// ----------------------------------------------------------------------------
-//   Add 2D texture to current layout
-// ----------------------------------------------------------------------------
-{
-    Widget::Tao()->layout->currentTexture.id = id;
-    Widget::Tao()->layout->currentTexture.type = GL_TEXTURE_2D;
-    Widget::Tao()->layout->currentTexture.width = width;
-    Widget::Tao()->layout->currentTexture.height = height;
-
-    Widget::Tao()->layout->Add(new FillTexture(id, GL_TEXTURE_2D));
-    Widget::Tao()->layout->hasAttributes = true;
 }
 
 
@@ -231,24 +116,6 @@ bool ModuleRenderer::SetLineColor()
 }
 
 
-bool ModuleRenderer::HasPixelBlur(bool enable)
-// ----------------------------------------------------------------------------
-//   Enable or deactivate pixel blur.
-// ----------------------------------------------------------------------------
-{
-    currentLayout->hasPixelBlur = enable;
-    return true;
-}
-
-uint ModuleRenderer::EnabledLights()
-// ----------------------------------------------------------------------------
-//  Return a bitmask of all current enabled lights
-// ----------------------------------------------------------------------------
-{
-    return currentLayout->currentLights;
-}
-
-
 Matrix4 ModuleRenderer::ModelMatrix()
 // ----------------------------------------------------------------------------
 //   Module interface for currentModelMatrix
@@ -263,6 +130,9 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
+    // Synchronise GL states
+    GL.Sync();
+
     try
     {
         currentLayout = where;
@@ -275,6 +145,8 @@ void ModuleRenderer::Draw(Layout *where)
         std::cerr << "Exception raised from module renderer callback "
                   << (intptr_t) callback << "\n";
     }
+
+    GL.Invalidate();
 }
 
 
@@ -288,8 +160,11 @@ void ModuleRenderer::Identify(Layout *where)
     if (!widget->inMouseMove())
     {
         XL::Save<bool> inIdentify(where->inIdentify, true);
-        glUseProgram(0); // Necessary for #1464
+        GL.UseProgram(0); // Necessary for #1464
         currentLayout = where;
+
+        // Synchronise GL states
+        GL.Sync();
         
         try
         {
@@ -308,6 +183,8 @@ void ModuleRenderer::Identify(Layout *where)
                       << (intptr_t) identify << "\n";
         }
     }
+
+    GL.Invalidate();
 }
 
 } // namespace Tao

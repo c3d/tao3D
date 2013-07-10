@@ -43,16 +43,12 @@ struct Shape : Drawing
 
 public:
     // Shape parameters
-    static void         enableTexCoord(uint units, void *texCoord);
-    static void         disableTexCoord(uint units);
+    static void         enableTexCoord(double *texCoord, uint64 mask = ~0UL);
+    static void         disableTexCoord(uint64 mask);
     static bool         setTexture(Layout *where);
     static bool         setShader(Layout *where);
     static bool         setFillColor(Layout *where);
     static bool         setLineColor(Layout *where);
-
-private:
-    static void bindTexture(TextureState& texture, bool hasPixelBlur);
-    static void unbindTexture(TextureState& texture);
 };
 
 struct Shape2 : Shape
@@ -262,6 +258,43 @@ struct FixedSizePoint : Shape2
     scale  radius;
 };
 
+
+struct PlaneMesh
+// ----------------------------------------------------------------------------
+//   Common drawing code for mesh-based shapes
+// ----------------------------------------------------------------------------
+{
+    PlaneMesh(int lines, int columns);
+
+    std::vector<Point3> vertices;
+    std::vector<GLuint> indices;
+    std::vector<Point>  textures;
+};
+
+struct Plane : Shape2
+// ----------------------------------------------------------------------------
+//   Define a subdivided plane
+// ----------------------------------------------------------------------------
+{
+    // Constructor and destructor
+    Plane(float x, float y, float w, float h, int lines, int columns);
+
+    // Draw plane
+    virtual void Draw(Layout *where);
+    void Draw(PlaneMesh* plane, Layout *where);
+
+private:
+    // Plane parameters
+    Tao::Vector3 center;
+    float width, height;
+    int   slices, stacks;
+
+    enum { MAX_PLANES = 10 };
+    typedef std::pair<uint, uint> Key;
+    typedef std::map<Key, PlaneMesh *> PlaneCache;
+
+    static PlaneCache cache;
+};
 
 
 // ============================================================================

@@ -275,7 +275,7 @@ void PageLayout::Draw(Layout *where)
         return DrawPlaceholder();
 
     // Display all items
-    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     PushLayout(this);
     PageJustifier::Places &all = page.places;
     for (PageJustifier::PlacesIterator p = all.begin(); p != all.end(); p++)
@@ -298,9 +298,6 @@ void PageLayout::Draw(Layout *where)
         std::cerr << "<-PageLayout::Draw ["<< this << "] offset = "
                   << where->Offset()
                   << " -- where->offset = "<<  where->Offset() << "\n";
-
-    if (where)
-        where->previousTextures = previousTextures;
 }
 
 
@@ -338,7 +335,7 @@ void PageLayout::DrawSelection(Layout *where)
     }
 
     // Display all items
-    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
@@ -371,7 +368,7 @@ void PageLayout::Identify(Layout *where)
     Compute(where);
 
     // Display all items
-    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
@@ -394,11 +391,13 @@ void PageLayout::Identify(Layout *where)
         { x,     y + h, 0 }
     };
 
-    glColor4f(0.2,0.6,1.0,0.1);
-    glVertexPointer(3, GL_DOUBLE, 0, array);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glDrawArrays(GL_QUADS, 0, 4);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    GL.Color(0.2,0.6,1.0,0.1);
+    // Load model view matrix
+    GL.LoadMatrix();
+    GL.VertexPointer(3, GL_DOUBLE, 0, array);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.DrawArrays(GL_QUADS, 0, 4);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 }
 
 
@@ -449,22 +448,22 @@ void PageLayout::DrawSelectionBox(TextSelect *sel,Drawing *child,coord savedY)
                 sel->selBox |= Point3(space.Right(), y, 0);
         }
 
-        glBlendFunc(GL_DST_COLOR, GL_ZERO);
+        GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = sel->textMode ? "text_selection" : "text_highlight";
         XL::Save<Point3> zeroOffset(offset, Point3());
         widget->drawSelection(this, sel->selBox, mode, 0);
         sel->selBox.Empty();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     if (sel->formulaBox.Width() > 0 && sel->formulaBox.Height() > 0)
     {
-        glBlendFunc(GL_DST_COLOR, GL_ZERO);
+         GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = "formula_highlight";
         XL::Save<Point3> zeroOffset(offset, Point3());
         widget->drawSelection(this, sel->formulaBox, mode, 0);
         sel->formulaBox.Empty();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 }
 
@@ -578,6 +577,9 @@ void PageLayout::Compute(Layout *where)
     coord bottom = space.Bottom() + this->bottom;
     if (top <= bottom)
         return;
+
+    // Save GL state before paginate to fix #2971.
+    GLAllStateKeeper save;
 
     // Begin pagination
     page.BeginLayout(top, bottom, alongY);
@@ -1059,7 +1061,6 @@ void TextSpan::Draw(Layout *where)
         state.InheritState(where);
         Vector3 offset = where->offset;
         Layout::Draw(where);
-        state.previousTextures = where->previousTextures;
         where->InheritState(&state);
         where->offset = offset;
     }
@@ -1080,7 +1081,6 @@ void TextSpan::DrawSelection(Layout *where)
         state.InheritState(where);
         Vector3 offset = where->offset;
         Layout::DrawSelection(where);
-        state.previousTextures = where->previousTextures;
         where->InheritState(&state);
         where->offset = offset;
     }
@@ -1101,7 +1101,6 @@ void TextSpan::Identify(Layout *where)
         state.InheritState(where);
         Vector3 offset = where->offset;
         Layout::Identify(where);
-        state.previousTextures = where->previousTextures;
         where->InheritState(&state);
         where->offset = offset;
     }
@@ -1142,6 +1141,9 @@ void TextSpan::Save::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     InheritState(where);
+
+    // Save GL state
+    save = GL.Save();
 }
 
 
@@ -1151,9 +1153,11 @@ void TextSpan::Restore::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Vector3 offset = where->offset;
-    saved->previousTextures = where->previousTextures;
     where->InheritState(saved);
     where->offset = offset;
+
+    // Restore GL state
+    GL.Restore(saved->save);
 }
 
 
@@ -1217,7 +1221,7 @@ void AnchorLayout::Draw(Layout *where)
         std::cerr << "AnchorLayout:" << this << ":Draw(Layout *" << where
                   << ") translate to " << o <<std::endl;
 
-    glTranslatef(o.x, o.y, o.z);
+    GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Draw(where);
 }
@@ -1230,7 +1234,7 @@ void AnchorLayout::DrawSelection(Layout *where)
 {
     GLMatrixKeeper saveMatrix;
     Vector3 &o = where->offset;
-    glTranslatef(o.x, o.y, o.z);
+    GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     return Layout::DrawSelection(where);
 }
@@ -1243,7 +1247,7 @@ void AnchorLayout::Identify(Layout *where)
 {
     GLMatrixKeeper saveMatrix;
     Vector3 &o = where->offset;
-    glTranslatef(o.x, o.y, o.z);
+    GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Identify(where);
 }

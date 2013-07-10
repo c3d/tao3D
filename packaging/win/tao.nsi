@@ -283,7 +283,9 @@ Function UninstallPrevious
   SetDetailsPrint both
 
   ; Since we used the _?= parameter, the uninstaller could not delete itself, so do it now
-  Delete $R0
+  ; FIXME: Do not hardcode uninstall.exe - but I could not find how to properly escape $R0
+  Delete '$R1\uninstall.exe'
+  RMDir '$R1'
 
 done:
 FunctionEnd

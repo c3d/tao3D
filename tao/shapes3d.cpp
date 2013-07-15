@@ -107,6 +107,8 @@ void Cube::Draw(Layout *where)
         { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0},
     };
 
+    GLAllStateKeeper save;
+
     GL.EnableClientState(GL_VERTEX_ARRAY);
     GL.VertexPointer(3, GL_DOUBLE, 0, vertices);
 

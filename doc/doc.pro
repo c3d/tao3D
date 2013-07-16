@@ -59,7 +59,7 @@ equals(HAS_DOXYGEN, 1) {
   cp_examples_webdoc.commands = for l in $$LANGUAGES ; do \
                                   mkdir -p webhtml/\$\$l/html/examples ; \
                                   cp ../tao/doc/examples/*.ddd webhtml/\$\$l/html/examples/ ; \
-                                  for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/\$\$l/html/examples/ 2>/dev/null || : ; done ; \
+                                  for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/\$\$l/html/ 2>/dev/null || : ; done ; \
                                 done
 
   cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_logo.png output/\$\$l/html ; done

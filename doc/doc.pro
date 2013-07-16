@@ -44,7 +44,7 @@ equals(HAS_DOXYGEN, 1) {
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   DOXYLANG=en,fr
-  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=Taodyne_logo.png; $$DOXYGEN
+  doc.commands = EXAMPLES=`cd ../tao/doc; echo examples/*.ddd` ; export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=\"Taodyne_logo.png \$\$EXAMPLES\"; $$DOXYGEN
   doc.depends = cp_examples cp_logo version xlref
 
   webdoc.commands = export DOXYLANG=$$DOXYLANG ; export DOXYOUTPUT=webhtml ; $$DOXYGEN DoxyfileWebdoc

@@ -1,6 +1,7 @@
 /**
  * @~english
  * @taomoduledescription{TaoQuiz, TaoQuiz module}
+ * <tt>import TaoQuiz</tt>.@n
  *
  * TaoQuiz module is to be used with the tao_quizz web server.
  * It allows a presenter to ask questions and to users to answer.
@@ -28,6 +29,7 @@
  *
  * @~french
  * @taomoduledescription{TaoQuiz, module TaoQuiz}
+ * <tt>import TaoQuiz</tt>.@n
  *
  * Le module TaoQuiz doit être utilisé avec le server web tao_quizz.
  * Il permet à un présentateur de poser des questions à des utilisateurs.

@@ -366,6 +366,7 @@ struct DepthTest : Attribute
 {
     DepthTest(bool enable): enable(enable) {}
     virtual void Draw(Layout *where);
+    virtual void Identify(Layout *)        {}
     bool enable;
 };
 
@@ -377,6 +378,7 @@ struct DepthMask : Attribute
 {
     DepthMask(bool enable): enable(enable) {}
     virtual void Draw(Layout *where);
+    virtual void Identify(Layout *)        {}
     bool enable;
 };
 
@@ -388,6 +390,7 @@ struct DepthFunc : Attribute
 {
     DepthFunc(GLenum func): func(func) {}
     virtual void Draw(Layout *where);
+    virtual void Identify(Layout *)        {}
     GLenum func;
 };
 

@@ -690,6 +690,8 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
+    GLAllStateKeeper save;
+
     // Sync lighting state only if we have lights or shaders
     if(GL.LightsMask() || where->programId)
         GL.Sync(STATE_lights);

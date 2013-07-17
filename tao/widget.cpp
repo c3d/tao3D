@@ -7685,7 +7685,9 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
         return 0;
     }
 
-    layout->Add(new FillTexture(texId));
+    // Get corresponding texture type
+    GLenum type = GL.currentTextures.textures[texId].type;
+    layout->Add(new FillTexture(texId, type));
     return new XL::Integer(texId);
 }
 

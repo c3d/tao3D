@@ -7685,7 +7685,9 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
         return 0;
     }
 
-    layout->Add(new FillTexture(texId));
+    // Get corresponding texture type
+    GLenum type = GL.currentTextures.textures[texId].type;
+    layout->Add(new FillTexture(texId, type));
     return new XL::Integer(texId);
 }
 
@@ -9494,6 +9496,9 @@ Box3 Widget::textSize(Tree_p self, Text_p content)
 //   Return the dimensions of a given text
 // ----------------------------------------------------------------------------
 {
+    // Saving offset to avoid changes of curor position. Refs #3125.
+    XL::Save<Point3>      saveOffset(layout->offset, Point3(0, 0, 0));
+
     TextUnit u(content);
     Box3 bbox(u.Bounds(layout));
     return bbox;

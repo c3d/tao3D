@@ -2827,6 +2827,12 @@ void LightsState::Sync(LightsState &nl)
             LightState &ls = lights.back();
             ls.Sync(nls, true);
         }
+
+        // If we have enabled at least one light,
+        // we need to assure to synchronise correctly materials
+        // values by forcing color as dirty. Refs #3078
+        if(max == 0)
+            GL.color_isDirty = true;
     }
 
     active = nl.active;

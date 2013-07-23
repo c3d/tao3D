@@ -83,11 +83,13 @@ mkdir -p build_root/git
 cd build_root/git
 ../../bin/7z -y x -bd ../../3rdparty/$GITKIT
 
-# The git-*.exe commands are supposed to be links to git.exe. With PortableGit they're copies.
-# That's a lot of wasted disk space. Since they are for backward compatibility only, we can
-# safely get rid of them.
-doo rm -f libexec/git-core/git-*.exe
-# Many other files are not used. Remove the biggest if we're pretty sure they're not needed by git.exe
+# Many files are not used. Remove the biggest if we're pretty sure they're not needed by git.exe
+# Note:
+# The git/libexec/git-core/git-*.exe commands are supposed to be links to git.exe.
+# With PortableGit they're copies.
+# This has a big impact on the installed size (~139 MB), but a minor one on the size of the
+# installer (~800K).
+# And some of these commands are necessary for Tao (#3130).
 cat <<_EOF_ | { IFS=$(echo -en "\n\b") ; while read f ; do echo rm -rf ./$f ; rm -rf ./$f ; done }
 cmd
 doc

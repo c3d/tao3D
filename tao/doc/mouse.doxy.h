@@ -26,9 +26,10 @@
  * In addition, the following event name is available which is not related to
  * a shape:
  * - @c pagechange
- * When the code @c t associated with this event is executed, the page change
+ * The code @c t associated with this event is executed when a page change
  * has just occurred and @ref page_label or @ref page_number point to the new
- * page.
+ * page. If the previous page has a @ref transition, the code is excuted
+ * after the transition is done.
  *
  * @~french
  * Associe du code à un événement.
@@ -45,6 +46,8 @@
  * Cet événement correspond à un changement de page. Lors le code @c t
  * s'exécute, le changement de page vient de se produire (et par conséquent,
  * @ref page_label ou @ref page_number désignent la nouvelle page).
+ * Si une transition (cf. @ref transition) est associée à la page précédente,
+ * le code @c t est exécuté lorsque la transition s'est terminée.
  */
 on (n:text, t:tree);
 

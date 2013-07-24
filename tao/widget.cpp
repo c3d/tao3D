@@ -999,11 +999,32 @@ void Widget::resetTimes()
 }
 
 
+struct PurgeAnonymousFrameInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete anonymous FrameInfo structures (contained in MultiFrameInfo<uint>)
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        // Do not delete named FrameInfos because:
+        // - The purpose of the name is to make sure the texture id remains
+        //   the same.
+        // - Named FrameInfos are used to implement canvas which persist
+        //   accross pages.
+        what->Purge<MultiFrameInfo<uint> >();
+        return what;
+    }
+};
+
+
 void Widget::commitPageChange(bool afterTransition)
 // ----------------------------------------------------------------------------
 //   Commit a page change, e.g. as a result of 'goto_page' or transition end
 // ----------------------------------------------------------------------------
 {
+    PurgeAnonymousFrameInfo purgemf;
+    runPurgeAction(purgemf);
+
     pageName = gotoPageName;
     resetTimes();
     for (uint p = 0; p < pageNames.size(); p++)
@@ -10361,6 +10382,15 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    if (canvas && name == "")
+    {
+        // A canvas must have a name or it would not persist accross pages
+        // (all anonymous FrameInfos are destroyed on page change, #3090).
+        QString qname = QString("canvas%1").arg(shapeId());
+        return frameTexture(context, self, w, h, prog, +qname, withDepth,
+                            canvas);
+    }
+
     // Need to synchronize GL states
     // just before glPushAttrib.
     GL.Sync();

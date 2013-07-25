@@ -368,10 +368,7 @@ void FrameInfo::purge()
         {
             GLuint tex = texture();
             delete textureFBO;
-            // Tell our GL state cache that tex was destroyed. This will cause
-            // glDeleteTextures to be called again - not a problem since the GL
-            // spec does not mention this as an error.
-            GL.DeleteTextures(1, &tex);
+            GL.Cache.DeleteTextures(1, &tex);
         }
         if (depthTextureID)
             GL.DeleteTextures(1, &depthTextureID);

@@ -309,7 +309,8 @@ void Window::addError(QString txt)
     cursor.insertText(txt + "\n");
     if (!isFullScreen())
         errorDock->show();
-    else
+    QString console = +XL::MAIN->options.to_stderr;
+    if (console == "on" || (console == "auto" && isFullScreen()))
         std::cerr << +txt << std::endl;
 
     // Before trying to show the error in the status bar, see #970

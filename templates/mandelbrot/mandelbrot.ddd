@@ -227,9 +227,11 @@ draw_mandelbrot ->
                 // When we click on the rectangle, adjust center position
                 tgt_center_x := center_x + mouse_x / sf
                 tgt_center_y := center_y + mouse_y / sf
-                if alt_modifier then
+                if (mouse_buttons and 2) <> 0 or ((mouse_buttons and 1) <> 0 and alt_modifier) then
+                    // Right click or Alt + left click
                     tgt_mandelbrot_scale := tgt_mandelbrot_scale / 2
-                else
+                if (mouse_buttons and 1) <> 0 and not alt_modifier then
+                    // Left click without Alt
                     tgt_mandelbrot_scale := tgt_mandelbrot_scale * 2
                 refresh 0.0
 
@@ -248,15 +250,15 @@ draw_help ->
 // ----------------------------------------------------------------------------
 //    Draw a text box displaying the localized help text
 // ----------------------------------------------------------------------------
-    text_box 0, -0.41 * sz, slide_width, 30,
+    text_box -0.35 * sz, -0.41 * sz, slide_width, 30,
         align_center
         vertical_align_center
         font "Droid Sans", 20
         color "darkblue"
         help_text tao_language
 
-help_text "fr" -> text "Cliquez pour approcher, Alt-Click pour éloigner"
-help_text Other -> text "Click to zoom in, Alt-Click to zoom out"
+help_text "fr" -> text "Clic gauche pour approcher, clic droit ou Alt + clic gauche pour éloigner"
+help_text Other -> text "Left click to zoom in, right click or Alt + left click to zoom out"
 
 draw_info ->
 // ----------------------------------------------------------------------------

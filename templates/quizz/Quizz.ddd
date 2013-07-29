@@ -1,3 +1,4 @@
+import "theme-quiz.xl"
 import TaoQuiz
 import "quizz-config.xl"
 
@@ -17,7 +18,9 @@ slide "Technical information" fr "Informations techniques",
     * "Quiz duration in days: "fr "Durée du quiz en jours : "
     text text quizz_duration
     * "Quiz URL: "fr "URL du quizz : "
-    text quizz_public_url
+    text_span
+        bold
+        text quizz_public_url
     * "Maximum number of question: "fr "Nombre maximum de questions : "
     text text quizz_max_question
     * "Maximum number of users: "fr "Nombre maximum d'utilisateurs : "
@@ -28,7 +31,9 @@ slide "Technical information" fr "Informations techniques",
         * "User name is requiered" fr "Le nom de l'utilisateur est requis."
     if quizz_requier_user_code then
         * "User code is requiered: "fr "Le code utilisateur est requis : "
-        text quizz_user_code
+        text_span
+            bold
+            text quizz_user_code
 
 base_slide "Question 1",
   MCQ_quizz "Tao Presentations enables..." fr "Tao presentation permet de...", "http://www.taodyne.com/shop/img/logo.jpg",
@@ -80,16 +85,15 @@ base_slide "Zone de dessin",
 //   Key management for open text answers
 //
 // ============================================================================
+key "Right" -> AutoScroll := "off" ; skip 1 
+key "Left" -> AutoScroll := "off" ; skip -1 
+key "Return" -> AutoScroll := "on" ; skip_to 0 
 
-key "Right"  -> AutoScroll := "off"; skip  1
-key "Left"   -> AutoScroll := "off"; skip -1
-key "Return" -> AutoScroll :=  "on"; skip_to 0
-
-key "e" -> language "en"
-key "f" -> language "fr"
-key "/" ->
-    if quizz_phase = "question" then
-        quizz_phase := "answer"
-    else
-        quizz_phase := "question"
+key "e" -> lang "en" 
+key "f" -> lang "fr" 
+key "/" -> 
+    if quizz_phase = "question" then 
+        quizz_phase := "answer" 
+    else 
+        quizz_phase := "question" 
     time

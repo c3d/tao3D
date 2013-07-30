@@ -187,14 +187,29 @@ static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
 
 void win_redirect_io()
 // ----------------------------------------------------------------------------
-//   Send stdout and stderr to parent console if we have one, or to a file
+//   No console: log to file. Un-redirected console: log to parent console.
 // ----------------------------------------------------------------------------
 {
+    // Note: must be done before AttachConsole()
+    DWORD outType, errType;
+    outType = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
+    errType = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
+
     if (AttachConsole(ATTACH_PARENT_PROCESS))
     {
-        // Log to console of parent process
-        freopen("CON", "a", stdout);
-        freopen("CON", "a", stderr);
+        // Parent has a console.
+        // Tested with cmd.exe and MinGW shell (bash):
+        //  1/ With no redirection, type is FILE_TYPE_UNKNOWN and output
+        //     goes nowhere (at least not to the console).
+        //  2/ When redirecting to a file (tao.exe -tfps >tao.log) type is
+        //     FILE_TYPE_DISK and output goes to the file.
+        //  3/ When sending to a pipe (tao.exe -tfps | grep Time) type is
+        //     FILE_TYPE_PIPE and output goes to the pipe.
+        // So only case (1) has to be handled specifically.
+        if (outType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stdout);
+        if (errType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stderr);
     }
     else
     {

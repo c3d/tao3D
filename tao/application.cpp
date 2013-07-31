@@ -858,6 +858,20 @@ void Application::enableVSync(bool on)
 }
 
 
+bool Application::addError(const char *msg)
+// ----------------------------------------------------------------------------
+//   Send error message to main window
+// ----------------------------------------------------------------------------
+{
+    if (win)
+    {
+        win->addError(QString::fromLocal8Bit(msg));
+        return true;
+    }
+    return false;
+}
+
+
 #if defined (CONFIG_MACOSX) || defined (CONFIG_LINUX)
 
 void Application::simulateUserActivity()

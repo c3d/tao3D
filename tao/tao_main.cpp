@@ -67,6 +67,8 @@
 static void win_redirect_io();
 #endif
 
+static void taoQtMessageHandler(QtMsgType type, const char *msg);
+
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 //    Main entry point of the graphical front-end
@@ -105,6 +107,9 @@ int main(int argc, char **argv)
 
     Q_INIT_RESOURCE(tao);
 
+    // Messages sent by the Qt implementation (for instance, with qWarning())
+    // should be handled like other Tao error messages
+    qInstallMsgHandler(taoQtMessageHandler);
 
     // Initialize and run the Tao application
     int ret = 0;
@@ -556,6 +561,18 @@ void tao_stack_trace(int fd)
     }
 #endif // WIN64
 #endif // MINGW
+}
+
+
+static void taoQtMessageHandler(QtMsgType type, const char *msg)
+// ----------------------------------------------------------------------------
+//   Handle diagnostic messages from Qt like any other Tao message
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(type);
+    if (qApp && ((Tao::Application*)qApp)->addError(msg))
+        return;
+    std::cerr << msg;
 }
 
 

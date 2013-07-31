@@ -112,6 +112,7 @@ public:
     void           processCommandLineFile();
     void           blockScreenSaver(bool block);
     void           enableVSync(bool on);
+    bool           addError(const char *msg);
 
 public slots:
     void           loadUri(QString uri);

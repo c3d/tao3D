@@ -304,6 +304,14 @@ void Window::addError(QString txt)
     // Ugly workaround to bug #775
     if (txt.contains("1.ddd cannot be read"))
         return;
+#ifdef Q_OS_WIN
+    // AMD OpenGL driver on Windows
+    // Whenever a shader program is linked succesfully, the driver generates an
+    // informational message and Qt calls qWarning().
+    // Filter those messages out.
+    if (txt.contains("shader(s) linked."))
+        return;
+#endif
     QTextCursor cursor = errorMessages->textCursor();
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");

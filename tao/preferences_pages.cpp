@@ -82,6 +82,26 @@ GeneralPage::GeneralPage(QWidget *parent)
             this, SLOT(setCheckForUpdateOnStartup(bool)));
     grid->addWidget(cfu, 2, 1);
 
+    // Option to select how to resolve tao: URIs
+    grid->addWidget(new QLabel(tr("Connect to tao:// addresses using:")), 3, 1);
+    uriCombo = new QComboBox;
+    grid->addWidget(uriCombo, 3, 2);
+    uriCombo->addItem(tr("git:// on port 9418 (default)"), QVariant("git"));
+    uriCombo->addItem(tr("http://"), QVariant("http"));
+    saved = taoUriScheme();
+    int index = uriCombo->findData(saved);
+    if (index != -1)
+        uriCombo->setCurrentIndex(index);
+    connect(uriCombo, SIGNAL(currentIndexChanged(int)),
+            this,     SLOT(setTaoUriScheme(int)));
+    QLabel *fw = new QLabel("<span style=\"font-size:small; \">"
+                            "&nbsp;&nbsp;&nbsp;&nbsp;" +
+                            tr("If you are behind a corporate firewall, or "
+                               "have problems with tao:// links, select "
+                               "http:// in the above list.") +
+                            "</span>");
+    grid->addWidget(fw, 4, 1, 1, 2);
+
     group->setLayout(grid);
 
     message = new QLabel;
@@ -164,6 +184,40 @@ bool GeneralPage::checkForUpdateOnStartupDefault()
 #else
     return false;
 #endif
+}
+
+
+void GeneralPage::setTaoUriScheme(int index)
+// ----------------------------------------------------------------------------
+//   Save (or clear) the scheme that tao: should translate to
+// ----------------------------------------------------------------------------
+{
+    QString as = uriCombo->itemData(index).toString();
+    if (as == taoUriSchemeDefault())
+    {
+        QSettings().remove("taoUriScheme");
+        return;
+    }
+    QSettings().setValue("taoUriScheme", as);
+}
+
+
+QString GeneralPage::taoUriScheme()
+// ----------------------------------------------------------------------------
+//   Read setting for tao: scheme translation
+// ----------------------------------------------------------------------------
+{
+    QString dflt = taoUriSchemeDefault();
+    return QSettings().value("taoUriScheme", QVariant(dflt)).toString();
+}
+
+
+QString GeneralPage::taoUriSchemeDefault()
+// ----------------------------------------------------------------------------
+//   Default value for the Uri scheme that tao: should translate to
+// ----------------------------------------------------------------------------
+{
+    return QString("git");
 }
 
 

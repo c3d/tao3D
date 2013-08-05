@@ -26,6 +26,7 @@
 #include "application.h"
 #include "destination_folder_dialog.h"
 #include "module_manager.h"
+#include "preferences_pages.h"
 #include <QSettings>
 #include <QDir>
 #include <QProgressDialog>
@@ -862,7 +863,7 @@ QString Uri::repoUri()
     QUrl uri(*this);
     uri.setEncodedQuery(QByteArray());
     if (uri.scheme() == "tao")
-        uri.setScheme("git");
+        uri.setScheme(GeneralPage::taoUriScheme());
     else if (uri.scheme() == "taos")
         uri.setScheme("ssh");
 

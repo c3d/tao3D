@@ -1340,7 +1340,7 @@ right_picture(Body:code);
  * Draw a text box with a given style. This can be used for example to
  * add new text boxes using the "story" style, or new "title" boxes.
  *
- * @p Style Style for the text in the box. Typically, it is :
+ * @p Style Style for the text in the box. Typically, one of:
  *   - title
  *   - subtitle
  *   - picture
@@ -1411,7 +1411,7 @@ box(X:real, Y:real, W:real, H:real, Body);
  * Draw a decoration box with a given style. This can be used to
  * decorate drawings or movies in a style consistent with the slide theme.
  *
- * @p Style Style for the text in the box. Typically, it is :
+ * @p Style Style for the text in the box. Typically, one of:
  *   - title
  *   - subtitle
  *   - picture
@@ -1471,6 +1471,43 @@ box(Style:text, X:real, Y:real, W:real, H:real);
  *
  */
 box(X:real, Y:real, W:real, H:real);
+
+
+/**
+ * @~english
+ * Apply a given named text style
+ * Applies the given named text style, as defined by the current
+ * theme. This can be used to change styles within a text box in a way
+ * compatible with the current theme.
+ *
+ * @p Style Style for the text in the box. Typically, one of:
+ *   - title
+ *   - subtitle
+ *   - picture
+ *   - story
+ *   - left_column
+ *   - right_column
+ *   - left_picture
+ *   - right_picture
+ *
+ * @~french
+ * Applique un style de texte nommé
+ * Applique un style de texte nommé tels qu'ils sont définis par le
+ * thème en cours. Cela permet de changer de style dans un texte d'une
+ * façon qui soit cohérente avec le thème en cours.
+ *
+ * @p Style Style de la boîte. Typiquement, il s'agit de :
+ *   - title
+ *   - subtitle
+ *   - picture
+ *   - story
+ *   - left_column
+ *   - right_column
+ *   - left_picture
+ *   - right_picture
+ *
+ */
+style(Style:text);
 
 
 /**

@@ -1166,13 +1166,7 @@ static QDateTime fromSecsSinceEpoch(double when)
 // ----------------------------------------------------------------------------
 {
     QDateTime d;
-#if QT_VERSION >=  0x040700
     d = d.fromMSecsSinceEpoch((qint64)(when * 1000));
-#else
-    d = d.fromTime_t(when);
-    double s, ms = modf(when, &s);
-    d.addMSecs(ms);
-#endif
     return d;
 }
 
@@ -3673,14 +3667,7 @@ static double toSecsSinceEpoch(const QDateTime &d)
 //    Convert QDateTime to the number of seconds passed since the epoch
 // ----------------------------------------------------------------------------
 {
-#if QT_VERSION >=  0x040700
     return (double)d.toMSecsSinceEpoch() / 1000;
-#else
-    qint64 ret = d.toTime_t();
-    ret *= 1000;
-    ret += d.time().msec();
-    return (double)ret / 1000;
-#endif
 }
 
 
@@ -3713,12 +3700,7 @@ double Widget::trueCurrentTime()
 // ----------------------------------------------------------------------------
 {
     QDateTime dt = QDateTime::currentDateTime();
-#if QT_VERSION >= 0x040700
     return toSecsSinceEpoch(dt);
-#else
-    QTime t = QTime::currentTime();
-    return dt.toTime_t() +  0.001 * t.msec();
-#endif
 }
 
 
@@ -7418,14 +7400,8 @@ static inline QColor colorByName(text name)
 //    Return a color by name, or black if the color is invalid
 // ----------------------------------------------------------------------------
 {
-#if QT_VERSION >=  0x040700
     if (QColor::isValidColor(+name))
         return QColor(+name);
-#else // Older QT
-    QColor c(+name);
-    if (c.isValid())
-        return c;
-#endif
     return QColor(0.0, 0.0, 0.0);
 }
 
@@ -8273,11 +8249,7 @@ static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
     {
     case Widget::VERTEX:        return QGLShader::Vertex;
     case Widget::FRAGMENT:      return QGLShader::Fragment;
-#if QT_VERSION >= 0x040700
     case Widget::GEOMETRY:      return QGLShader::Geometry;
-#else
-    case Widget::GEOMETRY:      break;
-#endif // Qt has geometry
     }
     XL::Ooops("Shader type not implemented");
     return QGLShader::ShaderType(0);

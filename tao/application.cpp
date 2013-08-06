@@ -731,6 +731,10 @@ void Application::processCommandLineFile()
     win->hide();
     win->setAttribute(Qt::WA_DontShowOnScreen, false);
 
+    // #3148
+    if (toOpen.contains("://") && !toOpen.startsWith("file://"))
+        win->open(applicationDirPath() + "/blank.ddd");
+
     int st = win->open(toOpen);
     win->markChanged(false);
     if (st == 0)

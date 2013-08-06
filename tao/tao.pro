@@ -535,6 +535,12 @@ isEmpty(NO_DOC_SIGNATURE) {
   include(../modules/sign_xl.pri)
 }
 
+# Blank document
+blank.path = $$APPINST
+blank.commands = touch \"$$APPINST/blank.ddd\"
+blank.depends = FORCE
+INSTALLS += blank
+
 isEmpty(NO_FONTS) {
   fonts.path  = $$APPINST/fonts
   fonts.files = fonts/*.ttf fonts/README

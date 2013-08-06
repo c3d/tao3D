@@ -221,7 +221,7 @@ draw_mandelbrot ->
         // We make it an "active_widget" so that it reacts to clicks
         translate -0.35 * sz, -0.05 * sz, 0
         active_widget
-            rounded_rectangle 0, 0, 0.80 * sz, 0.80 * sz, 20
+            rounded_rectangle 0, 0, 0.80 * sz, 0.65 * sz, 20
 
             on_click
                 // When we click on the rectangle, adjust center position
@@ -248,9 +248,9 @@ draw_help ->
 // ----------------------------------------------------------------------------
 //    Draw a text box displaying the localized help text
 // ----------------------------------------------------------------------------
-    text_box 0, 0, slide_width, slide_height,
+    text_box 0, -0.41 * sz, slide_width, 30,
         align_center
-        vertical_align 0.98
+        vertical_align_center
         font "Droid Sans", 20
         color "darkblue"
         help_text tao_language

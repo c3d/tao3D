@@ -41,7 +41,6 @@
 #include "gc_thread.h"
 #include "text_drawing.h"
 #include "license.h"
-#include "version.h"
 #include "preferences_pages.h"
 #include "update_application.h"
 #if defined (CFG_WITH_EULA)
@@ -89,6 +88,8 @@ XL_DEFINE_TRACES
 namespace Tao {
 
 QPixmap * Application::padlockIcon = NULL;
+
+extern const char *GITREV_;
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -230,11 +231,11 @@ void Application::deferredInit()
         return;
     }
 
-    QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV);
-    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
-    QString creativity = QString("Tao Presentations Creativity %1").arg(GITREV);
+    QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV_);
+    QString impress = QString("Tao Presentations Impress %1").arg(GITREV_);
+    QString creativity = QString("Tao Presentations Creativity %1").arg(GITREV_);
 #ifdef TAO_PLAYER
-    QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV);
+    QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV_);
     if (Licenses::Has(+playerPro) || Licenses::Has(+designPro) ||
         Licenses::Has(+impress) || Licenses::Has(+creativity))
         edition = Application::PlayerPro;

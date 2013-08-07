@@ -66,7 +66,6 @@
 #include "font.h"
 #include "chooser.h"
 #include "tree_cloning.h"
-#include "version.h"
 #include "documentation.h"
 #include "formulas.h"
 #include "text_edit.h"
@@ -123,6 +122,8 @@ static int DisplayLink = -1;
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
 namespace Tao {
+
+extern const char *GITREV_;
 
 // ============================================================================
 //
@@ -9939,7 +9940,7 @@ Text_p Widget::taoVersion(Tree_p self)
 {
     static text v = "";
     if (v == "")
-        v = GITREV;
+        v = GITREV_;
     return new XL::Text(v);
 }
 

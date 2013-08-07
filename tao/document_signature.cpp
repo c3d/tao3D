@@ -26,7 +26,6 @@
 #include "application.h"
 #include "base.h"
 #include "crypto.h"
-#include "version.h"
 #include "tao_utf8.h"
 
 #include "cryptopp/dsa.h"
@@ -48,6 +47,9 @@
 
 TAO_BEGIN
 
+
+extern const char * GITREV_;
+extern const char * GITSHA1_;
 
 static byte pubKeyTao[] = TAO_DSA_PUBLIC_KEY;
 static byte pubKeyDoc[] = DOC_DSA_PUBLIC_KEY;
@@ -153,7 +155,7 @@ QString SignatureInfo::signFileWithDocKey()
 
     QString ident = "; Signed by: Tao Presentations " +
                        Application::editionStr() + "\n"
-                    "; version " GITREV " (" GITSHA1 ")\n";
+                    "; version " + GITREV_ + " (" + GITSHA1_ + ")\n";
 
     status = SI_VALID;
     QString err = Tao::Crypto::Sign(+path, qpubKeyDoc, qprivKeyDoc, ident);

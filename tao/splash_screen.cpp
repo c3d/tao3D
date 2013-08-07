@@ -21,7 +21,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "version.h"
 #include "license.h"
 #include "splash_screen.h"
 #include "tao_utf8.h"
@@ -29,6 +28,8 @@
 #include <QtGui>
 
 namespace Tao {
+
+extern const char *GITREV_;
 
 #define TEXT_COLOR "#FFFFFF"
 #define LINK_COLOR "#EEAA11"
@@ -61,7 +62,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
     edition = new QLabel(trUtf8(fmt).arg(tr("%1 Edition")
                                          .arg(Application::editionStr())), this);
     edition->move(25, 280);
-    version = new QLabel(trUtf8(fmt).arg(tr("Version %1").arg(GITREV)), this);
+    version = new QLabel(trUtf8(fmt).arg(tr("Version %1").arg(GITREV_)), this);
     version->move(25, 300);
 
     const char * cop = "<html><head><style type=text/css>"

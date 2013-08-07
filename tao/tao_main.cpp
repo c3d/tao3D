@@ -38,7 +38,6 @@
 #include "tao_main.h"
 #include "flight_recorder.h"
 #include "tao_utf8.h"
-#include "version.h"
 #include "../config.h"
 #include "crypto.h"
 #include "normalize.h"
@@ -69,6 +68,11 @@ static void win_redirect_io();
 
 static void taoQtMessageHandler(QtMsgType type, const char *msg);
 
+namespace Tao {
+    extern const char * GITREV_;
+    extern const char * GITSHA1_;
+}
+
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 //    Main entry point of the graphical front-end
@@ -92,7 +96,8 @@ int main(int argc, char **argv)
 #else
 #define EDSTR
 #endif
-            std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
+            std::cout << "Tao Presentations " EDSTR << Tao::GITREV_  <<
+                                               " (" << Tao::GITSHA1_ << ")\n";
 #undef EDSTR
 #ifdef CONFIGURE_OPTIONS
             std::cout << "Configure options: " << CONFIGURE_OPTIONS << "\n";
@@ -371,7 +376,7 @@ void signal_handler(int sigid)
     size_t size = snprintf(buffer, sizeof buffer,
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
-                           "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
+                           "TAO VERSION: %s (%s)\n"
                            "GL VENDOR:   %s\n"
                            "GL RENDERER: %s\n"
                            "GL VERSION:  %s\n"
@@ -379,6 +384,8 @@ void signal_handler(int sigid)
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log,
+                           Tao::GITREV_,
+                           Tao::GITSHA1_,
                            vendor, renderer, version);
 
     Write(two, buffer, size);

@@ -227,11 +227,9 @@ draw_mandelbrot ->
                 // When we click on the rectangle, adjust center position
                 tgt_center_x := center_x + mouse_x / sf
                 tgt_center_y := center_y + mouse_y / sf
-                if (mouse_buttons and 2) <> 0 or ((mouse_buttons and 1) <> 0 and alt_modifier) then
-                    // Right click or Alt + left click
+                if right_mouse_button or (left_mouse_button and alt_modifier) then
                     tgt_mandelbrot_scale := tgt_mandelbrot_scale / 2
-                if (mouse_buttons and 1) <> 0 and not alt_modifier then
-                    // Left click without Alt
+                if left_mouse_button and not alt_modifier then
                     tgt_mandelbrot_scale := tgt_mandelbrot_scale * 2
                 refresh 0.0
 

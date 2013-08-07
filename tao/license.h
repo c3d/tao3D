@@ -24,7 +24,6 @@
 
 #include "base.h"
 #ifndef KEYGEN
-#include "version.h"
 #include "application.h"
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "window.h"

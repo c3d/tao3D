@@ -83,3 +83,9 @@ OPTVAR(license_dirs, text, "")
 OPTION(licpath, "Look for license files in the specified directory, in addition to the "
        "installation and user directories. This option may be used multiple times.",
        license_dirs += STRING; license_dirs += ":")
+
+OPTVAR(to_stderr, text, "auto")
+OPTION(stderr, "Define when to send error messages to stderr. Possible values are: "
+       "auto: [default] Send errors to stderr when program runs in fullscreen mode only; "
+       "on: Always send errors to stderr; off: Never send errors to stderr.",
+       to_stderr = STRING)

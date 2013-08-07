@@ -49,10 +49,12 @@ class GeneralPage : public QWidget
 public:
     GeneralPage(QWidget *parent = 0);
 
-    static bool  checkForUpdateOnStartup();
+    static bool    checkForUpdateOnStartup();
+    static QString taoUriScheme();
 
 protected:
-    static bool  checkForUpdateOnStartupDefault();
+    static bool    checkForUpdateOnStartupDefault();
+    static QString taoUriSchemeDefault();
 
 private:
     QStringList  installedLanguages();
@@ -60,10 +62,12 @@ private:
 private slots:
     void         setLanguage(int index);
     void         setCheckForUpdateOnStartup(bool on);
+    void         setTaoUriScheme(int index);
 
 private:
     QComboBox *  combo;
     QLabel *     message;
+    QComboBox *  uriCombo;
 };
 
 class DebugPage : public QWidget

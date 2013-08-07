@@ -66,7 +66,6 @@
 #include "font.h"
 #include "chooser.h"
 #include "tree_cloning.h"
-#include "version.h"
 #include "documentation.h"
 #include "formulas.h"
 #include "text_edit.h"
@@ -123,6 +122,8 @@ static int DisplayLink = -1;
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
 namespace Tao {
+
+extern const char *GITREV_;
 
 // ============================================================================
 //
@@ -999,11 +1000,32 @@ void Widget::resetTimes()
 }
 
 
+struct PurgeAnonymousFrameInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete anonymous FrameInfo structures (contained in MultiFrameInfo<uint>)
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        // Do not delete named FrameInfos because:
+        // - The purpose of the name is to make sure the texture id remains
+        //   the same.
+        // - Named FrameInfos are used to implement canvas which persist
+        //   accross pages.
+        what->Purge<MultiFrameInfo<uint> >();
+        return what;
+    }
+};
+
+
 void Widget::commitPageChange(bool afterTransition)
 // ----------------------------------------------------------------------------
 //   Commit a page change, e.g. as a result of 'goto_page' or transition end
 // ----------------------------------------------------------------------------
 {
+    PurgeAnonymousFrameInfo purgemf;
+    runPurgeAction(purgemf);
+
     pageName = gotoPageName;
     resetTimes();
     for (uint p = 0; p < pageNames.size(); p++)
@@ -1145,13 +1167,7 @@ static QDateTime fromSecsSinceEpoch(double when)
 // ----------------------------------------------------------------------------
 {
     QDateTime d;
-#if QT_VERSION >=  0x040700
     d = d.fromMSecsSinceEpoch((qint64)(when * 1000));
-#else
-    d = d.fromTime_t(when);
-    double s, ms = modf(when, &s);
-    d.addMSecs(ms);
-#endif
     return d;
 }
 
@@ -3652,14 +3668,7 @@ static double toSecsSinceEpoch(const QDateTime &d)
 //    Convert QDateTime to the number of seconds passed since the epoch
 // ----------------------------------------------------------------------------
 {
-#if QT_VERSION >=  0x040700
     return (double)d.toMSecsSinceEpoch() / 1000;
-#else
-    qint64 ret = d.toTime_t();
-    ret *= 1000;
-    ret += d.time().msec();
-    return (double)ret / 1000;
-#endif
 }
 
 
@@ -3692,12 +3701,7 @@ double Widget::trueCurrentTime()
 // ----------------------------------------------------------------------------
 {
     QDateTime dt = QDateTime::currentDateTime();
-#if QT_VERSION >= 0x040700
     return toSecsSinceEpoch(dt);
-#else
-    QTime t = QTime::currentTime();
-    return dt.toTime_t() +  0.001 * t.msec();
-#endif
 }
 
 
@@ -7397,14 +7401,8 @@ static inline QColor colorByName(text name)
 //    Return a color by name, or black if the color is invalid
 // ----------------------------------------------------------------------------
 {
-#if QT_VERSION >=  0x040700
     if (QColor::isValidColor(+name))
         return QColor(+name);
-#else // Older QT
-    QColor c(+name);
-    if (c.isValid())
-        return c;
-#endif
     return QColor(0.0, 0.0, 0.0);
 }
 
@@ -7685,7 +7683,9 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
         return 0;
     }
 
-    layout->Add(new FillTexture(texId));
+    // Get corresponding texture type
+    GLenum type = GL.currentTextures.textures[texId].type;
+    layout->Add(new FillTexture(texId, type));
     return new XL::Integer(texId);
 }
 
@@ -8250,11 +8250,7 @@ static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
     {
     case Widget::VERTEX:        return QGLShader::Vertex;
     case Widget::FRAGMENT:      return QGLShader::Fragment;
-#if QT_VERSION >= 0x040700
     case Widget::GEOMETRY:      return QGLShader::Geometry;
-#else
-    case Widget::GEOMETRY:      break;
-#endif // Qt has geometry
     }
     XL::Ooops("Shader type not implemented");
     return QGLShader::ShaderType(0);
@@ -9494,6 +9490,9 @@ Box3 Widget::textSize(Tree_p self, Text_p content)
 //   Return the dimensions of a given text
 // ----------------------------------------------------------------------------
 {
+    // Saving offset to avoid changes of curor position. Refs #3125.
+    XL::Save<Point3>      saveOffset(layout->offset, Point3(0, 0, 0));
+
     TextUnit u(content);
     Box3 bbox(u.Bounds(layout));
     return bbox;
@@ -9941,7 +9940,7 @@ Text_p Widget::taoVersion(Tree_p self)
 {
     static text v = "";
     if (v == "")
-        v = GITREV;
+        v = GITREV_;
     return new XL::Text(v);
 }
 
@@ -10356,6 +10355,15 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    if (canvas && name == "")
+    {
+        // A canvas must have a name or it would not persist accross pages
+        // (all anonymous FrameInfos are destroyed on page change, #3090).
+        QString qname = QString("canvas%1").arg(shapeId());
+        return frameTexture(context, self, w, h, prog, +qname, withDepth,
+                            canvas);
+    }
+
     // Need to synchronize GL states
     // just before glPushAttrib.
     GL.Sync();

@@ -60,7 +60,7 @@ picture_slide "YouTube Video slide",
     left_picture
         translate 0, 150 + 300 * sin (0.5*time) ^ 140, -150
         rotatez 5
-        movie 0, 0, 1.5, 1.5, "http://www.youtube.com/watch?v=30T5RQv6rxw"
+        movie 0, 0, 1.5, 1.5, "http://www.youtube.com/watch?v=30T5RQv6rxw&fmt=43"
     right_column
         - "Video on the left:"
         - "Alpha Waves, the first 3D platform game on a PC, edited in 1990 by Infogrames"

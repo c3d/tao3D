@@ -758,6 +758,19 @@ public:
         LAST_VENDOR
     };
 
+    struct Cache
+    // ------------------------------------------------------------------------
+    //   Manipulate the cached state only (do not call OpenGL)
+    // ------------------------------------------------------------------------
+    {
+        Cache(OpenGLState *st) : st(st) {}
+
+        void DeleteTextures(uint n, GLuint *ids);
+
+        OpenGLState * st;
+    } Cache;
+    friend class Cache;
+
 public:
     enum VendorID           vendorID;
     GLuint                  maxTextureCoords,maxTextureUnits,maxTextureSize;

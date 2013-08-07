@@ -21,7 +21,6 @@
 // ****************************************************************************
 
 #include "eula_dialog.h"
-#include "version.h"
 #include "base.h"
 #include "tao_utf8.h"
 
@@ -32,6 +31,8 @@
 #include <iostream> // DEBUG
 
 namespace Tao {
+
+extern const char *GITREV_;
 
 EulaDialog::EulaDialog(QWidget *parent)
 // ----------------------------------------------------------------------------
@@ -94,7 +95,7 @@ void EulaDialog::done(int r)
 {
     if (r == QMessageBox::Ok)
     {
-        QString accepted(GITREV);
+        QString accepted(GITREV_);
         IFTRACE(settings)
             debug() << "EULA accepted, saving version: '"
                     << +accepted << "'\n";
@@ -110,9 +111,9 @@ bool EulaDialog::previouslyAccepted()
 // ----------------------------------------------------------------------------
 {
     QString accepted = QSettings().value(EULA_SETTING_NAME).toString();
-    QString current = QString(GITREV);
+    QString current = QString(GITREV_);
     IFTRACE(settings)
-        debug() << "Tao versions: current '" << GITREV << "', "
+        debug() << "Tao versions: current '" << GITREV_ << "', "
                 << "EULA previously accepted: '" << +accepted << "'\n";
     return (accepted == current);
 }

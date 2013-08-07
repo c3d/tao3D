@@ -25,7 +25,6 @@
 #include "application.h"
 #include "base.h"
 #include "module_manager.h"
-#include "version.h"
 #include "version2.h"
 #include "tao_utf8.h"
 

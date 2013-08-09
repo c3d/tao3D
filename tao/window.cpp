@@ -304,12 +304,21 @@ void Window::addError(QString txt)
     // Ugly workaround to bug #775
     if (txt.contains("1.ddd cannot be read"))
         return;
+#ifdef Q_OS_WIN
+    // AMD OpenGL driver on Windows
+    // Whenever a shader program is linked succesfully, the driver generates an
+    // informational message and Qt calls qWarning().
+    // Filter those messages out.
+    if (txt.contains("shader(s) linked."))
+        return;
+#endif
     QTextCursor cursor = errorMessages->textCursor();
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");
     if (!isFullScreen())
         errorDock->show();
-    else
+    QString console = +XL::MAIN->options.to_stderr;
+    if (console == "on" || (console == "auto" && isFullScreen()))
         std::cerr << +txt << std::endl;
 
     // Before trying to show the error in the status bar, see #970

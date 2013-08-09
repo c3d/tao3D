@@ -41,7 +41,6 @@
 #include "gc_thread.h"
 #include "text_drawing.h"
 #include "license.h"
-#include "version.h"
 #include "preferences_pages.h"
 #include "update_application.h"
 #if defined (CFG_WITH_EULA)
@@ -89,6 +88,8 @@ XL_DEFINE_TRACES
 namespace Tao {
 
 QPixmap * Application::padlockIcon = NULL;
+
+extern const char *GITREV_;
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -230,11 +231,11 @@ void Application::deferredInit()
         return;
     }
 
-    QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV);
-    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
-    QString creativity = QString("Tao Presentations Creativity %1").arg(GITREV);
+    QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV_);
+    QString impress = QString("Tao Presentations Impress %1").arg(GITREV_);
+    QString creativity = QString("Tao Presentations Creativity %1").arg(GITREV_);
 #ifdef TAO_PLAYER
-    QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV);
+    QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV_);
     if (Licenses::Has(+playerPro) || Licenses::Has(+designPro) ||
         Licenses::Has(+impress) || Licenses::Has(+creativity))
         edition = Application::PlayerPro;
@@ -731,6 +732,10 @@ void Application::processCommandLineFile()
     win->hide();
     win->setAttribute(Qt::WA_DontShowOnScreen, false);
 
+    // #3148
+    if (toOpen.contains("://") && !toOpen.startsWith("file://"))
+        win->open(applicationDirPath() + "/blank.ddd");
+
     int st = win->open(toOpen);
     win->markChanged(false);
     if (st == 0)
@@ -855,6 +860,20 @@ void Application::enableVSync(bool on)
         if (window)
             window->taoWidget->enableVSync(NULL, on);
     }
+}
+
+
+bool Application::addError(const char *msg)
+// ----------------------------------------------------------------------------
+//   Send error message to main window
+// ----------------------------------------------------------------------------
+{
+    if (win)
+    {
+        win->addError(QString::fromLocal8Bit(msg));
+        return true;
+    }
+    return false;
 }
 
 

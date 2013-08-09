@@ -30,6 +30,16 @@
 
 TAO_BEGIN
 
+struct Int64Timer
+{
+    Int64Timer() : startTime(-1) {}
+    void   start()   { startTime = now(); }
+    qint64 elapsed() { Q_ASSERT(startTime > 0); return now() - startTime; }
+    qint64 now()   { return QDateTime::currentDateTime().toMSecsSinceEpoch(); }
+    qint64 startTime;
+};
+
+
 struct Statistics
 {
 public:
@@ -43,7 +53,7 @@ public:
         TO_SCREEN = 0x1, TO_CONSOLE = 0x2
     };
 
-    typedef QPair<int, int> date_val;
+    typedef QPair<qint64, int> date_val;
     typedef QList<date_val> durations;
 
 public:
@@ -65,7 +75,7 @@ public:
 protected:
     int         enabled;
     int         interval;   // Measuring interval (ms)
-    QTime       intervalTimer;
+    Int64Timer  intervalTimer;
 
     // Timing information for each event
     QTime       timer[LAST_OP];

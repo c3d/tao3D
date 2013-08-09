@@ -26,6 +26,7 @@
 #include "application.h"
 #include "destination_folder_dialog.h"
 #include "module_manager.h"
+#include "preferences_pages.h"
 #include <QSettings>
 #include <QDir>
 #include <QProgressDialog>
@@ -144,6 +145,8 @@ bool Uri::get()
                     else if (settingsGroup == KNOWN_URIS_MOD_GROUP)
                         title = tr("Cannot install module");
                     QString msg = tr("Folder %1 already exists").arg(native);
+                    IFTRACE(uri)
+                        debug() << +msg << "\n";
                     QMessageBox warn(QMessageBox::Warning, "", title);
                     warn.setInformativeText(msg);
                     warn.exec();
@@ -541,8 +544,10 @@ bool Uri::showRepoErrorDialog()
 {
     QString uri = toString();
     QString err = RepositoryFactory::errors;
-    QMessageBox::warning(NULL, tr("Error"),
-                         tr("Could not open %1:\n%2").arg(uri).arg(err));
+    QString msg = tr("Could not open %1:\n%2").arg(uri).arg(err);
+    IFTRACE(uri)
+        debug() << +msg << "\n";
+    QMessageBox::warning(NULL, tr("Error"), msg);
     return false;
 }
 
@@ -692,6 +697,8 @@ void Uri::onDownloadFinished(int exitCode, QProcess::ExitStatus exitStatus)
         }
         QString msg = tr("Download failed.\nExit code: %1\n%2")
                          .arg(exitCode).arg(proc->err);
+        IFTRACE(uri)
+            debug() << +msg << "\n";
         QMessageBox::warning(NULL, tr("Error"), msg);
         emit getFailed();
         return;
@@ -724,6 +731,8 @@ void Uri::onDownloadError(QProcess::ProcessError error)
     progress->close();
     QString err = Process::processErrorToString(error);
     QString msg = tr("Download failed: %1").arg(err);
+    IFTRACE(uri)
+        debug() << +msg << "\n";
     QMessageBox::warning(NULL, tr("Error"), msg);
     emit getFailed();
 }
@@ -757,6 +766,8 @@ bool Uri::checkout()
     bool ok = (repo && repo->checkout(+co));
     if (!ok)
     {
+        IFTRACE(uri)
+            debug() << repo->errors << "\n";
         QMessageBox::warning(NULL, tr("Error"), +(repo->errors));
         return false;
     }
@@ -862,7 +873,7 @@ QString Uri::repoUri()
     QUrl uri(*this);
     uri.setEncodedQuery(QByteArray());
     if (uri.scheme() == "tao")
-        uri.setScheme("git");
+        uri.setScheme(GeneralPage::taoUriScheme());
     else if (uri.scheme() == "taos")
         uri.setScheme("ssh");
 

@@ -104,7 +104,7 @@ void Statistics::end(Operation op)
         return;
     running[op] = false;
 
-    int now = intervalTimer.elapsed();
+    qint64 now = intervalTimer.elapsed();
     int elapsed = timer[op].elapsed();
 
     // Append measurement to list, keeping only 'interval' seconds of data.

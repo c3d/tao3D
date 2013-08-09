@@ -1,8 +1,7 @@
 /**
  * @~english
  * @taomoduledescription{RegExp, Regular Expressions}
- *
- * <tt>import RegExp</tt> - Analyze text using regular expressions.
+ * <tt>import RegExp</tt> - Analyze text using regular expressions.@n
  *
  * This module makes it easy to analyze chunks of text using regular
  * expressions (RE). It contains simple RE matching @ref regexp_match,
@@ -18,8 +17,7 @@
  *
  * @~french
  * @taomoduledescription{RegExp, Analyse de texte basée sur des expressions régulières}
- *
- * <tt>import RegExp</tt> - Analyse de texte basée sur des expressions régulières.
+ * <tt>import RegExp</tt> - Analyse de texte basée sur des expressions régulières.@n
  *
  * Ce module permet d'analyser des fragments de texte en utilisant des
  * expressions régulières (ER). Il permet de vérifier si un texte

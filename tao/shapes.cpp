@@ -444,6 +444,14 @@ void EllipseArc::Draw(GraphicPath &path)
     QPainterPath qt;
     Point center = bounds.Center();
     qt.moveTo(center.x, center.y);
+
+    if (sweep > 0)
+    {
+        // Fix for #3101: make sure the polygon is always oriented right
+        start += sweep;
+        sweep = -sweep;
+    }
+
     qt.arcTo(bounds.lower.x, bounds.lower.y,
              bounds.Width(), bounds.Height(),
              start, sweep);

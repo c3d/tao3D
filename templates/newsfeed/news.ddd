@@ -21,8 +21,6 @@ feed "3D", "http://news.google.com/news?q=3D&output=rss"
 feed "Apple", "http://news.google.com/news?q=apple&output=rss"
 feed "Slashdot", "http://rss.slashdot.org/Slashdot/slashdot"
 feed "Slashdot Games", "http://rss.slashdot.org/Slashdot/slashdotGames"
-feed "Twitter taodyne", "http://api.twitter.com/1/statuses/user_timeline.rss?screen_name=taodyne"
-feed "Twitter #startup", "http://search.twitter.com/search.rss?q=%23startup"
 
 feed Title:text, URL:text ->
     page Title,

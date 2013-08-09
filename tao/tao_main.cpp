@@ -38,7 +38,6 @@
 #include "tao_main.h"
 #include "flight_recorder.h"
 #include "tao_utf8.h"
-#include "version.h"
 #include "../config.h"
 #include "crypto.h"
 #include "normalize.h"
@@ -67,6 +66,13 @@
 static void win_redirect_io();
 #endif
 
+static void taoQtMessageHandler(QtMsgType type, const char *msg);
+
+namespace Tao {
+    extern const char * GITREV_;
+    extern const char * GITSHA1_;
+}
+
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 //    Main entry point of the graphical front-end
@@ -90,7 +96,8 @@ int main(int argc, char **argv)
 #else
 #define EDSTR
 #endif
-            std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
+            std::cout << "Tao Presentations " EDSTR << Tao::GITREV_  <<
+                                               " (" << Tao::GITSHA1_ << ")\n";
 #undef EDSTR
 #ifdef CONFIGURE_OPTIONS
             std::cout << "Configure options: " << CONFIGURE_OPTIONS << "\n";
@@ -105,6 +112,9 @@ int main(int argc, char **argv)
 
     Q_INIT_RESOURCE(tao);
 
+    // Messages sent by the Qt implementation (for instance, with qWarning())
+    // should be handled like other Tao error messages
+    qInstallMsgHandler(taoQtMessageHandler);
 
     // Initialize and run the Tao application
     int ret = 0;
@@ -187,14 +197,29 @@ static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
 
 void win_redirect_io()
 // ----------------------------------------------------------------------------
-//   Send stdout and stderr to parent console if we have one, or to a file
+//   No console: log to file. Un-redirected console: log to parent console.
 // ----------------------------------------------------------------------------
 {
+    // Note: must be done before AttachConsole()
+    DWORD outType, errType;
+    outType = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
+    errType = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
+
     if (AttachConsole(ATTACH_PARENT_PROCESS))
     {
-        // Log to console of parent process
-        freopen("CON", "a", stdout);
-        freopen("CON", "a", stderr);
+        // Parent has a console.
+        // Tested with cmd.exe and MinGW shell (bash):
+        //  1/ With no redirection, type is FILE_TYPE_UNKNOWN and output
+        //     goes nowhere (at least not to the console).
+        //  2/ When redirecting to a file (tao.exe -tfps >tao.log) type is
+        //     FILE_TYPE_DISK and output goes to the file.
+        //  3/ When sending to a pipe (tao.exe -tfps | grep Time) type is
+        //     FILE_TYPE_PIPE and output goes to the pipe.
+        // So only case (1) has to be handled specifically.
+        if (outType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stdout);
+        if (errType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stderr);
     }
     else
     {
@@ -351,7 +376,7 @@ void signal_handler(int sigid)
     size_t size = snprintf(buffer, sizeof buffer,
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
-                           "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
+                           "TAO VERSION: %s (%s)\n"
                            "GL VENDOR:   %s\n"
                            "GL RENDERER: %s\n"
                            "GL VERSION:  %s\n"
@@ -359,6 +384,8 @@ void signal_handler(int sigid)
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log,
+                           Tao::GITREV_,
+                           Tao::GITSHA1_,
                            vendor, renderer, version);
 
     Write(two, buffer, size);
@@ -541,6 +568,18 @@ void tao_stack_trace(int fd)
     }
 #endif // WIN64
 #endif // MINGW
+}
+
+
+static void taoQtMessageHandler(QtMsgType type, const char *msg)
+// ----------------------------------------------------------------------------
+//   Handle diagnostic messages from Qt like any other Tao message
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(type);
+    if (qApp && ((Tao::Application*)qApp)->addError(msg))
+        return;
+    std::cerr << msg;
 }
 
 

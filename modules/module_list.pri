@@ -62,7 +62,8 @@
        news_feed \
        snowfall \
        nodejs \
-       film_strip
+       film_strip \
+       speech
 
     OTHER_MODULES =  \
         DIP          \
@@ -70,7 +71,6 @@
         tao_synchro  \
         tao_tester   \
         tao_quiz     \
-        speech       \
         database     \
         web_remote \
         prez_at

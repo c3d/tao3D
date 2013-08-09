@@ -12,4 +12,4 @@
 	url = git://gitorious.org/tao-presentation-modules/chroma_key.git
 [submodule "modules/speech/qt-speech"]
 	path = modules/speech/qt-speech
-	url = ssh://nano.taodyne.com/~ddd/Work/qtspeech.git
+	url = git://gitorious.org/taodyne-open-source/tao_qt_speech.git

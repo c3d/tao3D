@@ -408,7 +408,7 @@ flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
             if slide_flow[flow_name2] then
                 paragraph_break
                 text_flow Flow2
-    else
+    else if slide_flow[flow_name2] then
         theme_text theme, slide_master, flow_name1, X, Y, W, H,
             text_flow Flow2
 
@@ -416,10 +416,17 @@ flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
     slide_flow[flow_name2] := false
 
 
+style Style ->
+// ----------------------------------------------------------------------------
+//   Apply a given style to a text
+// ----------------------------------------------------------------------------
+    theme_style theme, slide_master, Style
+
+
 
 // ============================================================================
 // 
-//    Bulletts
+//    Bullets
 // 
 // ============================================================================
 

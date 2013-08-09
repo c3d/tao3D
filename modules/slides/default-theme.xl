@@ -290,7 +290,9 @@ theme_text Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
 // ----------------------------------------------------------------------------
     theme_box Theme, Master, Style, X, Y, W, H
     contents 0,
-        text_box X, Y, W, H, Body
+        text_box X, Y, W, H,
+            theme_style Theme, Master, Style
+            Body
 
 
 

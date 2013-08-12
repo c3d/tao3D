@@ -29,6 +29,7 @@
 #include "runtime.h"
 #include "opcodes.h"
 #include "gl_keepers.h"
+#include "opengl_state.h"
 #include "frame.h"
 #include "texture.h"
 #include "svg.h"
@@ -65,7 +66,6 @@
 #include "font.h"
 #include "chooser.h"
 #include "tree_cloning.h"
-#include "version.h"
 #include "documentation.h"
 #include "formulas.h"
 #include "text_edit.h"
@@ -122,6 +122,8 @@ static int DisplayLink = -1;
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
 namespace Tao {
+
+extern const char *GITREV_;
 
 // ============================================================================
 //
@@ -252,6 +254,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 
     // Make this the current context for OpenGL
     makeCurrent();
+    gl.MakeCurrent();
 
     // Initialize GLEW when we use it
     glewInit();
@@ -345,8 +348,8 @@ struct DisplayListInfo : XL::Info, InfoTrashCan
 //    Store information about a display list
 // ----------------------------------------------------------------------------
 {
-    DisplayListInfo(): displayListID(glGenLists(1)), version(0.0) {}
-    ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
+    DisplayListInfo(): displayListID(GL.GenLists(1)), version(0.0) {}
+    ~DisplayListInfo() { GL.DeleteLists(displayListID, 1); }
     virtual void Delete() { trash.push_back(this); }
     GLuint      displayListID;
     double      version;
@@ -360,7 +363,7 @@ struct PurgeGLContextSensitiveInfo : XL::Action
 {
     virtual Tree *Do (Tree *what)
     {
-        what->Purge<ImageTextureInfo>();
+        what->Purge<AnimatedTextureInfo>();
         what->Purge<SvgRendererInfo>();
         what->Purge<TextureIdInfo>();
         what->Purge<ShaderProgramInfo>();
@@ -488,6 +491,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Make this the current context for OpenGL
     makeCurrent();
+    gl.MakeCurrent();
 
     // Do not change VSync mode
     enableVSync(NULL, o.VSyncEnabled());
@@ -530,10 +534,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Texture and glyph cache do not support multiple GL contexts. So,
     // clear them here so that textures or GL lists created with the
     // previous context are not re-used with the new.
-    AnimatedTextureInfo::textures.clear();
     TextureCache::instance()->clear();
     if (o.watermark)
-        glDeleteTextures(1, &o.watermark);
+        GL.DeleteTextures(1, &o.watermark);
 
     o.glyphCache.Clear();
     o.updateStereoIdentPatterns(0);
@@ -591,6 +594,8 @@ Widget::~Widget()
     updateStereoIdentPatterns(0);
     // NB: if you're about to call glDeleteTextures here, think twice.
     // Or make sure you set the correct GL context. See #1686.
+
+    TextureCache::instance()->clear();
 }
 
 
@@ -728,7 +733,8 @@ void Widget::drawStereoIdent()
     if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
         updateStereoIdentPatterns(stereoPlanes);
     StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
-    glColor4f(1.0, 1.0, 1.0, 1.0);
+    GLAllStateKeeper save;
+    GL.Color(1.0, 1.0, 1.0, 1.0);
     drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
 }
 
@@ -750,8 +756,8 @@ void Widget::drawScene()
     space->ClearAttributes();
     if (blanked)
     {
-        glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+        GL.ClearColor(0.0, 0.0, 0.0, 1.0);
+        GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
     }
     else if (stereoIdent)
     {
@@ -791,9 +797,9 @@ void Widget::drawSelection()
     {
         space->ClearPolygonOffset();
         space->ClearAttributes();
-        glDisable(GL_DEPTH_TEST);
+        GL.Disable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
-        glEnable(GL_DEPTH_TEST);
+        GL.Enable(GL_DEPTH_TEST);
     }
 }
 
@@ -808,7 +814,7 @@ void Widget::drawActivities()
 
     // Force "standard" view for drawing the activities
     setupGL();
-    glDepthFunc(GL_ALWAYS);
+    GL.DepthFunc(GL_ALWAYS);
 
     // Clear the topmost layout to avoid conflicts
     // with following taodyne ad. Fixed #2966.
@@ -840,13 +846,13 @@ void Widget::drawActivities()
         XL::Save<Layout *> saveLayout2(layout, &licenseOverlaySpace);
 
         setupGL();
-        glDepthFunc(GL_ALWAYS);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
+        GL.DepthFunc(GL_ALWAYS);
+        GL.MatrixMode(GL_PROJECTION);
+        GL.LoadIdentity();
         GLdouble w = width(), h = height();
-        gluOrtho2D(-w/2, w/2, -h/2, h/2);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        GL.Ortho(-w/2, w/2, -h/2, h/2, -1, 1);
+        GL.MatrixMode(GL_MODELVIEW);
+        GL.LoadIdentity();
 
         static XL::Tree_p adCode = XL::xl_parse_text(
 #include "taodyne_ad.h"
@@ -855,12 +861,12 @@ void Widget::drawActivities()
         {
             if (!adCode->Symbols())
                 adCode->SetSymbols(xlProgram->symbols);
-            xlProgram->context->Evaluate(adCode);
+            saveAndEvaluate(xlProgram->context, adCode);
         }
         licenseOverlaySpace.Draw(NULL);
     }
 
-    glDepthFunc(GL_LEQUAL);
+    GL.DepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled(Statistics::TO_SCREEN))
@@ -873,12 +879,12 @@ void Widget::drawActivities()
 
 void Widget::setGlClearColor()
 // ----------------------------------------------------------------------------
-//   Call glClearColor with the color specified in the widget
+//   Clear color with the color specified in the widget
 // ----------------------------------------------------------------------------
 {
     qreal r, g, b, a;
     clearCol.getRgbF(&r, &g, &b, &a);
-    glClearColor (r, g, b, a);
+    GL.ClearColor (r, g, b, a);
 }
 
 
@@ -907,7 +913,7 @@ void Widget::draw()
     // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+        GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
         return;
     }
 
@@ -994,11 +1000,32 @@ void Widget::resetTimes()
 }
 
 
+struct PurgeAnonymousFrameInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete anonymous FrameInfo structures (contained in MultiFrameInfo<uint>)
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        // Do not delete named FrameInfos because:
+        // - The purpose of the name is to make sure the texture id remains
+        //   the same.
+        // - Named FrameInfos are used to implement canvas which persist
+        //   accross pages.
+        what->Purge<MultiFrameInfo<uint> >();
+        return what;
+    }
+};
+
+
 void Widget::commitPageChange(bool afterTransition)
 // ----------------------------------------------------------------------------
 //   Commit a page change, e.g. as a result of 'goto_page' or transition end
 // ----------------------------------------------------------------------------
 {
+    PurgeAnonymousFrameInfo purgemf;
+    runPurgeAction(purgemf);
+
     pageName = gotoPageName;
     resetTimes();
     for (uint p = 0; p < pageNames.size(); p++)
@@ -1140,13 +1167,7 @@ static QDateTime fromSecsSinceEpoch(double when)
 // ----------------------------------------------------------------------------
 {
     QDateTime d;
-#if QT_VERSION >=  0x040700
     d = d.fromMSecsSinceEpoch((qint64)(when * 1000));
-#else
-    d = d.fromTime_t(when);
-    double s, ms = modf(when, &s);
-    d.addMSecs(ms);
-#endif
     return d;
 }
 
@@ -1295,7 +1316,7 @@ void Widget::runProgramOnce()
         }
         else if (Tree *prog = xlProgram->tree)
         {
-            xlProgram->context->Evaluate(prog);
+            saveAndEvaluate(xlProgram->context, prog);
             layout->lastRefresh = CurrentTime();
         }
     }
@@ -1364,6 +1385,19 @@ void Widget::runProgram()
         if (pageId > 0)
             runProgramOnce();
     }
+}
+
+
+Tree_p Widget::saveAndEvaluate(Context* context, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Save GL states before evaluate a XL context
+// ----------------------------------------------------------------------------
+{
+    // Save GL state before evaluate
+    GLAllStateKeeper save;
+
+    // Evaluate context
+    return context->Evaluate(code);
 }
 
 
@@ -2436,7 +2470,7 @@ void Widget::userMenu(QAction *p_action)
     TaoSave saveCurrent(current, this);
     XL::Tree_p t = var.value<XL::Tree_p>();
     if (t)
-        xlProgram->context->Evaluate(t); // Typically will insert something...
+        saveAndEvaluate(xlProgram->context, t); // Typically will insert something...
 }
 
 
@@ -2557,11 +2591,11 @@ void Widget::setup(double w, double h, const Box *picking)
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
 
-    glViewport(vx, vy, vw, vh);
+    GL.Viewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
 
     // Restrict the picking area if any is given as input
     if (picking)
@@ -2582,13 +2616,14 @@ void Widget::setup(double w, double h, const Box *picking)
         b.Normalize();
         Vector size = b.upper - b.lower;
         Point center = b.lower + size / 2;
-        gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
+        GL.PickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
     double zf = 0.5 / (zoom * scaling);
-    glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL.Frustum(-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL.LoadMatrix();
 
     // Setup the model-view matrix
-    glMatrixMode(GL_MODELVIEW);
+    GL.MatrixMode(GL_MODELVIEW);
     resetModelviewMatrix();
 
     // Reset default GL parameters
@@ -2617,15 +2652,13 @@ void Widget::resetModelviewMatrix()
 //   Reset the model-view matrix, used by reset_transform and setup
 // ----------------------------------------------------------------------------
 {
-    glLoadIdentity();
+    GL.LoadIdentity();
 
     // Position the camera
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
     toTarget *= cameraToScreen;
     Point3 target = cameraPosition + toTarget;
-    gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
-              target.x, target.y ,target.z,
-              cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
+    GL.LookAt(cameraPosition, target, cameraUpVector);
 }
 
 
@@ -2635,50 +2668,40 @@ void Widget::setupGL()
 // ----------------------------------------------------------------------------
 {
     // Setup other
-    glEnable(GL_BLEND);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                        GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_POINT_SMOOTH);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glEnable(GL_POLYGON_OFFSET_POINT);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glLineWidth(1);
-    glLineStipple(1, -1);
+    GL.Enable(GL_BLEND);
+    GL.BlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                         GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    GL.DepthMask(GL_TRUE);
+    GL.DepthFunc(GL_LEQUAL);
+    GL.Enable(GL_DEPTH_TEST);
+    GL.Enable(GL_LINE_SMOOTH);
+    GL.Enable(GL_POINT_SMOOTH);
+    GL.Enable(GL_MULTISAMPLE);
+    GL.Enable(GL_POLYGON_OFFSET_FILL);
+    GL.Enable(GL_POLYGON_OFFSET_LINE);
+    GL.Enable(GL_POLYGON_OFFSET_POINT);
+    GL.Color(1.0f, 1.0f, 1.0f, 1.0f);
+    GL.LineWidth(1);
+    GL.LineStipple(1, -1);
 
     // Disable all texture units
-    for(int i = TaoApp->maxTextureUnits - 1; i > 0 ; i--)
-    {
-        if (layout->textureUnits & (1 << i))
-        {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glDisable(GL_TEXTURE_2D);
-        }
-    }
-    glClientActiveTexture(GL_TEXTURE0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_TEXTURE_RECTANGLE_ARB);
-    glDisable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
-    glUseProgram(0);
-    glAlphaFunc(GL_GREATER, 0.01);
-    glEnable(GL_ALPHA_TEST);
+    GL.ActivateTextureUnits(0);
+    GL.ActiveTexture(GL_TEXTURE0); // Reset the default active texture
+    GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
+    GL.Disable(GL_CULL_FACE);
+    GL.ShadeModel(GL_SMOOTH);
+    GL.Disable(GL_LIGHTING);
+    GL.Disable(GL_COLOR_MATERIAL);
+    GL.UseProgram(0);
+    GL.AlphaFunc(GL_GREATER, 0.01);
+    GL.Enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    GL.TexGen(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    GL.TexGen(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 
     // Really nice perspective calculations
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    GL.Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 
@@ -3645,14 +3668,7 @@ static double toSecsSinceEpoch(const QDateTime &d)
 //    Convert QDateTime to the number of seconds passed since the epoch
 // ----------------------------------------------------------------------------
 {
-#if QT_VERSION >=  0x040700
     return (double)d.toMSecsSinceEpoch() / 1000;
-#else
-    qint64 ret = d.toTime_t();
-    ret *= 1000;
-    ret += d.time().msec();
-    return (double)ret / 1000;
-#endif
 }
 
 
@@ -3685,12 +3701,7 @@ double Widget::trueCurrentTime()
 // ----------------------------------------------------------------------------
 {
     QDateTime dt = QDateTime::currentDateTime();
-#if QT_VERSION >= 0x040700
     return toSecsSinceEpoch(dt);
-#else
-    QTime t = QTime::currentTime();
-    return dt.toTime_t() +  0.001 * t.msec();
-#endif
 }
 
 
@@ -4941,7 +4952,7 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
         GLMatrixKeeper saveGL;
         Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
-        glTranslatef(v.x, v.y, v.z);
+        GL.Translate(v.x, v.y, v.z);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
@@ -4956,22 +4967,24 @@ void Widget::recordProjection(GLdouble *proj, GLdouble *model, GLint *viewport)
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
-    // Is this really necessary? Did Valgrind show that GL fails to fill them?
-    memset(proj, 0, sizeof focusProjection);
-    memset(model, 0, sizeof focusModel);
-    memset(viewport, 0, sizeof focusViewport);
-
-    glGetDoublev(GL_PROJECTION_MATRIX, proj);
-    glGetDoublev(GL_MODELVIEW_MATRIX, model);
-    viewport[0] = mouseTrackingViewport[0];
-    viewport[1] = mouseTrackingViewport[1];
-    viewport[2] = mouseTrackingViewport[2];
-    viewport[3] = mouseTrackingViewport[3];
-    if (viewport[2] == 0 && viewport[3] == 0)
+    memcpy(proj, GL.ProjectionMatrix(), sizeof focusProjection);
+    memcpy(model, GL.ModelViewMatrix(), sizeof focusModel);
+    if (mouseTrackingViewport[2] == 0 && mouseTrackingViewport[3] == 0)
     {
         // mouseTrackingViewport not set (by display module), default to
         // current viewport
-        glGetIntegerv(GL_VIEWPORT, viewport);
+        GLint *glvp = GL.Viewport();
+        viewport[0] = glvp[0];
+        viewport[1] = glvp[1];
+        viewport[2] = glvp[2];
+        viewport[3] = glvp[3];
+    }
+    else
+    {
+        viewport[0] = mouseTrackingViewport[0];
+        viewport[1] = mouseTrackingViewport[1];
+        viewport[2] = mouseTrackingViewport[2];
+        viewport[3] = mouseTrackingViewport[3];
     }
 }
 
@@ -4997,14 +5010,14 @@ Point3 Widget::unproject (coord x, coord y, coord z,
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
     x3dn = y3dn = z3dn = 0.0;
-    gluUnProject(x, y, 0.0,
+    GL.UnProject(x, y, 0.0,
                  model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
     x3df = y3df = z3df = 0;
-    gluUnProject(x, y, 1.0,
+    GL.UnProject(x, y, 1.0,
                  model, proj, viewport,
                  &x3df, &y3df, &z3df);
 
@@ -5063,7 +5076,7 @@ Point3 Widget::project (coord x, coord y, coord z,
 // ----------------------------------------------------------------------------
 {
     GLdouble wx, wy, wz;
-    gluProject(x, y, z,
+    GL.Project(x, y, z,
                  model, proj, viewport,
                  &wx, &wy, &wz);
 
@@ -5080,7 +5093,7 @@ Point3 Widget::objectToWorld(coord x, coord y,
     Point3 pos, win;
 
     // Map object coordinates to window coordinates
-    gluProject(x, y, 0,
+    GL.Project(x, y, 0,
                model, proj, viewport,
                &win.x, &win.y, &win.z);
 
@@ -5104,7 +5117,7 @@ Point3 Widget::windowToWorld(coord x, coord y,
                  &pixelDepth);
 
     // Map window coordinates to object coordinates
-    gluUnProject(x, y, pixelDepth,
+    GL.UnProject(x, y, pixelDepth,
                  model, proj, viewport,
                  &pos.x,
                  &pos.y,
@@ -5147,12 +5160,8 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
-        where->currentLights = 0;
-        where->textureUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
-        where->fillTextures.clear();
-        where->previousTextures.clear();
         where->programId = 0;
     }
 }
@@ -5183,7 +5192,6 @@ void Widget::drawSelection(Layout *where,
     GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id;
-    selectionSpace.isSelection = true;
     saveSelectionColorAndFont(where);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
@@ -5207,7 +5215,6 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
     GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id | HANDLE_SELECTED;
-    selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
     selectionSpace.Draw(NULL);
@@ -5221,7 +5228,7 @@ Layout *Widget::drawTree(Layout *where, Context *context, Tree_p code)
 {
     Layout *result = where->NewChild();
     XL::Save<Layout *> saveLayout(layout, result);
-    context->Evaluate(code);
+    saveAndEvaluate(context, code);
     return result;
 }
 
@@ -5240,7 +5247,6 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     GLAttribKeeper     saveGL;
     resetLayout(layout);
     selectionSpace.id = id;
-    selectionSpace.isSelection = true;
     call(xlProgram);
     selectionSpace.Draw(where);
 }
@@ -5326,7 +5332,7 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
             if (pageId > 1)
                 pageLinks["Up"] = lastPageName;
             pageTree = body;
-            context->Evaluate(body);
+            saveAndEvaluate(context, body);
         }
     }
     else if (pageName == lastPageName)
@@ -6042,7 +6048,7 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 
     Layout *childLayout = layout->AddChild(shapeId(), child, context);
     XL::Save<Layout *> save(layout, childLayout);
-    Tree_p result = currentContext->Evaluate(child);
+    Tree_p result = saveAndEvaluate(currentContext, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -6068,7 +6074,7 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
     Context_p childContext = currentContext;
     context->ClosureValue(child, &childContext);
     XL::Save<bool> setSaveArgs(childContext->keepSource, true);
-    Tree_p result = currentContext->Evaluate(child);
+    Tree_p result = saveAndEvaluate(currentContext, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -6089,7 +6095,7 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = saveAndEvaluate(context, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -6111,7 +6117,7 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child, bool abs)
         selection[id]++;
         selectNextTime.erase(self);
     }
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = saveAndEvaluate(context, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -6136,7 +6142,7 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     Layout *childLayout = new StereoLayout(*layout, vpts);
     childLayout = layout->AddChild(shapeId(), child, context, childLayout);
     XL::Save<Layout *> save(layout, childLayout);
-    Tree_p result = currentContext->Evaluate(child);
+    Tree_p result = saveAndEvaluate(currentContext, child);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -6157,7 +6163,6 @@ Tree_p Widget::resetTransform(Tree_p self)
 //   Reset transform to original projection state
 // ----------------------------------------------------------------------------
 {
-    layout->hasMatrix = true;
     layout->Add(new ResetTransform());
     return XL::xl_false;
 }
@@ -6204,13 +6209,11 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    if (!layout->hasTransform)
-    {
+    // Check that matrix mode is modelview
+    if (GL.matrixMode == GL_MODELVIEW)
         layout->model.Rotate(ra, rx, ry, rz);
-    }
 
     layout->Add(new Rotation(ra, rx, ry, rz));
-    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -6247,14 +6250,11 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    if (!layout->hasTransform)
-    {
-        // Update the current model translation
+    // Check that matrix mode is modelview
+    if (GL.matrixMode == GL_MODELVIEW)
         layout->model.Translate(tx, ty, tz);
-    }
 
     layout->Add(new Translation(tx, ty, tz));
-    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -6291,14 +6291,11 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    if (!layout->hasTransform)
-    {
-        // Update the current model scaling
+    // Check that matrix mode is modelview
+    if (GL.matrixMode == GL_MODELVIEW)
         layout->model.Scale(sx, sy, sz);
-    }
 
     layout->Add(new Scale(sx, sy, sz));
-    layout->hasMatrix = true;
     return XL::xl_true;
 }
 
@@ -6310,7 +6307,6 @@ Tree_p Widget::clipPlane(Tree_p self, int plane,
 // ----------------------------------------------------------------------------
 {
     layout->Add(new ClipPlane(plane, a, b, c, d));
-    layout->hasClipPlanes = true;
     return XL::xl_true;
 }
 
@@ -6412,7 +6408,6 @@ Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 //   Enable or disable OpenGL depth test
 // ----------------------------------------------------------------------------
 {
-    layout->hasDepthAttr = true;
     layout->Add(new DepthTest(enable));
     return XL::xl_true;
 }
@@ -6423,7 +6418,6 @@ Name_p Widget::depthMask(XL::Tree_p self, bool enable)
 //   Enable or disable OpenGL depth mask
 // ----------------------------------------------------------------------------
 {
-    layout->hasDepthAttr = true;
     layout->Add(new DepthMask(enable));
     return XL::xl_true;
 }
@@ -6448,7 +6442,6 @@ Name_p Widget::blendFunction(Tree_p self, text src, text dst)
     GLenum srcEnum = TextToGLEnum(src, GL_SRC_ALPHA);
     GLenum dstEnum = TextToGLEnum(dst, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFunc(srcEnum, dstEnum));
-    layout->hasBlending = true;
     return XL::xl_true;
 }
 
@@ -6465,7 +6458,6 @@ Name_p Widget::blendFunctionSeparate(Tree_p self,
     GLenum srcaE = TextToGLEnum(srca, GL_SRC_ALPHA);
     GLenum dstaE = TextToGLEnum(dsta, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFuncSeparate(srcE, dstE, srcaE, dstaE));
-    layout->hasBlending = true;
     return XL::xl_true;
 }
 
@@ -6477,7 +6469,6 @@ Name_p Widget::blendEquation(Tree_p self, text eq)
 {
     GLenum eqE = TextToGLEnum(eq, GL_FUNC_ADD);
     layout->Add(new BlendEquation(eqE));
-    layout->hasBlending = true;
     return XL::xl_true;
 }
 
@@ -6885,9 +6876,9 @@ Widget::StereoIdentTexture Widget::newStereoIdentTexture(int i)
     // Generate the GL texture
     QImage texture = QGLWidget::convertToGLFormat(image);
     GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    GL.GenTextures(1, &tex);
+    GL.BindTexture(GL_TEXTURE_2D, tex);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  w, h, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texture.bits());
 
@@ -6909,7 +6900,7 @@ void Widget::updateStereoIdentPatterns(int nb)
         for (int i = 0; i < size; i++)
         {
             GLuint tex = stereoIdentPatterns[i].tex;
-            glDeleteTextures(1, &tex);
+            GL.DeleteTextures(1, &tex);
             IFTRACE(fileload)
                 std::cerr << "Deleted texture #" << tex
                           << " (stereo identification for viewpoint #"
@@ -7182,7 +7173,7 @@ Infix_p Widget::currentModelMatrix(Tree_p self)
 //   Return the current model matrix converting from object to world space
 // ----------------------------------------------------------------------------
 {
-    Tree *result = xl_real_list(self, 16, layout->model.Data());
+    Tree *result = xl_real_list(self, 16, layout->model.Data(false));
     return result->AsInfix();
 }
 
@@ -7410,14 +7401,8 @@ static inline QColor colorByName(text name)
 //    Return a color by name, or black if the color is invalid
 // ----------------------------------------------------------------------------
 {
-#if QT_VERSION >=  0x040700
     if (QColor::isValidColor(+name))
         return QColor(+name);
-#else // Older QT
-    QColor c(+name);
-    if (c.isValid())
-        return c;
-#endif
     return QColor(0.0, 0.0, 0.0);
 }
 
@@ -7550,7 +7535,6 @@ Tree_p Widget::lineWidth(Tree_p self, double lw)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineWidth(lw));
-    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -7561,7 +7545,6 @@ Tree_p Widget::lineStipple(Tree_p self, uint16 pattern, uint16 scale)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineStipple(pattern, scale));
-    layout->hasAttributes = true;
     return XL::xl_true;
 }
 
@@ -7648,8 +7631,12 @@ Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y,
     return XL::xl_true;
 }
 
+
 Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
                                 double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//   Define a step of a color gradient
+// ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(r);
     CHECK_0_1_RANGE(g);
@@ -7674,16 +7661,13 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if (texUnit > TaoApp->maxTextureUnits)
+    if (texUnit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
     }
 
     layout->Add(new TextureUnit(texUnit));
-    layout->textureUnits |= 1 << texUnit;
-    layout->currentTexture.unit = texUnit;
-
     return new XL::Integer(texUnit);
 }
 
@@ -7699,11 +7683,9 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
         return 0;
     }
 
-    layout->currentTexture.id   = id;
-    layout->currentTexture.type = GL_TEXTURE_2D;
-
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    // Get corresponding texture type
+    GLenum type = GL.currentTextures.textures[texId].type;
+    layout->Add(new FillTexture(texId, type));
     return new XL::Integer(texId);
 }
 
@@ -7722,27 +7704,17 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         ADJUST_CONTEXT_FOR_INTERPRETER(context);
         img  = context->ResolvePrefixedPath(img);
 
-        ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-        if (!rinfo)
-        {
-            rinfo = new ImageTextureInfo();
-            self->SetInfo<ImageTextureInfo>(rinfo);
-        }
-
         text docPath = +taoWindow()->currentProjectFolderPath();
-        ImageTextureInfo::Texture t = rinfo->load(img, docPath);
-        layout->currentTexture.id     = t.id;
-        layout->currentTexture.width  = t.width;
-        layout->currentTexture.height = t.height;
-        layout->currentTexture.type   = GL_TEXTURE_2D;
-        layout->currentTexture.minFilt = TextureCache::instance()->minFilter();
-        layout->currentTexture.magFilt = TextureCache::instance()->magFilter();
-
-        texId = layout->currentTexture.id;
+        CachedTexture *t = TextureCache::instance()->load(+img, +docPath);
+        layout->Add(new FillTexture(t->id, GL_TEXTURE_2D));
+        GL.TextureSize(t->width, t->height);
+        texId = t->id;
     }
-
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
-    layout->hasAttributes = true;
+    else
+    {
+        layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
+        GL.TextureSize(0, 0);
+    }
 
     return new Integer(texId, self->Position());
 }
@@ -7768,16 +7740,14 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
             rinfo = new AnimatedTextureInfo();
             self->SetInfo<AnimatedTextureInfo>(rinfo);
         }
-        layout->currentTexture.id     = rinfo->bind(img);
-        layout->currentTexture.width  = rinfo->width;
-        layout->currentTexture.height = rinfo->height;
-        layout->currentTexture.type   = GL_TEXTURE_2D;
-
-        texId = layout->currentTexture.id;
+        layout->Add(new FillTexture(rinfo->bind(img), GL_TEXTURE_2D));
+        GL.TextureSize(rinfo->width, rinfo->height);
     }
-
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    else
+    {
+        layout->Add(new FillTexture(texId));
+        GL.TextureSize(0, 0);
+    }
 
     return new Integer(texId, self->Position());
 }
@@ -7806,29 +7776,16 @@ Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
             self->SetInfo<SvgRendererInfo>(rinfo);
         }
 
-        layout->currentTexture.id     = rinfo->bind(img);
-        layout->currentTexture.width  = rinfo->w;
-        layout->currentTexture.height = rinfo->h;
-        layout->currentTexture.type   = GL_TEXTURE_2D;
-
-        texId   = layout->currentTexture.id;
+        layout->Add(new FillTexture(rinfo->bind(img), GL_TEXTURE_2D));
+        GL.TextureSize(rinfo->w, rinfo->h);
+    }
+    else
+    {
+        layout->Add(new FillTexture(texId));
+        GL.TextureSize(0, 0);
     }
 
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-
     return new Integer(texId, self->Position());
-}
-
-
-Integer* Widget::image(Context *context,
-                       Tree_p self, Real_p x, Real_p y, text filename)
-//----------------------------------------------------------------------------
-//  Make an image with default size
-//----------------------------------------------------------------------------
-//  If w or h is 0 then the image width or height is used and assigned to it.
-{
-    return image(context, self, x, y, NULL, NULL, filename);
 }
 
 
@@ -7846,68 +7803,25 @@ Integer* Widget::image(Context *context,
     filename = context->ResolvePrefixedPath(filename);
 
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
-    double sx = sxp.Pointer() ? (double) sxp : 1.0;
-    double sy = syp.Pointer() ? (double) syp : 1.0;
-
-    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-    if (!rinfo)
-    {
-        rinfo = new ImageTextureInfo();
-        self->SetInfo<ImageTextureInfo>(rinfo);
-    }
+    double sx = sxp->value;
+    double sy = syp->value;
 
     text docPath = +taoWindow()->currentProjectFolderPath();
-    ImageTextureInfo::Texture t = rinfo->load(filename, docPath);
-    layout->currentTexture.id     = t.id;
-    layout->currentTexture.width  = t.width;
-    layout->currentTexture.height = t.height;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-    layout->currentTexture.minFilt = TextureCache::instance()->minFilter();
-    layout->currentTexture.magFilt = TextureCache::instance()->magFilter();
+    CachedTexture *t = TextureCache::instance()->load(+filename, +docPath);
+    layout->Add(new FillTexture(t->id, GL_TEXTURE_2D));
+    GL.TextureSize(t->width, t->height);
 
-    uint texId   = layout->currentTexture.id;
-
-    double w0 = rinfo->width;
-    double h0 = rinfo->height;
+    double w0 = t->width;
+    double h0 = t->height;
     double w = w0 * sx;
     double h = h0 * sy;
-
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
-    layout->hasAttributes = true;
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
     layout->Add(new Rectangle(shape));
     if (sxp.Pointer() && syp.Pointer() && currentShape)
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
-    return new Integer(texId, self->Position());
-}
-
-
-Integer* Widget::imagePx(Context *context,
-                         Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
-                         text filename)
-//----------------------------------------------------------------------------
-//  Make an image
-//----------------------------------------------------------------------------
-{
-    Infix_p resolution = imageSize(context, self, filename);
-    Integer_p ww = resolution->left->AsInteger();
-    Integer_p hh = resolution->right->AsInteger();
-    if (ww == 1 && hh == 1)
-    {
-        // File not found
-        ww->value = ImageTextureInfo::defaultTexture().width;
-        hh->value = ImageTextureInfo::defaultTexture().height;
-    }
-    double sx = (double)w / (double)ww;
-    double sy = (double)h / (double)hh;
-    if ((double)w == 0.0 && (double)h != 0)
-        sx = sy;
-    if ((double)h == 0.0 && (double)w != 0)
-        sy = sx;
-
-    return image(context, self, x, y, new Real(sx), new Real(sy), filename);
+    return new Integer(t->id, self->Position());
 }
 
 
@@ -7919,24 +7833,12 @@ Infix_p Widget::imageSize(Context *context,
 {
     refreshOn(TextureCache::instance()->textureChangedEvent());
 
-    GLuint w = 1, h = 1;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
-    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-    if (!rinfo)
-    {
-        rinfo = new ImageTextureInfo();
-        self->SetInfo<ImageTextureInfo>(rinfo);
-    }
     text docPath = +taoWindow()->currentProjectFolderPath();
-    ImageTextureInfo::Texture t = rinfo->load(filename, docPath);
-    if (t.id != ImageTextureInfo::defaultTexture().id)
-    {
-        w = t.width; h = t.height;
-    }
-
-    longlong v[2] = { w, h };
+    CachedTexture *t = TextureCache::instance()->load(+filename, +docPath);
+    longlong v[2] = { t->width, t->height };
     Tree *result = xl_integer_list(self, 2, v);
     return result->AsInfix();
 }
@@ -8023,9 +7925,7 @@ Tree_p Widget::textureMode(Tree_p self, text mode)
 // ----------------------------------------------------------------------------
 {
     GLenum glMode = TextToGLEnum(mode, GL_MODULATE);
-    layout->currentTexture.mode = glMode;
     layout->Add(new TextureMode(glMode));
-
     return XL::xl_true;
 }
 
@@ -8036,9 +7936,7 @@ Tree_p Widget::textureMinFilter(Tree_p self, text filter)
 // ----------------------------------------------------------------------------
 {
     GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
-    layout->currentTexture.minFilt = glFilt;
     layout->Add(new TextureMinFilter(glFilt));
-
     return XL::xl_true;
 }
 
@@ -8049,41 +7947,39 @@ Tree_p Widget::textureMagFilter(Tree_p self, text filter)
 // ----------------------------------------------------------------------------
 {
     GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
-    layout->currentTexture.magFilt = glFilt;
     layout->Add(new TextureMagFilter(glFilt));
-
     return XL::xl_true;
 }
+
 
 Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation
 // ----------------------------------------------------------------------------
 {
-    uint texUnit = layout->currentTexture.unit;
+    uint texUnit = GL.ActiveTextureUnitIndex() - GL_TEXTURE0;
+
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if (texUnit >= TaoApp->maxTextureCoords)
+    if (texUnit >= GL.MaxTextureCoords())
     {
         Ooops("Invalid texture unit to transform $1", self);
         return XL::xl_false;
     }
 
-    layout->hasTextureMatrix |= 1 << texUnit;
-    layout->hasTransform = true;
     layout->Add(new TextureTransform(true));
     Tree_p result = context->Evaluate(code);
     layout->Add(new TextureTransform(false));
-    layout->hasTransform = false;
     return result;
 }
+
 
 Integer* Widget::textureWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current texture width
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.width);
+    return new Integer(GL.TextureWidth());
 }
 
 
@@ -8092,16 +7988,18 @@ Integer* Widget::textureHeight(Tree_p self)
 //   Return the current texture height
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.height);
+    return new Integer(GL.TextureHeight());
 }
+
 
 Integer* Widget::textureType(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current texture type
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.type);
+    return new Integer(GL.TextureType());
 }
+
 
 Text_p Widget::textureMode(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -8109,7 +8007,8 @@ Text_p Widget::textureMode(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     text mode;
-    switch(layout->currentTexture.mode)
+    uint m = GL.TextureMode();
+    switch(m)
     {
     case GL_REPLACE: mode = "replace";  break;
     case GL_ADD    : mode = "add";      break;
@@ -8120,12 +8019,13 @@ Text_p Widget::textureMode(Tree_p self)
     return new Text(mode);
 }
 
+
 Integer* Widget::textureId(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current texture id
 // ----------------------------------------------------------------------------
 {
-   return new Integer(layout->currentTexture.id);
+    return new Integer(GL.TextureID());
 }
 
 
@@ -8135,13 +8035,13 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 //   Return the texture id set at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if (unit > TaoApp->maxTextureUnits)
+    if (unit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
     }
 
-    uint hasTexture = layout->textureUnits & (1 << unit);
+    uint hasTexture = GL.ActiveTextureUnits() & (1ULL << unit);
     if (hasTexture)
         return XL::xl_true;
 
@@ -8154,7 +8054,7 @@ Integer* Widget::textureUnit(Tree_p self)
 //   Return the current texture unit
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.unit);
+    return new Integer(GL.ActiveTextureUnitIndex() - GL_TEXTURE0);
 }
 
 
@@ -8212,12 +8112,12 @@ Tree_p Widget::extrudeCount(Tree_p self, int count)
 }
 
 
-Integer_p Widget::lightsMask(Tree_p self)
+Integer_p Widget::lightsMask(Tree_p)
 // ----------------------------------------------------------------------------
 //  Return a bitmask of all current activated lights
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentLights);
+    return new Integer(GL.LightsMask());
 }
 
 
@@ -8236,12 +8136,6 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
-    if (enable)
-        layout->currentLights |= 1 << id;
-    else
-        layout->currentLights ^= 1 << id;
-
-    layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;
 }
@@ -8251,7 +8145,6 @@ Tree_p Widget::light(Tree_p self, GLuint function, GLfloat value)
 //   Set a light parameter with a single float value
 // ----------------------------------------------------------------------------
 {
-    layout->hasLighting = true;
     layout->Add(new Light(function, value));
     return XL::xl_true;
 }
@@ -8263,7 +8156,6 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (direction)
 // ----------------------------------------------------------------------------
 {
-    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c));
     return XL::xl_true;
 }
@@ -8275,7 +8167,6 @@ Tree_p Widget::light(Tree_p self, GLuint function,
 //   Set a light parameter with four float values (position, color)
 // ----------------------------------------------------------------------------
 {
-    layout->hasLighting = true;
     layout->Add(new Light(function, a, b, c, d));
     return XL::xl_true;
 }
@@ -8311,6 +8202,16 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //    Note that we compile and evaluate the shader only once
 {
+    Tree_p result = XL::xl_true;
+
+    Name* name = code->AsName();
+    if(name && (name->value == "false"))
+    {
+        // Disable shader program
+        layout->Add(new ShaderProgram());
+        return result;
+    }
+
     if (currentShaderProgram)
     {
         Ooops("Nested shader program $1", self);
@@ -8319,7 +8220,7 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
 
     ShaderProgramInfo *info = self->GetInfo<ShaderProgramInfo>();
     QGLShaderProgram *program = NULL;
-    Tree_p result = XL::xl_true;
+
     if (!info)
     {
         program = new QGLShaderProgram;
@@ -8349,11 +8250,7 @@ static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
     {
     case Widget::VERTEX:        return QGLShader::Vertex;
     case Widget::FRAGMENT:      return QGLShader::Fragment;
-#if QT_VERSION >= 0x040700
     case Widget::GEOMETRY:      return QGLShader::Geometry;
-#else
-    case Widget::GEOMETRY:      break;
-#endif // Qt has geometry
     }
     XL::Ooops("Shader type not implemented");
     return QGLShader::ShaderType(0);
@@ -8408,11 +8305,51 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
 }
 
 
+static inline GLenum getTypeOfActiveUniform(GLuint progId, kstring name,
+                                            int hint = 0)
+// ----------------------------------------------------------------------------
+//   Return type of active uniform 'name' in shader program 'progId', or 0
+// ----------------------------------------------------------------------------
+{
+    // Setting hint to the uniform location improves performance because most
+    // of the time the index has the same value as the location (tested on
+    // MacOSX 10.6.8).
+    // This is probably true on many other platforms, since we could live for
+    // so long without commit efc31e990.
+
+    int uniforms = 0;
+    GL.GetProgram(progId, GL_ACTIVE_UNIFORMS, &uniforms);
+    if (hint >= uniforms)
+        hint = 0;
+
+    GLsizei size = -1;
+    GLsizei length = 0;
+    GLenum type = 0;
+    char uniformName[80];
+    for (int i = hint; i < hint + uniforms; i++)
+    {
+        uint index = i % uniforms;
+        GL.GetActiveUniform(progId, index, sizeof(uniformName) - 1, &length,
+                            &size, &type, uniformName);
+        if (!strcmp(uniformName, name))
+            break;
+        else
+            type = 0;
+    }
+
+    return type;
+}
+
+
 Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Evaluate the code argument as an assignment for the current shader
 // ----------------------------------------------------------------------------
 {
+    GLuint programId = layout->programId;
+    if (!programId)
+        return Ooops("No program for shader assignment $1", self);
+
     if (Infix *infix = code->AsInfix())
     {
         if (infix->name == ":=")
@@ -8456,7 +8393,33 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
                     Ooops("Shader value $1 is not a number", value);
             }
 
-            layout->Add(new ShaderValue(name, values));
+
+            // Get location for the given uniform
+            kstring cname = name->value.c_str();
+            GLint uniformLoc = GL.GetUniformLocation(programId, cname);
+
+            if (uniformLoc >= 0)
+            {
+                GLenum type = getTypeOfActiveUniform(programId, cname,
+                                                     uniformLoc);
+
+                // Register that we want to set a shader value
+                layout->Add(new ShaderValue(uniformLoc, type, values));
+            }
+            else
+            {
+                GLint attributeLoc = GL.GetAttribLocation(programId, cname);
+                if (attributeLoc >= 0)
+                {
+                    layout->Add(new ShaderAttribute(attributeLoc,
+                                                    GL_FLOAT, values));
+                }
+                else
+                {
+                    return Ooops("Unkown shader variable name $1", name);
+                }
+            }
+
             return XL::xl_true;
         }
     }
@@ -8554,6 +8517,7 @@ Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
 // ----------------------------------------------------------------------------
 {
     if (!currentShaderProgram)
+
     {
         Ooops("No shader program while executing $1", self);
         return XL::xl_false;
@@ -8841,6 +8805,20 @@ Tree_p Widget::rectangle(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h)
     else
         layout->Add(new Rectangle(shape));
 
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::plane(Tree_p tree, Real_p x, Real_p y, Real_p w,
+             Real_p h, Integer_p lines_nb, Integer_p columns_nb)
+// ----------------------------------------------------------------------------
+//    Draw a subdivided plane
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Plane(x, y, w, h, lines_nb, columns_nb));
     if (currentShape)
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
@@ -9201,20 +9179,15 @@ Integer* Widget::picturePacker(Tree_p self,
 
         // Convert the resulting image into a texture
         QImage texImg = QGLWidget::convertToGLFormat(imagePacker.composite);
-        glBindTexture(GL_TEXTURE_2D, tinfo->textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+        GL.BindTexture(GL_TEXTURE_2D, tinfo->textureId);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      texImg.width(), texImg.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texImg.bits());
     }
 
-    layout->currentTexture.id     = tinfo->bind();
-    layout->currentTexture.width  = iw;
-    layout->currentTexture.height = ih;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId   = tinfo->bind();
     layout->Add(new FillTexture(texId));
+    GL.TextureSize(iw, ih);
     return new Integer(texId, self->Position());
 }
 
@@ -9350,20 +9323,14 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(doc);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = surface->bind(doc);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize(w, h);
+
     delete editCursor;
     editCursor = NULL;
 
     return result;
-
 }
 
 
@@ -9411,7 +9378,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
     }
 
     XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+    Tree_p result = saveAndEvaluate(context, body);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -9441,7 +9408,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
 
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
-    Tree_p result = context->Evaluate(prog);
+    Tree_p result = saveAndEvaluate(context, prog);
     flow->lastRefresh = CurrentTime();
 
     return result;
@@ -9495,7 +9462,7 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
     layout->Add(childLayout);
 
     XL::Save<Layout *> saveLayout(layout, childLayout);
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = saveAndEvaluate(context, child);
     layout->lastRefresh = CurrentTime();
 
     return result;
@@ -9523,6 +9490,9 @@ Box3 Widget::textSize(Tree_p self, Text_p content)
 //   Return the dimensions of a given text
 // ----------------------------------------------------------------------------
 {
+    // Saving offset to avoid changes of curor position. Refs #3125.
+    XL::Save<Point3>      saveOffset(layout->offset, Point3(0, 0, 0));
+
     TextUnit u(content);
     Box3 bbox(u.Bounds(layout));
     return bbox;
@@ -9970,7 +9940,7 @@ Text_p Widget::taoVersion(Tree_p self)
 {
     static text v = "";
     if (v == "")
-        v = GITREV;
+        v = GITREV_;
     return new XL::Text(v);
 }
 
@@ -10045,7 +10015,6 @@ Integer_p Widget::glyphCacheTexture(Tree_p self)
 {
     uint textureID = glyphCache.Texture();
     layout->Add(new FillTexture(textureID, GL_TEXTURE_RECTANGLE_ARB));
-    layout->hasAttributes = true;
     return new Integer(textureID, self->Position());
 }
 
@@ -10165,7 +10134,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
     tbox->ctx = context;
 
     XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+    Tree_p result = saveAndEvaluate(context, body);
 
     table->NextCell();
     return result;
@@ -10187,7 +10156,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
     table->Add(tbox);
 
     XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+    Tree_p result = saveAndEvaluate(context, body);
     layout->lastRefresh = CurrentTime();
     table->NextCell();
     return result;
@@ -10386,9 +10355,27 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    if (canvas && name == "")
+    {
+        // A canvas must have a name or it would not persist accross pages
+        // (all anonymous FrameInfos are destroyed on page change, #3090).
+        QString qname = QString("canvas%1").arg(shapeId());
+        return frameTexture(context, self, w, h, prog, +qname, withDepth,
+                            canvas);
+    }
+
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
-    if (w > TaoApp->maxTextureSize) w = TaoApp->maxTextureSize;
-    if (h > TaoApp->maxTextureSize) h = TaoApp->maxTextureSize;
+    GLuint maxTextureSize = GL.MaxTextureSize();
+    if (w > maxTextureSize) w = maxTextureSize;
+    if (h > maxTextureSize) h = maxTextureSize;
     if (w < 1) w = 2;
     if (h < 1) h = 2;
 
@@ -10396,27 +10383,27 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     if (name != "")
     {
         // Get or build the current frame if we don't have one
-        MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
-        if (!multiframe)
+        MultiFrameInfo<text> *mf = self->GetInfo< MultiFrameInfo<text> >();
+        if (!mf)
         {
-            multiframe = new MultiFrameInfo<text>();
-            self->SetInfo< MultiFrameInfo<text> > (multiframe);
+            mf = new MultiFrameInfo<text>();
+            self->SetInfo< MultiFrameInfo<text> > (mf);
         }
 
-        pFrame = &multiframe->frame(name);
+        pFrame = &mf->frame(name);
     }
     else
     {
         // Get or build the current frame if we don't have one
-        MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
-        if (!multiframe)
+        MultiFrameInfo<uint> *mf = self->GetInfo< MultiFrameInfo<uint> >();
+        if (!mf)
         {
-            multiframe = new MultiFrameInfo<uint>();
-            self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+            mf = new MultiFrameInfo<uint>();
+            self->SetInfo< MultiFrameInfo<uint> > (mf);
         }
 
         uint id = shapeId();
-        pFrame = &multiframe->frame(id);
+        pFrame = &mf->frame(id);
     }
 
     FrameInfo &frame = *pFrame;
@@ -10424,21 +10411,23 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     Layout *parent = layout;
     do
     {
-        GLAllStateKeeper saveGL;
-        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        GLAllStateKeeper      saveGL;
+        XL::Save<Layout *>    saveLayout(layout, layout->NewChild());
         XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
-        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
-        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
-        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<Point3>      saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3>      saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3>     saveUp(cameraUpVector, Vector3(0,1,0));
         XL::Save<double> saveCamToScr(cameraToScreen,
                                       (cameraTarget-cameraPosition).Length());
-        XL::Save<double> saveZoom(zoom, 1);
-        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
+        XL::Save<double>      saveZoom(zoom, 1);
+        XL::Save<double>      saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
         frame.resize(w,h);
         setup(w, h);
-        result = context->Evaluate(prog);
+
+        // Evaluate the program
+        result = saveAndEvaluate(context, prog);
 
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);
@@ -10459,16 +10448,17 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         layout = NULL;
     } while (0); // State keeper and layout
 
+    glPopAttrib();
+
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize(w, h);
 
     if (withDepth.Pointer())
     {
@@ -10505,14 +10495,14 @@ Tree* Widget::drawingCache(Context *context, Tree_p self,
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout, layout->NewChild());
 
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
 
-        glNewList(info->displayListID, GL_COMPILE);
+        GL.NewList(info->displayListID, GL_COMPILE);
         layout->Draw(NULL);
-        glEndList();
+        GL.EndList();
 
         stats.end(Statistics::DRAW);
         stats.begin(Statistics::EXEC);
@@ -10536,6 +10526,14 @@ Integer* Widget::thumbnail(Context *context,
 //   Generate a texture with a page thumbnail of the given page
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     // Prohibit recursion on thumbnails
     if (page == pageName || !xlProgram)
         return 0;
@@ -10580,7 +10578,7 @@ Integer* Widget::thumbnail(Context *context,
 
         // Evaluate the program, not the context files (bug #1054)
         if (Tree_p prog = xlProgram->tree)
-            context->Evaluate(prog);
+            saveAndEvaluate(context, prog);
 
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);
@@ -10601,19 +10599,22 @@ Integer* Widget::thumbnail(Context *context,
         frame.refreshTime = CurrentTime() + interval;
     }
 
+    glPopAttrib();
+
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
+
 
     return new Integer(texId, self->Position());
 }
+
 
 Integer* Widget::linearGradient(Context *context, Tree_p self,
                                 Real_p start_x, Real_p start_y,
@@ -10623,6 +10624,14 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a linear gradient
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly some GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -10654,12 +10663,13 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
 
         // Evaluate the program
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         // Draw gradient in a rectangle
         painter.fillRect(0, 0, w, h, (*gradient));
@@ -10674,16 +10684,17 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
         layout = NULL;
     } while (0); // State keeper and layout
 
+    glPopAttrib();
+
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10697,6 +10708,14 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a radial gradient
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -10728,12 +10747,13 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QRadialGradient(center_x, center_y, radius);
 
         // Evaluate the program
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         // Draw gradient in a rectangle
         painter.fillRect(0, 0, w, h, (*gradient));
@@ -10748,16 +10768,17 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
         layout = NULL;
     } while (0); // State keeper and layout
 
+    glPopAttrib();
+
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
+
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10771,6 +10792,14 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a conical gradient
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -10802,12 +10831,13 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QConicalGradient(center_x, center_y, angle);
 
         // Evaluate the program
-        result = context->Evaluate(prog);
+        result = saveAndEvaluate(context, prog);
 
         // Draw gradient in a rectangle
         painter.fillRect(0, 0, w, h, (*gradient));
@@ -10820,18 +10850,19 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
-    } while (0); // State keeper and layout
+    } while (0); // State keeper and layout 
+
+    glPopAttrib();
+
+    // As we have use our own GL functions, we need
+    // to resync after glPopAttrib to assure that our
+    //GL state is consistent with the real GL state. Refs #2970
+    GL.Sync();
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10890,16 +10921,10 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(url, progress);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w,h);
+    uint texId = surface->bind(url, progress);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 #endif
@@ -10941,16 +10966,10 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(txt);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(txt);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10986,16 +11005,10 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl, act, sel);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -11033,16 +11046,10 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl, act, sel);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -11080,16 +11087,10 @@ Integer* Widget::pushButtonTexture(Tree_p self,
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl, act, NULL);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl, act, NULL);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -11588,16 +11589,10 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 
 
     // Resize to requested size, and bind texture
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl);
     layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -11697,13 +11692,15 @@ void Widget::setWatermarkText(text t, int w, int h)
     painter.end();
 
     // Generate the GL texture
+    GLAllStateKeeper save;
     QImage texture = QGLWidget::convertToGLFormat(image);
     if (!watermark)
-        glGenTextures(1, &watermark);
-    glBindTexture(GL_TEXTURE_2D, watermark);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+        GL.GenTextures(1, &watermark);
+    GL.BindTexture(GL_TEXTURE_2D, watermark);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  w, h, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texture.bits());
+    GL.BindTexture(GL_TEXTURE_2D, 0);
 
     watermarkText = t;
     watermarkWidth = w;
@@ -11733,7 +11730,8 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
-    glColor4f(1.0, 1.0, 1.0, 0.2);
+    GLAllStateKeeper save;
+    GL.Color(1.0, 1.0, 1.0, 0.2);
     drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
 }
 
@@ -11744,18 +11742,19 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 //   Draw a texture centered over the full widget with wrapping enabled
 // ----------------------------------------------------------------------------
 {
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glEnable(GL_TEXTURE_2D);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL.Disable(GL_DEPTH_TEST);
+    GL.DepthMask(GL_FALSE);
+    GL.BindTexture(GL_TEXTURE_2D, tex);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    GL.Enable(GL_TEXTURE_2D);
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
     float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
     float tw = w/texw, th = h/texh;
     float x1 = -tw/2, x2 = tw/2;
@@ -11764,18 +11763,18 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     {
         x1 += 0.5; x2 += 0.5; y1 += 0.5; y2 += 0.5;
     }
-    glBegin(GL_QUADS);
-    glTexCoord2f(x1, y1);
-    glVertex2i  (-1, -1);
-    glTexCoord2f(x2, y1);
-    glVertex2i  ( 1, -1);
-    glTexCoord2f(x2, y2);
-    glVertex2i  ( 1,  1);
-    glTexCoord2f(x1, y2);
-    glVertex2i  (-1,  1);
-    glEnd();
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
+    GL.Begin(GL_QUADS);
+    GL.TexCoord(x1, y1);
+    GL.Vertex  (-1, -1);
+    GL.TexCoord(x2, y1);
+    GL.Vertex   ( 1, -1);
+    GL.TexCoord(x2, y2);
+    GL.Vertex   ( 1,  1);
+    GL.TexCoord(x1, y2);
+    GL.Vertex   (-1,  1);
+    GL.End();
+    GL.Enable(GL_DEPTH_TEST);
+    GL.DepthMask(GL_TRUE);
 }
 
 
@@ -12743,7 +12742,7 @@ Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
         selectNextTime.erase(self);
     }
 
-    Tree_p result = context->Evaluate(shapes);
+    Tree_p result = saveAndEvaluate(context, shapes);
     layout->lastRefresh = CurrentTime();
     return result;
 }
@@ -13070,7 +13069,7 @@ XL::Text_p Widget::GLVersion(XL::Tree_p self)
 //   Return OpenGL supported version
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(TaoApp->GLVersionAvailable);
+    return new XL::Text(GL.Version());
 }
 
 
@@ -13079,21 +13078,23 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
 //   Check is an OpenGL extensions is supported
 // ----------------------------------------------------------------------------
 {
-    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
-    kstring req = name.c_str();
-    bool isAvailable = (strstr(avail, req) != NULL);
-    return isAvailable ? XL::xl_true : XL::xl_false;
+    return isGLExtensionAvailable(name) ? XL::xl_true : XL::xl_false;
 }
+
 
 bool Widget::isGLExtensionAvailable(text name)
 // ----------------------------------------------------------------------------
 //   Module interface to isGLExtensionAvailable
 // ----------------------------------------------------------------------------
 {
-    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
-    kstring req = name.c_str();
-    bool isAvailable = (strstr(avail, req) != NULL);
-    return isAvailable ? true : false;
+    if (OpenGLState *opengl = dynamic_cast<OpenGLState *> (&GL))
+    {
+        kstring avail = opengl->extensionsAvailable.c_str();
+        kstring req = name.c_str();
+        bool isAvailable = (strstr(avail, req) != NULL);
+        return isAvailable;
+    }
+    return false;
 }
 
 
@@ -13421,4 +13422,13 @@ void tao_widget_refresh(double delay)
     TAO(refresh(delay));
 }
 
+}
+
+
+void sd()
+{
+    GLint attr = 0, cattr = 0;
+    glGetIntegerv(GL_ATTRIB_STACK_DEPTH, &attr);
+    glGetIntegerv(GL_CLIENT_ATTRIB_STACK_DEPTH, &cattr);
+    std::cerr << "Attr=" << attr << " cattr=" << cattr << "\n";
 }

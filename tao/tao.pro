@@ -66,7 +66,6 @@ HEADERS +=     activity.h \
     attributes.h \
     binpack.h \
     chooser.h \
-    color.h \
     crypto.h \
     destination_folder_dialog.h \
     dir.h \
@@ -132,14 +131,19 @@ HEADERS +=     activity.h \
     widget.h \
     widget_surface.h \
     window.h \
+    opengl_state.h \
+    opengl_save.h \
     include/tao/coords.h \
     include/tao/coords3d.h \
+    include/tao/coords4d.h \
+    include/tao/color.h \
     include/tao/matrix.h \
     include/tao/module_api.h \
     include/tao/module_info.h \
     include/tao/tao_gl.h \
     include/tao/tao_info.h \
     include/tao/tao_utf8.h \
+    include/tao/graphic_state.h
 
 SOURCES +=     activity.cpp \
     application.cpp \
@@ -179,6 +183,8 @@ SOURCES +=     activity.cpp \
     module_renderer.cpp \
     nag_screen.cpp \
     normalize.cpp \
+    opengl_state.cpp \
+    opengl_save.cpp \
     page_layout.cpp \
     path3d.cpp \
     preferences_dialog.cpp \
@@ -207,6 +213,7 @@ SOURCES +=     activity.cpp \
     transforms.cpp \
     tree_cloning.cpp \
     update_application.cpp \
+    version.cpp \
     widget.cpp \
     widget_surface.cpp \
     window.cpp
@@ -434,6 +441,7 @@ OTHER_FILES +=  \
     html/module_info_dialog_fr.html \
     tao_fr.ts \
     welcome/welcome.ddd \
+    opengl_state.tbl \
     no_welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \
@@ -527,6 +535,12 @@ isEmpty(NO_DOC_SIGNATURE) {
   SIGN_XL_INSTPATH=$$APPINST/welcome
   include(../modules/sign_xl.pri)
 }
+
+# Blank document
+blank.path = $$APPINST
+blank.commands = touch \"$$APPINST/blank.ddd\"
+blank.depends = FORCE
+INSTALLS += blank
 
 isEmpty(NO_FONTS) {
   fonts.path  = $$APPINST/fonts

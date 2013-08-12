@@ -82,37 +82,37 @@ static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
     double *ndata = &data[0].normal.x;
     GLuint size = data.size();
 
-    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
-    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
+    GL.VertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
+    GL.NormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.EnableClientState(GL_NORMAL_ARRAY);
 
     // Activate texture coordinates for all used units
-    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    for(uint i = 0; i < GL.MaxTextureCoords() ; i++)
     {
         if(textureUnits & (1 << i))
         {
-            glClientActiveTexture( GL_TEXTURE0 + i );
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData), tdata);
+            GL.ClientActiveTexture( GL_TEXTURE0 + i );
+            GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+            GL.TexCoordPointer(3, GL_DOUBLE, sizeof(VertexData), tdata);
         }
     }
 
-    glDrawArrays(mode, 0, size);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
+    GL.DrawArrays(mode, 0, size);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
+    GL.DisableClientState(GL_NORMAL_ARRAY);
 
-    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
+    for(uint i = 0; i < GL.MaxTextureCoords() ; i++)
     {
         if(textureUnits & (1 << i))
         {
-            glClientActiveTexture( GL_TEXTURE0 + i );
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            GL.ClientActiveTexture( GL_TEXTURE0 + i );
+            GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
         }
     }
 
     // Restore the client active texture
-    glClientActiveTexture(GL_TEXTURE0);
+    GL.ClientActiveTexture(GL_TEXTURE0);
 }
 
 
@@ -236,7 +236,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
         return;
     
     Layout *layout = poly.layout;
-    uint64 textureUnits = layout->textureUnits;
+    uint64 textureUnits = GL.ActiveTextureUnits();
 
     scale radius = layout->extrudeRadius;
     int count = layout->extrudeCount;
@@ -367,17 +367,20 @@ static void CALLBACK tessEnd(PolygonData *poly)
     if (size)
     {
         Layout *layout = poly->layout;
-        uint64 textureUnits = layout->textureUnits;
+        uint64 textureUnits = GL.ActiveTextureUnits();
         double depth = layout->extrudeDepth;
         if (depth > 0.0)
         {
             bool invert = poly->path->invert;
+            GL.Sync();
+            // REVISIT: Replace pushMatrix/popMatrix by
+            // GL.Save() (Find why it occurs a bug with outline). Refs #3040.
             glPushMatrix();
             glTranslatef(0.0, 0.0, -depth);
             glScalef(1, 1, -1);
-            glFrontFace(invert ? GL_CCW : GL_CW);
+            GL.FrontFace(invert ? GL_CCW : GL_CW);
             drawArrays(poly->mode, textureUnits, data);
-            glFrontFace(invert ? GL_CW : GL_CCW);
+            GL.FrontFace(invert ? GL_CW : GL_CCW);
             glPopMatrix();
         }
         drawArrays(poly->mode, textureUnits, data);
@@ -687,6 +690,14 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
+    GLAllStateKeeper save;
+
+    // Sync lighting state only if we have lights or shaders
+    if(GL.LightsMask() || where->programId)
+        GL.Sync(STATE_lights);
+
+    GL.LoadMatrix();
+
     // Do not bother setting up textures and programs if we are in selection
     if (tessel != GL_SELECT)
         setTexture(where);
@@ -915,7 +926,7 @@ void GraphicPath::Draw(Layout *layout,
     Vertices control;           // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
     polygon.layout = layout;
-    uint textureUnits = layout->textureUnits;
+    uint textureUnits = GL.ActiveTextureUnits();
     uint vertexIndex = 0;
     scale depth = layout->extrudeDepth;
 
@@ -1060,13 +1071,13 @@ void GraphicPath::Draw(Layout *layout,
                     if (!tesselation)
                     {
                         // If no tesselation is required, draw back directly
-                        glPushMatrix();
-                        glTranslatef(0.0, 0.0, -depth);
-                        glScalef(1, 1, -1);
-                        glFrontFace(GL_CW);
+                        GraphicSave* save = GL.Save();
+                        GL.Translate(0.0, 0.0, -depth);
+                        GL.Scale(1, 1, -1);
+                        GL.FrontFace(GL_CW);
                         drawArrays(mode, textureUnits, data);
-                        glFrontFace(GL_CCW);
-                        glPopMatrix();
+                        GL.FrontFace(GL_CCW);
+                        GL.Restore(save);
                     }
                     extrude(polygon, data, depth);
                 }
@@ -1399,14 +1410,14 @@ void GraphicPath::Identify(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected(layout))
     {
-        glPushName(layout->id);
+        GL.PushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
             child->Identify(layout);
         }
-        glPopName();
+        GL.PopName();
     }
 }
 

@@ -51,21 +51,11 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     isGLExtensionAvailable = Widget::isGLExtensionAvailable;
 
-    //Drawing paramaters
+    //Drawing parameters
     SetTextures      = ModuleRenderer::SetTextures;
-    BindTexture      = ModuleRenderer::BindTexture;
-    BindTexture2D    = ModuleRenderer::BindTexture2D;
-    EnableTexCoords  = ModuleRenderer::EnableTexCoords;
-    DisableTexCoords = ModuleRenderer::DisableTexCoords;
-    TextureUnit      = ModuleRenderer::TextureUnit;
-    TextureUnits     = ModuleRenderer::TextureUnits;
-    SetTextureUnits  = ModuleRenderer::SetTextureUnits;
-    HasTexture       = ModuleRenderer::HasTexture;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
     SetShader        = ModuleRenderer::SetShader;
-    HasPixelBlur     = ModuleRenderer::HasPixelBlur;
-    EnabledLights    = ModuleRenderer::EnabledLights;
     ModelMatrix      = ModuleRenderer::ModelMatrix;
 
     deferredDelete   = InfoTrashCan::DeferredDelete;

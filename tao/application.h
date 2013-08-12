@@ -49,13 +49,6 @@ struct UpdateApplication;
 struct LicenseDownloadUI;
 #endif
 
-enum Vendor {
-    ATI = 0,
-    NVIDIA = 1,
-    INTEL = 2,
-    LAST = 3
-};
-
 
 #define TaoApp  ((Application *) qApp)
 
@@ -68,7 +61,6 @@ public:
     enum TaoEdition { Unknown, Design, DesignPro, Player, PlayerPro, Other };
 
 public:
-    static text vendorsList[LAST];
     static QPixmap *padlockIcon;
 
     Q_OBJECT
@@ -120,6 +112,7 @@ public:
     void           processCommandLineFile();
     void           blockScreenSaver(bool block);
     void           enableVSync(bool on);
+    bool           addError(const char *msg);
 
 public slots:
     void           loadUri(QString uri);
@@ -170,14 +163,6 @@ public:
     bool               hasGLMultisample, hasFBOMultisample;
     bool               hasGLStereoBuffers;
     bool               useShaderLighting;
-    Vendor             vendorID;
-    uint               maxTextureCoords;
-    uint               maxTextureUnits;
-    uint               maxTextureSize;
-    text               GLVendor;
-    text               GLRenderer;
-    text               GLVersionAvailable;
-    text               GLExtensionsAvailable;
     QString            lang;
     GCThread *         gcThread;
     UpdateApplication* updateApp;

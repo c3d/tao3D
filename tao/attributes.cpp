@@ -28,6 +28,7 @@
 #include <iostream>
 #include "text_drawing.h"
 #include "application.h"
+#include "preferences_pages.h"
 
 TAO_BEGIN
 
@@ -85,8 +86,6 @@ void LineColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    where->hasMaterial = false;
-    glEnable(GL_COLOR_MATERIAL);
     where->lineColor = color;
 }
 
@@ -96,8 +95,6 @@ void FillColor::Draw(Layout *where)
 //   Remember the color in the layout
 // ----------------------------------------------------------------------------
 {
-    where->hasMaterial = false;
-    glEnable(GL_COLOR_MATERIAL);
     where->fillColor = color;
 }
 
@@ -108,7 +105,7 @@ void CachedDrawing::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
-    glCallList(displayList);
+    GL.CallList(displayList);
 }
 
 
@@ -117,72 +114,72 @@ void FillTexture::Draw(Layout *where)
 //   Remember the texture in the layout
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->textureUnits |= 1 << glUnit;
-
-    where->fillTextures[glUnit].unit = glUnit;
-    where->fillTextures[glUnit].id   = glName;
-    where->fillTextures[glUnit].type = glType;
+    (void) where;
+    GL.Enable(glType);
+    CachedTexture *cached = NULL;
+    QSharedPointer<TextureCache> cache = TextureCache::instance();
+    cached = cache->bind(glName);
+    if(!cached)
+        GL.BindTexture(glType, glName);
 }
+
 
 void TextureUnit::Draw(Layout *where)
 // ------------------------------------------------------------- ---------------
 //   Remember the texture unit in the layout
 // ----------------------------------------------------------------------------
 {
-    // Fig a bug with ATI drivers which set texture matrices
-    // to null instead of identity
-    if(glUnit && (TaoApp->vendorID == ATI))
-    {
-        glActiveTexture(GL_TEXTURE0 + glUnit);
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
-        glActiveTexture(GL_TEXTURE0);
-    }
-
-    if(glUnit < TaoApp->maxTextureCoords)
-    {
-        where->textureUnits |= 1 << glUnit;
-        where->currentTexture.unit = glUnit;
-    }
+    (void) where;
+    GL.ActiveTexture(GL_TEXTURE0 + glUnit);
 }
 
+
 void TextureWrap::Draw(Layout *where)
-// ------------------------------------------------------------- ---------------
+// ----------------------------------------------------------------------------
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].wrapS = s;
-    where->fillTextures[glUnit].wrapT = t;
+    (void) where;
+    GLenum wrapS = s ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+    GLenum wrapT = t ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 }
+
 
 void TextureMode::Draw(Layout *where)
 // ------------------------------------------------------------- ---------------
 //   Replay a texture mode
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].mode = mode;
+    (void) where;
+    GL.TexEnv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
 }
+
 
 void TextureMinFilter::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a texture minifiying filter
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].minFilt = filter;
+    (void) where;
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
+
 
 void TextureMagFilter::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a texture magnigication filter
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].magFilt = filter;
+    (void) where;
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    GL.TexUnitParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 }
 
 
@@ -191,12 +188,11 @@ void TextureTransform::Draw(Layout *where)
 //   Enter or exit texture transform mode
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    glActiveTexture(GL_TEXTURE0 + glUnit);
+    (void) where;
     if (enable)
-        glMatrixMode(GL_TEXTURE);
+        GL.MatrixMode(GL_TEXTURE);
     else
-        glMatrixMode(GL_MODELVIEW);
+        GL.MatrixMode(GL_MODELVIEW);
 }
 
 
@@ -246,7 +242,7 @@ void LineWidth::Draw(Layout *where)
 {
     where->lineWidth = width;
     if (width > 0.0)
-        glLineWidth(width * where->PrinterScaling());
+        GL.LineWidth(width * where->PrinterScaling());
 }
 
 
@@ -258,12 +254,12 @@ void LineStipple::Draw(Layout *where)
     (void) where;
     if (scale)
     {
-        glLineStipple(scale, pattern);
-        glEnable(GL_LINE_STIPPLE);
+        GL.LineStipple(scale, pattern);
+        GL.Enable(GL_LINE_STIPPLE);
     }
     else
     {
-        glDisable(GL_LINE_STIPPLE);
+        GL.Disable(GL_LINE_STIPPLE);
     }
 }
 
@@ -376,9 +372,9 @@ void DepthTest::Draw(Layout *)
 // ----------------------------------------------------------------------------
 {
     if (enable)
-        glEnable(GL_DEPTH_TEST);
+        GL.Enable(GL_DEPTH_TEST);
     else
-        glDisable(GL_DEPTH_TEST);
+        GL.Disable(GL_DEPTH_TEST);
 }
 
 
@@ -387,7 +383,7 @@ void DepthMask::Draw(Layout *)
 //   Enable or disable the depth mask
 // ----------------------------------------------------------------------------
 {
-    glDepthMask(enable ? GL_TRUE : GL_FALSE);
+    GL.DepthMask(enable ? GL_TRUE : GL_FALSE);
 }
 
 
@@ -396,37 +392,34 @@ void DepthFunc::Draw(Layout *)
 //   Specifies the depth comparison function
 // ----------------------------------------------------------------------------
 {
-    glDepthFunc(func);
+    GL.DepthFunc(func);
 }
 
 
-void BlendFunc::Draw(Layout *where)
+void BlendFunc::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Change the blend function
 // ----------------------------------------------------------------------------
 {
-    glBlendFunc(sfactor, dfactor);
-    where->hasBlending = true;
+    GL.BlendFunc(sfactor, dfactor);
 }
 
 
-void BlendFuncSeparate::Draw(Layout *where)
+void BlendFuncSeparate::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Change the blend function separately for alpha and color
 // ----------------------------------------------------------------------------
 {
-    glBlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
-    where->hasBlending = true;
+    GL.BlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
 }
 
 
-void BlendEquation::Draw(Layout *where)
+void BlendEquation::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Change the blend equation
 // ----------------------------------------------------------------------------
 {
-    glBlendEquation(equation);
-    where->hasBlending = true;
+    GL.BlendEquation(equation);
 }
 
 
@@ -467,7 +460,6 @@ void ConvertScreenCoordinates::Draw(Layout *where)
     }
 
     widget->recordProjection(info->projection, info->model, info->viewport);
-
     info->coordinates = widget->objectToWorld(x, y, info->projection, info->model, info->viewport);
 }
 

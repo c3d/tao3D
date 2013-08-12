@@ -34,6 +34,10 @@ void main(void)
 
     // Compute main color
     color = gl_Color;
+
+    #ifdef __GLSL_CG_DATA_TYPES
+    gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;
+    #endif
 }
 
 

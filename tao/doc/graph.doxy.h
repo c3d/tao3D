@@ -408,11 +408,11 @@ color_hsv (h:real, s:real, v:real);
 
 /**
  * @~english
- * Selects the color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
+ * Selects the color by its cyan, magenta, yellow, black, and alpha-channel (transparency) components.
  *
  * @param c cyan component of the color, in the range 0.0 to 1.0.
- * @param y yellow component of the color, in the range 0.0 to 1.0.
  * @param m magenta component of the color, in the range 0.0 to 1.0.
+ * @param y yellow component of the color, in the range 0.0 to 1.0.
  * @param k black component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
  * The default value is 1.0.
@@ -421,23 +421,23 @@ color_hsv (h:real, s:real, v:real);
  * Choisit la couleur de remplissage (cyan, magenta, jaune, noir et alpha).
  *
  * @param c Composante cyan, entre 0.0 et 1.0.
- * @param y Composante jaune, entre 0.0 et 1.0.
  * @param m Composante magenta, entre 0.0 et 1.0.
+ * @param y Composante jaune, entre 0.0 et 1.0.
  * @param k Composante noire, entre 0.0 et 1.0.
  * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
-color_cymk (c:real, y:real, m:real, k:real, a:real);
+color_cmyk (c:real, m:real, y:real, k:real, a:real);
 
 /**
  * @~english
- * Selects the color.
+ * Selects the color in the CMYK color space.
  * @~french
- * Choisit la couleur de remplissage.
+ * Choisit la couleur de remplissage dans l'espace des couleurs CMYK.
  * @~
  * @see @ref graph.doxy.h::color_cymk(c:real, y:real, m:real, k:real, a:real) "color_cymk c:real, y:real, m:real, k:real, a:real"
  */
-color_cymk (c:real, y:real, m:real, k:real);
+color_cmyk (c:real, m:real, y:real, k:real);
 
 /**
  * @~english
@@ -2287,6 +2287,42 @@ polygon (x:real, y:real, w:real, h:real, p:integer);
  * - decagram        p =10, q = 3
  */
 polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
+
+/**
+ * @~english
+ * Draws a subdivided plane.
+ *
+ * This plane is centered at (@p x, @p y), with width @p w and height @p h,
+ * and is subdivided according to its line @p l and column @p c numbers.
+ *
+ * @note With a convenient subdivision, this plane can be used to make a
+ * displacement mapping.
+ *
+ * Example of a subdivided plane:
+@code
+color "red"
+line_color "blue"
+plane 0, 0, 500, 500, 20, 20
+@endcode
+ *
+ * @~french
+ * Affiche un plan subdivisé.
+ *
+ * Le rectangle est centré en (@p x, @p y), a une largeur de @p w pixels et une
+ * hauteur @p h pixels, et est subdivisé en @p l lignes et @p c colonnes.
+ * Avec une subdivision adaptée, ce plan est bien adapté pour faire un
+ * <em>displacement mapping</em>.
+ *
+ * Exemple de plan subdivisé:
+@code
+color "#DD3311"
+line_color "#EEAA11"
+plane 0, 0, 500, 500, 20, 20
+@endcode
+ * @~
+ * @image html plane.png
+ */
+plane(x:real, y:real, w:real, h:real, l:integer, c:integer);
 
 /** @} */
 

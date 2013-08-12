@@ -240,7 +240,8 @@ QString GitRepository::checkExe(QString cmd)
         std::cerr << "Testing " << +cmd << "\n";
     QString path;
     path = QFileInfo(cmd).absoluteFilePath();
-    if (QFileInfo(path).isExecutable())
+    if (QFileInfo(path).exists() &&
+        QFileInfo(path).isExecutable())
     {
         path = QDir::toNativeSeparators(path);
         IFTRACE(process)

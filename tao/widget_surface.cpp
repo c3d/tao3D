@@ -61,7 +61,7 @@ WidgetSurface::WidgetSurface(Tree * t, QWidget *widget)
     }
 
     widget->hide();
-    glGenTextures(1, &textureId);
+    GL.GenTextures(1, &textureId);
 }
 
 
@@ -85,7 +85,7 @@ WidgetSurface::~WidgetSurface()
         delete widget;
         widget = NULL;
     }
-    glDeleteTextures(1, &textureId);
+    GL.DeleteTextures(1, &textureId);
 }
 
 
@@ -137,8 +137,8 @@ GLuint WidgetSurface::bind ()
 
         // Generate the GL texture
         image = QGLWidget::convertToGLFormat(image);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, 3,
+        GL.BindTexture(GL_TEXTURE_2D, textureId);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, 3,
                      image.width(), image.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, image.bits());
 
@@ -146,12 +146,12 @@ GLuint WidgetSurface::bind ()
     }
 
     // Bind the texture that we got
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glEnable(GL_TEXTURE_2D);
+    GL.BindTexture(GL_TEXTURE_2D, textureId);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
-        glEnable(GL_MULTISAMPLE);
+        GL.Enable(GL_MULTISAMPLE);
     return textureId;
 }
 

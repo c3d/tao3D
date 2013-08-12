@@ -41,11 +41,16 @@ zoom_min                                -> 0.125
 zoom_out                                -> if zoom > zoom_min then zoom (zoom/1.5)
 zoom_in                                 -> if zoom < zoom_max then zoom (zoom*1.5)
 
-// Wheel events
+// Shortcuts to test keyboard modifiers
 control_modifier  -> (keyboard_modifiers and 16#04000000) <> 0
 shift_modifier    -> (keyboard_modifiers and 16#02000000) <> 0
 alt_modifier      -> (keyboard_modifiers and 16#08000000) <> 0
 meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
+
+// Shortcuts to test mouse button
+left_mouse_button   -> (mouse_buttons and 16#00000001) <> 0
+right_mouse_button  -> (mouse_buttons and 16#00000002) <> 0
+middle_mouse_button -> (mouse_buttons and 16#00000004) <> 0
 
 wheel_event x, y -> false
 
@@ -290,6 +295,13 @@ copy_texture ->
         color "white"
         texture ID
         rectangle 0, 0, W, H
+
+image_px X:real, Y:real, W:real, H:real, Img:text ->
+    locally
+        texture Img
+        rectangle X, Y, W, H
+
+image X:real, Y:real, Img:text -> image X, Y, constant 1, constant 1, Img
 
 text_box F:text, X:real, Y:real, W:real, H:real ->
     text_box X, Y, W, H,

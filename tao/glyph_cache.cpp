@@ -72,17 +72,18 @@ PerFontGlyphCache::~PerFontGlyphCache()
     {
         GlyphEntry &e = (*ci).second;
         if (e.interior)
-            glDeleteLists(e.interior, 1);
+            GL.DeleteLists(e.interior, 1);
         if (e.outline)
-            glDeleteLists(e.outline, 1);
+            GL.DeleteLists(e.outline, 1);
+
     }
     for (TextMap::iterator ti = texts.begin(); ti != texts.end(); ti++)
     {
         GlyphEntry &e = (*ti).second;
         if (e.interior)
-            glDeleteLists(e.interior, 1);
+            GL.DeleteLists(e.interior, 1);
         if (e.outline)
-            glDeleteLists(e.outline, 1);
+            GL.DeleteLists(e.outline, 1);
     }
 }
 
@@ -201,10 +202,10 @@ void GlyphCache::CheckActiveLayout(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Check if there are new texture units active compared to what we had
-    if (where->textureUnits & ~this->texUnits)
+    if(GL.ActiveTextureUnits() & ~this->texUnits)
     {
         Clear();
-        this->texUnits |= where->textureUnits;
+        this->texUnits |= GL.ActiveTextureUnits();
     }
     layout = where;
 }
@@ -412,28 +413,28 @@ bool GlyphCache::Find(const QFont &font,
             {
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
-                    entry.interior = glGenLists(1);
+                    entry.interior = GL.GenLists(1);
                 if (layout->extrudeDepth > 0.0)
                 {
                     XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
-                    glNewList(entry.interior, GL_COMPILE);
+                    GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
                               GL_POLYGON, GLU_TESS_WINDING_ODD);
-                    glEndList();
+                    GL.EndList();
                 }
                 else
                 {
-                    glNewList(entry.interior, GL_COMPILE);
+                    GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
                               GL_POLYGON, GLU_TESS_WINDING_ODD);
-                    glEndList();
+                    GL.EndList();
                 }
             }
 
             if (!entry.outline || outlineChange)
             {
                 if (!entry.outline)
-                    entry.outline = glGenLists(1);
+                    entry.outline = GL.GenLists(1);
 
                 if (lineWidth > 0)
                 {
@@ -446,17 +447,17 @@ bool GlyphCache::Find(const QFont &font,
                     QPainterPath stroke = stroker.createStroke(qtPath);
                     GraphicPath strokePath;
                     strokePath.addQtPath(stroke, -1);
-                    glNewList(entry.outline, GL_COMPILE);
+                    GL.NewList(entry.outline, GL_COMPILE);
                     strokePath.Draw(layout, Vector3(0,0,0),
                                     GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-                    glEndList();
+                    GL.EndList();
                 }
                 else if (depth > 0.0)
                 {
                     // Render outline as a depth border
-                    glNewList(entry.outline, GL_COMPILE);
+                    GL.NewList(entry.outline, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0), GL_POLYGON, GL_DEPTH);
-                    glEndList();
+                    GL.EndList();
                 }
 
                 entry.outlineWidth = lineWidth;
@@ -595,22 +596,22 @@ bool GlyphCache::Find(const QFont &font,
             {
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
-                    entry.interior = glGenLists(1);
+                    entry.interior = GL.GenLists(1);
 
                 if (layout->extrudeDepth > 0.0)
                 {
                     XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
-                    glNewList(entry.interior, GL_COMPILE);
+                    GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
                               GL_POLYGON, GLU_TESS_WINDING_ODD);
-                    glEndList();
+                    GL.EndList();
                 }
                 else
                 {
-                    glNewList(entry.interior, GL_COMPILE);
+                    GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
                               GL_POLYGON, GLU_TESS_WINDING_ODD);
-                    glEndList();
+                    GL.EndList();
                 }
 
             }
@@ -618,14 +619,14 @@ bool GlyphCache::Find(const QFont &font,
             if (outlineChange)
             {
                 if (!entry.outline)
-                    entry.outline = glGenLists(1);
+                    entry.outline = GL.GenLists(1);
 
                 if (depth > 0.0)
                 {
                     // Render outline as a depth border
-                    glNewList(entry.outline, GL_COMPILE);
+                    GL.NewList(entry.outline, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0), GL_POLYGON, GL_DEPTH);
-                    glEndList();
+                    GL.EndList();
                 }
                 else
                 {
@@ -638,10 +639,10 @@ bool GlyphCache::Find(const QFont &font,
                     QPainterPath stroke = stroker.createStroke(qtPath);
                     GraphicPath strokePath;
                     strokePath.addQtPath(stroke, -1);
-                    glNewList(entry.outline, GL_COMPILE);
+                    GL.NewList(entry.outline, GL_COMPILE);
                     strokePath.Draw(layout, Vector3(0,0,0),
                                     GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
-                    glEndList();
+                    GL.EndList();
                 }
 
                 entry.outlineWidth = lineWidth;
@@ -689,19 +690,20 @@ void GlyphCache::GenerateTexture()
 // ----------------------------------------------------------------------------
 {
     if (!texture)
-        glGenTextures(1, &texture);
+        GL.GenTextures(1, &texture);
 
     QImage invert(image);
     invert.invertPixels();
     QImage texImg = QGLWidget::convertToGLFormat(invert).mirrored(false, true);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    GL.BindTexture(GL_TEXTURE_2D, texture);
+    GL.TexParameter(GL_TEXTURE_2D,
+                     GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  texImg.width(), texImg.height(), 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texImg.bits());
-    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     dirty = false;
 }

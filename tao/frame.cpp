@@ -25,6 +25,8 @@
 #include "widget.h"
 #include "application.h"
 #include "tao_utf8.h"
+#include "preferences_pages.h"
+
 
 TAO_BEGIN
 
@@ -83,19 +85,21 @@ void FrameInfo::resize(uint w, uint h)
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Resize " << w << "x" << h << "\n";
 
+    GraphicSave *save = GL.Save();
+
     // Delete anything we might have
     purge();
 
     // If the size is too big, we shouldn't use multisampling, it crashes
     // on MacOSX
-    const int SAMPLES = 4;
+    const uint SAMPLES = 4;
+    const uint maxTextureSize = GL.MaxTextureSize();
     bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit();
-    if (w >= TaoApp->maxTextureSize ||
-        h >= TaoApp->maxTextureSize)
+    if (w >= maxTextureSize || h >= maxTextureSize)
     {
         IFTRACE(fbo)
             std::cerr << "[FrameInfo] Disable multisample, too big "
-                      << TaoApp->maxTextureSize << "\n";
+                      << maxTextureSize << "\n";
         canMultiSample = false;
     }
 
@@ -105,6 +109,11 @@ void FrameInfo::resize(uint w, uint h)
     // with 4 samples per pixel. This cannot be used directly as texture.
     QGLFramebufferObjectFormat format;
     format.setInternalTextureFormat(this->format);
+
+    // Enable mipmap for fbo
+    if(PerformancesPage::texture2DMipmap())
+        format.setMipmap(true);
+
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
     if (canMultiSample)
     {
@@ -140,7 +149,26 @@ void FrameInfo::resize(uint w, uint h)
         renderFBO = new QGLFramebufferObject(w, h, format);
         textureFBO = renderFBO;
     }
-    
+
+    // The value of the min and mag filters of the underlying texture
+    // are forced to GL_NEAREST by Qt, which are not the GL defaults.
+    // => We must synchronize our cache or some later GL.TexParameter calls
+    // may be ignored.
+    GLint min, mag;
+    GLuint tex = textureFBO->texture();
+    glBindTexture(GL_TEXTURE_2D, tex);
+    // Query the actual values to be safe
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &min);
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &mag);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    GL.BindTexture(GL_TEXTURE_2D, tex);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+    if(PerformancesPage::texture2DMipmap())
+        GL.GenerateMipmap(GL_TEXTURE_2D);
+    GL.Sync(STATE_textures);
+    GL.BindTexture(GL_TEXTURE_2D, 0);
+
     // depthTextureID is optional, resize if we have one
     if (depthTextureID)
         resizeDepthTexture(w, h);
@@ -151,7 +179,8 @@ void FrameInfo::resize(uint w, uint h)
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Resized " << w << "x" << h
                   << " in " << context << "\n";
-    glFinish();
+
+    GL.Restore(save);
     
     // Clear the contents of the newly created frame buffer
     begin(true);
@@ -170,18 +199,22 @@ void FrameInfo::resizeDepthTexture(uint w, uint h)
             return;
 
         // Delete current depth texture
-        glDeleteTextures(1, &depthTextureID);
+        if (depthTextureID)
+        {
+            GL.DeleteTextures(1, &depthTextureID);
+            depthTextureID = 0;
+        }
     }
 
     // Create the depth texture
-    glGenTextures(1, &depthTextureID);
-    glBindTexture(GL_TEXTURE_2D, depthTextureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0,
-                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    GL.GenTextures(1, &depthTextureID);
+    GL.BindTexture(GL_TEXTURE_2D, depthTextureID);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0,
+                  GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 }
 
 
@@ -192,11 +225,14 @@ void FrameInfo::begin(bool clearContents)
 {
     // Clear the render FBO
     checkGLContext();
+
+    GL.Sync(STATE_textures);
     int ok = renderFBO->bind();
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
 
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_STENCIL_TEST);
+    // Synchronize cached state
+    GL.SetCached_bufferMode(GL_COLOR_ATTACHMENT0);
+    GL.Disable(GL_STENCIL_TEST);
 
     if (clearContents)
         clear();
@@ -210,9 +246,8 @@ void FrameInfo::end()
 //   Finish rendering in an off-screen buffer
 // ----------------------------------------------------------------------------
 {
-    checkGLContext();
-
     // Blit the result in the texture FBO and in depth texture if necessary
+    checkGLContext();
     if (renderFBO != textureFBO)
         blit();
     if (depthTextureID)
@@ -220,6 +255,11 @@ void FrameInfo::end()
 
     int ok = renderFBO->release();
     if (!ok) std::cerr << "FrameInfo::end(): unexpected result\n";
+
+    // Synchronize cached state
+    GLint buf;
+    glGetIntegerv(GL_DRAW_BUFFER, &buf);
+    GL.SetCached_bufferMode(buf);
 }
 
 
@@ -230,12 +270,12 @@ GLuint FrameInfo::bind()
 {
     checkGLContext();
     GLuint texId = textureFBO->texture();
-    glBindTexture(GL_TEXTURE_2D, texId);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glEnable(GL_TEXTURE_2D);
+    GL.BindTexture(GL_TEXTURE_2D, texId);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
-        glEnable(GL_MULTISAMPLE);
+        GL.Enable(GL_MULTISAMPLE);
     return texId;
 }
 
@@ -245,9 +285,9 @@ void FrameInfo::clear()
 //   Clear the contents of a frame buffer object
 // ----------------------------------------------------------------------------
 {
-    glClearColor(clearColor.red, clearColor.green, clearColor.blue,
+    GL.ClearColor(clearColor.red, clearColor.green, clearColor.blue,
                  clearColor.alpha);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 }
 
 
@@ -270,6 +310,16 @@ void FrameInfo::blit()
     QGLFramebufferObject::blitFramebuffer(textureFBO, rect,
                                           renderFBO, rect,
                                           buffers);
+    if (PerformancesPage::texture2DMipmap())
+    {
+        GraphicSave* save = GL.Save();
+
+        // Generate mipmap for fbo
+        GL.Enable(GL_TEXTURE_2D);
+        GL.BindTexture(GL_TEXTURE_2D, textureFBO->texture());
+        GL.GenerateMipmap(GL_TEXTURE_2D);
+        GL.Restore(save);
+    }
 }
 
 
@@ -308,14 +358,20 @@ void FrameInfo::purge()
             // Delete the texture only if the GL context has not changed.
             // If it has changed, do NOT try to restore the previous context as
             // it may have been invalidated (see #3017).
-            glDeleteTextures(1, &depthTextureID);
+            GL.DeleteTextures(1, &depthTextureID);
         }
 
         // ~QGLFrameBufferObject checks the GL context so it's OK to delete
         // the pointers unconditionaly
         delete renderFBO;
         if (textureFBO != renderFBO)
+        {
+            GLuint tex = texture();
             delete textureFBO;
+            GL.Cache.DeleteTextures(1, &tex);
+        }
+        if (depthTextureID)
+            GL.DeleteTextures(1, &depthTextureID);
 
         IFTRACE(fbo)
             std::cerr << "[FrameInfo] Purged " << context << "\n";
@@ -347,8 +403,10 @@ GLuint FrameInfo::depthTexture()
         resizeDepthTexture(w, h);
         if (renderFBO != textureFBO)
             blit();
+
         copyToDepthTexture();
     }
+
     return depthTextureID;
 }
 
@@ -388,11 +446,15 @@ void FrameInfo::copyToDepthTexture()
 // ----------------------------------------------------------------------------
 {
     GLint fbname = 0;
+    GraphicSave* save = GL.Save();
+
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
     glBindFramebuffer(GL_FRAMEBUFFER, textureFBO->handle());
-    glBindTexture(GL_TEXTURE_2D, depthTextureID);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
+    GL.BindTexture(GL_TEXTURE_2D, depthTextureID);
+    GL.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
     glBindFramebuffer(GL_FRAMEBUFFER, fbname);
+
+    GL.Restore(save);
 }
 
 
@@ -457,7 +519,8 @@ unsigned int FrameInfo::frameBufferObjectToTexture(ModuleApi::fbo * obj)
 //   Make framebuffer available as a texture
 // ----------------------------------------------------------------------------
 {
-    return ((FrameInfo *)obj)->bind();
+    unsigned int tex = ((FrameInfo *)obj)->bind();
+    return tex;
 }
 
 
@@ -506,7 +569,8 @@ FramePainter::FramePainter(FrameInfo *info)
     : QPainter(), info(info), save()
 {
     // Draw without any transformation (reset the coordinates system)
-    glLoadIdentity();
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     // Clear the render FBO
     info->begin(true);

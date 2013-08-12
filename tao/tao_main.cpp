@@ -38,10 +38,10 @@
 #include "tao_main.h"
 #include "flight_recorder.h"
 #include "tao_utf8.h"
-#include "version.h"
 #include "../config.h"
 #include "crypto.h"
 #include "normalize.h"
+#include "opengl_state.h"
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
 #endif
@@ -66,6 +66,13 @@
 static void win_redirect_io();
 #endif
 
+static void taoQtMessageHandler(QtMsgType type, const char *msg);
+
+namespace Tao {
+    extern const char * GITREV_;
+    extern const char * GITSHA1_;
+}
+
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 //    Main entry point of the graphical front-end
@@ -89,7 +96,8 @@ int main(int argc, char **argv)
 #else
 #define EDSTR
 #endif
-            std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
+            std::cout << "Tao Presentations " EDSTR << Tao::GITREV_  <<
+                                               " (" << Tao::GITSHA1_ << ")\n";
 #undef EDSTR
 #ifdef CONFIGURE_OPTIONS
             std::cout << "Configure options: " << CONFIGURE_OPTIONS << "\n";
@@ -104,6 +112,9 @@ int main(int argc, char **argv)
 
     Q_INIT_RESOURCE(tao);
 
+    // Messages sent by the Qt implementation (for instance, with qWarning())
+    // should be handled like other Tao error messages
+    qInstallMsgHandler(taoQtMessageHandler);
 
     // Initialize and run the Tao application
     int ret = 0;
@@ -184,130 +195,31 @@ static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
 }
 
 
-static void TaoStackTrace(int fd)
-// ----------------------------------------------------------------------------
-//    We are working on it for Windows...
-// ----------------------------------------------------------------------------
-{
-#ifdef _WIN64
-    // TODO: provide a x64 friendly version of the following
-#else
-
-    LPEXCEPTION_POINTERS ep = PrimaryExceptionPointers;
-    if (!ep)
-        ep = TopLevelExceptionPointers;
-    if (ep)
-    {
-        static char buffer[512];
-        int two = fileno(stderr);
-    
-        // Initialize the STACKFRAME structure.
-        STACKFRAME StackFrame;
-        memset(&StackFrame, 0, sizeof(StackFrame));
-
-        StackFrame.AddrPC.Offset = ep->ContextRecord->Eip;
-        StackFrame.AddrPC.Mode = AddrModeFlat;
-        StackFrame.AddrStack.Offset = ep->ContextRecord->Esp;
-        StackFrame.AddrStack.Mode = AddrModeFlat;
-        StackFrame.AddrFrame.Offset = ep->ContextRecord->Ebp;
-        StackFrame.AddrFrame.Mode = AddrModeFlat;
-
-        HANDLE hProcess = GetCurrentProcess();
-        HANDLE hThread = GetCurrentThread();
-
-        // Initialize the symbol handler.
-        SymSetOptions(SYMOPT_DEFERRED_LOADS|SYMOPT_LOAD_LINES);
-        SymInitialize(hProcess, NULL, TRUE);
-
-        while (true)
-        {
-            if (!StackWalk(IMAGE_FILE_MACHINE_I386,
-                           hProcess, hThread, &StackFrame,
-                           ep->ContextRecord, NULL, SymFunctionTableAccess,
-                           SymGetModuleBase, NULL))
-                break;
-
-            if (StackFrame.AddrFrame.Offset == 0)
-                break;
-
-            // Print the PC in hexadecimal.
-            DWORD PC = StackFrame.AddrPC.Offset;
-            size_t size = snprintf(buffer, sizeof buffer, "%08lX", PC);
-
-            // Print the parameters.  Assume there are four.
-            size += snprintf(buffer + size, sizeof buffer - size,
-                             " (0x%08lX 0x%08lX 0x%08lX 0x%08lX)",
-                             StackFrame.Params[0], StackFrame.Params[1],
-                             StackFrame.Params[2], StackFrame.Params[3]);
-            write (fd, buffer, size);
-            write (two, buffer, size);
-
-            // Verify the PC belongs to a module in this process.
-            if (!SymGetModuleBase(hProcess, PC))
-            {
-                char msg[] = "<unknown module>";
-                write (fd, msg, sizeof msg - 1);
-                write (two, msg, sizeof msg - 1);
-                continue;
-            }
-
-            // Print the symbol name.
-            IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) buffer;
-            memset(symbol, 0, sizeof(IMAGEHLP_SYMBOL));
-            symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
-            symbol->MaxNameLength = 512 - sizeof(IMAGEHLP_SYMBOL);
-
-            DWORD dwDisp;
-            if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
-            {
-                write(fd, "\n", 1);
-                write(two, "\n", 1);
-                continue;
-            }
-
-            buffer[511] = 0;
-            if (dwDisp > 0)
-                size = snprintf(buffer, sizeof buffer,
-                                ", %s()+%04lu", symbol->Name, dwDisp);
-            else
-                size = snprintf(buffer, sizeof buffer,
-                                ", %s", symbol->Name);
-            
-
-            // Print the source file and line number information.
-            IMAGEHLP_LINE line;
-            memset(&line, 0, sizeof(line));
-            line.SizeOfStruct = sizeof(line);
-            if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
-            {
-                size += snprintf(buffer + size, sizeof buffer - size,
-                                 ", %s, line %lu",
-                                 line.FileName, line.LineNumber);
-                if (dwDisp > 0)
-                    size += snprintf(buffer + size, sizeof buffer - size,
-                                     "+%04lu", dwDisp);
-            }
-
-            if (size < sizeof buffer)
-                buffer[size++] = '\n';
-            write (fd, buffer, size);
-            write (two, buffer, size);
-        } // while(true)
-    }
-#endif // WIN64
-}
-
-
 void win_redirect_io()
 // ----------------------------------------------------------------------------
-//   Send stdout and stderr to parent console if we have one, or to a file
+//   No console: log to file. Un-redirected console: log to parent console.
 // ----------------------------------------------------------------------------
 {
+    // Note: must be done before AttachConsole()
+    DWORD outType, errType;
+    outType = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
+    errType = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
+
     if (AttachConsole(ATTACH_PARENT_PROCESS))
     {
-        // Log to console of parent process
-        freopen("CON", "a", stdout);
-        freopen("CON", "a", stderr);
+        // Parent has a console.
+        // Tested with cmd.exe and MinGW shell (bash):
+        //  1/ With no redirection, type is FILE_TYPE_UNKNOWN and output
+        //     goes nowhere (at least not to the console).
+        //  2/ When redirecting to a file (tao.exe -tfps >tao.log) type is
+        //     FILE_TYPE_DISK and output goes to the file.
+        //  3/ When sending to a pipe (tao.exe -tfps | grep Time) type is
+        //     FILE_TYPE_PIPE and output goes to the pipe.
+        // So only case (1) has to be handled specifically.
+        if (outType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stdout);
+        if (errType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stderr);
     }
     else
     {
@@ -441,11 +353,30 @@ void signal_handler(int sigid)
     static char buffer[512];
     int two = fileno(stderr);
 
+    kstring vendor = "Unknown";
+    kstring renderer = "Unknown";
+    kstring version = "Unknown";
+
+    if (OpenGLState *state = OpenGLState::State())
+    {
+        vendor = state->Vendor().c_str();
+        renderer = state->Renderer().c_str();
+        version = state->Version().c_str();
+    }
+    else if (QGLContext::currentContext() &&
+             QGLContext::currentContext()->isValid())
+    {
+        // Get OpenGL supported version
+        vendor = (kstring) glGetString(GL_VENDOR);
+        renderer = (kstring) glGetString(GL_RENDERER);
+        version = (kstring) glGetString(GL_VERSION);
+    }
+
     // Show something if we get there, even if we abort
     size_t size = snprintf(buffer, sizeof buffer,
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
-                           "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
+                           "TAO VERSION: %s (%s)\n"
                            "GL VENDOR:   %s\n"
                            "GL RENDERER: %s\n"
                            "GL VERSION:  %s\n"
@@ -453,9 +384,10 @@ void signal_handler(int sigid)
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log,
-                           TaoApp->GLVendor.c_str(),
-                           TaoApp->GLRenderer.c_str(),
-                           TaoApp->GLVersionAvailable.c_str());
+                           Tao::GITREV_,
+                           Tao::GITSHA1_,
+                           vendor, renderer, version);
+
     Write(two, buffer, size);
 
     // Prevent recursion in the signal handler
@@ -475,28 +407,8 @@ void signal_handler(int sigid)
     Write(fd, buffer, size);
 
     // Backtrace
-#ifdef CONFIG_MINGW
-    TaoStackTrace(fd);
-#else // Real operating systems
-    void *addresses[128];
-    int count = backtrace(addresses, 128);
-    for (int i = 0; i < count; i++)
-    {
-        size = snprintf(buffer, sizeof buffer,
-                        "%4d %18p ", i, addresses[i]);
-            
-        Dl_info info;
-        if (dladdr(addresses[i], &info))
-            size += snprintf(buffer + size, sizeof buffer - size,
-                             "%32s [%s]",
-                             info.dli_sname, info.dli_fname);
-        if (size < sizeof buffer)
-            buffer[size++] = '\n';
-
-        Write(fd, buffer, size);
-        Write(two, buffer, size);
-    }
-#endif // Test which (non-) operating system we have
+    tao_stack_trace(fd);
+    tao_stack_trace(two);
         
     // Dump the flight recorder
     Write (fd, "\n\n", 2);
@@ -518,6 +430,156 @@ void signal_handler(int sigid)
         // Install the default signal handler and resume
         install_signal_handler((sig_t) SIG_DFL);
     }
+}
+
+
+void tao_stack_trace(int fd)
+// ----------------------------------------------------------------------------
+//    Dump a stack trace on the given file descriptor
+// ----------------------------------------------------------------------------
+// We are still  working on it for Windows...
+{
+#ifndef CONFIG_MINGW
+    void *addresses[128];
+    char buffer[512];
+    int count = backtrace(addresses, 128);
+    for (int i = 0; i < count; i++)
+    {
+        uint size = snprintf(buffer, sizeof buffer,
+                             "%4d %18p ", i, addresses[i]);
+            
+        Dl_info info;
+        if (dladdr(addresses[i], &info))
+            size += snprintf(buffer + size, sizeof buffer - size,
+                             "%32s [%s]",
+                             info.dli_sname, info.dli_fname);
+        if (size < sizeof buffer)
+            buffer[size++] = '\n';
+
+        Write(fd, buffer, size);
+    }
+
+#else // Test for the non-operating systems
+
+#ifdef _WIN64
+    // TODO: provide a x64 friendly version of the following
+#else
+
+    LPEXCEPTION_POINTERS ep = PrimaryExceptionPointers;
+    if (!ep)
+        ep = TopLevelExceptionPointers;
+    if (ep)
+    {
+        static char buffer[512];
+        int two = fileno(stderr);
+    
+        // Initialize the STACKFRAME structure.
+        STACKFRAME StackFrame;
+        memset(&StackFrame, 0, sizeof(StackFrame));
+
+        StackFrame.AddrPC.Offset = ep->ContextRecord->Eip;
+        StackFrame.AddrPC.Mode = AddrModeFlat;
+        StackFrame.AddrStack.Offset = ep->ContextRecord->Esp;
+        StackFrame.AddrStack.Mode = AddrModeFlat;
+        StackFrame.AddrFrame.Offset = ep->ContextRecord->Ebp;
+        StackFrame.AddrFrame.Mode = AddrModeFlat;
+
+        HANDLE hProcess = GetCurrentProcess();
+        HANDLE hThread = GetCurrentThread();
+
+        // Initialize the symbol handler.
+        SymSetOptions(SYMOPT_DEFERRED_LOADS|SYMOPT_LOAD_LINES);
+        SymInitialize(hProcess, NULL, TRUE);
+
+        while (true)
+        {
+            if (!StackWalk(IMAGE_FILE_MACHINE_I386,
+                           hProcess, hThread, &StackFrame,
+                           ep->ContextRecord, NULL, SymFunctionTableAccess,
+                           SymGetModuleBase, NULL))
+                break;
+
+            if (StackFrame.AddrFrame.Offset == 0)
+                break;
+
+            // Print the PC in hexadecimal.
+            DWORD PC = StackFrame.AddrPC.Offset;
+            size_t size = snprintf(buffer, sizeof buffer, "%08lX", PC);
+
+            // Print the parameters.  Assume there are four.
+            size += snprintf(buffer + size, sizeof buffer - size,
+                             " (0x%08lX 0x%08lX 0x%08lX 0x%08lX)",
+                             StackFrame.Params[0], StackFrame.Params[1],
+                             StackFrame.Params[2], StackFrame.Params[3]);
+            write (fd, buffer, size);
+            write (two, buffer, size);
+
+            // Verify the PC belongs to a module in this process.
+            if (!SymGetModuleBase(hProcess, PC))
+            {
+                char msg[] = "<unknown module>";
+                write (fd, msg, sizeof msg - 1);
+                write (two, msg, sizeof msg - 1);
+                continue;
+            }
+
+            // Print the symbol name.
+            IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) buffer;
+            memset(symbol, 0, sizeof(IMAGEHLP_SYMBOL));
+            symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
+            symbol->MaxNameLength = 512 - sizeof(IMAGEHLP_SYMBOL);
+
+            DWORD dwDisp;
+            if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
+            {
+                write(fd, "\n", 1);
+                write(two, "\n", 1);
+                continue;
+            }
+
+            buffer[511] = 0;
+            if (dwDisp > 0)
+                size = snprintf(buffer, sizeof buffer,
+                                ", %s()+%04lu", symbol->Name, dwDisp);
+            else
+                size = snprintf(buffer, sizeof buffer,
+                                ", %s", symbol->Name);
+            
+
+            // Print the source file and line number information.
+            IMAGEHLP_LINE line;
+            memset(&line, 0, sizeof(line));
+            line.SizeOfStruct = sizeof(line);
+            if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
+            {
+                size += snprintf(buffer + size, sizeof buffer - size,
+                                 ", %s, line %lu",
+                                 line.FileName, line.LineNumber);
+                if (dwDisp > 0)
+                    size += snprintf(buffer + size, sizeof buffer - size,
+                                     "+%04lu", dwDisp);
+            }
+
+            if (size < sizeof buffer)
+                buffer[size++] = '\n';
+            write (fd, buffer, size);
+            write (two, buffer, size);
+        } // while(true)
+    }
+#endif // WIN64
+#endif // MINGW
+}
+
+
+static void taoQtMessageHandler(QtMsgType type, const char *msg)
+// ----------------------------------------------------------------------------
+//   Handle diagnostic messages from Qt like any other Tao message
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(type);
+    if (qApp && ((Tao::Application*)qApp)->addError(msg))
+        return;
+    std::cerr << msg;
 }
 
 

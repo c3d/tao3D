@@ -26,6 +26,7 @@
 #include "attributes.h"
 #include "tao_tree.h"
 #include "tao_utf8.h"
+#include "preferences_pages.h"
 #include <sstream>
 #include "demangle.h"
 
@@ -54,18 +55,10 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentTexture(),
-      textureUnits(0),
-      lightId(GL_LIGHT0), currentLights(0),
-      perPixelLighting(0),
+      lightId(GL_LIGHT0),
+      perPixelLighting(TaoApp->useShaderLighting),
       programId(0),
-      planarRotation(0), planarScale(1),
-      rotationId(0), translationId(0), scaleId(0),
-      hasTextureMatrix(false), printing(false),
-      hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasLighting(false), hasBlending(false),
-      hasTransform(false), hasMaterial(false), hasDepthAttr(false),
-      hasClipPlanes(false), isSelection(false), groupDrag(false)
+      groupDrag(false)
 {}
 
 
@@ -84,46 +77,19 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        currentTexture(o.currentTexture),
-        textureUnits(o.textureUnits),
-        previousTextures(o.previousTextures),
-        fillTextures(o.fillTextures),
         lightId(o.lightId),
-        currentLights(o.currentLights),
         perPixelLighting(o.perPixelLighting),
         programId(o.programId),
-        planarRotation(o.planarRotation),
-        planarScale(o.planarScale),
-        rotationId(o.rotationId), translationId(o.translationId),
-        scaleId(o.scaleId),
-        model(o.model),
-        hasTextureMatrix(o.hasTextureMatrix),
-        printing(o.printing),
-        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
-        hasAttributes(o.hasAttributes),
-        hasLighting(false),
-        hasBlending(false),
-        hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
-        hasClipPlanes(false), isSelection(o.isSelection), groupDrag(false)
+        model(o.model), groupDrag(false)
 {}
 
 
-void LayoutState::ClearAttributes(bool all)
+void LayoutState::ClearAttributes()
 // ----------------------------------------------------------------------------
 //   Reset default state for a layout
 // ----------------------------------------------------------------------------
 {
     LayoutState zero;
-    if (!all)
-    {
-        // Save state modified by Add or before
-        zero.hasMatrix = hasMatrix;
-        zero.hasTextureMatrix = hasTextureMatrix;
-        zero.hasAttributes = hasAttributes;
-        zero.hasLighting = hasLighting;
-        zero.hasDepthAttr = hasDepthAttr;
-        zero.hasClipPlanes = hasClipPlanes;
-    }
     *this = zero;
 }
 
@@ -261,7 +227,7 @@ void Layout::Clear()
     items.clear();
 
     // Initial state has no rotation or attribute changes
-    ClearAttributes(true);
+    ClearAttributes();
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
@@ -311,8 +277,7 @@ void Layout::Draw(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     Inherit(where);
 
 
@@ -324,9 +289,6 @@ void Layout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout(this);
-
-    if (where)
-       where->previousTextures = previousTextures;
 }
 
 
@@ -337,8 +299,7 @@ void Layout::DrawSelection(Layout *where)
 {
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     Inherit(where);
 
     PushLayout(this);
@@ -348,9 +309,6 @@ void Layout::DrawSelection(Layout *where)
         child->DrawSelection(this);
     }
     PopLayout(this);
-
-    if (where)
-       where->previousTextures = previousTextures;
 }
 
 
@@ -364,8 +322,7 @@ void Layout::Identify(Layout *where)
 
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix);
+    GLAllStateKeeper glSave;
     Inherit(where);
 
 
@@ -376,9 +333,6 @@ void Layout::Identify(Layout *where)
         child->Identify(this);
     }
     PopLayout(this);
-
-    if (where)
-       where->previousTextures = previousTextures;
 }
 
 
@@ -464,7 +418,7 @@ void Layout::PolygonOffset()
 // ----------------------------------------------------------------------------
 {
     int offset = polygonOffset++;
-    glPolygonOffset (factorBase + offset * factorIncrement,
+    GL.PolygonOffset(factorBase + offset * factorIncrement,
                      unitBase + offset * unitIncrement);
 }
 
@@ -475,7 +429,7 @@ void Layout::ClearPolygonOffset()
 // ----------------------------------------------------------------------------
 {
     polygonOffset = 0;
-    glPolygonOffset (factorBase, unitBase);
+    GL.PolygonOffset(factorBase, unitBase);
 }
 
 
@@ -577,6 +531,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 
             // Set new layout as the current layout in the current Widget
             XL::Save<Layout *> saveLayout(widget->layout, this);
+            GLAllStateKeeper save;
 
             IFTRACE(layoutevents)
                 std::cerr << "Evaluating " << body << "\n";
@@ -747,10 +702,7 @@ void Layout::Inherit(Layout *where)
 // ----------------------------------------------------------------------------
 {
     if (!where)
-    {
-        currentTexture = TextureState();
         return;
-    }
 
     // Add offset of parent to the one we have
     offset = where->Offset();
@@ -782,27 +734,14 @@ void LayoutState::InheritState(LayoutState *where)
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
 
-    textureUnits     = where->textureUnits;
-    previousTextures = where->previousTextures;
-    fillTextures     = where->fillTextures;
-    currentTexture   = where->currentTexture;
-
     lightId          = where->lightId;
-    currentLights    = where->currentLights;
     perPixelLighting = where->perPixelLighting;
 
     programId        = where->programId;
-    printing         = where->printing;
 
-    planarRotation   = where->planarRotation;
-    planarScale      = where->planarScale;
     model            = where->model;
 
-    has3D            = where->has3D;
-    hasPixelBlur     = where->hasPixelBlur;
     groupDrag        = where->groupDrag;
-    hasMaterial      = where->hasMaterial;
-    hasTransform     = where->hasTransform;
 }
 
 
@@ -826,9 +765,6 @@ void LayoutState::toDebugString(std::ostream &out) const
     out << "\tfillColor       = " << fillColor << std::endl;
     out << "\tlightId         = " << lightId << std::endl;
     out << "\tprogramId       = " << programId << std::endl;
-    out << "\tprinting        = " << printing << std::endl;
-    out << "\tplanarRotation  = " << planarRotation << std::endl;
-    out << "\tplanarScale     = " << planarScale << std::endl;
 }
 
 
@@ -843,12 +779,12 @@ void Layout::PushLayout(Layout *where)
         uint groupId = id;
         Widget *widget = where->Display();
         widget->selectionContainerPush();
-
+        
         uint open = widget->selected(id);
         if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
             groupId = (groupId & ~Widget::SELECTION_MASK)
                 | Widget::CONTAINER_OPENED;
-        glPushName(groupId);
+        GL.PushName(groupId);
     }
 }
 
@@ -862,7 +798,7 @@ void Layout::PopLayout(Layout *where)
     {
         Widget *widget = where->Display();
         widget->selectionContainerPop();
-        glPopName();
+        GL.PopName();
     }
 }
 

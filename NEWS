@@ -1,5 +1,33 @@
 Change log for Tao Presentations
 
+
+1.40 (29-Jul-2013)
+
+#3138 Add option to always log error messages to stderr (-stderr auto|on|off)
+#3130 Windows: File > Open Network reports "Unable to find remote helper for http" when URL starts with http://
+#3127 text_width changes cursor position
+#3120 Module list in online HTML documentation contains raw <tt> and </tt> strings
+#3119 Online HTML documentation has dead links to .ddd examples for modules
+#3118 Help viewer won't open links to .ddd files in main Tao documentation
+#3112 Twitter API 1.0 is closed, Twitter feeds no longer work
+#3111 movie_credits: Star Wars crawl does not respect text box size
+#3101 Ellipse arc with extrude_depth shows invalid borders
+#3094 Thin line of clear_color visible on top (or right) of window when window height (or width) is odd
+#3090 Linux: GL out of memory error (1285) / QGLFramebufferObject: Framebuffer incomplete, missing attachment
+#3089 Windows installer should uninstall previous version before installing new one
+#3073 VSync always enabled on startup regardless of preferences setting
+#3061 Allow shader_program false to disable current shader program
+#3056 stereo_viewpoints not re-executed when display mode changes
+#3052 FilmStrip: add film_leader_countdown
+#3043 Using Season's Greatings theme show an XL error
+#3042 Linux: Tao Player and Tao Design cannot be installed simultaneously
+#3035 The per_pixel_lighting primitive does not seem to disable per-pixel lighting
+#3034 Add clip planes support when per-pixel lighting is enabled
+#3026 VLCAudioVideo: unwanted frame is visible when using start-time option
+#2332 Show stack trace on GL errors (-tglerrors)
+#1119 Reduce redundant state changes
+
+
 1.30 (03-Jun-2013)
 
 #3036 Running Tao with -autosync 10 and -tfilemon shows a polling interval of 1000

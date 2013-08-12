@@ -86,7 +86,7 @@ base_slide "More complex layouts",
     locally
         color 0.5, 0.5, 0.5, 0.5
         rectangle 300, 50, 500, 280
-        movie 300, 50, 1, 1, "http://www.youtube.com/watch?v=WWx7ij08pZU"
+        movie 300, 50, 1, 1, "http://www.youtube.com/watch?v=WWx7ij08pZU&fmt=43"
 
 
 // Formatting time as text

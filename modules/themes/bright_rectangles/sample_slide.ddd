@@ -52,8 +52,8 @@ vlc_init "--network-caching=10000"
 picture_slide "YouTube Video slide",
     background -300,
         color "white", 0.9
-        movie_texture"http://www.youtube.com/watch?v=a-11dtG7aK4##input-repeat=-1"
+        movie_texture"http://www.youtube.com/watch?v=a-11dtG7aK4&fmt=46##input-repeat=-1"
         rounded_rectangle 0, 0, 1.2*texture_width, 1.2*texture_height, 150
     right_column
-        - "Video on the left:"
+        - "Background video:"
         - "The Space We Live In"

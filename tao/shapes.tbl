@@ -186,6 +186,19 @@ PREFIX(PicturePacker,  tree,  "picture_packer",
        DESCRIPTION("Debug the bin packer"))
 
 
+PREFIX(Plane,  tree, "plane",
+       PARM(x, real, )
+       PARM(y, real, )
+       PARM(width, real, )
+       PARM(height, real, )
+       PARM(lines_nb, integer, )
+       PARM(columns_nb, integer, ),
+       RTAO(plane(self, x, y, width, height, lines_nb, columns_nb)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Generate a subdivided plane")
+       DESCRIPTION("Generate a subdivided plane."))
+
+
 
 // ============================================================================
 //

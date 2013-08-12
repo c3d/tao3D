@@ -1,8 +1,7 @@
 /**
  * @~english
  * @taomoduledescription{LensFlare, Lens Flare}
- *
- * <tt>import LensFlare</tt> - Generate a lens flare.
+ * <tt>import LensFlare</tt> - Generate a lens flare.@n
  *
  * This module allows to create a dynamic lens flare, either using default model,
  * or adding new flares thanks to specified textures.
@@ -33,8 +32,7 @@
  *
  * @~french
  * @taomoduledescription{LensFlare, Halo}
- *
- * <tt>import LensFlare</tt> - Génère un effet de halo.
+ * <tt>import LensFlare</tt> - Génère un effet de halo.@n
  *
  * Ce module permet de créer des effets dynamiques de halo
  * (<em>lens flare</em>), en utilisant les images par défaut, ou bien en

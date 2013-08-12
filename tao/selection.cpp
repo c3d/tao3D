@@ -78,14 +78,14 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
 
     GLuint *buffer = new GLuint[capacity];
     memset(buffer, 0, capacity * sizeof(GLuint));
-    glSelectBuffer(capacity, buffer);
-    glRenderMode(GL_SELECT);
+    GL.SelectBuffer(capacity, buffer);
+    GL.RenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
     widget->setup(widget->width(), widget->height(), &rectangle);
 
     // Initialize names
-    glInitNames();
+    GL.InitNames();
 
     // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();
@@ -97,7 +97,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
 
-    hits = glRenderMode(GL_RENDER);
+    hits = GL.RenderMode(GL_RENDER);
     if (hits > 0)
     {
         GLuint depth = ~0U;
@@ -177,14 +177,14 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
     // Create the select buffer and switch to select mode
     GLuint *buffer = new GLuint[capacity];
     memset(buffer, 0, capacity * sizeof(GLuint));
-    glSelectBuffer(capacity, buffer);
-    glRenderMode(GL_SELECT);
+    GL.SelectBuffer(capacity, buffer);
+    GL.RenderMode(GL_SELECT);
 
     // Adjust viewport for rendering
     widget->setup(widget->width(), widget->height(), &rectangle);
 
     // Initialize names
-    glInitNames();
+    GL.InitNames();
 
     // Draw the items in "Identity" mode (simplified drawing)
     widget->identifySelection();
@@ -195,7 +195,7 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
     // [1]: Minimum depth
     // [2]: Maximum depth
     // [3..3+[0]-1]: List of names
-    hits = glRenderMode(GL_RENDER);
+    hits = GL.RenderMode(GL_RENDER);
     if (hits > 0)
     {
         GLuint *ptr = buffer;
@@ -322,18 +322,18 @@ Activity *Selection::Display(void)
 {
     GLStateKeeper save;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, widget->width(), 0, widget->height());
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.Ortho2D(0, widget->width(), 0, widget->height());
+    GL.LoadMatrix();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     Box b = rectangle;
     b.Normalize();
     Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
-
-    widget->setupGL();
-    glDepthFunc(GL_ALWAYS);
+    GL.DepthFunc(GL_ALWAYS);
     widget->drawSelection(NULL, b3, "selection_rectangle", 0);
 
     return next;

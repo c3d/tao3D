@@ -44,7 +44,7 @@ equals(HAS_DOXYGEN, 1) {
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   DOXYLANG=en,fr
-  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=Taodyne_logo.png; $$DOXYGEN
+  doc.commands = EXAMPLES=`cd ../tao/doc; echo examples/*.ddd` ; export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=\"Taodyne_logo.png \$\$EXAMPLES\"; $$DOXYGEN
   doc.depends = cp_examples cp_logo version xlref
 
   webdoc.commands = export DOXYLANG=$$DOXYLANG ; export DOXYOUTPUT=webhtml ; $$DOXYGEN DoxyfileWebdoc
@@ -59,7 +59,7 @@ equals(HAS_DOXYGEN, 1) {
   cp_examples_webdoc.commands = for l in $$LANGUAGES ; do \
                                   mkdir -p webhtml/\$\$l/html/examples ; \
                                   cp ../tao/doc/examples/*.ddd webhtml/\$\$l/html/examples/ ; \
-                                  for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/\$\$l/html/examples/ 2>/dev/null || : ; done ; \
+                                  for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/\$\$l/html/ 2>/dev/null || : ; done ; \
                                 done
 
   cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_logo.png output/\$\$l/html ; done

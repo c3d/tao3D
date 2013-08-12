@@ -28,7 +28,7 @@ TAO_BEGIN
 
 struct Color
 // ----------------------------------------------------------------------------
-//    A three-dimensional vector
+//    A representation for RGBA color
 // ----------------------------------------------------------------------------
 {
     typedef float percent;
@@ -96,12 +96,30 @@ struct Color
         return *this;
     }
 
+    Color& operator *=(const Color& c)
+    {
+        red   *= c.red;
+        blue  *= c.blue;
+        green *= c.green;
+        alpha *= c.alpha;
+        return *this;
+    }
+
     Color& operator /=(scale s)
     {
         red   /= s;
         blue  /= s;
         green /= s;
         alpha /= s;
+        return *this;
+    }
+
+    Color& operator /=(const Color& c)
+    {
+        red   /= c.red;
+        blue  /= c.blue;
+        green /= c.green;
+        alpha /= c.alpha;
         return *this;
     }
 
@@ -122,6 +140,8 @@ struct Color
         if (alpha > 1)  alpha = 1;
         return *this;
     }
+
+    percent *Data()     { return &red; }
 
 public:
     percent red, green, blue, alpha;
@@ -163,10 +183,17 @@ inline Color operator *(scale s, const Color& l)
     return result;
 }
 
-inline Color operator /(const Color& l, scale s)
+inline Color operator *(const Color& c, const Color& l)
 {
     Color result(l);
-    result /= s;
+    result *= c;
+    return result;
+}
+
+inline Color operator /(const Color& c, const Color& l)
+{
+    Color result(l);
+    result /= c;
     return result;
 }
 

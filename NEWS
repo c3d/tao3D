@@ -1,6 +1,32 @@
 Change log for Tao Presentations
 
 
+1.41
+
+#3174 Texture cache reloads pictures with wrong size / aspect ratio
+#3168 Speech: voice does not stop when document is closed
+#3167 Speech: Linux: 'say' does not interrupt the previous message
+#3158 Add builtins: left_mouse_button, right_mouse_button, middle_mouse_button
+#3156 Slides module: text box for title shows up even when there is no title nor subtitle
+#3155 YouTube video in Blue Gold example is not available anymore
+#3154 color_cmyk incorrectly documented (documentation refers to cymk instead of cmyk)
+#3153 Slides module: documentation for 'box' is wrong
+#3152 Slides module: Add style function to quickly select a given style in a text box
+#3151 Slides module: 'box' takes a style argument, but does not apply it
+#3150 FPS statistics become wrong when displayed for more than 24 hours
+#3148 Crash when clicking in the main window during download of tao: URI from the command line
+#3147 Image in Mandelbrot example is too high, bottom text may disappear
+#3145 VLCAudioVideo: infrequent crash in libvlc_audio_set_volume
+#3143 Modules with add_search_path cause a memory leak
+#3142 VLCAudioVideo: video playback leaks one texture and two buffer objects per video
+#3132 Add configuration setting to download tao: URLs over HTTP
+#3084 Windows: stdout and stderr cannot be redirected to a file or a pipe
+#3082 Linux: Alt + mouse click does not zoom out (Mandelbrot example)
+#3076 Big document crashes with std::bad_alloc
+#3071 Size of video is too large in some theme examples
+#3068 Shader compilation errors are sent to stderr but not to the error window
+#2741 Add a speech synthesis module to Tao Presentations
+
 1.40 (29-Jul-2013)
 
 #3138 Add option to always log error messages to stderr (-stderr auto|on|off)
@@ -13,7 +39,7 @@ Change log for Tao Presentations
 #3111 movie_credits: Star Wars crawl does not respect text box size
 #3101 Ellipse arc with extrude_depth shows invalid borders
 #3094 Thin line of clear_color visible on top (or right) of window when window height (or width) is odd
-#3090 Linux: GL out of memory error (1285) / QGLFramebufferObject: Framebuffer incomplete, missing attachment
+#3090 frame_texture may leak frame buffer objects 
 #3089 Windows installer should uninstall previous version before installing new one
 #3073 VSync always enabled on startup regardless of preferences setting
 #3061 Allow shader_program false to disable current shader program

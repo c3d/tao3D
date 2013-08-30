@@ -1,7 +1,7 @@
 Change log for Tao Presentations
 
 
-1.41
+1.41 (30-Aug-2013)
 
 #3174 Texture cache reloads pictures with wrong size / aspect ratio
 #3168 Speech: voice does not stop when document is closed

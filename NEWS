@@ -4,8 +4,6 @@ Change log for Tao Presentations
 1.41 (30-Aug-2013)
 
 #3174 Texture cache reloads pictures with wrong size / aspect ratio
-#3168 Speech: voice does not stop when document is closed
-#3167 Speech: Linux: 'say' does not interrupt the previous message
 #3158 Add builtins: left_mouse_button, right_mouse_button, middle_mouse_button
 #3156 Slides module: text box for title shows up even when there is no title nor subtitle
 #3155 YouTube video in Blue Gold example is not available anymore

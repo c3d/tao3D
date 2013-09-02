@@ -66,10 +66,10 @@ Once:
 - Update the info file for the "Check for update" feature:
     vi /var/www/tao_update_info.ini
 - Update documentation:
-  scp taodoc*.tar.bz2 www-data@www.taodyne.com:/var/www/docs
+  scp taodoc*.tar.xz www-data@www.taodyne.com:/var/www/docs
   Extract the file, it will create taodoc-*/{modules,help}.
   Replace /var/www/docs/{modules,help} with the new ones.
-    V=1.12 ; mv help help_ ; mv modules modules_ ; \
+    V=1.41 ; mv help help_ ; mv modules modules_ ; \
              mv taodoc-$V/help . ; mv taodoc-$V/modules .
   Quick-check http://www.taodyne.com/docs/help/en/
               http://www.taodyne.com/docs/help/fr/

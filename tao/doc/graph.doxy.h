@@ -408,11 +408,11 @@ color_hsv (h:real, s:real, v:real);
 
 /**
  * @~english
- * Selects the color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
+ * Selects the color by its cyan, magenta, yellow, black, and alpha-channel (transparency) components.
  *
  * @param c cyan component of the color, in the range 0.0 to 1.0.
- * @param y yellow component of the color, in the range 0.0 to 1.0.
  * @param m magenta component of the color, in the range 0.0 to 1.0.
+ * @param y yellow component of the color, in the range 0.0 to 1.0.
  * @param k black component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
  * The default value is 1.0.
@@ -421,23 +421,23 @@ color_hsv (h:real, s:real, v:real);
  * Choisit la couleur de remplissage (cyan, magenta, jaune, noir et alpha).
  *
  * @param c Composante cyan, entre 0.0 et 1.0.
- * @param y Composante jaune, entre 0.0 et 1.0.
  * @param m Composante magenta, entre 0.0 et 1.0.
+ * @param y Composante jaune, entre 0.0 et 1.0.
  * @param k Composante noire, entre 0.0 et 1.0.
  * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
-color_cymk (c:real, y:real, m:real, k:real, a:real);
+color_cmyk (c:real, m:real, y:real, k:real, a:real);
 
 /**
  * @~english
- * Selects the color.
+ * Selects the color in the CMYK color space.
  * @~french
- * Choisit la couleur de remplissage.
+ * Choisit la couleur de remplissage dans l'espace des couleurs CMYK.
  * @~
- * @see @ref graph.doxy.h::color_cymk(c:real, y:real, m:real, k:real, a:real) "color_cymk c:real, y:real, m:real, k:real, a:real"
+ * @see @ref graph.doxy.h::color_cmyk(c:real,  m:real, y:real, k:real, a:real) "color_cmyk c:real, m:real, y:real, k:real, a:real"
  */
-color_cymk (c:real, y:real, m:real, k:real);
+color_cmyk (c:real, m:real, y:real, k:real);
 
 /**
  * @~english

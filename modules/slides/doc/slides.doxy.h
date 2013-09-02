@@ -1334,14 +1334,151 @@ right_picture(Body:code);
 
 /**
  * @~english
- * Define a box for an element kind.
- * Draw a box for an element kind of the slide.
+ * Draw a text box with a given style
+ * Draw a text box with a given style. This can be used for example to
+ * add new text boxes using the "story" style, or new "title" boxes.
+ *
+ * @p Style Style for the text in the box. Typically, one of:
+ *   - title
+ *   - subtitle
+ *   - picture
+ *   - story
+ *   - left_column
+ *   - right_column
+ *   - left_picture
+ *   - right_picture
+ * @p X X-position of the box
+ * @p Y Y-position of the box
+ * @p W Box width
+ * @p H Box height
+ * @p Body Contents of the text box
+ *
+ * @~french
+ * Affiche une boite de texte ayant un style donné
+ * Affiche une boite de texte ayant un style donné. Cela peut être
+ * utilisé par exemple pour ajouter de nouvelles boîtes de texte de
+ * type "story" (histoire), ou de nouvelles boîtes de titre ("title").
+ *
+ * @p Style Style de la boîte. Typiquement, il s'agit de :
+ *   - title
+ *   - subtitle
+ *   - picture
+ *   - story
+ *   - left_column
+ *   - right_column
+ *   - left_picture
+ *   - right_picture
+ * @p X Abscisse de la boite
+ * @p Y Ordonnée de la boite
+ * @p W Largeur de la boite
+ * @p H Longueur de la boite
+ * @p Body Contenu de la boîte
+ *
+ */
+box(Style:text, X:real, Y:real, W:real, H:real, Body);
+
+
+/**
+ * @~english
+ * Draw a text box with the "story" style.
+ * This draws a text box with the "story" style used for storytelling.
  *
  * @p X X-position of the box
  * @p Y Y-position of the box
  * @p W Box width
  * @p H Box height
- * @p Kind Element kind. Typically, it is :
+ * @p Body Contents of the text box
+ *
+ * @~french
+ * Affiche une boite de texte avec le style "story" (histoire)
+ * Cette fonction dessine une boîte de texte utilisant le style
+ * "story" (histoire) utilisé par le corps de texte principal.
+ *
+ * @p X Abscisse de la boite
+ * @p Y Ordonnée de la boite
+ * @p W Largeur de la boite
+ * @p H Longueur de la boite
+ * @p Body Contenu de la boîte
+ *
+ */
+box(X:real, Y:real, W:real, H:real, Body);
+
+/**
+ * @~english
+ * Draw a decoration box with a given style
+ * Draw a decoration box with a given style. This can be used to
+ * decorate drawings or movies in a style consistent with the slide theme.
+ *
+ * @p Style Style for the text in the box. Typically, one of:
+ *   - title
+ *   - subtitle
+ *   - picture
+ *   - story
+ *   - left_column
+ *   - right_column
+ *   - left_picture
+ *   - right_picture
+ * @p X X-position of the box
+ * @p Y Y-position of the box
+ * @p W Box width
+ * @p H Box height
+ *
+ * @~french
+ * Affiche une boite ayant un style donné
+ * Affiche une boite ayant un style donné. Cela permet de créer des
+ * boîtes de décoration pour des images ou des films qui soient
+ * dans le style du thème.
+ *
+ * @p Style Style de la boîte. Typiquement, il s'agit de :
+ *   - title
+ *   - subtitle
+ *   - picture
+ *   - story
+ *   - left_column
+ *   - right_column
+ *   - left_picture
+ *   - right_picture
+ * @p X Abscisse de la boite
+ * @p Y Ordonnée de la boite
+ * @p W Largeur de la boite
+ * @p H Longueur de la boite
+ *
+ */
+box(Style:text, X:real, Y:real, W:real, H:real);
+
+
+/**
+ * @~english
+ * Draw a decoration box with the "story" style.
+ * This draws a decoration box with the "story" style used for storytelling.
+ *
+ * @p X X-position of the box
+ * @p Y Y-position of the box
+ * @p W Box width
+ * @p H Box height
+ *
+ * @~french
+ * Affiche une boite de texte avec le style "story" (histoire)
+ * Cette fonction dessine une boîte de décoration utilisant le style
+ * "story" (histoire) utilisé par le corps de texte principal.
+ *
+ * @p X Abscisse de la boite
+ * @p Y Ordonnée de la boite
+ * @p W Largeur de la boite
+ * @p H Longueur de la boite
+ *
+ */
+box(X:real, Y:real, W:real, H:real);
+
+
+/**
+ * @~english
+ * Apply a given named text style
+ * Applies the given named text style, as defined by the current
+ * theme. This can be used to change styles within a text box in a way
+ * compatible with the current theme.
+ *
+ * @p Style Style for the text in the box. Typically, one of:
  *   - title
  *   - subtitle
  *   - picture
@@ -1352,15 +1489,12 @@ right_picture(Body:code);
  *   - right_picture
  *
  * @~french
- * Définit une boite pour un type d'élément.
- * Cette boite sera affichée suivant le thème courant appliqué (par défaut,
- * quelque part à droite de la diapositive).
+ * Applique un style de texte nommé
+ * Applique un style de texte nommé tels qu'ils sont définis par le
+ * thème en cours. Cela permet de changer de style dans un texte d'une
+ * façon qui soit cohérente avec le thème en cours.
  *
- * @p X Abscisse de la boite
- * @p Y Ordonnée de la boite
- * @p W Largeur de la boite
- * @p H Longueur de la boite
- * @p Kind Type d'élément. Typiquement, il s'agit de :
+ * @p Style Style de la boîte. Typiquement, il s'agit de :
  *   - title
  *   - subtitle
  *   - picture
@@ -1370,8 +1504,10 @@ right_picture(Body:code);
  *   - left_picture
  *   - right_picture
  *
+ * @~
+ * @since 1.04 (Tao 1.41)
  */
-box(X:real, Y:real, W:real, H:real, Kind:text, Body);
+style(Style:text);
 
 
 /**

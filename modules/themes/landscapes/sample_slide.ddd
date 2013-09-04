@@ -7,10 +7,10 @@ theme "Landscapes"
 key "e" -> lang "en"; time
 key "f" -> lang "fr"; time
 
-main_title_slide "Lanscapes" fr "Paysages",
+main_title_slide "Landscapes" fr "Paysages",
     transition_ft_wipe 1, 0
     title
-        text "Lanscapes template for Tao Presentations" fr "Thème 'Paysages' pour Tao Presentations"
+        text "Landscapes template for Tao Presentations" fr "Thème 'Paysages' pour Tao Presentations"
     subtitle
         text "Press E or F to change the language" fr "Appuyer sur E ou F pour changer la langue"
 
@@ -19,13 +19,13 @@ section_slide "Make it memorable" fr "Rendez-le mémorable",
     title
         text "Make your talk memorable" fr "Rendez votre message mémorable"
 
-slide "Enjoy beautiful lanscapes" fr "Profitez de splendides paysages",
+slide "Enjoy beautiful landscapes" fr "Profitez de splendides paysages",
     transition_ft_wipe 1, 0
     * "Automatic slide layout " fr "Mise en page automatique"
-    -- "Enjoy beautiful lanscapes in your presentation " fr "Profitez de splendides paysages dans votre presentation"
+    -- "Enjoy beautiful landscapes in your presentation " fr "Profitez de splendides paysages dans votre presentation"
     -- "Focus on the story, not the appearance" fr "concentrez vous sur histoire, pas sur l'apparence"
     --
-    * "Add easily new lanscape pictures" fr "Ajoutez facilement de nouvelles paysages"
+    * "Add easily new landscape pictures" fr "Ajoutez facilement de nouvelles paysages"
     -- "Simply drag and drop your pictures into the 'images' folder" fr "Glissez-déposez simplement vos images dans le dossier 'images'"
     -- "Or use directly these of the internet" fr "Ou utilisez directement celles provenant d'internet"
 

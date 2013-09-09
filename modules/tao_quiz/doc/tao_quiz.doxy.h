@@ -75,8 +75,7 @@
  * On Tao the question and each answer are displayed. On the answer part, a
  * graph is displayed in front of each response.
  *
- * On the user device, the question is shown and some radio buttons to choose
- * the answer.
+ * On the user device, the question and answers are shown.
  *
  * @~french
  * Fonctions pour utiliser et configurer les Questions à Choix Multiple.
@@ -84,8 +83,7 @@
  * Sur Tao, la question et les réponses sont affichées. En mode 'réponse', un
  * graph est dessiné devant chaque réponses.
  *
- * Sur l'appareil de l'utilisateur, la question est montrée et des 'radio button'
- * sont utilisés pour saisir le/les choix.
+ * Sur l'appareil de l'utilisateur, la question et les différents choix possibles sont affichés.
  */
 /**@{*/
 

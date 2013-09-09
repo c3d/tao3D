@@ -3,7 +3,7 @@
 # take the value of $$VERSION as is
 # Windows: FILEVERSION, PRODUCTVERSION, and FileVersion are built using
 # $$MAJOR, $$MINOR and $$RELEASE
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 !build_pass:message(Version is $$VERSION)
 MAJOR = $$replace(VERSION, "\\.[0-9]+\\.[0-9]+\$", "")
 MINOR = $$replace(VERSION, "^[0-9]+\\.", "")

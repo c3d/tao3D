@@ -391,7 +391,7 @@ text(t:text);
  *     <li> @b extra_expanded
  *     <li> @b ultra_expanded
  *   </ul>
- *   <li> @b underline, @b underlined. Sets underline on. See @ref underline.
+ *   <li> @b underlined. Sets underline on. See @ref underline.
  *   <li> @b overline. Sets overline on. See @ref overline.
  *   <li> @b strike_out. Sets strikeout on. See @ref strikeout.
  *   <li> @b kerning. Sets font kerning on.

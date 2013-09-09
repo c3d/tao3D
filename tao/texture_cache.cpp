@@ -1009,7 +1009,7 @@ void CachedTexture::onFileCreated(const QString &path,
         if (!inLoad)
         {
             reload();
-            TaoApp->windowWidget()->update();
+            Widget::postEventOnceAPI(cache.textureChangedEvent());
         }
     }
 }
@@ -1026,7 +1026,7 @@ void CachedTexture::onFileChanged(const QString &path,
         // Canonical path may have changed if path is a prefixed path
         this->canonicalPath = canonicalPath;
         reload();
-        TaoApp->windowWidget()->update();
+        Widget::postEventOnceAPI(cache.textureChangedEvent());
     }
 }
 
@@ -1040,7 +1040,7 @@ void CachedTexture::onFileDeleted(const QString &path)
     {
         this->canonicalPath = "";
         reload();
-        TaoApp->windowWidget()->update();
+        Widget::postEventOnceAPI(cache.textureChangedEvent());
     }
 }
 

@@ -1504,6 +1504,8 @@ box(X:real, Y:real, W:real, H:real);
  *   - left_picture
  *   - right_picture
  *
+ * @~
+ * @since 1.04 (Tao 1.41)
  */
 style(Style:text);
 

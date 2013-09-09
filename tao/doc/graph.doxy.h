@@ -435,7 +435,7 @@ color_cmyk (c:real, m:real, y:real, k:real, a:real);
  * @~french
  * Choisit la couleur de remplissage dans l'espace des couleurs CMYK.
  * @~
- * @see @ref graph.doxy.h::color_cymk(c:real, y:real, m:real, k:real, a:real) "color_cymk c:real, y:real, m:real, k:real, a:real"
+ * @see @ref graph.doxy.h::color_cmyk(c:real,  m:real, y:real, k:real, a:real) "color_cmyk c:real, m:real, y:real, k:real, a:real"
  */
 color_cmyk (c:real, m:real, y:real, k:real);
 

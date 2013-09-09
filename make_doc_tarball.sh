@@ -88,8 +88,8 @@ echo
 # Archive
 
 printf "Packing..."
-TARBALL=taodoc-$VER.tar.bz2
-( cd $TMPDIR && tar jcf ../$TARBALL taodoc-$VER )
+TARBALL=taodoc-$VER.tar.xz
+( cd $TMPDIR && tar cf - taodoc-$VER | xz - >../$TARBALL )
 SZ=`ls -lh $TARBALL | awk '{ print $5}'`
 echo " $TARBALL ($SZ)"
 

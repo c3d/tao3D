@@ -25,6 +25,28 @@
  * Here is a screen capture:
  * @image html fonts.png "Changing fonts and font attributes (fonts.ddd)"
  *
+ * @par Text spans
+ * Many font-modifying attributes also can be used as text spans. For example,
+ * you can create a bold blue text as follows:
+ * @code
+ * bold { color "blue; text "Hello" }
+ * @endcode
+ * This is equivalent to:
+ * @code
+ * text_span { bold; color "blue; text "Hello" }
+ * @endcode
+ * In addition, these forms will work with a text argument, as in:
+ * @code
+ * bold "Hello"
+ * @endcode
+ * This is equivalent to:
+ * @code
+ * bold { text "Hello" }
+ * @endcode
+ * This rule applies to: @ref plain, @ref roman, @ref italic,
+ * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
+ * @ref overline, @ref strikeout.
+ *
  * @par Fonts bundled with Tao Presentations
  *
  * Tao Presentation comes with pre-installed Open Source fonts you can use in
@@ -48,6 +70,30 @@
  *   @li Choisir la police de caractère et les attributs du texte (style,
  *       graisse, soulignement...).
  *
+ *
+ * @par Blocs de texte
+ * Plusieurs attributs influençant la police de caractère peuvent aussi être
+ * utilisés comme des blocs de texte. Par exemple, vous pouvez créer un bloc
+ * de texte en gras coloré en bleu de la façon suivante :
+ * @code
+ * bold { color "blue; text "Hello" }
+ * @endcode
+ * Ce code est équivalent à :
+ * @code
+ * text_span { bold; color "blue; text "Hello" }
+ * @endcode
+ * De plus, ces formes peuvent aussi prendre un argument sous forme de texte :
+ * @code
+ * bold "Hello"
+ * @endcode
+ * qui est équivalent à :
+ * @code
+ * bold { text "Hello" }
+ * @endcode
+ * Cette règle s'applique à : @ref plain, @ref roman, @ref italic,
+ * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
+ * @ref overline, @ref strikeout.
+
  * @par À propos des polices de caractères
  *
  * Tao Presentations se repose sur la classe QFont de la bibliothèque Qt pour
@@ -268,15 +314,12 @@ text_box(x:real, y:real, w:real, h:real, contents:tree);
  *
  * Color, font and other text related modification done in this container
  * are not visible from outside.
- * @warning The paragraph modification are not isolated. See @ref para_span
  *
  * @~french
  * Isole des modifications de texte.
  *
  * Les modifications de couleur, de police ou similaires qui sont faites dans
  * @p contents n'ont pas d'effet à l'extérieur du text_span.
- * @warning Les modifications de paragraphe ne sont pas concernées.
- * Cf. @ref para_span.
  */
 text_span(contents:tree);
 
@@ -286,6 +329,12 @@ text_span(contents:tree);
  *
  * Text alignment, paragraph space, font, color and other text and paragraph
  * related modifications done in this container are not visible from outside.
+ * This function is equivalent to:
+ * @code
+ * text_span
+ *     paragraph_break
+ *     contents
+ *     paragraph_break
  *
  * @~french
  * Crée un paragraphe isolé.
@@ -293,8 +342,14 @@ text_span(contents:tree);
  * Les modifications des caractéristiques de paragraphe, telles que l'alignment
  * du texte, l'espacement des parapgraphes, les polices, la couleur, qui sont
  * faites dans @p contents n'ont pas d'effet à l'extérieur du para_span.
+ * Cette fonction est équivalente à :
+ * @code
+ * text_span
+ *     paragraph_break
+ *     contents
+ *     paragraph_break
  */
-para_span(contents:tree);
+paragraph(contents:tree);
 
 
 /**
@@ -371,7 +426,7 @@ text(t:text);
  *   </ul>
  *   <li> Font weight (see also @ref weight):
  *   <ul>
- *     <li> @b light. Same as @ref light.
+ *     <li> @b light. Same as @ref thin.
  *     <li> @b regular, @b no_bold. Same as @ref regular.
  *     <li> @b demibold. Sets the weight of the font an intermediate value
  *         between normal and bold.
@@ -670,7 +725,7 @@ oblique();
  * 99 est extrêmement gras. Les valeurs suivantes sont utilisées par la
  * primitive @ref font :
  * @~
- *   @li @b light: 25
+ *   @li @b light, @b thin: 25
  *   @li @b regular, @b no_bold: 50
  *   @li @b demi_bold: 63
  *   @li @b bold: 75
@@ -697,7 +752,7 @@ regular();
  * @~
  * @see weight
  */
-light();
+thin();
 
 /**
  * @~english
@@ -711,37 +766,51 @@ bold();
 
 /**
  * @~english
- * Enables or disables underline.
- * Set @p w to 0 to disable the attribute, or to any positive value to enable
- * it.
+ * Enable underline for text.
  * @~french
- * Active ou désactive le soulignement.
- * Le soulignement est désactivé si @p w vaut 0 et activé sinon.
+ * Active le soulignement.
  */
-underline(w:real);
+underline();
 
 /**
  * @~english
- * Enables or disables overline.
- * Set @p w to 0 to disable the attribute, or to any positive value to enable
- * it.
+ * Disable underline for text.
  * @~french
- * Active ou désactive le surlignement.
- * Le surlignement est désactivé si @p w vaut 0 et activé sinon.
- * Le surlignement est une ligne au-dessus du texte.
+ * Supprime le soulignement.
  */
-overline(w:real);
+no_underline();
 
 /**
  * @~english
- * Enables or disables strikeout.
- * Set @p w to 0 to disable the attribute, or to any positive value to enable
- * it.
+ * Enable overline for text (line above the text).
  * @~french
- * Active ou désactive le mode barré.
- * Le barré est désactivé si @p w vaut 0 et activé sinon.
+ * Active le surlignement du texte (line above the text).
  */
-strikeout(w:real);
+overline();
+
+/**
+ * @~english
+ * Disable overline for text (line above the text).
+ * @~french
+ * Supprime le surlignement du texte (line above the text).
+ */
+no_overline();
+
+/**
+ * @~english
+ * Enable strikeout (line through the text)
+ * @~french
+ * Active le mode barré (ligne traversant le texte)
+ */
+strikeout();
+
+/**
+ * @~english
+ * Disable strikeout (line through the text)
+ * @~french
+ * Supprime le mode barré (ligne traversant le texte)
+ */
+no_strikeout();
 
 /**
  * @~english

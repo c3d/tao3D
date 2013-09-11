@@ -1579,6 +1579,9 @@ blink Body ->
 emphasis Body   -> italic Body
 strong Body     -> bold Body
 
+// Compatibility binding (obsolete)
+para_span Body  -> paragraph Body
+
 
 
 // ============================================================================

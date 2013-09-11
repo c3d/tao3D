@@ -1,0 +1,61 @@
+
+import VLCAudioVideo
+import Transitions
+
+theme "Landscapes"
+
+key "e" -> lang "en"; time
+key "f" -> lang "fr"; time
+
+main_title_slide "Landscapes" fr "Paysages",
+    transition_ft_wipe 1, 0
+    title
+        text "Landscapes template for Tao Presentations" fr "Thème 'Paysages' pour Tao Presentations"
+    subtitle
+        text "Press E or F to change the language" fr "Appuyer sur E ou F pour changer la langue"
+
+section_slide "Make it memorable" fr "Rendez-le mémorable",
+    transition_ft_wipe 1, 0
+    title
+        text "Make your talk memorable" fr "Rendez votre message mémorable"
+
+slide "Enjoy beautiful landscapes" fr "Profitez de splendides paysages",
+    transition_ft_wipe 1, 0
+    * "Automatic slide layout " fr "Mise en page automatique"
+    -- "Enjoy beautiful landscapes in your presentation " fr "Profitez de splendides paysages dans votre presentation"
+    -- "Focus on the story, not the appearance" fr "concentrez vous sur histoire, pas sur l'apparence"
+    --
+    * "Add easily new landscape pictures" fr "Ajoutez facilement de nouvelles paysages"
+    -- "Simply drag and drop your pictures into the 'images' folder" fr "Glissez-déposez simplement vos images dans le dossier 'images'"
+    -- "Or use directly these of the internet" fr "Ou utilisez directement celles provenant d'internet"
+
+title_slide "Describe complex slides as simple text" fr "Description textuelle de diapositives",
+    transition_ft_wipe 1, 0
+    left_column
+        * "Description is a simple text file" fr "La description est un simple fichier texte"
+        -- "Syntaxe de type Wiki"
+        -- "Use any text editor" fr "Utilisez l'éditeur de texte que vous voulez"
+        --
+        * "Add any type of objects" fr "Intégrez tout type d'objets"
+        -- "Animations"
+        -- "Pictures" fr "Images"
+        -- "Movies" fr "Films"
+        -- "3D models" fr "Modèles 3D"
+    right_picture
+        rotatex -30
+        image_px -50, 50, 700, 525, "http://images.photo-visible.com/photo_public/2007/12/800/800_156.jpg"
+
+base_slide "Youtube movie" fr "Video youtube",
+    transition_ft_wipe 1, 0
+    title
+        text "Youtube movie" fr "Video youtube"
+    picture
+        movie_play "http://www.youtube.com/watch?v=sUzRPXx0Nfc"
+        movie 0, 0, 1.0, 1.0, "http://www.youtube.com/watch?v=sUzRPXx0Nfc"
+
+main_title_slide "Download it now" fr "Téléchargez-le maintenant",
+    transition_ft_wipe 1, 0
+    title
+        text "Tao Presentations" fr "Tao Presentations"
+    subtitle
+        text "Download it right now on www.taodyne.com" fr "Téléchargez-le dès-maintenant sur www.taodyne.com"

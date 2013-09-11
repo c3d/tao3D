@@ -237,7 +237,7 @@ Tree *FontParsingAction::DoName(Name *what)
     {
         font.setOverline(true);
     }
-    else if (name == "strike_out")
+    else if (name == "strike_out" || name == "strikeout")
     {
         font.setStrikeOut(true);
     }
@@ -304,7 +304,6 @@ bool FontParsingAction::SetAttribute(Name *n, Tree *value)
 
     return true;
 }
-
 
 
 Tree *FontParsingAction::DoPrefix(Prefix *what)

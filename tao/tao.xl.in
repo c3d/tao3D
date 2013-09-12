@@ -1427,49 +1427,49 @@ text_box F:text, X:real, Y:real, W:real, H:real ->
         text_flow F
 
 
-textify Body:block ->
+render Body:block ->
 // ----------------------------------------------------------------------------
 //    Render anything that is not a text as is
 // ----------------------------------------------------------------------------
     do Body
 
 
-textify Body:infix ->
+render Body:infix ->
 // ----------------------------------------------------------------------------
 //    Render closures
 // ----------------------------------------------------------------------------
     do Body
 
 
-textify T:text ->
+render T:text ->
 // ----------------------------------------------------------------------------
 //    Render a text using 'text'
 // ----------------------------------------------------------------------------
     text T
 
 
-textify I:integer ->
+render I:integer ->
 // ----------------------------------------------------------------------------
 //   Render an integer by showing its value
 // ----------------------------------------------------------------------------
     text text I
 
 
-textify R:real ->
+render R:real ->
 // ----------------------------------------------------------------------------
 //   Render an integer by showing its value
 // ----------------------------------------------------------------------------
     text text R
 
 
-textify true ->
+render true ->
 // ----------------------------------------------------------------------------
 //   Render an integer by showing its value
 // ----------------------------------------------------------------------------
     text "true"
 
 
-textify false ->
+render false ->
 // ----------------------------------------------------------------------------
 //   Render an integer by showing its value
 // ----------------------------------------------------------------------------
@@ -1482,7 +1482,7 @@ paragraph Body ->
 // ----------------------------------------------------------------------------
     text_span
         paragraph_break
-        textify Body
+        render Body
         paragraph_break
 
 
@@ -1492,7 +1492,7 @@ plain Body ->
 // ----------------------------------------------------------------------------
     text_span
         plain
-        textify Body
+        render Body
 
 
 roman Body ->
@@ -1501,7 +1501,7 @@ roman Body ->
 // ----------------------------------------------------------------------------
     text_span
         roman
-        textify Body
+        render Body
 
 
 italic Body ->
@@ -1510,7 +1510,7 @@ italic Body ->
 // ----------------------------------------------------------------------------
     text_span
         italic
-        textify Body
+        render Body
 
 
 oblique Body ->
@@ -1519,7 +1519,7 @@ oblique Body ->
 // ----------------------------------------------------------------------------
     text_span
         oblique
-        textify Body
+        render Body
 
 
 bold Body ->
@@ -1528,7 +1528,7 @@ bold Body ->
 // ----------------------------------------------------------------------------
     text_span
         bold
-        textify Body
+        render Body
 
 
 thin Body ->
@@ -1537,7 +1537,7 @@ thin Body ->
 // ----------------------------------------------------------------------------
     text_span
         thin
-        textify Body
+        render Body
 
 
 underline Body ->
@@ -1546,7 +1546,7 @@ underline Body ->
 // ----------------------------------------------------------------------------
     text_span
         underline
-        textify Body
+        render Body
 
 
 overline Body ->
@@ -1555,7 +1555,7 @@ overline Body ->
 // ----------------------------------------------------------------------------
     text_span
         overline
-        textify Body
+        render Body
 
 
 strikeout Body ->
@@ -1564,7 +1564,7 @@ strikeout Body ->
 // ----------------------------------------------------------------------------
     text_span
         strikeout
-        textify Body
+        render Body
 
 
 blink Body ->
@@ -1573,7 +1573,7 @@ blink Body ->
 // ----------------------------------------------------------------------------
     text_span
         show seconds mod 2
-        textify Body
+        render Body
 
 // Alternate names for emphasis and strong (<em> and <strong>)
 emphasis Body   -> italic Body

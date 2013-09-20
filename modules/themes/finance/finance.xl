@@ -74,12 +74,13 @@ theme_background "Finance", Master:text ->
     contents 0,
         // Avoid to show two logo during transition
         if(financial_transition_page = 0) then
-            translate -550, 310, 200
-            color "white", 0.8
-            rotatey 10
-            rectangle 300, 80
-            color "white"
-            image_px 0, 0, 300, 95, "logo.png"
+            if (file_exists (document_dir & "/images/logo.png")) then
+                translate -550, 310, 200
+                color "white", 0.8
+                rotatey 10
+                rectangle 300, 80
+                color "white"
+                image_px 0, 0, 300, 95, "logo.png"
 
     // Apply transition
     financial_transition

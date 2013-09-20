@@ -57,11 +57,15 @@ Once:
 
 - Upload Tao packages to taodyne.com:
   scp <files> www-data@www.taodyne.com:/var/www/downloads
-- Edit the product comparison page in the PrestaShop CMS backend (Tools/CMS,
-  products/compare). Use the HTML editor.
-- Update the download URLs in the PrestaShop product pages (under
-  modules/Other modules/Multidéclinaison téléchargeable, Configure, top right
-  icon).
+- Update the symbolic links to the downloads:
+    cd /var/www
+    sh create_links.sh <new version>  # example: 1.41
+  Then copy/paste the commands after reviewing them.
+  For information, the symbolic links are used:
+    * in the product comparison pages (in the PrestaShop CMS backend:
+      Tools/CMS, products/compare)
+    * in the PrestaShop product pages (under modules/Other modules/
+      Multidéclinaison téléchargeable, Configure).
 - Update the product version in the product pages.
 - Update the info file for the "Check for update" feature:
     vi /var/www/tao_update_info.ini

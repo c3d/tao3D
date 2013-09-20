@@ -16,6 +16,13 @@ module_description "fr",
     name "Thème Finance"
     description "Un thème pour les présentations financières"
 
+add_search_path "Finance:", module_dir
+
+theme_background_url "Finance" -> ""
+if (file_exists (document_dir & "/images/background.jpg")) then
+    theme_background_url := document_dir & "/images/background.jpg"
+else
+    theme_background_url := "Finance:background.jpg"
 
 import Slides
 import VLCAudioVideo
@@ -69,7 +76,7 @@ theme_background "Finance", Master:text ->
     clear_color 1,1,1,1
     background -2000,
         color "white"
-        image_px 0, 0, 2304, 1440, "background.jpg"
+        image_px 0, 0, 2304, 1440, theme_background_url
 
     contents 0,
         // Avoid to show two logo during transition

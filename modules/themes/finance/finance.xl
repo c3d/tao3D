@@ -1,0 +1,284 @@
+// ****************************************************************************
+//   Landscapes - A theme containing nice landscape pictures
+//   Copyright 2013 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+module_description
+    id "41ddb3d0-2147-11e3-8224-0800200c9a66"
+    name "Finance theme"
+    description "A theme for financial presentation"
+    import_name "FinanceTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Thème Finance"
+    description "Un thème pour les présentations financières"
+
+
+import Slides
+import VLCAudioVideo
+import Animate
+import Transitions
+
+theme_slide_width  "Finance" -> 1920
+theme_slide_height "Finance" -> 1080
+
+theme_boxstyle "Finance",Master:text, "title"  -> color "white", 0.8
+theme_boxstyle "Finance",Master:text,Style:text  -> color finance_color "brown", 0.8
+
+theme_color "Finance", Master:text, "title" -> color finance_color "blue"
+theme_color "Finance",Master:text, "bullet", 1 -> color finance_color "red"
+theme_color "Finance",Master:text, "bullet", 2 -> color finance_color "orange"
+theme_color "Finance",Master:text, "bullet", 3 -> color finance_color "yellow"
+theme_color "Finance", Master:text, Style:text -> color "white"
+
+theme_align "Finance", Master:text, "story" -> vertical_align 0.5
+theme_align "Finance",Master:text,"story",N  ->
+    margins 100+10*N, 0
+    paragraph_space 30 - 20 * N, 30 - 20 * N
+    paragraph_break
+
+theme_align "Finance", Master:text, Style:text -> vertical_align 0.5; align 0.2
+
+theme_font "Finance", Master:text, Style:text -> font "Calibri"
+
+theme_size "Finance", Master:text, "story" -> 48
+theme_size "Finance", Master:text, "story", 1 -> 48
+theme_size "Finance", Master:text, "story", 2 -> 35
+theme_size "Finance", Master:text, "story", 3 -> 27
+
+finance_color "blue"  -> "#3366cc"
+finance_color "brown" -> "#333333"
+finance_color "red"   -> "#B72E00"
+finance_color "orange" -> "#EB7F22"
+finance_color "yellow" -> "#ebd522"
+finance_color "green"  -> "#37a122"
+
+// ============================================================================
+//
+//    Background
+//
+// ============================================================================
+
+theme_background "Finance", Master:text ->
+// ----------------------------------------------------------------------------
+//   Display background of Financial theme
+// ----------------------------------------------------------------------------
+    clear_color 1,1,1,1
+    background -2000,
+        color "white"
+        image_px 0, 0, 2304, 1440, "background.jpg"
+
+    contents 0,
+        // Avoid to show two logo during transition
+        if(financial_transition_page = 0) then
+            translate -550, 310, 200
+            color "white", 0.8
+            rotatey 10
+            rectangle 300, 80
+            color "white"
+            image_px 0, 0, 300, 95, "logo.png"
+
+    // Apply transition
+    financial_transition
+
+
+// ============================================================================
+//
+//    Layout for the various kind of pages
+//
+// ============================================================================
+
+
+theme_layout "Finance", "main" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 200, 1600, 150, "title"
+    flow 0, -200, 1600, 500, "subtitle"
+
+
+theme_layout "Finance", "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 200, 1600, 150, "title"
+    flow 0, -200, 1600, 500, "subtitle"
+
+
+theme_layout "Finance", "blank" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, -200, 1600, 500, "story"
+
+
+theme_layout "Finance", Master:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flows 0, 200, 1600, 150, "title", "subtitle"
+    flow 0, -200, 1600, 500, "story"
+    flow -450, -200, 850, 500, "left"
+    flow  450, -200, 850, 500, "right"
+
+
+// ============================================================================
+//
+//   Text boxes
+//
+// ============================================================================
+
+
+theme_box "Finance", Master:text, "title", X:real, Y:real, W:real, H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle "Finance", "main", "title"
+        rectangle X, Y, W + 10, H + 10
+        color finance_color "blue", 0.7
+        rectangle -W/2+4, 200, 25, H + 10
+
+
+theme_text "Finance",Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    locally
+        rotatey 10
+        theme_transition "Finance", Master, Style
+        theme_box "Finance", Master, Style, X, Y, W, H
+        contents 0,
+            text_box X, Y, W-100, H,
+                theme_style "Finance", Master, Style
+                Body
+
+
+// ============================================================================
+//
+//   Contents
+//
+// ============================================================================
+
+theme_picture "Finance", Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translatey -200
+        rotatey 10
+        theme_transition "Finance", Master, "picture"
+        theme_color "Finance", Master, "picture"
+        Body
+
+
+theme_left_column_picture "Finance", Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Left column picture (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate -475, -200, 0
+        rotatey 10
+        theme_transition "Finance", Master, "picture"
+        theme_color "Finance", Master, "picture"
+        Body
+
+
+theme_right_column_picture "Finance", Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Right column picture (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate 475, -200, 0
+        rotatey 10
+        theme_transition "Finance", Master, "picture"
+        theme_color "Finance", Master, "picture"
+        Body
+
+
+// ============================================================================
+//
+//    Bullet
+//
+// ============================================================================
+
+theme_style "Finance", Master:text, "bullet", Level:integer ->
+// ----------------------------------------------------------------------------
+//    Style for title in normal slides
+// ----------------------------------------------------------------------------
+    theme_font "Finance", Master, "bullet", Level
+    font_size theme_size("Finance", Master, "bullet", Level)
+    theme_color "Finance", Master, "bullet", Level
+    theme_align "Finance", Master, "bullet", Level
+
+
+theme_bullet "Finance", Master:text, Level:integer, Body ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a bullet
+// ----------------------------------------------------------------------------
+    text_span
+        theme_style "Finance", Master, "story", Level
+        paragraph_break
+        anchor
+            theme_style "Finance", Master, "bullet", Level
+            theme_bullet_picture "Finance", Master, Level
+        Body
+
+
+theme_bullet_picture "Finance", Master:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Style of a bullet
+// ----------------------------------------------------------------------------
+    locally
+        scale3 2% * theme_size ("Finance", Master, "bullet", Level)
+        translate -40, 13, 5
+        locally
+            color "white"
+            ellipse 0, 0, 35, 35
+        ellipse_arc 0, 0, 28, 28, 70 * Level * page_time, 330
+        color "white"
+        ellipse 0, 0, 20, 20
+
+
+// ============================================================================
+//
+//    Transition for financial theme
+//
+// ============================================================================
+
+financial_transition_page -> 0
+financial_transition ->
+// ----------------------------------------------------------------------------
+//    Transition for finance theme
+// ----------------------------------------------------------------------------
+    transition 1.0,
+        locally
+            financial_transition_page := 1
+            transition_next_page
+            financial_transition_page := 0
+            transition_current_page
+            time
+
+theme_transition "Finance", Master:text, "title" ->
+// ----------------------------------------------------------------------------
+//    Apply transition mechanism for title
+// ----------------------------------------------------------------------------
+    if(transition_ratio > 0.0)then
+        if(financial_transition_page = 0) then
+            translatex -2000 + 2000 * fade_out(transition_time * 1.2, 1.0)
+        else
+            translatex 2000 * fade_out(transition_time * 1.2, 1.0)
+
+theme_transition "Finance", Master:text, Style:text ->
+// ----------------------------------------------------------------------------
+//    Apply transition mechanism for classic layouts
+// ----------------------------------------------------------------------------
+    if(transition_ratio > 0.0)then
+        if(financial_transition_page = 0) then
+            translatex 2000 - 2000 * fade_out(transition_time * 1.2, 1.0)
+        else
+            translatex -2000 * fade_out(transition_time * 1.2, 1.0)
+

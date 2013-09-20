@@ -1,0 +1,73 @@
+// ****************************************************************************
+//   Landscapes - A theme containing nice landscape pictures
+//   Copyright 2013 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+module_description
+    id "ca09f854-bb99-472e-bd5d-a59b652a22cb"
+    name "Landscapes theme"
+    description "A theme containing nice landscape pictures"
+    import_name "LandscapesTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Thème Paysages"
+    description "Un thème contenant de splendides images de paysages"
+
+import Slides
+import VLCAudioVideo
+
+theme_slide_width  "Landscapes" -> 1920
+theme_slide_height "Landscapes" -> 1080
+
+data landscapes // Array of landscapes
+
+// Load pictures
+landscape_index -> 0
+landscape_index := 0
+landscape with files "landscapes/*"
+
+landscape T:text ->
+// ----------------------------------------------------------------------------
+//   Load and parse landscape pictures
+// ----------------------------------------------------------------------------
+    landscapes[landscape_index] := T
+    landscape_index := landscape_index + 1
+
+theme_background "Landscapes", Master:text ->
+// ----------------------------------------------------------------------------
+//   Display landscape pictures
+// ----------------------------------------------------------------------------
+    movie_pause "re:"
+    clear_color 0, 0, 0, 1
+    background -900,
+        color "white"
+        texture landscapes[(page_number - 1) mod landscape_index]
+        rectangle 1920, 1080
+
+theme_size "Landscapes",Master:text,"title"    -> 95
+theme_size "Landscapes",Master:text,"subtitle"    -> 60
+theme_size "Landscapes",Master:text,"story"        -> 52
+theme_size "Landscapes",Master:text,"story",2     -> 40
+
+theme_color "Landscapes",Master:text,"title"     -> color "white"; line_color "black", 0.3; line_width 1
+
+theme_font "Landscapes",Master:text,Style:text     -> font "TeXGyreAdventor", "Yanone Kaffeesatz Regular"
+
+theme_boxstyle "Landscapes",Master:text,Style:text  -> color "white",0.4; line_color "black", 0.30
+
+theme_align "Landscapes",Master:text,"story", N  -> margins 25+50*N, 0
+
+theme_box "Landscapes",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
+            gradient_color 0.0, 0.9, 0.9, 1, 0.97
+            gradient_color 0.5, 0.9, 0.9, 1, 0.99
+            gradient_color 1.0, 0.9, 0.9, 1, 1.0
+        rectangle X, Y, W + 10, H + 10

@@ -1,0 +1,36 @@
+
+theme "Finance"
+
+key "e" -> lang "en"; time
+key "f" -> lang "fr"; time
+
+main_title_slide "Main title",
+    title
+        text "Finance template for Tao Presentations" fr "Thème 'Finance' pour Tao Presentations"
+    subtitle
+        text "Press E or F to change the language" fr "Appuyer sur E ou F pour changer la langue"
+    page_duration 3.0
+
+title_slide "First slide",
+    story
+        text "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+    page_duration 3.0
+
+title_slide "Second slide",
+    story
+        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+        ** "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+        ** "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+        ** "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+    page_duration 3
+
+title_slide "Third slide",
+    left_column
+        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
+    right_picture
+        image 0, 0, 1.1, 1.1, "http://i2.wp.com/smashfreakz.com/wp-content/uploads/2013/05/chart-psd-30.jpg"
+    page_duration 3

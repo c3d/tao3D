@@ -61,7 +61,7 @@ base_slide "Blue Gold",
     title
         text "Blue Gold" fr "L'Or Bleu"
     picture
-        movie 0, 0, 2.0, 2.0, "http://www.youtube.com/watch?v=Fvkzjt3b-dU&fmt=43"
+        movie 0, 0, 2.0, 2.0, "http://www.youtube.com/watch?v=O99Qezatso4"
 
 
 // ****************************************************************************

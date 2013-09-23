@@ -4195,9 +4195,7 @@ void Widget::preloadSelectionCode()
         XL::Symbols *s = XL::MAIN->globals;
         double x = 0;
         (XL::XLCall("draw_selection"), x,x,x,x).build(s);
-        (XL::XLCall("draw_selection"), x,x,x,x,x,x).build(s);
         (XL::XLCall("draw_widget_selection"), x,x,x,x).build(s);
-        (XL::XLCall("draw_widget_selection"), x,x,x,x,x,x).build(s);
         (XL::XLCall("draw_3D_selection"), x,x,x,x,x,x).build(s);
         (XL::XLCall("draw_handle"), x, x, x).build(s);
         (XL::XLCall("draw_control_point_handle"), x, x, x).build(s);
@@ -9614,7 +9612,7 @@ Tree_p Widget::fontPlain(Tree_p self)
     font.setStrikeOut(false);
     font.setOverline(false);
     layout->Add(new FontChange(font));
-    return XL::xl_true;
+    return self;
 }
 
 
@@ -9638,7 +9636,7 @@ Tree_p Widget::fontItalic(Tree_p self, scale amount)
     amount = clamp(amount, 0, 2);
     layout->font.setStyle(QFont::Style(amount));
     layout->Add(new FontChange(layout->font));
-    return XL::xl_true;
+    return self;
 }
 
 
@@ -9651,7 +9649,7 @@ Tree_p Widget::fontBold(Tree_p self, scale amount)
     amount = clamp(amount, 0, 99);
     layout->font.setWeight(/*QFont::Weight*/(amount));
     layout->Add(new FontChange(layout->font));
-    return XL::xl_true;
+    return self;
 }
 
 
@@ -9663,7 +9661,7 @@ Tree_p Widget::fontUnderline(Tree_p self, scale amount)
 {
     layout->font.setUnderline(bool(amount));
     layout->Add(new FontChange(layout->font));
-    return XL::xl_true;
+    return self;
 }
 
 
@@ -9675,7 +9673,7 @@ Tree_p Widget::fontOverline(Tree_p self, scale amount)
 {
     layout->font.setOverline(bool(amount));
     layout->Add(new FontChange(layout->font));
-    return XL::xl_true;
+    return self;
 }
 
 
@@ -9687,7 +9685,7 @@ Tree_p Widget::fontStrikeout(Tree_p self, scale amount)
 {
     layout->font.setStrikeOut(bool(amount));
     layout->Add(new FontChange(layout->font));
-    return XL::xl_true;
+    return self;
 }
 
 
@@ -9700,7 +9698,7 @@ Tree_p Widget::fontStretch(Tree_p self, scale amount)
     amount = clamp(amount, 0, 40);
     layout->font.setStretch(int(amount * 100));
     layout->Add(new FontChange(layout->font));
-    return XL::xl_true;
+    return self;
 }
 
 
@@ -12164,7 +12162,6 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
         connect(this, SIGNAL(copyAvailableAndNotReadOnly(bool)),
                 p_action, SLOT(setEnabled(bool)));
     }
-
 
     if (iconFileName != "")
         p_action->setIcon(QIcon(+iconFileName));

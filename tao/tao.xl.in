@@ -1,13 +1,61 @@
-// Load translations
+// ****************************************************************************
+//  Default definitions and configuration for Tao Presentations
+//  (C) 2011-2013 Taodyne SAS - See licenses at end of file
+// ****************************************************************************
+
+
+
+// ****************************************************************************
+// 
+//                             CONFIGURATION
+//
+//   Anything in this section can be adjusted to modify the behavior of the
+//   Tao Presentations application when it runs. To create user-specific
+//   modifications to these behaviors, simply copy and modify the definitions
+//   found in this file.
+//
+//   There are three places you can modify:
+//   - A 'theme.xl' document placed in the document's directory.
+//     In that case, changes will only apply for that document. For example,
+//     you could use it to add a document-specific menu.
+//   - A 'user.xl' document placed in a user's preferences directory.
+//     In that case, changes will apply for only that user, but for all
+//     documents, and for all versions of the software. For example, you
+//     may use this for user-specific keyboard shortcuts or menus.
+//   - The present 'tao.xl' document, found in the application directory.
+//     You should normally not modify this file, as the changes will be
+//     lost when you upgrade the software to a new version. However, you
+//     may freely copy and paste code from this file to modify it, by
+//     placing it for example in user.xl.
+// 
+// ****************************************************************************
+
+
+// ============================================================================
+// 
+//                           Language translations
+//
+//   In this section, you can insert translations for various languages.
+//   If you translated Tao Presentations texts in a different language, please
+//   share it with us so that we can integrate your work in a later release.
+// 
+// ============================================================================
+
 tr_lang -> ""
 import "tao_fr.xl"
 
-// module_description is used in a module's main file to describe the module
-// Parsing of this prefix is currently done in C++
-module_description b:block              -> false
-module_description T:text, b:block      -> false
 
-// Key management
+
+// ============================================================================
+// 
+//                            Keyboard shortcuts
+//
+//   These are the default keyboard shortcuts for Tao Presentations.
+//   Feel free to add similar keyboard shortcuts in you application or
+//   in your user configuration.
+// 
+// ============================================================================
+
 key "Control-L"                         -> toggle_slide_show
 key "Escape"                            -> main_chooser
 key "Control-M"                         -> toggle_hand_cursor
@@ -25,33 +73,547 @@ key "F5"                                -> { goto_page page_name 1 ; slide_show 
 key "Shift-F5"                          -> slide_show true
 key X                                   -> text_edit_key X
 
-next_page ->
-    if page_number < page_count then
-        goto_page page_name(page_number+1)
-        refresh 0.0
 
-previous_page ->
-    if page_number > 1 then
-        goto_page page_name(page_number-1)
-        refresh 0.0
+// ============================================================================
+// 
+//                Chooser - A menu triggered with the ESC key
+//
+//   The chooser is used to present commands that you may need to use during a
+//   presentation. To select a command, simply type ESC, followed by letters
+//   that identify the command.
+//   You can add your own commands to the chooser, or build your own choosers
+//   in response for example to specific keyboard shortcuts.
+// 
+// ============================================================================
 
-// Zoom
-zoom_max                                -> 32.0
-zoom_min                                -> 0.125
-zoom_out                                -> if zoom > zoom_min then zoom (zoom/1.5)
-zoom_in                                 -> if zoom < zoom_max then zoom (zoom*1.5)
+main_chooser ->
+// ----------------------------------------------------------------------------
+//   The main chooser is used when you press ESC
+// ----------------------------------------------------------------------------
+    chooser tr "Choose command"
+#ifndef CFG_NOFULLSCREEN
+    chooser_choice tr "Toggle full screen", {toggle_slide_show}
+#endif
+    display_mode_chooser
+    chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
+    chooser_choice tr "Toggle stereo identification", {toggle_stereo_identify}
+    if is_available vsync_ctl then
+        chooser_choice tr "Enable VSync", {enable_vsync true}
+        chooser_choice tr "Disable VSync", {enable_vsync false}
+    chooser_choice tr "Reset view", {reset_view}
+    chooser_choice tr "Zoom in", {zoom_in}
+    chooser_choice tr "Zoom out", {zoom_out}
+    chooser_choice tr "Toggle hand cursor", {toggle_hand_cursor}
+    chooser_choice tr "Enable glyph cache", {enable_glyph_cache true}
+    chooser_choice tr "Disable glyph cache", {enable_glyph_cache false}
+    chooser_choice tr "Toggle rendering statistics (fps)", {toggle_show_statistics}
+    chooser_choice tr "Select page", {page_chooser}
+    if current_repository then
+        chooser_choice tr "Checkout...", {branch_chooser}
+    // Broken (bug#1709)
+    chooser_commands "chooser_command_", ""
+    chooser_choice tr "Texture...", {texture_chooser}
+    window_sizes_chooser
 
-// Shortcuts to test keyboard modifiers
-control_modifier  -> (keyboard_modifiers and 16#04000000) <> 0
-shift_modifier    -> (keyboard_modifiers and 16#02000000) <> 0
-alt_modifier      -> (keyboard_modifiers and 16#08000000) <> 0
-meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
 
-// Shortcuts to test mouse button
-left_mouse_button   -> (mouse_buttons and 16#00000001) <> 0
-right_mouse_button  -> (mouse_buttons and 16#00000002) <> 0
-middle_mouse_button -> (mouse_buttons and 16#00000004) <> 0
+page_chooser ->
+// ----------------------------------------------------------------------------
+//   The page chooser is used to select a given page (Control-G or Command-G)
+// ----------------------------------------------------------------------------
+    chooser tr "Go to page..."
+    chooser_pages goto_page, ""
 
+
+branch_chooser ->
+// ----------------------------------------------------------------------------
+//    The branch chooser is used to select a git branch
+// ----------------------------------------------------------------------------
+    chooser tr "Select branch"
+    chooser_branches commit_chooser, ""
+
+
+commit_chooser b:text ->
+// ----------------------------------------------------------------------------
+//    The commit chooser is used to select a specific git commit
+// ----------------------------------------------------------------------------
+    chooser tr "Select commit"
+    chooser_commits b, checkout, ""
+
+
+window_sizes_chooser ->
+// ----------------------------------------------------------------------------
+//    Show common window sizes to test presentations on common projector sizes
+// ----------------------------------------------------------------------------
+    chooser_choice "800 x 600",
+        window_size 800, 600
+    chooser_choice "960 x 540",
+        window_size 960, 540
+    chooser_choice "1024 x 768",
+        window_size 1024, 768
+    chooser_choice "1280 x 720",
+        window_size 1280, 720
+    chooser_choice "1280 x 768",
+        window_size 1280, 768
+    chooser_choice "1600 x 1200",
+        window_size 1600, 1200
+    chooser_choice "1920 x 1080",
+        window_size 1920, 1080
+
+
+display_mode_chooser ->
+// ----------------------------------------------------------------------------
+//   List the available display modes for the chooser
+// ----------------------------------------------------------------------------
+    if has_display_mode quadstereo then
+        chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
+    if has_display_mode hsplitstereo then
+        chooser_choice tr "Enable stereoscopy (side by side)", {enable_stereoscopy hsplit}
+        chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
+    if has_display_mode vsplitstereo then
+        chooser_choice tr "Enable stereoscopy (over/under)", {enable_stereoscopy vsplit}
+        chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
+    if has_display_mode hintstereo then
+        chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
+    if has_display_mode hframepacking then
+        chooser_choice tr "Enable stereoscopy (horizontal frame packing)", {enable_stereoscopy hframepacking}
+    if has_display_mode vsplitstereo then
+        chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
+    if has_display_mode alioscopy then
+        chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
+    if has_display_mode "2dplusdepth" then
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
+    if has_display_mode tridelity then
+        chooser_choice tr "Enable stereoscopy (Tridelity MV)", {enable_stereoscopy tridelity}
+    if has_display_mode "anaglyph" then
+        chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}
+    if has_display_mode "checkerboard" then
+        chooser_choice tr "Enable stereoscopy (checkerboard)", {enable_stereoscopy "checkerboard"}
+    chooser_choice tr "Disable stereoscopy", {enable_stereoscopy false}
+    chooser_choice tr "Increase eye distance", {increase_eye_distance}
+    chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
+
+
+
+// ============================================================================
+// 
+//                             Menu configuration
+//
+//   This section defines the default menus for the Tao Presentations
+//   application. You can add user-specfic menus in user.xl, or menus for
+//   a given presentation in theme.xl or the document itself.
+// 
+// ============================================================================
+
+// List the default menus for the application
+#ifndef CFG_NOEDIT
+insert_menu                     // Insert menu
+format_menu                     // Format menu
+arrange_menu                    // Arrange menu
+#endif
+windows_menu                    // Windows menu
+add_display_mode_to_menu "2D", tr "2D"
+
+windows_menu ->
+// ----------------------------------------------------------------------------
+//    Windows menu
+// ----------------------------------------------------------------------------
+    menu   "TAO_VIEW_MENU", ""
+    submenu "TAO_VIEW_MENU:windowsize", tr "Window size"
+    menu_item "TAO_VIEW_MENU:windowsize > 800", "800 x 600",
+        window_size 800, 600
+    menu_item "TAO_VIEW_MENU:windowsize > 960", "960 x 540",
+        window_size 960, 540
+    menu_item "TAO_VIEW_MENU:windowsize > 1024", "1024 x 768",
+        window_size 1024, 768
+    menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768",
+        window_size 1280, 768
+    menu_item "TAO_VIEW_MENU:windowsize > 720p", "1280 x 720",
+        window_size 1280, 720
+    menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200",
+        window_size 1600, 1200
+    menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
+        window_size 1920, 1080
+
+
+#ifndef CFG_NOEDIT
+insert_menu ->
+// ----------------------------------------------------------------------------
+//    The Insert menu is used to insert shapes or elements in the document
+// ----------------------------------------------------------------------------
+    menubar
+    menu      "menu:insert", tr "Insert"
+    menu_item "menu:insert > text box", tr "Text Box",
+        insert tr "Insert text box",
+            shape
+                text_box 0, 0, 400, 100,
+                    text "Text"
+    menu_item_status "menu:insert > text box"
+    submenu   "menu:insert > shape", tr "2D Shape"
+    menu_item "menu:insert > shape > line ---", tr "Line",
+        insert tr "Insert line",
+            shape
+                line_color "line"
+                line 50, -50, -50, 50
+    menu_item_status "menu:insert > shape > line ---"
+    menu_item "menu:insert > shape > line -->", tr "Line with Arrowhead",
+        insert tr "Insert line with arrowhead",
+            shape
+                line_color "line"
+                line_arrow 50, -50, none, -50, 50, arrowhead
+    menu_item_status "menu:insert > shape > line -->"
+    menu_item "menu:insert > shape > line <->", tr "Line with Two Arrowheads",
+        insert tr "Insert line with two arrowheads",
+            shape
+                line_color "line"
+                line_arrow 50, -50, arrowhead, -50, 50, arrowhead
+    menu_item_status "menu:insert > shape > line <->"
+    menu_item "menu:insert > shape > rectangle", tr "Rectangle",
+        insert tr "Insert rectangle",
+            shape
+                rectangle 0, 0, 100, 100
+    menu_item_status "menu:insert > shape > rectangle"
+    menu_item "menu:insert > shape > rounded rectangle", tr "Rounded Rectangle",
+        insert tr "Insert rounded rectangle",
+            shape
+                rounded_rectangle 0, 0, 100, 100, 15
+    menu_item_status "menu:insert > shape > rounded rectangle"
+    menu_item "menu:insert > shape > oval", tr "Oval",
+        insert tr "Insert oval",
+            shape
+                ellipse 0, 0, 100, 100
+    menu_item_status "menu:insert > shape > oval"
+    menu_item "menu:insert > shape > triangle", tr "Triangle",
+        insert tr "Insert triangle",
+            shape
+                triangle 0, 0, 100, 100
+    menu_item_status "menu:insert > shape > triangle"
+    menu_item "menu:insert > shape > right triangle", tr "Right Triangle",
+        insert tr "Insert right triangle",
+            shape
+                right_triangle 0, 0, 100, 100
+    menu_item_status "menu:insert > shape > right triangle"
+    menu_item "menu:insert > shape > arrow", tr "Arrow",
+        insert tr "Insert arrow",
+            shape
+                arrow 0, 0, 100, 100, 44, 0.32
+    menu_item_status "menu:insert > shape > arrow"
+    menu_item "menu:insert > shape > double arrow", tr "Double Arrow",
+        insert tr "Insert double arrow",
+            shape
+                double_arrow 0, 0, 100, 100, 44, 0.32
+    menu_item_status "menu:insert > shape > double arrow"
+    menu_item "menu:insert > shape > diamond", tr "Diamond",
+        insert tr "Insert diamond",
+            shape
+                diamond 0, 0, 100, 100
+    menu_item_status "menu:insert > shape > diamond"
+    menu_item "menu:insert > shape > speech ballon", tr "Speech Balloon",
+        insert tr "Insert speech balloon",
+            shape
+                speech_balloon 0, 16, 100, 68, 50, -50, -50
+    menu_item_status "menu:insert > shape > speech ballon"
+    menu_item "menu:insert > shape > callout", tr "Callout",
+        insert tr "Insert callout",
+            shape
+                callout 16, 0, 68, 100, 15, -50, 0, 60
+    menu_item_status "menu:insert > shape > callout"
+    menu_item "menu:insert > shape > star", tr "Star",
+        insert tr "Insert star",
+            shape
+                star 0, 0, 100, 100, 5, 0.5
+    menu_item_status "menu:insert > shape > star"
+    menu_item "menu:insert > shape > polygon", tr "Polygon",
+        insert tr "Insert polygon",
+            shape
+                polygon 0, 0, 100, 100, 5
+    menu_item_status "menu:insert > shape > polygon"
+
+    menu      "menu:insert", ""
+    submenu   "menu:insert > 3Dshape", tr "3D Shape"
+    menu_item "menu:insert > 3Dshape > sphere", tr "Sphere",
+        insert tr "Insert sphere",
+            shape
+                sphere 0, 0, 0, 100, 100, 100, 25, 25
+    menu_item_status "menu:insert > 3Dshape > sphere"
+
+    menu_item "menu:insert > 3Dshape > torus", tr "Torus",
+        insert tr "Insert torus",
+            shape
+                torus 0, 0, 0, 100, 100, 100, 25, 25, 0.5
+    menu_item_status "menu:insert > 3Dshape > torus"
+
+    menu_item "menu:insert > 3Dshape > cube", tr "Cube",
+        insert tr "Insert cube",
+            shape
+                cube 0, 0, 0, 100, 100, 100
+    menu_item_status "menu:insert > 3Dshape > cube"
+
+    menu_item "menu:insert > 3Dshape > cone", tr "Cone",
+        insert tr "Insert cone",
+            shape
+                cone 0, 0, 0, 100, 100, 100
+    menu_item_status "menu:insert > 3Dshape > cone"
+
+    menu_item "menu:insert > 3Dshape > cylinder", tr "Cylinder",
+        insert tr "Insert cylinder",
+            shape
+                cylinder 0, 0, 0, 100, 100, 100
+    menu_item_status "menu:insert > 3Dshape > cylinder"
+
+    menu_item "menu:insert > 3Dshape > truncated cone", tr "Truncated cone",
+        insert tr "Insert truncated cone",
+            shape
+                truncated_cone 0, 0, 0, 100, 100, 100, 0.5
+    menu_item_status "menu:insert > 3Dshape > truncated cone"
+
+
+
+    menu      "menu:insert", ""
+    menu_item "menu:insert > table", tr "Table",
+        insert tr "Insert table",
+            shape
+                table 3, 3,
+                    table_cell_fill
+                        color 0%,0%,0%,20%
+                        line_color 0%, 0%, 100%, 80%
+                        line_width 2
+                        rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
+                    table_cell_margins 5, 5
+                    table_cell
+                        text tr "Cell 1,1"
+                    table_cell
+                        text tr "Cell 1,2"
+                    table_cell
+                        text tr "Cell 1,3"
+                    table_cell
+                        text tr "Cell 2,1"
+                    table_cell
+                        text tr "Cell 2,2"
+                    table_cell
+                        text tr "Cell 2,3"
+                    table_cell
+                        text tr "Cell 3,1"
+                    table_cell
+                        text tr "Cell 3,2"
+                    table_cell
+                        text tr "Cell 3,3"
+    menu_item_status "menu:insert > table"
+
+    separator
+
+    menu      "menu:insert", ""
+    menu_item "menu:insert > image...", tr "Image...",
+        image_chooser
+            insert tr "Insert image",
+                shape
+                    color "white"
+                    image 0, 0, 100%, 100%, rel_file_path
+    menu_item_status "menu:insert > image..."
+
+    menu_item "menu:insert > movie...", tr "Movie...",
+        movie_chooser
+            insert tr "Insert movie",
+                shape
+                    movie 0, 0, 100%, 100%, rel_file_path
+    menu_item_status "menu:insert > movie..."
+
+
+format_menu ->
+// ----------------------------------------------------------------------------
+//   "Format" menu
+// ----------------------------------------------------------------------------
+    menubar
+    menu   "menu:select:format", tr "Format"
+    menu_item "menu:selectW:format > fill color", tr "Fill Color...",
+        color_chooser "color",
+            set_attribute "color", {color red, green, blue, alpha}
+    menu_item_status "menu:selectW:format > fill color"
+    menu_item "menu:selectW:format > line color", tr "Line Color...",
+        color_chooser "line_color",
+            set_attribute "line_color", {line_color red, green, blue, alpha}
+    menu_item_status "menu:selectW:format > line color"
+    menu_item "menu:selectW:format > font", tr "Font...",
+        font_chooser
+            set_attribute "font", {font font_family, font_size, slant font_slant%, weight font_weight%, stretch font_stretch%}
+    menu_item_status "menu:selectW:format > font"
+    menu_item "menu:selectW:format >  texture...", tr "Texture...",
+        texture_chooser
+    menu_item_status "menu:selectW:format >  texture..."
+
+
+arrange_menu ->
+// ----------------------------------------------------------------------------
+//    "Arrange" menu
+// ----------------------------------------------------------------------------
+    menu   "menu:select:arrange", tr "Arrange"
+    menu_item "menu:selectW:arrange > toFront", tr "Bring to front",
+        bring_to_front
+    menu_item_status "menu:selectW:arrange > toFront"
+    menu_item "menu:selectW:arrange > forward", tr "Bring forward",
+        bring_forward
+    menu_item_status "menu:selectW:arrange > forward"
+    menu_item "menu:selectW:arrange > backward", tr "Send backward",
+        send_backward
+    menu_item_status "menu:selectW:arrange > backward"
+    menu_item "menu:selectW:arrange > toBack", tr "Send to back",
+        send_to_back
+    menu_item_status "menu:selectW:arrange > toBack"
+
+    separator
+
+    menu_item "menu:selectW:arrange > group", tr "Group",
+        group_selection
+    menu_item_status "menu:selectW:arrange > group"
+    menu_item "menu:selectW:arrange > ungroup", tr "Ungroup",
+        ungroup_selection
+    menu_item_status "menu:selectW:arrange > ungroup"
+
+#endif
+
+
+// ============================================================================
+// 
+//                          Toolbar configuration
+//
+//   This section defines the default toolbars for Tao Presentations.
+//   You can use similar code to create your own toolbars
+// 
+// ============================================================================
+
+#ifndef CFG_NOEDIT
+
+// Comment out the following line if you want the toolbar to show up by default.
+// insert_toolbar
+
+insert_toolbar ->
+// ----------------------------------------------------------------------------
+//    The 'Insert' toolbar
+// ----------------------------------------------------------------------------
+    toolbar   "toolbar:insert", tr "Insert", "N"
+    // Comment this out to have all the shapes in a single menu
+    // submenu   "toolbar:insert > shape", tr "Shape", ":/images/tb_shapes.png"
+    menu_item "toolbar:insert > shape > line ---", "", ":/images/tb_shape_line.png",
+        insert tr "Insert line",
+            shape
+                line 50, -50, -50, 50
+    menu_item_status "toolbar:insert > shape > line ---"
+    menu_item "toolbar:insert > shape > line -->", "", ":/images/tb_shape_line_w_arrowhead.png",
+        insert tr "Insert line with arrowhead",
+            shape
+                color "line"
+                line_color "line"
+                line_arrow 50, -50, none, -50, 50, arrowhead
+    menu_item_status "toolbar:insert > shape > line -->"
+    menu_item "toolbar:insert > shape > line <->", "", ":/images/tb_shape_line_w_two_arrowheads.png",
+        insert tr "Insert line with two arrowheads",
+            shape
+                color "line"
+                line_color "line"
+                line_arrow 50, -50, arrowhead, -50, 50, arrowhead
+    menu_item_status "toolbar:insert > shape > line <->"
+    menu_item "toolbar:insert > shape > rectangle", "", ":/images/tb_shape_rectangle.png",
+        insert tr "Insert rectangle",
+            shape
+                color "fill"
+                line_color "fill"
+                rectangle 0, 0, 100, 100
+    menu_item_status "toolbar:insert > shape > rectangle"
+    menu_item "toolbar:insert > shape > rounded rectangle", "", ":/images/tb_shape_rounded_rectangle.png",
+        insert tr "Insert rounded rectangle",
+            shape
+                color "fill"
+                line_color "fill"
+                rounded_rectangle 0, 0, 100, 100, 15
+    menu_item_status "toolbar:insert > shape > rounded rectangle"
+    menu_item "toolbar:insert > shape > oval", "", ":/images/tb_shape_oval.png",
+        insert tr "Insert oval",
+            shape
+                color "fill"
+                line_color "fill"
+                ellipse 0, 0, 100, 100
+    menu_item_status "toolbar:insert > shape > oval"
+    menu_item "toolbar:insert > shape > triangle", "", ":/images/tb_shape_triangle.png",
+        insert tr "Insert triangle",
+            shape
+                color "fill"
+                line_color "fill"
+                triangle 0, 0, 100, 100
+    menu_item_status "toolbar:insert > shape > triangle"
+    menu_item "toolbar:insert > shape > right triangle", "", ":/images/tb_shape_right_triangle.png",
+        insert tr "Insert right triangle",
+            shape
+                color "fill"
+                line_color "fill"
+                right_triangle 0, 0, 100, 100
+    menu_item_status "toolbar:insert > shape > right triangle"
+    menu_item "toolbar:insert > shape > arrow", "", ":/images/tb_shape_arrow.png",
+        insert tr "Insert arrow",
+            shape
+                color "fill"
+                line_color "fill"
+                arrow 0, 0, 100, 100, 44, 32%
+    menu_item_status "toolbar:insert > shape > arrow"
+    menu_item "toolbar:insert > shape > double arrow", "", ":/images/tb_shape_double_arrow.png",
+        insert tr "Insert double arrow",
+            shape
+                color "fill"
+                line_color "fill"
+                double_arrow 0, 0, 100, 100, 44, 32%
+    menu_item_status "toolbar:insert > shape > double arrow"
+    menu_item "toolbar:insert > shape > diamond", "", ":/images/tb_shape_diamond.png",
+        insert tr "Insert diamond",
+            shape
+                color "fill"
+                line_color "fill"
+                diamond 0, 0, 100, 100
+    menu_item_status "toolbar:insert > shape > diamond"
+    menu_item "toolbar:insert > shape > speech ballon", "", ":/images/tb_shape_speech_balloon.png",
+        insert tr "Insert speech balloon",
+            shape
+                color "fill"
+                line_color "fill"
+                speech_balloon 0, 16, 100, 68, 50, -50, -50
+    menu_item_status "toolbar:insert > shape > speech ballon"
+    menu_item "toolbar:insert > shape > callout", "", ":/images/tb_shape_callout.png",
+        insert tr "Insert callout",
+            shape
+                color "fill"
+                line_color "fill"
+                callout 16, 0, 68, 100, 15, -50, 0, 60
+    menu_item_status "toolbar:insert > shape > callout"
+    menu_item "toolbar:insert > shape > star", "", ":/images/tb_shape_star.png",
+        insert tr "Insert star",
+            shape
+                color "fill"
+                line_color "fill"
+                star 0, 0, 100, 100, 5, 50%
+    menu_item_status "toolbar:insert > shape > star"
+    menu_item "toolbar:insert > shape > polygon", "", ":/images/tb_shape_polygon.png",
+        insert tr "Insert polygon",
+            shape
+                color "fill"
+                line_color "fill"
+                polygon 0, 0, 100, 100, 5
+    menu_item_status "toolbar:insert > shape > polygon"
+
+
+#endif
+
+
+
+// ============================================================================
+// 
+//                         Scroll wheel configuration
+//
+//   By default, the scroll wheel has no effect, but you can define your own
+//   wheel_event in user.xl or theme.x to add specific responses to the
+//   scroll whell
+// 
+// ============================================================================
+
+// Default behavior for wheel events
 wheel_event x, y -> false
 
 // Connect wheel event to the following code to pan and zoom with the mouse
@@ -64,8 +626,658 @@ implement_pan_and_zoom_wheel_event x, y ->
     else
         pan -x, y
 
+
+// ============================================================================
+// 
+//                        Font and shape configuration
+//
+//   When Tao Presentations needs to draw things such as chooser or selection,
+//   it will invoke the functions below. You can override these functions
+//   for interesting effects, e.g. create your own selection rectangle.
+//
+// ============================================================================
+
+chooser_title_font ->
+// ----------------------------------------------------------------------------
+//    Font used for the title of the chooser
+// ----------------------------------------------------------------------------
+    font "Arial Black", 30
+
+
+chooser_item_font ->
+// ----------------------------------------------------------------------------
+//    Font used for the items in the chooser
+// ----------------------------------------------------------------------------
+    font "Arial", 28
+
+
+draw_chooser_box x,y,w,h ->
+// ----------------------------------------------------------------------------
+//    Draw the chooser box
+// ----------------------------------------------------------------------------
+    color 20%, 20%, 20%, 70%
+    line_color 100%,0%,0%,70%
+    rounded_rectangle x, y, w+10, h+10, 5
+    line_color 0%,0%,0%,0%
+
+
+draw_chooser_caption m, x, y  ->
+// ----------------------------------------------------------------------------
+//    Draw the title of the chooser
+// ----------------------------------------------------------------------------
+    chooser_title_font
+    move_to x, y, 0
+    text m
+
+
+draw_chooser_item m, x, y ->
+// ----------------------------------------------------------------------------
+//   Draw a text item in the chooser
+// ----------------------------------------------------------------------------
+    chooser_item_font
+    color 100%, 100%, 100%, 90%
+    move_to x, y, 0
+    text m
+
+
+draw_chooser_choice m, x, y  ->
+// ----------------------------------------------------------------------------
+//    Draw a choice in the chooser
+// ----------------------------------------------------------------------------
+    color 70%, 70%, 100%, 90%
+    draw_chooser_caption m, x, y
+
+
+draw_chooser_error m, x, y ->
+// ----------------------------------------------------------------------------
+//    Draw a choice that does not exist in the chooser
+// ----------------------------------------------------------------------------
+    color 100%, 90%, 20%, 90%
+    draw_chooser_caption m, x, y
+
+
+draw_chooser_title m, x, y  ->
+// ----------------------------------------------------------------------------
+//    Draw the title in the chooser
+// ----------------------------------------------------------------------------
+    color 100%, 100%, 70%, 90%
+    draw_chooser_caption m, x, y
+
+
+draw_chooser_more_above x, y, w, h ->
+// ----------------------------------------------------------------------------
+//    Draw the triangle indicating that there are more choices above
+// ----------------------------------------------------------------------------
+    color 20%, 100%, 40%, 80%
+    triangle x, y, w, h
+
+
+draw_chooser_more_below x, y, w, h ->
+// ----------------------------------------------------------------------------
+//   Draw the triangle indicating that there are more choices below
+// ----------------------------------------------------------------------------
+    color 20%, 100%, 40%, 80%
+    triangle x, y, w, -h
+
+
+draw_chooser_selection x, y, w, h ->
+// ----------------------------------------------------------------------------
+//    Draw the currently selected choice in the chooser
+// ----------------------------------------------------------------------------
+    color 40%, 60%, 90%, 80%
+    rectangle x, y, w+8, h+2
+
+
+draw_chooser_match Before:text, Select:text, After:text, X:real, Y:real ->
+// ----------------------------------------------------------------------------
+//    Draw the chooser text during a selection.
+// ----------------------------------------------------------------------------
+    chooser_item_font
+    color 100%, 100%, 100%, 70%
+    move_to X, Y, 0
+    text Before
+    color 100%, 100%, 60%, 90%
+    text Select
+    color 100%, 100%, 100%, 60%
+    text After
+
+
+selection_color ->
+// ----------------------------------------------------------------------------
+//    Color for the selection
+// ----------------------------------------------------------------------------
+    color 70%, 80%, 90%, 40%
+    line_color 80%, 30%, 30%, 80%
+    line_width 2
+
+
+selection_rectangle_color ->
+// ----------------------------------------------------------------------------
+//    Color for the selection rectangle
+// ----------------------------------------------------------------------------
+    color 70%, 90%, 80%, 40%
+    line_color 0.4 * sin time , 0.9*sin (2*time), 0.8*sin(3*time), 0.8
+    line_width 1
+
+
+open_group_color ->
+// ----------------------------------------------------------------------------
+//    Color for an open shape group (i.e. if you double click in a group)
+// ----------------------------------------------------------------------------
+    color 80%, 80%, 90%, 5%
+    line_color 40%, 40%, 90%, 30%
+    line_width 2
+
+
+open_textbox_color ->
+// ----------------------------------------------------------------------------
+//   Color for an open text box (i.e. you are editing it)
+// ----------------------------------------------------------------------------
+    color 90%, 80%, 80%, 5%
+    line_color 90%, 40%, 40%, 30%
+    line_width 2
+
+
+group_item_color ->
+// ----------------------------------------------------------------------------
+//    Color for an item in a group
+// ----------------------------------------------------------------------------
+    color 80%, 80%, 80%, 5%
+    line_color 40%, 40%, 40%, 5%
+    line_width 2
+
+
+selected_textbox_color ->
+// ----------------------------------------------------------------------------
+//    Color for a selected text box
+// ----------------------------------------------------------------------------
+    color 80%, 90%, 80%, 10%
+    line_color 40%, 90%, 40%, 30%
+    line_width 2
+
+
+text_selection_color ->
+// ----------------------------------------------------------------------------
+//    Color for a text selection
+// ----------------------------------------------------------------------------
+    color 70%,90%,100%,50%
+    line_color 100%,0%,0%,0%
+
+
+text_highlight_color ->
+// ----------------------------------------------------------------------------
+//    Color for a text highlight (i.e. text box is not active)
+// ----------------------------------------------------------------------------
+    color 70%,70%,70%,50%
+    line_color 100%,0%,0%,0%
+
+
+formula_highlight_color ->
+// ----------------------------------------------------------------------------
+//    Color for a formula highlight (formulas are currently disabled)
+// ----------------------------------------------------------------------------
+    color 100%,95%,90%,20%
+    line_color 100%,0%,0%,100%
+
+
+text_cursor_color ->
+// ----------------------------------------------------------------------------
+//    Color for the text cursor
+// ----------------------------------------------------------------------------
+    color 100%, 0%, 0%, 90%
+    line_color 100%,0%,0%,0%
+
+
+text_cursor_highlight ->
+// ----------------------------------------------------------------------------
+//   Color for the text cursor when box is not active
+// ----------------------------------------------------------------------------
+    color 60%, 60%, 60%, 40%
+    line_color 100%,0%,0%,0%
+
+
+handle_outer_color ->
+// ----------------------------------------------------------------------------
+//    Color for the outer part of selection handles
+// ----------------------------------------------------------------------------
+    color 0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+
+
+handle_inner_color ->
+// ----------------------------------------------------------------------------
+//   Color for the inner part of the selection handles
+// ----------------------------------------------------------------------------
+    color 100%, 100%, 100%, 100%
+    line_color 0%,0%,0%,0%
+
+
+group_handle_outer_color ->
+// ----------------------------------------------------------------------------
+//    Color for the outer portion of group handles
+// ----------------------------------------------------------------------------
+    color 0%, 0%, 60%, 5%
+    line_color 0%,0%,0%,0%
+
+
+group_handle_inner_color ->
+// ----------------------------------------------------------------------------
+//    Color for the inner portion of group handles
+// ----------------------------------------------------------------------------
+    color 100%, 100%, 100%, 5%
+    line_color 0%,0%,0%,0%
+
+
+adjust_shape_handle_outer_color ->
+// ----------------------------------------------------------------------------
+//    Outer color for the shape adjust handles (e.g. star shape)
+// ----------------------------------------------------------------------------
+    color  0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+
+
+adjust_shape_handle_inner_color ->
+// ----------------------------------------------------------------------------
+//   Inner color for the shape adjust handles
+// ----------------------------------------------------------------------------
+    color  0%, 100%, 0%, 90%
+    line_color 0%,0%,0%,0%
+
+
+control_point_handle_outer_color ->
+// ----------------------------------------------------------------------------
+//    Outer color for control points e.g. in paths
+// ----------------------------------------------------------------------------
+    color  0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+
+
+control_point_handle_inner_color ->
+// ----------------------------------------------------------------------------
+//    Inner color for control points
+// ----------------------------------------------------------------------------
+    color 100%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+
+
+curve_point_handle_outer_color ->
+// ----------------------------------------------------------------------------
+//    Outer color for curve points e.g. in paths.
+// ----------------------------------------------------------------------------
+    color  0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+
+
+curve_point_handle_inner_color ->
+// ----------------------------------------------------------------------------
+//    Inner color for curve points e.g. in paths
+// ----------------------------------------------------------------------------
+    color 0%, 100%, 0%, 70%
+    line_color 0%,0%,0%,0%
+
+
+draw_text_selection x,y,w,h ->
+// ----------------------------------------------------------------------------
+//   Draw text selection (i.e. selected text fragment in a selected text box)
+// ----------------------------------------------------------------------------
+    if w > 1 then
+        text_selection_color
+        rectangle x, y, w, h
+    else
+        text_cursor_color
+        rectangle x, y, w, h
+
+
+draw_text_highlight x,y,w,h ->
+// ----------------------------------------------------------------------------
+//   Draw text highlight (i.e. selected text in a non-selected text box)
+// ----------------------------------------------------------------------------
+    if w > 1 then
+        text_highlight_color
+        rectangle x, y, w, h
+    else
+        text_cursor_highlight
+        rectangle x, y, w, h
+
+
+draw_formula_highlight x,y,w,h ->
+// ----------------------------------------------------------------------------
+//    Draw the highlight for a formula (currently disabled)
+// ----------------------------------------------------------------------------
+    formula_highlight_color
+    rectangle x, y, w, h
+
+
+draw_widget_selection x,y,w,h ->
+// ----------------------------------------------------------------------------
+//   Draw the selection marker for a widget. Disabled, left to the widget
+// ----------------------------------------------------------------------------
+    false
+
+
+draw_selection x,y,w,h ->
+// ----------------------------------------------------------------------------
+//   Draw selection marker for a 2D shape
+// ----------------------------------------------------------------------------
+    selection_color
+    rectangle x, y, w+4, h+4
+
+
+draw_3D_selection x,y,z,w,h,d ->
+// ----------------------------------------------------------------------------
+//   Draw selection marker for a 3D shape
+// ----------------------------------------------------------------------------
+    selection_color
+    cube x, y, z, w, h, d
+
+
+draw_selection_rectangle x, y, w, h ->
+// ----------------------------------------------------------------------------
+//    Draw the selection rectangle while you drag with the mouse
+// ----------------------------------------------------------------------------
+    selection_rectangle_color
+    rectangle x, y, w+4, h+4
+
+
+draw_open_group x, y, w, h ->
+// ----------------------------------------------------------------------------
+//   Draw the marker for an open group
+// ----------------------------------------------------------------------------
+    open_group_color
+    rectangle x, y, w+4, h+4
+
+
+draw_group_item x, y, z, w, h, d ->
+// ----------------------------------------------------------------------------
+//   Draw the marker for a 3D item in a group
+// ----------------------------------------------------------------------------
+    group_item_color
+    cube x, y, z, w+4, h+4, d+4
+
+draw_group_item x, y, w, h ->
+// ----------------------------------------------------------------------------
+//   Draw the marker for a 2D item in a group
+// ----------------------------------------------------------------------------
+    group_item_color
+    rectangle x, y, w+4, h+4
+
+
+draw_open_textbox x, y, w, h ->
+// ----------------------------------------------------------------------------
+//    Draw an open text box, i.e. one which has focus and where you type text
+// ----------------------------------------------------------------------------
+    open_textbox_color
+    rectangle x, y, w+4, h+4
+
+
+draw_selected_textbox x, y, w, h ->
+// ----------------------------------------------------------------------------
+//   Draw a selected text box, i.e. one you can resize, but has no focus
+// ----------------------------------------------------------------------------
+    selected_textbox_color
+    rectangle x, y, w+4, h+4
+
+
+draw_handle x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw a handle in the corner of shapes
+// ----------------------------------------------------------------------------
+    handle_outer_color
+    point x, y, z, 12
+    handle_inner_color
+    point x, y, z, 8
+
+
+draw_group_handle x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw a handle in the corners of a group
+// ----------------------------------------------------------------------------
+    group_handle_outer_color
+    point x, y, z, 10
+    group_handle_inner_color
+    point x, y, z, 8
+
+
+draw_adjust_shape_handle x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw a handle to adjust a shape
+// ----------------------------------------------------------------------------
+    adjust_shape_handle_outer_color
+    point x, y, z, 12
+    adjust_shape_handle_inner_color
+    point x, y, z, 8
+
+
+draw_control_point_handle x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw a control point handle on paths
+// ----------------------------------------------------------------------------
+    control_point_handle_outer_color
+    point x, y, z, 12
+    control_point_handle_inner_color
+    point x, y, z, 8
+
+
+draw_curve_point_handle x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw a curve point handle on paths
+// ----------------------------------------------------------------------------
+    curve_point_handle_outer_color
+    point x, y, z, 12
+    curve_point_handle_inner_color
+    point x, y, z, 8
+
+
+draw_group_adjust_shape_handle x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw the adjust shape handle for groups (none)
+// ----------------------------------------------------------------------------
+    false
+
+
+draw_group_control_point_handle x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw the group control points (none)
+// ----------------------------------------------------------------------------
+    false
+
+
+draw_rotation_base x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw the base for a rotation while rotating objects (curently disabled)
+// ----------------------------------------------------------------------------
+    selection_color
+    locally
+        rotatex 90
+        sphere x, y, z, 50, 50, 50, 16, 8
+
+
+draw_rotation_tip x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw the tip during the rotation of an object (currently disabled)
+// ----------------------------------------------------------------------------
+    draw_handle x, y, z
+
+
+draw_translation_base x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw the base of a translation
+// ----------------------------------------------------------------------------
+    selection_color
+    cube x, y, z, 50, 50, 50
+
+
+draw_translation_x x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw translation tip along X
+// ----------------------------------------------------------------------------
+    draw_handle x + 40, y, z
+
+
+draw_translation_y x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw translation tip along Y
+// ----------------------------------------------------------------------------
+    draw_handle x, y + 40, z
+
+
+draw_translation_z x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw translation tip along Z
+// ----------------------------------------------------------------------------
+    draw_handle x, y, z + 40
+
+
+draw_scale_base x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw the base of a scale
+// ----------------------------------------------------------------------------
+    selection_color
+    cube x, y, z, 50, 20, 20
+    cube x, y, z, 20, 50, 20
+    cube x, y, z, 20, 20, 50
+
+
+draw_scale_x x, y, z ->
+// ----------------------------------------------------------------------------
+//   Draw the tip of a scale along X
+// ----------------------------------------------------------------------------
+    draw_handle x + 40, y, z
+
+
+draw_scale_y x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw the tip of a scale along Y
+// ----------------------------------------------------------------------------
+ draw_handle x, y + 40, z
+
+
+draw_scale_z x, y, z ->
+// ----------------------------------------------------------------------------
+//    Draw the tip of a scale along Z
+// ----------------------------------------------------------------------------
+    draw_handle x, y, z + 40
+
+
+// ============================================================================
+// 
+//    Change attributes of the current selection
+// 
+// ============================================================================
+
+shape_color_black     -> set_attribute "color", {color 0.0, 0.0, 0.0, 1.0}
+shape_color_red       -> set_attribute "color", {color 1.0, 0.0, 0.0, 1.0}
+shape_color_green     -> set_attribute "color", {color 0.0, 1.0, 0.0, 1.0}
+shape_color_yellow    -> set_attribute "color", {color 1.0, 1.0, 0.0, 1.0}
+shape_color_blue      -> set_attribute "color", {color 0.0, 0.0, 1.0, 1.0}
+shape_color_magenta   -> set_attribute "color", {color 1.0, 0.0, 1.0, 1.0}
+shape_color_cyan      -> set_attribute "color", {color 0.0, 1.0, 1.0, 1.0}
+shape_color_white     -> set_attribute "color", {color 1.0, 1.0, 1.0, 1.0}
+
+
+
+// ****************************************************************************
+// 
+//                      UTILITIES AND LANGUAGE EXTENSIONS
+//
+//   This section defines a number of often-used features that need not be
+//   implemented in C++. You can of course add your own. Please feel free to
+//   make suggestions as to which features should be placed here.
+// 
+// ****************************************************************************
+
+// ============================================================================
+// 
+//    Module description
+// 
+// ============================================================================
+
+// module_description is used in a module's main file to describe the module
+// Parsing of the actual module description is currently done in C++ in 'import'
+module_description b:block              -> false
+module_description T:text, b:block      -> false
+
+
+// ============================================================================
+// 
+//     Document navigation
+// 
+// ============================================================================
+
+goto_page PN:integer -> goto_page page_name PN
+// ----------------------------------------------------------------------------
+//    Going to a given page by number
+// ----------------------------------------------------------------------------
+
+
+next_page ->
+// ----------------------------------------------------------------------------
+//    Go to the next page in the document
+// ----------------------------------------------------------------------------
+    if page_number < page_count then
+        goto_page page_number+1
+        refresh 0.0
+
+
+previous_page ->
+// ----------------------------------------------------------------------------
+//    Go to the previous page in the document
+// ----------------------------------------------------------------------------
+    if page_number > 1 then
+        goto_page page_number-1
+        refresh 0.0
+
+
+// ============================================================================
+// 
+//     Viewpoint control
+// 
+// ============================================================================
+
+// Zoom
+zoom_max        -> 32.0
+zoom_min        -> 0.125
+zoom_out        -> if zoom > zoom_min then zoom (zoom/1.5)
+zoom_in         -> if zoom < zoom_max then zoom (zoom*1.5)
+
+// Eye distance
+increase_eye_distance -> eye_distance (eye_distance * 1.5)
+decrease_eye_distance -> eye_distance (eye_distance / 1.5)
+
+
+// ============================================================================
+// 
+//     Testing the state of the mouse or modifier keys
+// 
+// ============================================================================
+
+// Shortcuts to test keyboard modifiers
+control_modifier  -> (keyboard_modifiers and 16#04000000) <> 0
+shift_modifier    -> (keyboard_modifiers and 16#02000000) <> 0
+alt_modifier      -> (keyboard_modifiers and 16#08000000) <> 0
+meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
+
+// Shortcuts to test mouse button
+left_mouse_button   -> (mouse_buttons and 16#00000001) <> 0
+right_mouse_button  -> (mouse_buttons and 16#00000002) <> 0
+middle_mouse_button -> (mouse_buttons and 16#00000004) <> 0
+
+
+// ============================================================================
+// 
+//    Misc. utilities
+// 
+// ============================================================================
+
 // "Comment out" a block of code
 disabled B:block -> false
+
+
+// ============================================================================
+// 
+//    Constants
+// 
+// ============================================================================
 
 // Event types for use with refresh_on
 // For instance, to have a block be re-evaluated on mouse move:
@@ -97,81 +1309,17 @@ Triangles_Adjacency        -> 12
 Triangle_Strip_Adjacency   -> 13
 
 
-// Chooser
-main_chooser ->
-    chooser tr "Choose command"
-#ifndef CFG_NOFULLSCREEN
-    chooser_choice tr "Toggle full screen", {toggle_slide_show}
-#endif
-    stereoscopy_settings
-    chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
-    chooser_choice tr "Toggle stereo identification", {toggle_stereo_identify}
-    if is_available vsync_ctl then
-        chooser_choice tr "Enable VSync", {enable_vsync true}
-        chooser_choice tr "Disable VSync", {enable_vsync false}
-    chooser_choice tr "Reset view", {reset_view}
-    chooser_choice tr "Zoom in", {zoom_in}
-    chooser_choice tr "Zoom out", {zoom_out}
-    chooser_choice tr "Toggle hand cursor", {toggle_hand_cursor}
-    chooser_choice tr "Enable glyph cache", {enable_glyph_cache true}
-    chooser_choice tr "Disable glyph cache", {enable_glyph_cache false}
-    chooser_choice tr "Toggle rendering statistics (fps)", {toggle_show_statistics}
-    chooser_choice tr "Select page", {page_chooser}
-    if current_repository then
-        chooser_choice tr "Checkout...", {branch_chooser}
-    // Broken (bug#1709)
-    chooser_commands "chooser_command_", ""
-    chooser_choice tr "Texture...", {texture_chooser}
-    window_choices
+// ============================================================================
+// 
+//    Backward compatibility
+// 
+// ============================================================================
 
-page_chooser ->
-    chooser tr "Go to page..."
-    chooser_pages goto_page, ""
-
-branch_chooser ->
-    chooser tr "Select branch"
-    chooser_branches commit_chooser, ""
-
-commit_chooser b:text ->
-    chooser tr "Select commit"
-    chooser_commits b, checkout, ""
-
-increase_eye_distance -> eye_distance eye_distance * 1.5
-decrease_eye_distance -> eye_distance eye_distance * 0.75
-
-stereoscopy_settings ->
-    if has_display_mode quadstereo then
-        chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
-    if has_display_mode hsplitstereo then
-        chooser_choice tr "Enable stereoscopy (side by side)", {enable_stereoscopy hsplit}
-        chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
-    if has_display_mode vsplitstereo then
-        chooser_choice tr "Enable stereoscopy (over/under)", {enable_stereoscopy vsplit}
-        chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
-    if has_display_mode hintstereo then
-        chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
-    if has_display_mode hframepacking then
-        chooser_choice tr "Enable stereoscopy (horizontal frame packing)", {enable_stereoscopy hframepacking}
-    if has_display_mode vsplitstereo then
-        chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
-    if has_display_mode alioscopy then
-        chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
-    if has_display_mode "2dplusdepth" then
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
-    if has_display_mode tridelity then
-        chooser_choice tr "Enable stereoscopy (Tridelity MV)", {enable_stereoscopy tridelity}
-    if has_display_mode "anaglyph" then
-        chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}
-    if has_display_mode "checkerboard" then
-        chooser_choice tr "Enable stereoscopy (checkerboard)", {enable_stereoscopy "checkerboard"}
-    chooser_choice tr "Disable stereoscopy", {enable_stereoscopy false}
-    chooser_choice tr "Increase eye distance", {increase_eye_distance}
-    chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
-
-oc_settings -> 0
 old_camera_settings ->
+// ----------------------------------------------------------------------------
+//     Restore old camera settings from earlier version of Tao Presentations
+// ----------------------------------------------------------------------------
+    oc_settings -> 0
     if oc_settings = 0 then
         oc_settings := 1
         camera_position 0, 0, 6000
@@ -182,68 +1330,14 @@ old_camera_settings ->
         eye_distance 10
         polygon_offset 0, -0.001, 0, -1
 
-chooser_title_font              -> font "Arial Black", 30
-chooser_item_font               -> font "Arial", 28
 
-draw_chooser_box x,y,w,h        ->
-    color 20%, 20%, 20%, 70%
-    line_color 100%,0%,0%,70%
-    rounded_rectangle x, y, w+10, h+10, 5
-    line_color 0%,0%,0%,0%
+// ============================================================================
+// 
+//    Colors
+// 
+// ============================================================================
 
-draw_chooser_caption m, x, y  ->
-    chooser_title_font
-    move_to x, y, 0
-    text m
-
-draw_chooser_choice m, x, y  ->
-    color 70%, 70%, 100%, 90%
-    draw_chooser_caption m, x, y
-
-draw_chooser_error m, x, y ->
-    color 100%, 90%, 20%, 90%
-    draw_chooser_caption m, x, y
-
-draw_chooser_title m, x, y  ->
-    color 100%, 100%, 70%, 90%
-    draw_chooser_caption m, x, y
-
-draw_chooser_more_above x, y, w, h ->
-    color 20%, 100%, 40%, 80%
-    triangle x, y, w, h
-
-draw_chooser_more_below x, y, w, h ->
-    color 20%, 100%, 40%, 80%
-    triangle x, y, w, -h
-
-draw_chooser_selection x, y, w, h ->
-    color 40%, 60%, 90%, 80%
-    rectangle x, y, w+8, h+2
-
-draw_chooser_item m, x, y ->
-    chooser_item_font
-    color 100%, 100%, 100%, 90%
-    move_to x, y, 0
-    text m
-
-draw_chooser_match m1:text /** m1 desc **/, m2:text /** m2 desc **/, m3:text /** m3 desc **/, x:real /** the x-coordinate **/, y:real /** the y-coordinate **/ ->
-    /** Draw the matching__test.
-    chooser_group
-    It does something
-                  and maybe more.
-    @return typeret, returns something else.
-    @see the tutorial
-    **/
-    chooser_item_font
-    color 100%, 100%, 100%, 70%
-    move_to x, y, 0
-    text m1
-    color 100%, 100%, 60%, 90%
-    text m2
-    color 100%, 100%, 100%, 60%
-    text m3
-
-// Defaults
+// Defaults colors (you can define your own named colors the same way)
 color "default"          -> color        0.0, 0.0, 0.0, 1.0
 color "fill"             -> color        0.2, 0.6, 1.0, 0.5
 color "line"             -> color        0.0, 0.0, 0.0, 0.0
@@ -264,736 +1358,426 @@ line_color  "default"
 line_width  "default"
 font        "default"
 
+// Colors without alpha default to an alpha of 100%
+color n:text                                    -> color n, 1.0
+color r:real, g:real, b:real                    -> color r, g, b, 1.0
+color_hsl h:real, s:real, l:real                -> color_hsl h, s, l, 1.0
+color_hsv h:real, s:real, v:real                -> color_hsv h, s, v, 1.0
+color_cmyk c:real, m:real, y:real, k:real       -> color_cmyk c, m, y, k, 1.0
 
-// Colors
-shape_color_black     -> set_attribute "color", {color 0.0, 0.0, 0.0, 1.0}
-shape_color_red       -> set_attribute "color", {color 1.0, 0.0, 0.0, 1.0}
-shape_color_green     -> set_attribute "color", {color 0.0, 1.0, 0.0, 1.0}
-shape_color_yellow    -> set_attribute "color", {color 1.0, 1.0, 0.0, 1.0}
-shape_color_blue      -> set_attribute "color", {color 0.0, 0.0, 1.0, 1.0}
-shape_color_magenta   -> set_attribute "color", {color 1.0, 0.0, 1.0, 1.0}
-shape_color_cyan      -> set_attribute "color", {color 0.0, 1.0, 1.0, 1.0}
-shape_color_white     -> set_attribute "color", {color 1.0, 1.0, 1.0, 1.0}
+line_color n:text                               -> line_color n, 1.0
+line_color r:real, g:real, b:real               -> line_color r, g, b, 1.0
+line_color_hsl h:real, s:real, l:real           -> line_color_hsl h, s, l, 1.0
+line_color_hsv h:real, s:real, v:real           -> line_color_hsv h, s, v, 1.0
+line_color_cmyk c:real, m:real, y:real, k:real  -> line_color_cmyk c,m,y,k, 1.0
 
-color n:text                                                       -> color n, 1.0
-color r:real, g:real, b:real                                       -> color r, g, b, 1.0
-color_hsl h:real, s:real, l:real                                   -> color_hsl h, s, l, 1.0
-color_hsv h:real, s:real, v:real                                   -> color_hsv h, s, v, 1.0
-color_cmyk c:real, m:real, y:real, k:real                          -> color_cmyk c, m, y, k, 1.0
 
-line_color n:text                                                  -> line_color n, 1.0
-line_color r:real, g:real, b:real                                  -> line_color r, g, b, 1.0
-line_color_hsl h:real, s:real, l:real                              -> line_color_hsl h, s, l, 1.0
-line_color_hsv h:real, s:real, v:real                              -> line_color_hsv h, s, v, 1.0
-line_color_cmyk c:real, m:real, y:real, k:real                     -> line_color_cmyk c, m, y, k, 1.0
+// ============================================================================
+// 
+//    Textures and images
+// 
+// ============================================================================
 
 copy_texture ->
-    ID -> texture
-    W  -> texture_width
-    H  -> texture_height
-    frame_texture W, H,
+// ----------------------------------------------------------------------------
+//    Copy the current texture in a new texture
+// ----------------------------------------------------------------------------
+    frame_texture texture_width, texture_height,
         color "white"
-        texture ID
-        rectangle 0, 0, W, H
+        texture texture
+        rectangle 0, 0, texture_width, texture_height
+
 
 image_px X:real, Y:real, W:real, H:real, Img:text ->
+// ----------------------------------------------------------------------------
+//   Draw an image with a given number of pixels
+// ----------------------------------------------------------------------------
     locally
         texture Img
         rectangle X, Y, W, H
 
-image X:real, Y:real, Img:text -> image X, Y, constant 1, constant 1, Img
+
+image X:real, Y:real, Img:text ->
+// ----------------------------------------------------------------------------
+//    Draw an image at X and Y with default scale
+// ----------------------------------------------------------------------------
+//  We use 'constant 1' below to disable resizing even if we are in a 'shape'
+    image X, Y, constant 1, constant 1, Img
+
+
+image Img:text ->
+// ----------------------------------------------------------------------------
+//    Draw an image in (0,0) with default size
+// ----------------------------------------------------------------------------
+    image constant 0, constant 0, constant 1, constant 1, Img
+
+
+
+// ============================================================================
+// 
+//     Text flows and text fonts
+// 
+// ============================================================================
 
 text_box F:text, X:real, Y:real, W:real, H:real ->
+// ----------------------------------------------------------------------------
+//   Replay a text flow in a given text box (backward compatibility)
+// ----------------------------------------------------------------------------
     text_box X, Y, W, H,
         text_flow F
 
-para_span b:tree ->
+
+render Body:block ->
+// ----------------------------------------------------------------------------
+//    Render anything that is not a text as is
+// ----------------------------------------------------------------------------
+    do Body
+
+
+render Body:infix ->
+// ----------------------------------------------------------------------------
+//    Render closures
+// ----------------------------------------------------------------------------
+    do Body
+
+
+render T:text ->
+// ----------------------------------------------------------------------------
+//    Render a text using 'text'
+// ----------------------------------------------------------------------------
+    text T
+
+
+render I:integer ->
+// ----------------------------------------------------------------------------
+//   Render an integer by showing its value
+// ----------------------------------------------------------------------------
+    text text I
+
+
+render R:real ->
+// ----------------------------------------------------------------------------
+//   Render an integer by showing its value
+// ----------------------------------------------------------------------------
+    text text R
+
+
+render true ->
+// ----------------------------------------------------------------------------
+//   Render an integer by showing its value
+// ----------------------------------------------------------------------------
+    text "true"
+
+
+render false ->
+// ----------------------------------------------------------------------------
+//   Render an integer by showing its value
+// ----------------------------------------------------------------------------
+    text "false"
+
+
+paragraph Body ->
+// ----------------------------------------------------------------------------
+//    Create an isolated paragraph
+// ----------------------------------------------------------------------------
     text_span
         paragraph_break
-        b
+        render Body
         paragraph_break
 
-align center:real, justify:real, spread:real            -> align center, justify, spread, 0
-align center:real, justify:real                         -> align center, justify, 0, 0
-align center:real                                       -> align center, 0, 0, 0
 
-align_left                                              -> align   0, 0, 0, 0
-align_right                                             -> align   1, 0, 0, 0
-align_center                                            -> align 0.5, 0, 0, 0
-align_justify                                           -> align   0, 1, 0, 0
-align_left_justify                                      -> align   0, 1, 0, 0
-align_right_justify                                     -> align   1, 1, 0, 0
-align_full_justify                                      -> align   0, 1, 0, 1
-align_spread                                            -> align   0, 1, 1, 0
-align_full_spread                                       -> align   0, 1, 1, 1
-
-vertical_align center:real, justify:real, spread:real   -> vertical_align center, justify, spread, 0
-vertical_align center:real, justify:real                -> vertical_align center, justify, 0, 0
-vertical_align center:real                              -> vertical_align center, 0, 0, 0
-
-vertical_align_top                                      -> vertical_align   0, 0, 0, 0
-vertical_align_bottom                                   -> vertical_align   1, 0, 0, 0
-vertical_align_center                                   -> vertical_align 0.5, 0, 0, 0
-vertical_align_justify                                  -> vertical_align   0, 1, 0, 0
-vertical_align_spread                                   -> vertical_align   0, 1, 1, 0
+plain Body ->
+// ----------------------------------------------------------------------------
+//   Display plain text
+// ----------------------------------------------------------------------------
+    text_span
+        plain
+        render Body
 
 
-// 3D Shapes
-sphere x:real, y:real, z:real, d:real  -> sphere x,y,z,d,d,d,25,25
-sphere d:real                          ->
-    sphere 0.0, 0.0, 0.0, d, d, d, 25, 25
+roman Body ->
+// ----------------------------------------------------------------------------
+//   Display roman text (not slanted)
+// ----------------------------------------------------------------------------
+    text_span
+        roman
+        render Body
 
-torus x:real, y:real, z:real, d:real, r:real  -> torus x,y,z,d,d,d,25,25,r
 
-// 2D Paths
-move_to x:real, y:real                  -> move_to x, y, 0
+italic Body ->
+// ----------------------------------------------------------------------------
+//   Display italic text (slanted)
+// ----------------------------------------------------------------------------
+    text_span
+        italic
+        render Body
 
-line_to x:real, y:real                  -> line_to x, y, 0
 
-quad_to cx:real, cy:real, x:real, y:real ->
-    quad_to cx, cy, 0, x, y, 0
+oblique Body ->
+// ----------------------------------------------------------------------------
+//   Display oblique text (very slanted)
+// ----------------------------------------------------------------------------
+    text_span
+        oblique
+        render Body
 
-cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real ->
-    cubic_to c1x, c1y, 0, c2x, c2y, 0, x, y, 0
 
-// 2D Shapes
-line x0:real, y0:real, x1:real, y1:real ->
+bold Body ->
+// ----------------------------------------------------------------------------
+//   Display bold text
+// ----------------------------------------------------------------------------
+    text_span
+        bold
+        render Body
+
+
+thin Body ->
+// ----------------------------------------------------------------------------
+//   Display thin text
+// ----------------------------------------------------------------------------
+    text_span
+        thin
+        render Body
+
+
+underline Body ->
+// ----------------------------------------------------------------------------
+//   Display underlined text
+// ----------------------------------------------------------------------------
+    text_span
+        underline
+        render Body
+
+
+overline Body ->
+// ----------------------------------------------------------------------------
+//   Display overlined text
+// ----------------------------------------------------------------------------
+    text_span
+        overline
+        render Body
+
+
+strikeout Body ->
+// ----------------------------------------------------------------------------
+//   Display overlined text
+// ----------------------------------------------------------------------------
+    text_span
+        strikeout
+        render Body
+
+
+blink Body ->
+// ----------------------------------------------------------------------------
+//   Display blinking text, it's so 1990's !
+// ----------------------------------------------------------------------------
+    text_span
+        show seconds mod 2
+        render Body
+
+// Alternate names for emphasis and strong (<em> and <strong>)
+emphasis Body   -> italic Body
+strong Body     -> bold Body
+
+// Compatibility binding (obsolete)
+para_span Body  -> paragraph Body
+
+
+
+// ============================================================================
+// 
+//    Paragraph attributes
+// 
+// ============================================================================
+
+// Horizontal alignment: default values for missing arguments is 0
+align Center:real,Justify:real,Spread:real      -> align Center,Justify,Spread,0
+align Center:real, Justify:real                 -> align Center, Justify, 0, 0
+align Center:real                               -> align Center, 0, 0, 0
+
+align_left                                      -> align   0, 0, 0, 0
+align_right                                     -> align   1, 0, 0, 0
+align_center                                    -> align 0.5, 0, 0, 0
+align_justify                                   -> align   0, 1, 0, 0
+align_left_justify                              -> align   0, 1, 0, 0
+align_right_justify                             -> align   1, 1, 0, 0
+align_full_justify                              -> align   0, 1, 0, 1
+align_spread                                    -> align   0, 1, 1, 0
+align_full_spread                               -> align   0, 1, 1, 1
+
+vertical_align C:real, J:real, S:real           -> vertical_align C, J, S, 0
+vertical_align C:real, J:real                   -> vertical_align C, J, 0, 0
+vertical_align C:real                           -> vertical_align C, 0, 0, 0
+
+vertical_align_top                              -> vertical_align   0, 0, 0, 0
+vertical_align_bottom                           -> vertical_align   1, 0, 0, 0
+vertical_align_center                           -> vertical_align 0.5, 0, 0, 0
+vertical_align_justify                          -> vertical_align   0, 1, 0, 0
+vertical_align_spread                           -> vertical_align   0, 1, 1, 0
+
+
+
+// ============================================================================
+// 
+//     3D shapes
+// 
+// ============================================================================
+
+sphere X:real, Y:real, Z:real, D:real           -> sphere X,Y,Z,D,D,D,25,25
+sphere D:real                                   -> sphere 0,0,0,D,D,D,25,25
+
+torus X:real,Y:real,Z:real,D:real,R:real        -> torus X,Y,Z,D,D,D,25,25,R
+
+
+
+// ============================================================================
+// 
+//    2D paths
+//
+// ============================================================================
+//    2D paths are converted to 3D paths with Z=0
+
+move_to X:real, Y:real                          -> move_to X, Y, 0
+line_to X:real, Y:real                          -> line_to X, Y, 0
+quad_to CX:real, CY:real, X:real, Y:real        -> quad_to CX, CY, 0, X, Y, 0
+cubic_to X1:real,Y1:real,X2:real,Y2:real,X:real,Y:real ->
+    cubic_to X1, Y1, 0, X2, Y2, 0, X, Y, 0
+
+
+// ============================================================================
+// 
+//    2D shapes
+// 
+// ============================================================================
+
+line X0:real, Y0:real, X1:real, Y1:real ->
+// ----------------------------------------------------------------------------
+//    Draw a line between the two given pairs of coordinates
+// ----------------------------------------------------------------------------
     path
-        move_to x0, y0
-        line_to x1, y1
+        move_to X0, Y0
+        line_to X1, Y1
 
-line_arrow x0:real, y0:real, s0:symbol, x1:real, y1:real, s1:symbol ->
+
+line_arrow X0:real, Y0:real, S0:symbol, X1:real, Y1:real, S1:symbol ->
+// ----------------------------------------------------------------------------
+//    Line with arrows at end
+// ----------------------------------------------------------------------------
     path
-        move_to x0, y0
-        line_to x1, y1
-        endpoints_style s0, s1
+        move_to X0, Y0
+        line_to X1, Y1
+        endpoints_style S0, S1
 
 
-circle x:real, y:real, r:real           -> ellipse x, y, 2*r, 2*r
-circle r:real                           -> ellipse 0.0, 0.0, 2*r, 2*r
-oval x, y, w, h                         -> ellipse x, y, w, h
+circle X:real, Y:real, R:real           -> ellipse X, Y, 2*R, 2*R
+circle R:real                           -> ellipse 0.0, 0.0, 2*R, 2*R
+oval X:real, Y:real, W:real, H:real     -> ellipse X, Y, W, H
 
-circular_sector x:real, y:real, r:real, a:real, b:real ->
-    ellipse_arc x, y, 2*r, 2*r, a, b
-circular_sector r:real, a:real, b:real  -> ellipse_arc 0.0, 0.0, 2*r,2*r, a, b
+circular_sector X:real, Y:real, R:real, Start:real, Sweep:real ->
+    ellipse_arc X, Y, 2*R, 2*R, Start, Sweep
+circular_sector R:real,St:real,Sw:real  -> ellipse_arc 0, 0, 2*R,2*R, St, Sw
 
-rectangle w:real, h:real                -> rectangle 0.0, 0.0, w, h
+rectangle W:real, H:real                -> rectangle 0, 0, W, H
 
-square x:real, y:real, s:real           -> rectangle x, y, s, s
-square s:real                           -> rectangle 0.0, 0.0, s, s
+square X:real, Y:real, S:real           -> rectangle X, Y, S, S
+square S:real                           -> rectangle 0, 0, S, S
 
-triangle w:real, h:real                 -> triangle 0.0, 0.0, w, h
-right_triangle w:real, h:real           -> right_triangle 0.0, 0.0, w, h
+triangle W:real, H:real                 -> triangle 0, 0, W, H
+right_triangle W:real, H:real           -> right_triangle 0, 0, w, h
 
-rounded_rectangle w:real, h:real, r:real-> rounded_rectangle 0.0, 0.0, w, h, r
+rounded_rectangle W:real, H:real, R:real-> rounded_rectangle 0, 0, W, H, R
 
-polygram x:real, y:real, w:real, h:real, p:integer, q:integer ->
-    star_polygon x, y, w, h, p, q
-polygon x:real, y:real, w:real, h:real, p:integer ->
-    star_polygon x, y, w, h, p, 1
+polygram X:real, Y:real, W:real, H:real, P:integer, Q:integer ->
+    star_polygon X, Y, W, H, P, Q
+polygon X:real, Y:real, W:real, H:real, P:integer ->
+    star_polygon X, Y, W, H, P, 1
 
-equilateral_triangle x, y, w, h          -> polygon x, y, w, h, constant 3
-tetragon x, y, w, h                      -> polygon x, y, w, h, constant 4
-diamond x, y, w, h                       -> polygon x, y, w, h, constant 4
-pentagon x, y, w, h                      -> polygon x, y, w, h, constant 5
-hexagon x, y, w, h                       -> polygon x, y, w, h, constant 6
-heptagon x, y, w, h                      -> polygon x, y, w, h, constant 7
-octagon x, y, w, h                       -> polygon x, y, w, h, constant 8
-nonagon x, y, w, h                       -> polygon x, y, w, h, constant 9
-decagon x, y, w, h                       -> polygon x, y, w, h, constant 10
-hendecagon x, y, w, h                    -> polygon x, y, w, h, constant 11
-dodecagon x, y, w, h                     -> polygon x, y, w, h, constant 12
-tridecagon x, y, w, h                    -> polygon x, y, w, h, constant 13
-tetradecagon x, y, w, h                  -> polygon x, y, w, h, constant 14
-pentadecagon x, y, w, h                  -> polygon x, y, w, h, constant 15
-hexadecagon x, y, w, h                   -> polygon x, y, w, h, constant 16
-heptadecagon x, y, w, h                  -> polygon x, y, w, h, constant 17
-octadecagon x, y, w, h                   -> polygon x, y, w, h, constant 18
-enneadecagon x, y, w, h                  -> polygon x, y, w, h, constant 19
-icosagon x, y, w, h                      -> polygon x, y, w, h, constant 20
+// A few common and not so common polygon names...
+equilateral_triangle X, Y, W, H -> polygon X, Y, W, H, constant 3
+tetragon X, Y, W, H             -> polygon X, Y, W, H, constant 4
+diamond X, Y, W, H              -> polygon X, Y, W, H, constant 4
+pentagon X, Y, W, H             -> polygon X, Y, W, H, constant 5
+hexagon X, Y, W, H              -> polygon X, Y, W, H, constant 6
+heptagon X, Y, W, H             -> polygon X, Y, W, H, constant 7
+octagon X, Y, W, H              -> polygon X, Y, W, H, constant 8
+nonagon X, Y, W, H              -> polygon X, Y, W, H, constant 9
+decagon X, Y, W, H              -> polygon X, Y, W, H, constant 10
+hendecagon X, Y, W, H           -> polygon X, Y, W, H, constant 11
+dodecagon X, Y, W, H            -> polygon X, Y, W, H, constant 12
+tridecagon X, Y, W, H           -> polygon X, Y, W, H, constant 13
+tetradecagon X, Y, W, H         -> polygon X, Y, W, H, constant 14
+pentadecagon X, Y, W, H         -> polygon X, Y, W, H, constant 15
+hexadecagon X, Y, W, H          -> polygon X, Y, W, H, constant 16
+heptadecagon X, Y, W, H         -> polygon X, Y, W, H, constant 17
+octadecagon X, Y, W, H          -> polygon X, Y, W, H, constant 18
+enneadecagon X, Y, W, H         -> polygon X, Y, W, H, constant 19
+icosagon X, Y, W, H             -> polygon X, Y, W, H, constant 20
 
-pentagram x, y, w, h                  -> polygram x, y, w, h, constant 5, constant 2
-hexagram x, y, w, h                   -> polygram x, y, w, h, constant 6, constant 2
-star_of_david x, y, w, h              -> polygram x, y, w, h, constant 6, constant 2
-heptagram x, y, w, h                  -> polygram x, y, w, h, constant 7, constant 2
-star_of_lakshmi x, y, w, h            -> polygram x, y, w, h, constant 8, constant 2
-octagram x, y, w, h                   -> polygram x, y, w, h, constant 8, constant 3
-nonagram x, y, w, h                   -> polygram x, y, w, h, constant 9, constant 3
-decagram x, y, w, h                   -> polygram x, y, w, h, constant 10, constant 3
+pentagram X, Y, W, H            -> polygram X, Y, W, H, constant 5, constant 2
+hexagram X, Y, W, H             -> polygram X, Y, W, H, constant 6, constant 2
+star_of_david X, Y, W, H        -> polygram X, Y, W, H, constant 6, constant 2
+heptagram X, Y, W, H            -> polygram X, Y, W, H, constant 7, constant 2
+star_of_lakshmi X, Y, W, H      -> polygram X, Y, W, H, constant 8, constant 2
+octagram X, Y, W, H             -> polygram X, Y, W, H, constant 8, constant 3
+nonagram X, Y, W, H             -> polygram X, Y, W, H, constant 9, constant 3
+decagram X, Y, W, H             -> polygram X, Y, W, H, constant 10, constant 3
 
-schläfli x, y, w, h, {p:integer}           -> polygon x, y, w, h, p
-schläfli x, y, w, h, {p:integer,q:integer} -> polygram x, y, w, h, p, q
+schläfli X, Y, W, H, {p:integer}           -> polygon X, Y, W, H, p
+schläfli X, Y, W, H, {p:integer,q:integer} -> polygram X, Y, W, H, p, q
 
+
+
+// ============================================================================
+// 
+//    Other user interface aspects
+// 
+// ============================================================================
+
+// Capture a screen snapthot with alpha
 screenshot T:text -> screenshot T, false
 
+// Send a status message to the window without a timeout
 status T:text -> status T, 0.0
 
-selection_color ->
-    color 70%, 80%, 90%, 40%
-    line_color 80%, 30%, 30%, 80%
-    line_width 2
+// Toolbar without a title
+toolbar N:text                          -> toolbar N, ""
 
-selection_rectangle_color ->
-    color 70%, 90%, 80%, 40%
-    line_color 0.4 * sin time , 0.9 * sin (2.0*time ), 0.8 * sin(3.0 * time ), 0.8
-    line_width 1
+// Menus and submenus without additional info
+menu N:text                             -> menu N, "", ""
+menu N:text, L:text                     -> menu N, L, ""
+submenu N:text                          -> submenu N, "", ""
+submenu N:text, L:text                  -> submenu N, L, ""
 
-open_group_color ->
-    color 80%, 80%, 90%, 5%
-    line_color 40%, 40%, 90%, 30%
-    line_width 2
-
-open_textbox_color ->
-    color 90%, 80%, 80%, 5%
-    line_color 90%, 40%, 40%, 30%
-    line_width 2
-
-group_item_color ->
-    color 80%, 80%, 80%, 5%
-    line_color 40%, 40%, 40%, 5%
-    line_width 2
-
-selected_textbox_color ->
-    color 80%, 90%, 80%, 10%
-    line_color 40%, 90%, 40%, 30%
-    line_width 2
-
-text_selection_color ->
-    color 70%,90%,100%,50%
-    line_color 100%,0%,0%,0%
-
-text_highlight_color ->
-    color 70%,70%,70%,50%
-    line_color 100%,0%,0%,0%
-
-formula_highlight_color ->
-    color 100%,95%,90%,20%
-    line_color 100%,0%,0%,100%
-
-text_cursor_color ->
-    color 100%, 0%, 0%, 90%
-    line_color 100%,0%,0%,0%
-
-text_cursor_highlight ->
-    color 60%, 60%, 60%, 40%
-    line_color 100%,0%,0%,0%
-
-handle_outer_color ->
-    color 0%, 0%, 0%, 90%
-    line_color 0%,0%,0%,0%
-handle_inner_color ->
-    color 100%, 100%, 100%, 100%
-    line_color 0%,0%,0%,0%
-
-group_handle_outer_color ->
-    color 0%, 0%, 60%, 5%
-    line_color 0%,0%,0%,0%
-group_handle_inner_color ->
-    color 100%, 100%, 100%, 5%
-    line_color 0%,0%,0%,0%
-
-adjust_shape_handle_outer_color ->
-    color  0%, 0%, 0%, 90%
-    line_color 0%,0%,0%,0%
-adjust_shape_handle_inner_color ->
-    color  0%, 100%, 0%, 90%
-    line_color 0%,0%,0%,0%
-
-control_point_handle_outer_color ->
-    color  0%, 0%, 0%, 90%
-    line_color 0%,0%,0%,0%
-control_point_handle_inner_color ->
-    color 100%, 0%, 0%, 90%
-    line_color 0%,0%,0%,0%
-
-curve_point_handle_outer_color ->
-    color  0%, 0%, 0%, 90%
-    line_color 0%,0%,0%,0%
-curve_point_handle_inner_color ->
-    color 0%, 100%, 0%, 70%
-    line_color 0%,0%,0%,0%
-
-draw_selection x,y,z,w,h,d ->
-    selection_color
-    cube x-w/2, y-h/2, z-d/2, w, h, d
-
-draw_text_selection x,y,w,h ->
-    if w > 1 then
-        text_selection_color
-        rectangle x, y, w, h
-    else
-        text_cursor_color
-        rectangle x, y, w, h
-
-draw_text_highlight x,y,w,h ->
-    if w > 1 then
-        text_highlight_color
-        rectangle x, y, w, h
-    else
-        text_cursor_highlight
-        rectangle x, y, w, h
-
-draw_formula_highlight x,y,w,h ->
-    formula_highlight_color
-    rectangle x, y, w, h
-
-draw_3D_selection x,y,z,w,h,d ->
-    selection_color
-    cube x, y, z, w, h, d
-
-draw_widget_selection x,y,w,h ->
-    false
-
-draw_selection x,y,w,h ->
-    selection_color
-    rectangle x, y, w+4, h+4
-
-draw_selection_rectangle x, y, w, h ->
-    selection_rectangle_color
-    rectangle x, y, w+4, h+4
-
-draw_open_group x, y, w, h ->
-    open_group_color
-    rectangle x, y, w+4, h+4
-
-draw_group_item x, y, w, h ->
-    group_item_color
-    rectangle x, y, w+4, h+4
-
-draw_group_item x, y, z, w, h, d ->
-    group_item_color
-    cube x, y, z, w+4, h+4, d+4
-
-draw_open_textbox x, y, w, h ->
-    open_textbox_color
-    rectangle x, y, w+4, h+4
-
-draw_selected_textbox x, y, w, h ->
-    selected_textbox_color
-    rectangle x, y, w+4, h+4
-
-draw_handle x, y, z ->
-    handle_outer_color
-    point x, y, z, 12
-    handle_inner_color
-    point x, y, z, 8
-
-draw_group_handle x, y, z ->
-    group_handle_outer_color
-    point x, y, z, 10
-    group_handle_inner_color
-    point x, y, z, 8
-
-draw_adjust_shape_handle x, y, z ->
-    adjust_shape_handle_outer_color
-    point x, y, z, 12
-    adjust_shape_handle_inner_color
-    point x, y, z, 8
-
-draw_control_point_handle x, y, z ->
-    control_point_handle_outer_color
-    point x, y, z, 12
-    control_point_handle_inner_color
-    point x, y, z, 8
-
-draw_curve_point_handle x, y, z ->
-    curve_point_handle_outer_color
-    point x, y, z, 12
-    curve_point_handle_inner_color
-    point x, y, z, 8
-
-draw_group_adjust_shape_handle x, y, z -> 0
-draw_group_control_point_handle x, y, z -> 0
-
-draw_rotation_base x, y, z ->
-    selection_color
-    locally
-        rotatex 90
-        sphere x, y, z, 50, 50, 50, 16, 8
-draw_rotation_tip x, y, z -> draw_handle x, y, z
-
-draw_translation_base x, y, z ->
-    selection_color
-    cube x, y, z, 50, 50, 50
-draw_translation_x x, y, z -> draw_handle x + 40, y, z
-draw_translation_y x, y, z -> draw_handle x, y + 40, z
-draw_translation_z x, y, z -> draw_handle x, y, z + 40
-
-draw_scale_base x, y, z ->
-    selection_color
-    cube x, y, z, 50, 20, 20
-    cube x, y, z, 20, 50, 20
-    cube x, y, z, 20, 20, 50
-draw_scale_x x, y, z -> draw_handle x + 40, y, z
-draw_scale_y x, y, z -> draw_handle x, y + 40, z
-draw_scale_z x, y, z -> draw_handle x, y, z + 40
-
-toolbar n:text                          -> toolbar n, ""
-
-menu n:text                             -> menu n, "", ""
-menu n:text, l:text                     -> menu n, l, ""
-
-submenu n:text                          -> submenu n, "", ""
-submenu n:text, l:text                  -> submenu n, l, ""
-
-
-menu_item name:text, label:text, todo:block -> menu_item name, label, "", false, "false", todo
+// Menu items with some of the arguments not specified
+menu_item Name:text, Label:text, Icon:text, Todo:block ->
+    menu_item Name, Label, Icon, false, "false", Todo
+menu_item Name:text, Label:text, Todo:block ->
+    menu_item Name, Label, "", false, "false", Todo
 
 #ifndef CFG_NOEDIT
 menu_item_status name:text ->
+// ----------------------------------------------------------------------------
+//   Disable menu entries that do not apply to a read-only document
+// ----------------------------------------------------------------------------
     if is_read_only then
         menu_item_enable name, false
     else
         menu_item_enable name, true
-
-menu_insert -> {
-menubar
-menu      "menu:insert", tr "Insert"
-menu_item "menu:insert > text box", tr "Text Box",
-    insert tr "Insert text box",
-        shape
-            color "font"
-            //line_color "font"
-            font "default"
-            text_box 0, 0, 100, 100,
-                text "Text"
-menu_item_status "menu:insert > text box"
-submenu   "menu:insert > shape", tr "2D Shape"
-menu_item "menu:insert > shape > line ---", tr "Line",
-    insert tr "Insert line",
-        shape
-            //color "line"
-            line_color "line"
-            line 50, -50, -50, 50
-menu_item_status "menu:insert > shape > line ---"
-menu_item "menu:insert > shape > line -->", tr "Line with Arrowhead",
-    insert tr "Insert line with arrowhead",
-        shape
-            //color "line"
-            line_color "line"
-            line_arrow 50, -50, none, -50, 50, arrowhead
-menu_item_status "menu:insert > shape > line -->"
-menu_item "menu:insert > shape > line <->", tr "Line with Two Arrowheads",
-    insert tr "Insert line with two arrowheads",
-        shape
-            //color "line"
-            line_color "line"
-            line_arrow 50, -50, arrowhead, -50, 50, arrowhead
-menu_item_status "menu:insert > shape > line <->"
-menu_item "menu:insert > shape > rectangle", tr "Rectangle",
-    insert tr "Insert rectangle",
-        shape
-            color "fill"
-            line_color "fill"
-            rectangle 0, 0, 100, 100
-menu_item_status "menu:insert > shape > rectangle"
-menu_item "menu:insert > shape > rounded rectangle", tr "Rounded Rectangle",
-    insert tr "Insert rounded rectangle",
-        shape
-            color "fill"
-            line_color "fill"
-            rounded_rectangle 0, 0, 100, 100, 15
-menu_item_status "menu:insert > shape > rounded rectangle"
-menu_item "menu:insert > shape > oval", tr "Oval",
-    insert tr "Insert oval",
-        shape
-            color "fill"
-            line_color "fill"
-            ellipse 0, 0, 100, 100
-menu_item_status "menu:insert > shape > oval"
-menu_item "menu:insert > shape > triangle", tr "Triangle",
-    insert tr "Insert triangle",
-        shape
-            color "fill"
-            line_color "fill"
-            triangle 0, 0, 100, 100
-menu_item_status "menu:insert > shape > triangle"
-menu_item "menu:insert > shape > right triangle", tr "Right Triangle",
-    insert tr "Insert right triangle",
-        shape
-            color "fill"
-            line_color "fill"
-            right_triangle 0, 0, 100, 100
-menu_item_status "menu:insert > shape > right triangle"
-menu_item "menu:insert > shape > arrow", tr "Arrow",
-    insert tr "Insert arrow",
-        shape
-            color "fill"
-            line_color "fill"
-            arrow 0, 0, 100, 100, 44, 0.32
-menu_item_status "menu:insert > shape > arrow"
-menu_item "menu:insert > shape > double arrow", tr "Double Arrow",
-    insert tr "Insert double arrow",
-        shape
-            color "fill"
-            line_color "fill"
-            double_arrow 0, 0, 100, 100, 44, 0.32
-menu_item_status "menu:insert > shape > double arrow"
-menu_item "menu:insert > shape > diamond", tr "Diamond",
-    insert tr "Insert diamond",
-        shape
-            color "fill"
-            line_color "fill"
-            diamond 0, 0, 100, 100
-menu_item_status "menu:insert > shape > diamond"
-menu_item "menu:insert > shape > speech ballon", tr "Speech Balloon",
-    insert tr "Insert speech balloon",
-        shape
-            color "fill"
-            line_color "fill"
-            speech_balloon 0, 16, 100, 68, 50, -50, -50
-menu_item_status "menu:insert > shape > speech ballon"
-menu_item "menu:insert > shape > callout", tr "Callout",
-    insert tr "Insert callout",
-        shape
-            color "fill"
-            line_color "fill"
-            callout 16, 0, 68, 100, 15, -50, 0, 60
-menu_item_status "menu:insert > shape > callout"
-menu_item "menu:insert > shape > star", tr "Star",
-    insert tr "Insert star",
-        shape
-            color "fill"
-            line_color "fill"
-            star 0, 0, 100, 100, 5, 0.5
-menu_item_status "menu:insert > shape > star"
-menu_item "menu:insert > shape > polygon", tr "Polygon",
-    insert tr "Insert polygon",
-        shape
-            color "fill"
-            line_color "fill"
-            polygon 0, 0, 100, 100, 5
-menu_item_status "menu:insert > shape > polygon"
-
-menu      "menu:insert", ""
-submenu   "menu:insert > 3Dshape", tr "3D Shape"
-menu_item "menu:insert > 3Dshape > sphere", tr "Sphere",
-    insert tr "Insert sphere",
-        shape
-            color "fill"
-            line_color "fill"
-            sphere 0, 0, 0, 100, 100, 100, 25, 25
-menu_item_status "menu:insert > 3Dshape > sphere"
-
-menu_item "menu:insert > 3Dshape > torus", tr "Torus",
-    insert tr "Insert torus",
-        shape
-            color "fill"
-            line_color "fill"
-            torus 0, 0, 0, 100, 100, 100, 25, 25, 0.5
-menu_item_status "menu:insert > 3Dshape > torus"
-
-menu_item "menu:insert > 3Dshape > cube", tr "Cube",
-    insert tr "Insert cube",
-        shape
-            rotatex -50
-            rotatey -50
-            color "fill"
-            line_color "fill"
-            cube 0, 0, 0, 100, 100, 100
-menu_item_status "menu:insert > 3Dshape > cube"
-
-menu_item "menu:insert > 3Dshape > cone", tr "Cone",
-    insert tr "Insert cone",
-        shape
-            rotatex -50
-            rotatey -50
-            color "fill"
-            line_color "fill"
-            cone 0, 0, 0, 100, 100, 100
-menu_item_status "menu:insert > 3Dshape > cone"
-
-menu_item "menu:insert > 3Dshape > cylinder", tr "Cylinder",
-    insert tr "Insert cylinder",
-        shape
-            rotatex -50
-            rotatey -50
-            color "fill"
-            line_color "fill"
-            cylinder 0, 0, 0, 100, 100, 100
-menu_item_status "menu:insert > 3Dshape > cylinder"
-
-menu_item "menu:insert > 3Dshape > truncated cone", tr "Truncated cone",
-    insert tr "Insert truncated cone",
-        shape
-            rotatex -50
-            rotatey -50
-            color "fill"
-            line_color "fill"
-            truncated_cone 0, 0, 0, 100, 100, 100, 0.5
-menu_item_status "menu:insert > 3Dshape > truncated cone"
+#endif
 
 
-
-menu      "menu:insert", ""
-menu_item "menu:insert > table", tr "Table",
-    insert tr "Insert table",
-        shape
-            color "font"
-            line_color "font"
-            table 3, 3,
-                table_cell_fill
-                    color 0%,0%,0%,20%
-                    line_color 0%, 0%, 100%, 80%
-                    line_width 2
-                    rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
-                table_cell_margins 5, 5
-                table_cell
-                    text tr "Cell 1,1"
-                table_cell
-                    text tr "Cell 1,2"
-                table_cell
-                    text tr "Cell 1,3"
-                table_cell
-                    text tr "Cell 2,1"
-                table_cell
-                    text tr "Cell 2,2"
-                table_cell
-                    text tr "Cell 2,3"
-                table_cell
-                    text tr "Cell 3,1"
-                table_cell
-                    text tr "Cell 3,2"
-                table_cell
-                    text tr "Cell 3,3"
-menu_item_status "menu:insert > table"
-
-separator
-
-menu      "menu:insert", ""
-menu_item "menu:insert > image...", tr "Image...",
-  file_chooser
-    filter tr "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
-           "BMP - Windows Bitmap (*.bmp);;" &
-           "GIF - Graphic Interchange Format (*.gif);;" &
-           "JPEG - Joint Photographic Experts Group (*.jpg *.jpeg);;" &
-           "PNG - Portable Network Graphics (*.png);;" &
-           "SVG - Scalable Vector Graphics (*.svg);;" &
-           "TIFF - Tagged Image File Format (*.tif *.tiff);;" &
-           "PBM - Portable Bitmap (*.pbm);;" &
-           "PGM - Portable Graymap (*.pgm);;" &
-           "PPM - Portable Pixmap (*.ppm);;" &
-           "XBM - X11 Bitmap (*.xbm);;" &
-           "XPM - X11 Pixmap (*.xpm)"
-    action
-        insert tr "Insert image",
-            shape
-                color 100%,100%,100%,100%
-                image 0, 0, 100%, 100%, rel_file_path
-menu_item_status "menu:insert > image..."
-}
-
-
-toolbar_insert -> {
-toolbar   "toolbar:insert", tr "Insert", "N"
-submenu   "toolbar:insert > shape", tr "Shape", "images/tb_shapes.png"
-menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png",
-    insert tr "Insert line",
-        shape
-            color "line"
-            line_color "line"
-            line 50, -50, -50, 50
-menu_item_status "toolbar:insert > shape > line ---"
-menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png",
-    insert tr "Insert line with arrowhead",
-        shape
-            color "line"
-            line_color "line"
-            line_arrow 50, -50, none, -50, 50, arrowhead
-menu_item_status "toolbar:insert > shape > line -->"
-menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png",
-    insert tr "Insert line with two arrowheads",
-        shape
-            color "line"
-            line_color "line"
-            line_arrow 50, -50, arrowhead, -50, 50, arrowhead
-menu_item_status "toolbar:insert > shape > line <->"
-menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png",
-    insert tr "Insert rectangle",
-        shape
-            color "fill"
-            line_color "fill"
-            rectangle 0, 0, 100, 100
-menu_item_status "toolbar:insert > shape > rectangle"
-menu_item "toolbar:insert > shape > rounded rectangle", "", "images/tb_shape_rounded_rectangle.png",
-    insert tr "Insert rounded rectangle",
-        shape
-            color "fill"
-            line_color "fill"
-            rounded_rectangle 0, 0, 100, 100, 15
-menu_item_status "toolbar:insert > shape > rounded rectangle"
-menu_item "toolbar:insert > shape > oval", "", "images/tb_shape_oval.png",
-    insert tr "Insert oval",
-        shape
-            color "fill"
-            line_color "fill"
-            ellipse 0, 0, 100, 100
-menu_item_status "toolbar:insert > shape > oval"
-menu_item "toolbar:insert > shape > triangle", "", "images/tb_shape_triangle.png",
-    insert tr "Insert triangle",
-        shape
-            color "fill"
-            line_color "fill"
-            triangle 0, 0, 100, 100
-menu_item_status "toolbar:insert > shape > triangle"
-menu_item "toolbar:insert > shape > right triangle", "", "images/tb_shape_right_triangle.png",
-    insert tr "Insert right triangle",
-        shape
-            color "fill"
-            line_color "fill"
-            right_triangle 0, 0, 100, 100
-menu_item_status "toolbar:insert > shape > right triangle"
-menu_item "toolbar:insert > shape > arrow", "", "images/tb_shape_arrow.png",
-    insert tr "Insert arrow",
-        shape
-            color "fill"
-            line_color "fill"
-            arrow 0, 0, 100, 100, 44, 32%
-menu_item_status "toolbar:insert > shape > arrow"
-menu_item "toolbar:insert > shape > double arrow", "", "images/tb_shape_double_arrow.png",
-    insert tr "Insert double arrow",
-        shape
-            color "fill"
-            line_color "fill"
-            double_arrow 0, 0, 100, 100, 44, 32%
-menu_item_status "toolbar:insert > shape > double arrow"
-menu_item "toolbar:insert > shape > diamond", "", "images/tb_shape_diamond.png",
-    insert tr "Insert diamond",
-        shape
-            color "fill"
-            line_color "fill"
-            diamond 0, 0, 100, 100
-menu_item_status "toolbar:insert > shape > diamond"
-menu_item "toolbar:insert > shape > speech ballon", "", "images/tb_shape_speech_balloon.png",
-    insert tr "Insert speech balloon",
-        shape
-            color "fill"
-            line_color "fill"
-            speech_balloon 0, 16, 100, 68, 50, -50, -50
-menu_item_status "toolbar:insert > shape > speech ballon"
-menu_item "toolbar:insert > shape > callout", "", "images/tb_shape_callout.png",
-    insert tr "Insert callout",
-        shape
-            color "fill"
-            line_color "fill"
-            callout 16, 0, 68, 100, 15, -50, 0, 60
-menu_item_status "toolbar:insert > shape > callout"
-menu_item "toolbar:insert > shape > star", "", "images/tb_shape_star.png",
-    insert tr "Insert star",
-        shape
-            color "fill"
-            line_color "fill"
-            star 0, 0, 100, 100, 5, 50%
-menu_item_status "toolbar:insert > shape > star"
-menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
-    insert tr "Insert polygon",
-        shape
-            color "fill"
-            line_color "fill"
-            polygon 0, 0, 100, 100, 5
-menu_item_status "toolbar:insert > shape > polygon"
-}
 texture_chooser ->
+// ----------------------------------------------------------------------------
+//   File chooser to select a texture
+// ----------------------------------------------------------------------------
+    image_chooser
+        set_attribute "texture", {texture rel_file_path}
+
+
+image_chooser Action ->
+// ----------------------------------------------------------------------------
+//    Select an image from the available file formats
+// ----------------------------------------------------------------------------
     file_chooser
         filter tr "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
                "BMP - Windows Bitmap (*.bmp);;" &
@@ -1007,97 +1791,60 @@ texture_chooser ->
                "PPM - Portable Pixmap (*.ppm);;" &
                "XBM - X11 Bitmap (*.xbm);;" &
                "XPM - X11 Pixmap (*.xpm)"
-        action
-            set_attribute "texture", {texture rel_file_path}
+        action Action
 
 
-menu_format -> {
-menubar
-menu   "menu:select:format", tr "Format"
-menu_item "menu:selectW:format > fill color", tr "Fill Color...",
-    color_chooser "color",
-        set_attribute "color", {color red, green, blue, alpha}
-menu_item_status "menu:selectW:format > fill color"
-menu_item "menu:selectW:format > line color", tr "Line Color...",
-    color_chooser "line_color",
-        set_attribute "line_color", {line_color red, green, blue, alpha}
-menu_item_status "menu:selectW:format > line color"
-menu_item "menu:selectW:format > font", tr "Font...",
-    font_chooser
-        set_attribute "font", {font font_family, font_size, slant font_slant%, weight font_weight%, stretch font_stretch%}
-menu_item_status "menu:selectW:format > font"
-menu_item "menu:selectW:format >  texture...", tr "Texture...",
-    texture_chooser
-menu_item_status "menu:selectW:format >  texture..."
-}
+movie_chooser Action ->
+// ----------------------------------------------------------------------------
+//    Select a movie file from the available file formats
+// ----------------------------------------------------------------------------
+    file_chooser
+        filter tr "All movie formats (*.mov *.mp4 *.mp2 *.mpeg *.avi *.ogg);;" &
+               "Quicktime movie (*.mov);;" &
+               "MPEG 4 (*.mp4);;" &
+               "MPEG 2 (*.mp2 *.mpeg);;" &
+               "Windows media AVI file (*.avi);;" &
+               "Ogg Vorbis (*.ogg)"
+        action Action
 
-menu_arrange -> {
-menu   "menu:select:arrange", tr "Arrange"
-menu_item "menu:selectW:arrange > toFront", tr "Bring to front",
-    bring_to_front
-menu_item_status "menu:selectW:arrange > toFront"
-menu_item "menu:selectW:arrange > forward", tr "Bring forward",
-    bring_forward
-menu_item_status "menu:selectW:arrange > forward"
-menu_item "menu:selectW:arrange > backward", tr "Send backward",
-    send_backward
-menu_item_status "menu:selectW:arrange > backward"
-menu_item "menu:selectW:arrange > toBack", tr "Send to back",
-    send_to_back
-menu_item_status "menu:selectW:arrange > toBack"
 
-separator
-
-menu_item "menu:selectW:arrange > group", tr "Group",
-    group_selection
-menu_item_status "menu:selectW:arrange > group"
-menu_item "menu:selectW:arrange > ungroup", tr "Ungroup",
-    ungroup_selection
-menu_item_status "menu:selectW:arrange > ungroup"
-}
-
-#endif
-
-menu_window -> {
-menu   "TAO_VIEW_MENU", ""
-submenu "TAO_VIEW_MENU:windowsize", tr "Window size"
-menu_item "TAO_VIEW_MENU:windowsize > 800", "800 x 600",
-    window_size 800, 600
-menu_item "TAO_VIEW_MENU:windowsize > 960", "960 x 540",
-    window_size 960, 540
-menu_item "TAO_VIEW_MENU:windowsize > 1024", "1024 x 768",
-    window_size 1024, 768
-menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768",
-    window_size 1280, 768
-menu_item "TAO_VIEW_MENU:windowsize > 720p", "1280 x 720",
-    window_size 1280, 720
-menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200",
-    window_size 1600, 1200
-menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
-    window_size 1920, 1080
-}
-
-window_choices ->
-    chooser_choice "800 x 600",
-        window_size 800, 600
-    chooser_choice "960 x 540",
-        window_size 960, 540
-    chooser_choice "1024 x 768",
-        window_size 1024, 768
-    chooser_choice "1280 x 720",
-        window_size 1280, 720
-    chooser_choice "1280 x 768",
-        window_size 1280, 768
-    chooser_choice "1600 x 1200",
-        window_size 1600, 1200
-    chooser_choice "1920 x 1080",
-        window_size 1920, 1080
-
-#ifndef CFG_NOEDIT
-menu_insert
-menu_format
-menu_arrange
-#endif
-menu_window
-
-add_display_mode_to_menu "2D", tr "2D"
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//   Claire Hyvrier <claire.hyvrier@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// configuration for the Tao Presentations application
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

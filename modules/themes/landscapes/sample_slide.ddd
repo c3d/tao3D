@@ -25,9 +25,9 @@ slide "Enjoy beautiful landscapes" fr "Profitez de splendides paysages",
     -- "Enjoy beautiful landscapes in your presentation " fr "Profitez de splendides paysages dans votre presentation"
     -- "Focus on the story, not the appearance" fr "concentrez vous sur histoire, pas sur l'apparence"
     --
-    * "Add easily new landscape pictures" fr "Ajoutez facilement de nouvelles paysages"
-    -- "Simply drag and drop your pictures into the 'images' folder" fr "Glissez-déposez simplement vos images dans le dossier 'images'"
-    -- "Or use directly these of the internet" fr "Ou utilisez directement celles provenant d'internet"
+    * "Easily add new landscape pictures" fr "Ajoutez facilement de nouveaux paysages"
+    -- "Simply drag and drop your pictures into the 'images' folder" fr "Glissez-déposez vos images dans le dossier 'images'"
+    -- "Or use Internet pictures directly" fr "Ou utilisez directement des images provenant d'Internet"
 
 title_slide "Describe complex slides as simple text" fr "Description textuelle de diapositives",
     transition_ft_wipe 1, 0

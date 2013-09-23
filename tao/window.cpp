@@ -133,6 +133,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     errorMessages->setReadOnly(true);
     errorDock->setWidget(errorMessages);
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
+    connect(this, SIGNAL(appendErrorMsg(QString)),
+            errorMessages, SLOT(append(QString)));
+    connect(this, SIGNAL(showErrorWindow()), errorDock, SLOT(show()));
 
     // Create the main widget for displaying Tao stuff
     stackedWidget = new QStackedWidget(this);
@@ -312,11 +315,12 @@ void Window::addError(QString txt)
     if (txt.contains("shader(s) linked."))
         return;
 #endif
-    QTextCursor cursor = errorMessages->textCursor();
-    cursor.movePosition(QTextCursor::End);
-    cursor.insertText(txt + "\n");
+    // Do not call directly errorMessages->append(txt) because callers may
+    // leave in different thread than GUI one. Bug#3202
+    emit appendErrorMsg(txt);
+
     if (!isFullScreen())
-        errorDock->show();
+        emit showErrorWindow(); // Bug#3202
     QString console = +XL::MAIN->options.to_stderr;
     if (console == "on" || (console == "auto" && isFullScreen()))
         std::cerr << +txt << std::endl;

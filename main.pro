@@ -134,7 +134,7 @@ isEmpty(NO_HELP_VIEWER) {
 }
 
 isEmpty(NO_WEBUI) {
-  SUBDIRS += webui
+  SUBDIRS += webui nodejs
 } else {
   !build_pass:message(Will not build web user interface.)
 }

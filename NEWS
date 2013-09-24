@@ -1,5 +1,17 @@
 Change log for Tao Presentations
 
+1.42 (24-Sep-2013)
+
+#3208 Add a new Landscapes theme to Tao Presentations
+#3203 Add Finance theme
+#3202 Tao freeze when login error messages
+#3198 Accept strikeout in font descriptions (in addition to strike_out)
+#3197 page_duration does not work on the very first page
+#3196 Add text spans for italic, bold, etc.
+#3195 Using 'font italic' indicates that the keyword 'true' is not accepted by 'font'
+#3191 Update comments in tao.xl
+#3190 License for templates is too restrictive
+#3134 texture_width and texture_height ignore texture_unit
 
 1.41 (30-Aug-2013)
 

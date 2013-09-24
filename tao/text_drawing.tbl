@@ -155,7 +155,7 @@ PREFIX(FontRegular,  tree,  "regular", , RTAO(fontBold(self, 50)),
        GROUP(text:font)
        SYNOPSIS("reset bold value to neutral.")
        DESCRIPTION("Reset bold value to neutral. Is equivalent to weight 50."))
-PREFIX(FontLight,  tree,  "light", , RTAO(fontBold(self, 25)),
+PREFIX(FontThin,  tree,  "thin", , RTAO(fontBold(self, 25)),
        GROUP(text:font)
        SYNOPSIS("Make the font thin.")
        DESCRIPTION("Make the font thinner. Is equivalent to weight 25"))
@@ -163,21 +163,33 @@ PREFIX(FontBold,  tree,  "bold", , RTAO(fontBold(self, 75)),
        GROUP(text:font)
        SYNOPSIS("Make the font bold.")
        DESCRIPTION("Make the font bold. Is equivalent to weight 75"))
-PREFIX(FontUnderline,  tree,  "underline",
-       PARM(a, real, "Underline values: 0 is off, values > 0 are on."),
-       RTAO(fontUnderline(self, a)),
+PREFIX(FontUnderline,  tree,  "underline",,
+       RTAO(fontUnderline(self, 1)),
        GROUP(text:font)
        SYNOPSIS("Underline attribute of the font")
        DESCRIPTION("Select whether we underline a font. Qt doesn't support setting the size of the underline, it's on or off."))
-PREFIX(FontOverline,  tree,  "overline",
-       PARM(a, real, "Overline values: 0 is off, values > 0 are on."),
-       RTAO(fontOverline(self, a)),
+PREFIX(FontNoUnderline,  tree,  "no_underline",,
+       RTAO(fontUnderline(self, 0)),
+       GROUP(text:font)
+       SYNOPSIS("Underline attribute of the font")
+       DESCRIPTION("Select whether we underline a font. Qt doesn't support setting the size of the underline, it's on or off."))
+PREFIX(FontOverline,  tree,  "overline",,
+       RTAO(fontOverline(self, 1)),
        GROUP(text:font)
        SYNOPSIS("Overline attribute of the font")
        DESCRIPTION("Select whether we overline a font. Qt doesn't support setting the size of the overline, it's on or off."))
-PREFIX(FontStrikeout,  tree,  "strikeout",
-       PARM(a, real, "Strikeout values: 0 is off, values > 0 are on."),
-       RTAO(fontStrikeout(self, a)),
+PREFIX(FontNoOverline,  tree,  "no_overline",,
+       RTAO(fontOverline(self, 0)),
+       GROUP(text:font)
+       SYNOPSIS("Overline attribute of the font")
+       DESCRIPTION("Select whether we overline a font. Qt doesn't support setting the size of the overline, it's on or off."))
+PREFIX(FontStrikeout,  tree,  "strikeout",,
+       RTAO(fontStrikeout(self, 1)),
+       GROUP(text:font)
+       SYNOPSIS("Strikeout attribute of the font")
+       DESCRIPTION("Select whether we strikeout a font. Qt doesn't support setting the size of the strikeoutline, it's on or off."))
+PREFIX(FontNoStrikeout,  tree,  "no_strikeout",,
+       RTAO(fontStrikeout(self, 0)),
        GROUP(text:font)
        SYNOPSIS("Strikeout attribute of the font")
        DESCRIPTION("Select whether we strikeout a font. Qt doesn't support setting the size of the strikeoutline, it's on or off."))

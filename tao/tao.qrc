@@ -1,38 +1,56 @@
 <RCC>
     <qresource prefix="/">
+        <file>images/App Icon.png</file>
+        <file>images/Taodyne-Logo.png</file>
+        <file>images/branch_tool.png</file>
+        <file>images/bug.png</file>
+        <file>images/checkmark.png</file>
+        <file>images/contract.png</file>
         <file>images/copy.png</file>
+        <file>images/cursor-openhand.png</file>
         <file>images/cut.png</file>
+        <file>images/default_image.svg</file>
+        <file>images/download.png</file>
+        <file>images/finish.png</file>
+        <file>images/general.png</file>
+        <file>images/info.png</file>
+        <file>images/modules.png</file>
         <file>images/new.png</file>
+        <file>images/next.png</file>
+        <file>images/not_connected.png</file>
         <file>images/open.png</file>
         <file>images/paste.png</file>
-        <file>images/save.png</file>
-        <file>images/default_image.svg</file>
-        <file>images/tao_color_bars.svg</file>
-        <file>images/cursor-openhand.png</file>
-        <file>images/view-restore.png</file>
-        <file>images/splash.png</file>
-        <file>images/bug.png</file>
-        <file>images/finish.png</file>
-        <file>images/next.png</file>
-        <file>images/previous.png</file>
-        <file>images/start.png</file>
-        <file>images/modules.png</file>
-        <file>images/branch_tool.png</file>
+        <file>images/performances.png</file>
         <file>images/playback_tool.png</file>
-        <file>images/general.png</file>
+        <file>images/previous.png</file>
+        <file>images/save.png</file>
+        <file>images/shopping_cart.png</file>
+        <file>images/smpte_color_bars.svg</file>
+        <file>images/splash.png</file>
+        <file>images/start.png</file>
+        <file>images/tao_color_bars.svg</file>
+        <file>images/tao_padlock.svg</file>
+        <file>images/tao_picto.png</file>
+        <file>images/tb_shape_arrow.png</file>
+        <file>images/tb_shape_brush.png</file>
+        <file>images/tb_shape_callout.png</file>
+        <file>images/tb_shape_diamond.png</file>
+        <file>images/tb_shape_double_arrow.png</file>
+        <file>images/tb_shape_line.png</file>
+        <file>images/tb_shape_line_w_arrowhead.png</file>
+        <file>images/tb_shape_line_w_two_arrowheads.png</file>
+        <file>images/tb_shape_oval.png</file>
+        <file>images/tb_shape_polygon.png</file>
+        <file>images/tb_shape_rectangle.png</file>
+        <file>images/tb_shape_right_triangle.png</file>
+        <file>images/tb_shape_rounded_rectangle.png</file>
+        <file>images/tb_shape_speech_balloon.png</file>
+        <file>images/tb_shape_star.png</file>
+        <file>images/tb_shape_triangle.png</file>
+        <file>images/tb_shapes.png</file>
+        <file>images/view-restore.png</file>
         <file>images/zoom_in.png</file>
         <file>images/zoom_out.png</file>
-        <file>images/info.png</file>
-        <file>images/tao_picto.png</file>
-        <file>images/tao_padlock.svg</file>
-        <file>images/performances.png</file>
-        <file>images/contract.png</file>
-        <file>images/shopping_cart.png</file>
-        <file>images/download.png</file>
-        <file>images/checkmark.png</file>
-        <file>images/not_connected.png</file>
-        <file>images/Taodyne-Logo.png</file>
-        <file>images/App Icon.png</file>
         <file>html/module_info_dialog.html</file>
         <file>html/module_info_dialog_fr.html</file>
         <file>NEWS</file>

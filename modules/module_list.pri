@@ -44,7 +44,9 @@
        themes/black_white \
        themes/pastel_triangles \
        themes/bright_rectangles \
+       themes/finance \
        themes/lucky_stars \
+       themes/landscapes \
        themes/seasons_greetings \
        themes/water \
        slideshow_3d \

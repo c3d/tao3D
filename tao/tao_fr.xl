@@ -117,3 +117,6 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Legacy (default)", "Ancien mode (défaut)"
     tr "Enable glyph cache", "Activer le cache de glyphes"
     tr "Disable glyph cache", "Désactiver le cache de glyphes"
+    tr "Insert movie", "Insérer une vidéo"
+    tr "Movie...", "Vidéo..."
+    tr "All movie formats (*.mov *.mp4 *.mp2 *.mpeg *.avi *.ogg);;", "Toutes les vidéos (*.mov *.mp4 *.mp2 *.mpeg *.avi *.ogg);;"

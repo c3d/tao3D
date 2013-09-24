@@ -142,6 +142,8 @@ signals:
 #endif
     void projectChanged(Repository *repo);
     void openFinished(bool success);
+    void appendErrorMsg(QString msg);
+    void showErrorWindow();
 
 protected:
     void closeEvent(QCloseEvent *event);

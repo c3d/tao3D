@@ -32,3 +32,20 @@ macx {
 
   QMAKE_CLEAN += $$TMP
 }
+
+win32 {
+  URL = http://nodejs.org/dist/v0.10.18/node.exe
+  MD5 = c7e6c1de34c31c08e6e1d0e4f237db54
+
+  fetch.target = node.exe
+  fetch.commands = curl -o node.exe_ $$URL && md5sum node.exe_ | grep -q $$MD5 && mv node.exe_ node.exe
+  QMAKE_EXTRA_TARGETS += fetch
+
+  QMAKE_STRIP = :  # Prevent make install from stripping node.exe
+  install.path = $$APPINST/nodejs/bin
+  install.files = node.exe
+  install.depends = node.exe
+  INSTALLS += install
+
+  QMAKE_CLEAN += node.exe_
+}

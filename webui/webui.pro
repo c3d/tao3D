@@ -38,6 +38,6 @@ include(../main.pri)
 TEMPLATE = subdirs
 
 install.path = $$APPINST/webui
-install.commands = mkdir -p \"$$APPINST/webui\" ; make -C webui -f Makefile.all install DEST=\"$$APPINST/webui/\"
+install.commands = mkdir -p \"$$APPINST/webui\" ; $(MAKE) -C webui -f Makefile.all install DEST=\"$$APPINST/webui\"
 
 INSTALLS += install

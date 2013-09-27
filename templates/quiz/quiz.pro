@@ -9,12 +9,12 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/quiz
-files.files = template.ini Quiz.ddd quiz.png quiz-config.xl
+files.files = template.ini Quiz.ddd quiz.png quiz-config.xl theme-quiz.xl
 
 images.path = $$APPINST/templates/quiz/images
-images.files = images/*
+images.files = images/logo_taoquiz.png
 
-INSTALLS += files # images
+INSTALLS += files images
 
-SIGN_XL_SOURCES = Quiz.ddd quiz-config.xl
+SIGN_XL_SOURCES = Quiz.ddd quiz-config.xl theme-quiz.xl
 include(../sign_template.pri)

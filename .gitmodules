@@ -16,3 +16,6 @@
 [submodule "webui"]
 	path = webui
 	url = io.taodyne.com:~jerome/Work/tao-editor-proto.git
+[submodule "webui/webui"]
+	path = webui/webui
+	url = io.taodyne.com:~jerome/Work/tao-editor-proto.git

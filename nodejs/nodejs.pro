@@ -14,14 +14,32 @@ include(../main_defs.pri)
 
 TEMPLATE = subdirs
 
-macx {
-  URL = http://nodejs.org/dist/v0.10.18/node-v0.10.18-darwin-x64.tar.gz
-  MD5 = 0aa4270c3c6b2907041ac0d4e1d06731
+macx|linux* {
+  macx {
+    URL = http://nodejs.org/dist/v0.10.18/node-v0.10.18-darwin-x64.tar.gz
+    MD5 = 0aa4270c3c6b2907041ac0d4e1d06731
+    MD5CMD = md5
+  }
+
+  linux* {
+    # Note: we should really test QMAKE_TARGET here, not QMAKE_HOST.
+    # Unfortunately Qt 4.8.1 does not define this variable (Ubuntu 12.04),
+    # but since we never cross-compile, HOST == TARGET.
+    contains(QMAKE_HOST.arch, i686) {
+      URL = http://nodejs.org/dist/v0.10.18/node-v0.10.18-linux-x86.tar.gz
+      MD5 = c4cfd75c9692b4c2716f3dcdc68f1c78
+    }
+    contains(QMAKE_HOST.arch, x86_64) {
+      URL = http://nodejs.org/dist/v0.10.18/node-v0.10.18-linux-x64.tar.gz
+      MD5 = 7e01855f266474bb4063209e391d4c61
+    }
+    MD5CMD = md5sum
+  }
 
   ARCHIVE = $$basename(URL)
   TMP = $${ARCHIVE}_
   fetch.target = $$ARCHIVE
-  fetch.commands = curl -o $$TMP $$URL && md5 $$TMP | grep $$MD5 >/dev/null && mv $$TMP $$ARCHIVE
+  fetch.commands = curl -o $$TMP $$URL && $$MD5CMD $$TMP | grep $$MD5 >/dev/null && mv $$TMP $$ARCHIVE
   QMAKE_EXTRA_TARGETS += fetch
 
   DIR = $$replace(ARCHIVE, .tar.gz, )

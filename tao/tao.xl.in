@@ -405,18 +405,38 @@ insert_menu ->
 
     menu      "menu:insert", ""
     menu_item "menu:insert > image...", tr "Image...",
-        image_chooser
-            insert tr "Insert image",
-                shape
-                    color "white"
-                    image 0, 0, 100%, 100%, rel_file_path
+        file_chooser
+            filter tr "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
+                   "BMP - Windows Bitmap (*.bmp);;" &
+                   "GIF - Graphic Interchange Format (*.gif);;" &
+                   "JPEG - Joint Photographic Experts Group (*.jpg *.jpeg);;" &
+                   "PNG - Portable Network Graphics (*.png);;" &
+                   "SVG - Scalable Vector Graphics (*.svg);;" &
+                   "TIFF - Tagged Image File Format (*.tif *.tiff);;" &
+                   "PBM - Portable Bitmap (*.pbm);;" &
+                   "PGM - Portable Graymap (*.pgm);;" &
+                   "PPM - Portable Pixmap (*.ppm);;" &
+                   "XBM - X11 Bitmap (*.xbm);;" &
+                   "XPM - X11 Pixmap (*.xpm)"
+            action
+                insert tr "Insert image",
+                    shape
+                        color "white"
+                        image 0, 0, 100%, 100%, rel_file_path
     menu_item_status "menu:insert > image..."
 
     menu_item "menu:insert > movie...", tr "Movie...",
-        movie_chooser
-            insert tr "Insert movie",
-                shape
-                    movie 0, 0, 100%, 100%, rel_file_path
+        file_chooser
+            filter tr "All movie formats (*.mov *.mp4 *.mp2 *.mpeg *.avi *.ogg);;" &
+                   "Quicktime movie (*.mov);;" &
+                   "MPEG 4 (*.mp4);;" &
+                   "MPEG 2 (*.mp2 *.mpeg);;" &
+                   "Windows media AVI file (*.avi);;" &
+                   "Ogg Vorbis (*.ogg)"
+            action
+                insert tr "Insert movie",
+                    shape
+                        movie 0, 0, 100%, 100%, rel_file_path
     menu_item_status "menu:insert > movie..."
 
 
@@ -1770,14 +1790,6 @@ texture_chooser ->
 // ----------------------------------------------------------------------------
 //   File chooser to select a texture
 // ----------------------------------------------------------------------------
-    image_chooser
-        set_attribute "texture", {texture rel_file_path}
-
-
-image_chooser Action ->
-// ----------------------------------------------------------------------------
-//    Select an image from the available file formats
-// ----------------------------------------------------------------------------
     file_chooser
         filter tr "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
                "BMP - Windows Bitmap (*.bmp);;" &
@@ -1791,21 +1803,9 @@ image_chooser Action ->
                "PPM - Portable Pixmap (*.ppm);;" &
                "XBM - X11 Bitmap (*.xbm);;" &
                "XPM - X11 Pixmap (*.xpm)"
-        action Action
+        action
+            set_attribute "texture", {texture rel_file_path}
 
-
-movie_chooser Action ->
-// ----------------------------------------------------------------------------
-//    Select a movie file from the available file formats
-// ----------------------------------------------------------------------------
-    file_chooser
-        filter tr "All movie formats (*.mov *.mp4 *.mp2 *.mpeg *.avi *.ogg);;" &
-               "Quicktime movie (*.mov);;" &
-               "MPEG 4 (*.mp4);;" &
-               "MPEG 2 (*.mp2 *.mpeg);;" &
-               "Windows media AVI file (*.avi);;" &
-               "Ogg Vorbis (*.ogg)"
-        action Action
 
 
 // ****************************************************************************

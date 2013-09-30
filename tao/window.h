@@ -206,6 +206,9 @@ private slots:
     void leaveFullScreen();
     void restartFullScreenTimer();
 #endif
+#ifndef CFG_NO_WEBUI
+    void launchWebUI();
+#endif
 
 private:
     void     createActions();
@@ -341,6 +344,9 @@ private:
     QAction          *zoomInAct;
     QAction          *zoomOutAct;
     QAction          *resetViewAct;
+#if !defined(CFG_NO_WEBUI)
+    QAction          *launchWebUIAct;
+#endif
     struct
     {
       QByteArray         geometry;

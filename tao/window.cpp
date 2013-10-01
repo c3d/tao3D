@@ -110,6 +110,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       fileCheckTimer(this),
 #endif
       onlineDocAct(NULL),
+#ifndef CFG_NO_WEBUI
+      webui(this),
+#endif
       splashScreen(NULL), aboutSplash(NULL)
 {
 #ifndef CFG_NOSRCEDIT
@@ -1589,7 +1592,7 @@ void Window::launchWebUI()
 //   Start the web-based document editor on the current document
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "Launch editor\n";
+    webui.launch(curFile);
 }
 #endif
 

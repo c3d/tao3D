@@ -375,6 +375,12 @@ contains(DEFINES, CFG_NO_DOC_SIGNATURE) {
     NOWARN_SOURCES += \
         document_signature.cpp
 }
+contains(DEFINES, CFG_NO_WEBUI) {
+    !build_pass:message("[CFG_NO_WEBUI] Web-based editor disabled")
+} else {
+    HEADERS += webui.h
+    SOURCES += webui.cpp
+}
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 

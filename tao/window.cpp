@@ -2910,7 +2910,9 @@ void Window::setCurrentFile(const QString &fileName)
     signDocumentAct->setEnabled(show);
 #endif
 #ifndef CFG_NO_WEBUI
-    bool hasJSON = QFileInfo(curFile.replace(".ddd", ".json")).exists();
+    QString jsonFile(curFile);
+    jsonFile.replace(".ddd", ".json");
+    bool hasJSON = QFileInfo(jsonFile).exists();
     launchWebUIAct->setEnabled(hasJSON);
 #endif
 

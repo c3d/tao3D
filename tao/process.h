@@ -42,7 +42,7 @@ struct Process : QProcess, std::streambuf
     Q_OBJECT
 
 public:
-    Process(size_t bufSize = 1024);
+    Process(QObject *parent = 0, size_t bufSize = 1024);
     Process(const QString &cmd,
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
@@ -53,8 +53,14 @@ public:
     virtual void start();
     virtual bool done(text *errors = NULL, text *output = NULL);
     virtual bool failed();
+    virtual void setWd(const QString &wd);
 
     QProcessEnvironment getProcessEnvironment();
+
+    // Override QProcess methods
+    void start(const QString &program, const QStringList &arguments,
+               OpenMode openmode = ReadWrite);
+    void start(const QString &program, OpenMode openmode = ReadWrite);
 
 public:
     static QString processErrorToString(QProcess::ProcessError error);
@@ -74,7 +80,6 @@ signals:
 protected:
     virtual void initialize(size_t bufSize);
     virtual void setEnvironment();
-    virtual void setWd(const QString &wd);
 
 protected:                      // From std::streambuf
     virtual int sync();
@@ -84,13 +89,11 @@ public:
     QString     cmd;
     QStringList args;
     QString     wd;
+    OpenMode    mode;
     void       *id;
     bool        aborted;
     QString     err, out;
-    int         errPos;    // current position in err (% complete parsing)
-    int         percent;   // % complete
-
-public:
+    unsigned    errOutMaxSize; // max size of err and out (characters)
     ulong        num;
     static ulong snum;    // For debug traces only
 

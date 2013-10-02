@@ -32,14 +32,15 @@
 #include <QRegExp>
 #include <QStringList>
 #include <QUrl>
+#include <QtGlobal>
 
 namespace Tao {
 
 WebUI::WebUI(QObject *parent)
 // ----------------------------------------------------------------------------
-//   Constructor
+//   Constructor: make server ready to start
 // ----------------------------------------------------------------------------
-    : QObject(parent), server(this)
+    : QObject(parent), server(this), port(0)
 {
     connect(&server, SIGNAL(error(QProcess::ProcessError)),
             this, SLOT(serverStartError()));
@@ -51,32 +52,34 @@ WebUI::WebUI(QObject *parent)
 
 WebUI::~WebUI()
 // ----------------------------------------------------------------------------
-//   Destructor
+//   Destructor: stop the server
 // ----------------------------------------------------------------------------
 {
-    stop();
+    stopServer();
 }
+
 
 void WebUI::launch(QString path)
 // ----------------------------------------------------------------------------
 //   Start server (if needed), open editor in default browser
 // ----------------------------------------------------------------------------
 {
-    if (path != docPath)
+    if (server.state() == QProcess::NotRunning || path != this->path)
     {
-        stop();
-        IFTRACE(webui)
-            debug() << "Starting server (document: " << +path << ")\n";
-        QStringList args;
-        args << "server.js" << path;
-        server.start(nodePath(), args);
+        this->path = path;
+        startServer();
+        // launchBrowser() will be called when server is ready
+    }
+    else
+    {
+        launchBrowser();
     }
 }
 
 
-void WebUI::stop()
+void WebUI::stopServer()
 // ----------------------------------------------------------------------------
-//   Stop server if running
+//   Stop server if it is running
 // ----------------------------------------------------------------------------
 {
     if (server.state() != QProcess::NotRunning)
@@ -85,14 +88,22 @@ void WebUI::stop()
             debug() << "Stopping server\n";
         server.terminate();
         if (!server.waitForFinished(5000))
-        {
-            IFTRACE(webui)
-                debug() << "Killing server\n";
             server.kill();
-        }
-        IFTRACE(webui)
-            debug() << "Server stopped\n";
     }
+}
+
+
+void WebUI::startServer()
+// ----------------------------------------------------------------------------
+//   (Re)start server
+// ----------------------------------------------------------------------------
+{
+    stopServer();
+    IFTRACE(webui)
+        debug() << "Starting server (document: " << +path << ")\n";
+    QStringList args;
+    args << "server.js" << path;
+    server.start(nodePath(), args);
 }
 
 
@@ -113,15 +124,19 @@ void WebUI::readServerOut(QByteArray newOut)
 {
     QRegExp re("Server listening on port ([0-9]+)");
     if (QString::fromUtf8(newOut.data()).contains(re))
-        launchBrowser(re.cap(1).toInt());
+    {
+        port = re.cap(1).toInt();
+        launchBrowser();
+    }
 }
 
 
-void WebUI::launchBrowser(unsigned port)
+void WebUI::launchBrowser()
 // ----------------------------------------------------------------------------
 //   Open a web browser window, connected to the Node.js server
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(port);
     QString url = QString("http://localhost:%1/").arg(port);
     IFTRACE(webui)
         debug() << "Launching browser at: " << +url << "\n";

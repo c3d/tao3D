@@ -44,22 +44,22 @@ public:
 public:
     void           launch(QString path);
 
-public slots:
-    void           stop();
-
 protected:
     std::ostream & debug();
     QString        nodePath();
     QString        serverDir();
+    void           startServer();
+    void           stopServer();
+    void           launchBrowser();
 
 protected slots:
     void           serverStartError();
     void           readServerOut(QByteArray newOut);
-    void           launchBrowser(unsigned port);
 
 protected:
     Process        server;
-    QString        docPath;
+    QString        path;    // Path to .ddd document
+    unsigned       port;    // TCP port the server is listening on
 };
 
 } // namespace Tao

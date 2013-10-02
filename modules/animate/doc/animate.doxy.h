@@ -696,6 +696,65 @@ value_in_interval_or_greater(Value:real, A:real, B:real, Body);
 
 /**
  * @~english
+ * Shortcut for: page_time in [A..B].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Raccourci pour: page_time in [A..B].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+ * @code
+[A..B]
+    Body
+ * @endcode
+ * @~english
+ * Here is an example.
+ * @~french
+ * Voici un exemple.
+ * @~
+ * @code
+import Animate
+
+page "The [A..B] notation",
+    clear_color 0, 0, 0, 1
+    text_box 0, 0, window_width, window_height,
+        align_center
+        vertical_align_center
+        font "Arial", 40
+        Print 0, "The [A .. B] notation"
+        Print 2, "is"
+        Print 4, "a cool trick!"
+    text_box 0, 0, window_width-20, window_height,
+        align_right
+        vertical_align_bottom
+        font "Arial", 20
+        color "white"
+        text "Press <return> to restart"
+
+Print Time:real, T:text ->
+    after Time,
+        color "white"
+        [Time .. Time+0.5]
+            color_hsv 30, down_ratio, 1.0
+        text T
+        paragraph_break
+
+key "Return" -> goto_page page_name 1
+ * @endcode
+ * @since 1.02 (Tao 1.20)
+ * @see value_in_interval
+ */
+page_time_in_interval(A:real, B:real, Body);
+
+
+/**
+ * @~english
  * Shortcut for: page_time in [A..B, ].
  *
  * This function is documented with this name due to limitations

@@ -346,6 +346,134 @@ color (r:real, g:real, b:real);
 
 /**
  * @~english
+ * Creates a @ref text_span and applies named fill color to some content.
+ * Example:
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red",
+        text "Red"
+    text "Blue again"
+ * @endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage à un contenu.
+ * Exemple :
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red",
+        text "Rouge"
+    text "Bleu de nouveau"
+ * @endcode
+ * Équivalent à :
+ * @~
+ * @code
+text_span
+    color Colorname
+    render Body
+ * @endcode
+ */
+color (Colorname:text, Body:block);
+
+/**
+ * @~english
+ * Creates a @ref text_span and applies named fill color and transparency to some content.
+ * Example:
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red", 50%,
+        text "Red with 50% transparency"
+    text "Blue again"
+ * @endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage et une transparence à un contenu.
+ * Exemple :
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red", 50%,
+        text "Rouge avec 50% de transparence"
+    text "Bleu de nouveau"
+ * @endcode
+ * Équivalent à :
+ * @~
+ * @code
+text_span
+    color Colorname, Alpha
+    render Body
+ * @endcode
+ */
+color (Colorname:text, Alpha:real, Body:block);
+
+/**
+ * @~english
+ * Creates a @ref text_span and applies RGB fill color to some content.
+ * Example:
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0,
+        text "Red"
+    text "Blue again"
+ * @endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage RGB à un contenu.
+ * Exemple :
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0,
+        text "Rouge"
+    text "Bleu de nouveau"
+ * @endcode
+ * Équivalent à :
+ * @~
+ * @code
+text_span
+    color r, g, b
+    render Body
+ * @endcode
+ */
+color (r:real, g:real, b:real, Body:block);
+
+/**
+ * @~english
+ * Creates a @ref text_span and applies RGBA fill color to some content.
+ * Example:
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0, 50%,
+        text "Red with 50% transparency"
+    text "Blue again"
+ * @endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage RGBA à un contenu.
+ * Exemple :
+ * @code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0, 50%,
+        text "Rouge avec 50% de transparence"
+    text "Bleu de nouveau"
+ * @endcode
+ * Équivalent à :
+ * @~
+ * @code
+text_span
+    color r, g, b, a
+    render Body
+ * @endcode
+ */
+color (r:real, g:real, b:real, a:real, Body:block);
+
+/**
+ * @~english
  * Selects the color by its hue, saturation, lightness, and alpha-channel (transparency) components.
  *
  * @param h hue component of the color,  in degrees (in the range 0.0 to 360.0).

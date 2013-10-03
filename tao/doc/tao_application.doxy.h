@@ -193,7 +193,7 @@ show(amount:real);
  * document courant. Cette primitive permet par exemple de calculer la
  * vitesse d'affichage en images par seconde, comme dans l'exemple suivant.
  * @~
- * @code
+@code
 page "p1",
     goto_page "p2"
 
@@ -227,7 +227,7 @@ page "p2",
 
         no_refresh_on TimerEvent
         refresh 2.0
- * @endcode
+@endcode
  */
 integer frame_count();
 
@@ -239,7 +239,7 @@ integer frame_count();
  * Ouvre l'URL avec une application externe.
  * Par exemple:
  * @~
- * @code
+@code
 enable_selection_rectangle false
 Clicked -> 0.0
 page "URL",
@@ -259,7 +259,7 @@ page "URL",
         on_click
             open_url URL
             Clicked := page_time
- * @endcode
+@endcode
  */
 boolean open_url(url:text);
 

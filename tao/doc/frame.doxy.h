@@ -167,7 +167,7 @@ frame_pixel_count(alphaMin:real);
  * Exemple :
  *
  * @~
- * @code
+@code
 ww -> window_width
 wh -> window_height
 DepthTex -> 0
@@ -185,7 +185,7 @@ color "white"
 rectangle -ww/4, 0, ww/2, wh/2
 texture DepthTex
 rectangle ww/4, 0, ww/2, wh/2
- * @endcode
+@endcode
  *
  * @image html "frame_texture_with_depth.png"
  */

@@ -57,7 +57,7 @@ on (n:text, t:tree);
  * Associates the specified code to the click.
  * It is equivalent to <tt> on "click", t</tt>.
  * Here is an example:
- * @code
+@code
 enable_selection_rectangle false
 Clicked -> 0.0
 active_widget
@@ -76,14 +76,14 @@ active_widget
     on_click
         writeln "Click!"
         Clicked := time
- * @endcode
+@endcode
  *
  * @~french
  * Associe du code au clic de souris.
  * Associe le code @p t au clic de souris.
  * Équivalent à <tt> on "click", t</tt>.
  * Voici un exemple :
- * @code
+@code
 enable_selection_rectangle false
 Cliqué -> 0.0
 active_widget
@@ -102,7 +102,7 @@ active_widget
     on_click
         writeln "Clic!"
         Cliqué := time
- * @endcode
+@endcode
  */
 on_click (t:tree);
 

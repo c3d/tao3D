@@ -28,21 +28,21 @@
  * @par Text spans
  * Many font-modifying attributes also can be used as text spans. For example,
  * you can create a bold blue text as follows:
- * @code
+@code
  * bold { color "blue; text "Hello" }
- * @endcode
+@endcode
  * This is equivalent to:
- * @code
+@code
  * text_span { bold; color "blue; text "Hello" }
- * @endcode
+@endcode
  * In addition, these forms will work with a text argument, as in:
- * @code
+@code
  * bold "Hello"
- * @endcode
+@endcode
  * This is equivalent to:
- * @code
+@code
  * bold { text "Hello" }
- * @endcode
+@endcode
  * This rule applies to: @ref plain, @ref roman, @ref italic,
  * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
  * @ref overline, @ref strikeout.
@@ -75,21 +75,21 @@
  * Plusieurs attributs influençant la police de caractère peuvent aussi être
  * utilisés comme des blocs de texte. Par exemple, vous pouvez créer un bloc
  * de texte en gras coloré en bleu de la façon suivante :
- * @code
+@code
  * bold { color "blue; text "Hello" }
- * @endcode
+@endcode
  * Ce code est équivalent à :
- * @code
+@code
  * text_span { bold; color "blue; text "Hello" }
- * @endcode
+@endcode
  * De plus, ces formes peuvent aussi prendre un argument sous forme de texte :
- * @code
+@code
  * bold "Hello"
- * @endcode
+@endcode
  * qui est équivalent à :
- * @code
+@code
  * bold { text "Hello" }
- * @endcode
+@endcode
  * Cette règle s'applique à : @ref plain, @ref roman, @ref italic,
  * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
  * @ref overline, @ref strikeout.
@@ -121,10 +121,10 @@
  * noms de famille et de style sont sensibles à la casse (majuscules et
  * minuscules). Il faut les copier telles qu'elles apparaîssent dans le
  * tableau (y compris les espaces entre les mots). Par exemple :
- * @code
+@code
  * font "Gentium Plus"
  * font "Allerta/Stencil"
- * @endcode
+@endcode
  *
  * @~
  * <table>
@@ -330,12 +330,12 @@ text_span(contents:tree);
  * Text alignment, paragraph space, font, color and other text and paragraph
  * related modifications done in this container are not visible from outside.
  * This function is equivalent to:
- * @code
+@code
  * text_span
  *     paragraph_break
  *     contents
  *     paragraph_break
- * @endcode
+@endcode
  *
  * @~french
  * Crée un paragraphe isolé.
@@ -344,12 +344,12 @@ text_span(contents:tree);
  * du texte, l'espacement des parapgraphes, les polices, la couleur, qui sont
  * faites dans @p contents n'ont pas d'effet à l'extérieur du para_span.
  * Cette fonction est équivalente à :
- * @code
+@code
  * text_span
  *     paragraph_break
  *     contents
  *     paragraph_break
- * @endcode
+@endcode
  */
 paragraph(contents:tree);
 
@@ -374,9 +374,9 @@ text(t:text);
  *
  * For instance you may write the following expression to select
  * font family @p Ubuntu in 24 point size and bold weight:
- * @code
+@code
  * font "Ubuntu", 24, bold
- * @endcode
+@endcode
  * The following arguments are recognized:
  * <ul>
  *   <li> @b "FontFamily" or @b "FontFamily/Style". Selects the font
@@ -387,34 +387,34 @@ text(t:text);
  *       "Demi". @n Some style names are equivalent to style primitives or
  *       keywords: "Bold" is equivalent to @ref bold, "Italic" is equivalent to
  *       @ref italic. "Regular" is equivalent to @ref roman. For instance:
- * @code
+@code
  * font "Ubuntu/Bold Italic"
- * @endcode
+@endcode
  *       has the same effect as:
- * @code
+@code
  * font "Ubuntu"
  * bold
  * italic
- * @endcode
+@endcode
  *        Consequently, the effect of the style qualifier applies not only
  *        to the current font, but also to the subsequent font declarations.
  *        In the following example, @a both words are italicized:
- * @code
+@code
  * text_box 0, 0, 200, 100,
  *     font "Andika Basic/Italic"
  *     text "Hello, "
  *     font "Andika Basic"  // does NOT cancel italic
  *     text "world!"
- * @endcode
+@endcode
  *        To cancel the italic mode, you would need to call @ref roman or
  *        use the "/Regular" style qualifier, like this:
- * @code
+@code
  * text_box 0, 0, 200, 100,
  *     font "Andika Basic/Italic"
  *     text "Hello, "
  *     font "Andika Basic/Regular"  // cancels italic
  *     text "world!"
- * @endcode
+@endcode
  *   <li> @p number. Sets the font size, in points.
  *   <li> @b plain, @b default, @b normal. Resets all font attributes.
  *       See @ref plain.
@@ -498,9 +498,9 @@ bold
  *
  * Par exemple, pour sélectionner la police de la famille @p Ubuntu en taille
  * 24 points et en gras :
- * @code
+@code
  * font "Ubuntu", 24, bold
- * @endcode
+@endcode
  * Les paramètres suivants sont reconnus :
  * <ul>
  *   <li> @b "FamilleDeCaractères" ou @b "FamilleDeCaractères/Style".
@@ -513,34 +513,34 @@ bold
  *       primitives qui ont le même effet :
  *       "Bold" est équivalent à @ref bold, "Italic" est équivalent à
  *       @ref italic. "Regular" est équivalent à @ref roman. Par exemple :
- * @code
+@code
  * font "Ubuntu/Bold Italic"
- * @endcode
+@endcode
  *       a le même effet que:
- * @code
+@code
  * font "Ubuntu"
  * bold
  * italic
- * @endcode
+@endcode
  *        Par conséquent, l'effet du qualificatif de style s'applique non
  *        seulement à la police courant, mais aussi aux déclarations suivantes.
  *        Dans l'exemple qui suit, @a les @a deux mots sont en italique :
- * @code
+@code
  * text_box 0, 0, 200, 100,
  *     font "Andika Basic/Italic"
  *     text "Andika "
  *     font "Andika Basic"  // n'annule PAS l'italique
  *     text "Basic"
- * @endcode
+@endcode
  *        Pour annuler l'italique, il faut utiliser @ref roman ou le
  *        qualificatif "/Regular" comme ceci :
- * @code
+@code
  * text_box 0, 0, 200, 100,
  *     font "Andika Basic/Italic"
  *     text "Andika "
  *     font "Andika Basic/Regular"  // annule l'italique
  *     text "Basic"
- * @endcode
+@endcode
  *   <li> @p un nombre. Définit la taille de la police, en points.
  *   <li> @b plain, @b default, @b normal. Ré-initialise tous les attributs.
  *       Cf. @ref plain.
@@ -652,14 +652,14 @@ font_size(size:real);
  * Ré-initialise les attributs de la police de caractères courante.
  * Équivalent au code suivant :
  * @~
- * @code
+@code
 roman
 regular
 underline 0
 stretch 1.0
 overline 0
 strikeout 0
- * @endcode
+@endcode
  */
 plain();
 
@@ -881,7 +881,7 @@ align(center:real, justify:real, spread:real, full_justify:real);
  * Équivalent à :
  *
  * @~
- * @code align center, justify, spread, 0 @endcode
+@code align center, justify, spread, 0 @endcode
  */
 align(center:real, justify:real, spread:real);
 
@@ -895,7 +895,7 @@ align(center:real, justify:real, spread:real);
  * Équivalent à :
  *
  * @~
- * @code align center, justify, 0, 0 @endcode
+@code align center, justify, 0, 0 @endcode
  */
 align(center:real, justify:real);
 
@@ -909,7 +909,7 @@ align(center:real, justify:real);
  * Équivalent à :
  *
  * @~
- * @code align center, 0, 0, 0 @endcode
+@code align center, 0, 0, 0 @endcode
  */
 align(center:real);
 
@@ -921,7 +921,7 @@ align(center:real);
  * Aligne le texte à gauche.
  * Équivalent à :
  * @~
- * @code align 0, 0, 0, 0 @endcode
+@code align 0, 0, 0, 0 @endcode
  */
 align_left();
 
@@ -933,7 +933,7 @@ align_left();
  * Aligne le texte à droite.
  * Équivalent à :
  * @~
- * @code align 1, 0, 0, 0 @endcode
+@code align 1, 0, 0, 0 @endcode
  */
 align_right();
 
@@ -945,7 +945,7 @@ align_right();
  * Centre le texte horizontalement.
  * Équivalent à :
  * @~
- * @code align 0.5, 0, 0, 0 @endcode
+@code align 0.5, 0, 0, 0 @endcode
  */
 align_center();
 
@@ -964,7 +964,7 @@ align_center();
  * La justification se fait en ajustant les espaces entre les mots mais sans
  * modifier les espaces entre les caractères d'un même mot.
  * @~
- * @code align 0, 1, 0, 0 @endcode
+@code align 0, 1, 0, 0 @endcode
  */
 align_justify();
 
@@ -994,7 +994,7 @@ align_left_justify();
  * modifier les espaces entre les caractères d'un même mot.
  * Équivalent à :
  * @~
- * @code align 1, 1, 0, 0 @endcode
+@code align 1, 1, 0, 0 @endcode
  */
 align_right_justify();
 
@@ -1018,7 +1018,7 @@ align_right_justify();
  * modifier les espaces entre les caractères d'un même mot.
  * Équivalent à :
  * @~
- * @code align 1, 1, 0, 0 @endcode
+@code align 1, 1, 0, 0 @endcode
  */
 align_full_justify();
 
@@ -1036,7 +1036,7 @@ align_full_justify();
  * les mots. La dernière ligne de chaque paragraphe est alignée à gauche.
  * Équivalent à :
  * @~
- * @code align 0, 1, 1, 0 @endcode
+@code align 0, 1, 1, 0 @endcode
  */
 align_spread();
 
@@ -1053,7 +1053,7 @@ align_spread();
  * paragraphe).
  * Équivalent à :
  * @~
- * @code align 0, 1, 1, 1 @endcode
+@code align 0, 1, 1, 1 @endcode
  */
 align_full_spread();
 
@@ -1102,7 +1102,7 @@ vertical_align(center:real, justify:real, spread:real, full_justify:real);
  * Définit les paramètres de justification verticale.
  * Équivalent à :
  * @~
- * @code vertical_align center, justify, spread, 0 @endcode
+@code vertical_align center, justify, spread, 0 @endcode
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real, justify:real, spread:real);
@@ -1115,7 +1115,7 @@ vertical_align(center:real, justify:real, spread:real);
  * Définit les paramètres de justification verticale.
  * Équivalent à :
  * @~
- * @code vertical_align center, justify, 0, 0 @endcode
+@code vertical_align center, justify, 0, 0 @endcode
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real, justify:real);
@@ -1128,7 +1128,7 @@ vertical_align(center:real, justify:real);
  * Définit les paramètres de justification verticale.
  * Équivalent à :
  * @~
- * @code vertical_align center, 0, 0, 0 @endcode
+@code vertical_align center, 0, 0, 0 @endcode
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real);
@@ -1146,7 +1146,7 @@ vertical_align(center:real);
  * trouve en bas de la boîte.
  * Équivalent à :
  * @~
- * @code vertical_align 0, 0, 0, 0 @endcode
+@code vertical_align 0, 0, 0, 0 @endcode
  */
 vertical_align_top();
 
@@ -1162,7 +1162,7 @@ vertical_align_top();
  * trouve en haut de la boîte.
  * Équivalent à :
  * @~
- * @code vertical_align 1, 0, 0, 0 @endcode
+@code vertical_align 1, 0, 0, 0 @endcode
  */
 vertical_align_bottom();
 
@@ -1179,7 +1179,7 @@ vertical_align_bottom();
  * répartit également en haut et en bas.
  * Équivalent à :
  * @~
- * @code vertical_align 1, 0, 0, 0 @endcode
+@code vertical_align 1, 0, 0, 0 @endcode
  */
 vertical_align_center();
 
@@ -1191,7 +1191,7 @@ vertical_align_center();
  * Justifie les lignes de texte verticalement dans la boîte de texte.
  * Équivalent à :
  * @~
- * @code vertical_align 0, 1, 0, 1 @endcode
+@code vertical_align 0, 1, 0, 1 @endcode
  */
 vertical_align_justify();
 
@@ -1206,7 +1206,7 @@ vertical_align_justify();
  * au bas de la boîte.
  * Équivalent à :
  * @~
- * @code vertical_align 0, 1, 1, 1 @endcode
+@code vertical_align 0, 1, 1, 1 @endcode
  */
 vertical_align_spread();
 
@@ -1348,10 +1348,10 @@ unicode_char(code:integer);
  * Si @p code n'est pas un entier valide, une chaîne vide est retournée.
  * Par exemple:
  * @~
- * @code
+@code
 uc X -> unicode_char X
 text uc 169 & " Ta" & uc "x6f" & "dy" & uc "x6E" & "e"
- * @endcode
+@endcode
  */
 unicode_char(code:text);
 
@@ -1369,14 +1369,14 @@ unicode_char(code:text);
  * déplace avec le texte.
  * Par exemple, pour dessiner un point rouge juste sous "World" :
  * @~
- * @code
+@code
 text_box 0, 0, 800, 600,
     text "Hello" & text page_time
     anchor
         color "red"
         circle 0, -10, 5
     text "World"
- * @endcode
+@endcode
  */
 anchor(Body:code);
 
@@ -1394,14 +1394,14 @@ anchor(Body:code);
  * ne se déplace pas avec le texte.
  * Par exemple, le code suivant dessine un rectangle couvrant la boîte de texte :
  * @~
- * @code
+@code
 text_box 0, 0, 800, 600,
     text "Hello" & text page_time
     floating
         color "red", 0.3
         rectangle 0, 0, 800, 600
     text "World"
- * @endcode
+@endcode
  */
 floating(Body:code);
 

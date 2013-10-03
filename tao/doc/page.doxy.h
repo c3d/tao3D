@@ -329,7 +329,7 @@ page_number ();
  * nouvelle apparaît) :
  *
  * @~
- * @code
+@code
 transition 0.4,
     locally
         show 1 - transition_ratio
@@ -350,7 +350,7 @@ page "Star",
     color "green"
     rotatez 5*page_time
     star 0, 0, 200, 200, 5, 0.4
- * @endcode
+@endcode
  *
  * @~french
  * Lorsque @ref transition est utilisée en dehors de toute page, elle
@@ -364,7 +364,7 @@ page "Star",
  * call @ref transition inside the page code, as follows:
  *
  * @~
- * @code
+@code
 transition_dissolve ->
     transition 0.4,
         locally
@@ -399,7 +399,7 @@ page "Star",
     color "green"
     rotatez 5*page_time
     star 0, 0, 200, 200, 5, 0.4
- * @endcode
+@endcode
  *
  * @~french
  * Dans l'exemple ci-dessus, on a une transition en fondu-enchaîné lorsqu'on
@@ -491,12 +491,12 @@ tree transition_next_page();
  * Affiche la page suivante.
  * Cette fonction est implémentée de la façon suivante:
  * @~
- * @code
+@code
 next_page ->
     if page_number < page_count then
         goto_page page_name(page_number+1)
         refresh 0.0
- * @endcode
+@endcode
  */
 next_page();
 
@@ -508,12 +508,12 @@ next_page();
  * Affiche la page précédente.
  * Cette fonction est implémentée de la façon suivante:
  * @~
- * @code
+@code
 previous_page ->
     if page_number > 1 then
         goto_page page_name(page_number-1)
         refresh 0.0
- * @endcode
+@endcode
  */
 previous_page();
 

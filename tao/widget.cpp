@@ -176,9 +176,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
-      currentFlowName(""), pageName(""), lastPageName(""),
+      currentFlowName(""), prevPageName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
-      pageId(0), pageFound(0), pageShown(1), pageTotal(0),
+      pageId(0), pageFound(0), prevPageShown(0), pageShown(1), pageTotal(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
@@ -386,11 +386,13 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName), flows(o.flows),
+      prevPageName(o.prevPageName),
       pageName(o.pageName), lastPageName(o.lastPageName),
       gotoPageName(o.gotoPageName), transitionPageName(o.transitionPageName),
       pageLinks(o.pageLinks), pageNames(o.pageNames),
       newPageNames(o.newPageNames),
-      pageId(o.pageId), pageFound(o.pageFound), pageShown(o.pageFound),
+      pageId(o.pageId), pageFound(o.pageFound), prevPageShown(o.prevPageShown),
+      pageShown(o.pageFound),
       pageTotal(o.pageTotal), pageToPrint(o.pageToPrint),
       pageTree(o.pageTree), transitionTree(o.transitionTree),
       transitionStartTime(o.transitionStartTime),
@@ -1026,8 +1028,10 @@ void Widget::commitPageChange(bool afterTransition)
     PurgeAnonymousFrameInfo purgemf;
     runPurgeAction(purgemf);
 
+    prevPageName = pageName;
     pageName = gotoPageName;
     resetTimes();
+    prevPageShown = pageShown;
     for (uint p = 0; p < pageNames.size(); p++)
         if (pageNames[p] == gotoPageName)
             pageShown = p + 1;
@@ -5454,6 +5458,24 @@ XL::Real_p Widget::pageHeight(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Real(pageH);
+}
+
+
+XL::Integer_p Widget::prevPageNumber(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the number of the previous page (the one displayed before current)
+// ----------------------------------------------------------------------------
+{
+    return new Integer(prevPageShown);
+}
+
+
+XL::Text_p Widget::prevPageLabel(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the label of the previous page (the one displayed before current)
+// ----------------------------------------------------------------------------
+{
+    return new Text(prevPageName);
 }
 
 

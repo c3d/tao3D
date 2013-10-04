@@ -376,6 +376,8 @@ public:
     Text_p      pageNameAtIndex(Tree_p self, uint index);
     Real_p      pageWidth(Tree_p self);
     Real_p      pageHeight(Tree_p self);
+    Text_p      prevPageLabel(Tree_p self);
+    Integer_p   prevPageNumber(Tree_p self);
 
     // Transitions
     Tree_p      transition(Context *, Tree_p self, double dur, Tree_p body);
@@ -975,11 +977,11 @@ private:
     scale                 pageW, pageH, blurFactor;
     text                  currentFlowName;
     flow_map              flows;
-    text                  pageName, lastPageName;
+    text                  prevPageName, pageName, lastPageName;
     text                  gotoPageName, transitionPageName;
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
-    uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
+    uint                  pageId, pageFound, prevPageShown, pageShown, pageTotal, pageToPrint;
     Tree_p                pageTree, transitionTree;
     double                transitionStartTime, transitionDurationValue;
     Tree_p                currentShape;

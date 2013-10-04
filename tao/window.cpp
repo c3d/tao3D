@@ -110,6 +110,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       fileCheckTimer(this),
 #endif
       onlineDocAct(NULL),
+#ifndef CFG_NO_WEBUI
+      webui(this),
+#endif
       splashScreen(NULL), aboutSplash(NULL)
 {
 #ifndef CFG_NOSRCEDIT
@@ -1582,6 +1585,17 @@ void Window::documentWasModified()
         setWindowModified(true);
 }
 
+
+#ifndef CFG_NO_WEBUI
+void Window::launchWebUI()
+// ----------------------------------------------------------------------------
+//   Start the web-based document editor on the current document
+// ----------------------------------------------------------------------------
+{
+    webui.launch(curFile);
+}
+#endif
+
 class Action
 // ----------------------------------------------------------------------------
 //   QAction with shortcut context Qt:ApplicationShortcut on Windows
@@ -1743,6 +1757,13 @@ void Window::createActions()
     pasteAct->setIconVisibleInMenu(false);
     pasteAct->setObjectName("paste");
     connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
+#endif
+
+#ifndef CFG_NO_WEBUI
+    launchWebUIAct = new QAction(tr("Launch Document Editor"), this);
+    launchWebUIAct->setObjectName("launchWebUI");
+    launchWebUIAct->setEnabled(false);
+    connect(launchWebUIAct, SIGNAL(triggered()), this, SLOT(launchWebUI()));
 #endif
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
@@ -1944,6 +1965,10 @@ void Window::createMenus()
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
+#endif
+#ifndef CFG_NO_WEBUI
+    editMenu->addSeparator();
+    editMenu->addAction(launchWebUIAct);
 #endif
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
@@ -2886,6 +2911,12 @@ void Window::setCurrentFile(const QString &fileName)
                 !curFile.startsWith(Application::applicationDirPath()) &&
                  TaoApp->edition == Application::DesignPro;
     signDocumentAct->setEnabled(show);
+#endif
+#ifndef CFG_NO_WEBUI
+    QString jsonFile(curFile);
+    jsonFile.replace(".ddd", ".json");
+    bool hasJSON = QFileInfo(jsonFile).exists();
+    launchWebUIAct->setEnabled(hasJSON);
 #endif
 
     // Update the recent file list

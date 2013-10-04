@@ -158,17 +158,23 @@ class GitProcess : public Process
 // ----------------------------------------------------------------------------
 {
 public:
-    GitProcess(size_t bufSize = 1024) : Process(bufSize) {};
+    GitProcess(size_t bufSize = 1024)
+        : Process(NULL, bufSize), errPos(0), percent(0) {}
     GitProcess(
             const QString &cmd,
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
             bool  startImmediately = true,
             size_t bufSize = 1024)
-        : Process(cmd, args, workingDirectory, startImmediately, bufSize) {};
-    virtual ~GitProcess() {};
+        : Process(cmd, args, workingDirectory, startImmediately, bufSize),
+          errPos(0), percent(0) {}
+    virtual ~GitProcess() {}
 
     virtual void setEnvironment();
+
+public:
+    int errPos;    // current position in err (% complete parsing)
+    int percent;   // % complete
 };
 
 

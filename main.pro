@@ -103,11 +103,13 @@
 #     Do not install font files.
 #   NO_DOC_SIGNATURE=1
 #     Do not include the code to sign or validate document signature.
+#   NO_WEBUI=1
+#     Do not build the web-based document editor (webui).
 #
 # 2. To build:
 #
 #   $ make             # build everything
-#   $ make install     # install Tao locally under ./install/
+#   $ make install     # build and install Tao locally under ./install/
 #   $ make sdk         # copy files needed for module development under ./sdk/
 #   $ make clean
 #   $ make distclean   # clean + remove Makefiles
@@ -129,6 +131,12 @@ isEmpty(NO_HELP_VIEWER) {
   SUBDIRS += help_viewer
 } else {
   !build_pass:message(Will not build help viewer application.)
+}
+
+isEmpty(NO_WEBUI) {
+  SUBDIRS += webui nodejs
+} else {
+  !build_pass:message(Will not build web user interface.)
 }
 
 tao.depends = libxlr libcryptopp tao_sign

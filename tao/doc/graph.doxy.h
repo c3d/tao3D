@@ -346,6 +346,134 @@ color (r:real, g:real, b:real);
 
 /**
  * @~english
+ * Creates a @ref text_span and applies named fill color to some content.
+ * Example:
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red",
+        text "Red"
+    text "Blue again"
+@endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage à un contenu.
+ * Exemple :
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red",
+        text "Rouge"
+    text "Bleu de nouveau"
+@endcode
+ * Équivalent à :
+ * @~
+@code
+text_span
+    color Colorname
+    render Body
+@endcode
+ */
+color (Colorname:text, Body:block);
+
+/**
+ * @~english
+ * Creates a @ref text_span and applies named fill color and transparency to some content.
+ * Example:
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red", 50%,
+        text "Red with 50% transparency"
+    text "Blue again"
+@endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage et une transparence à un contenu.
+ * Exemple :
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color "red", 50%,
+        text "Rouge avec 50% de transparence"
+    text "Bleu de nouveau"
+@endcode
+ * Équivalent à :
+ * @~
+@code
+text_span
+    color Colorname, Alpha
+    render Body
+@endcode
+ */
+color (Colorname:text, Alpha:real, Body:block);
+
+/**
+ * @~english
+ * Creates a @ref text_span and applies RGB fill color to some content.
+ * Example:
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0,
+        text "Red"
+    text "Blue again"
+@endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage RGB à un contenu.
+ * Exemple :
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0,
+        text "Rouge"
+    text "Bleu de nouveau"
+@endcode
+ * Équivalent à :
+ * @~
+@code
+text_span
+    color r, g, b
+    render Body
+@endcode
+ */
+color (r:real, g:real, b:real, Body:block);
+
+/**
+ * @~english
+ * Creates a @ref text_span and applies RGBA fill color to some content.
+ * Example:
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0, 50%,
+        text "Red with 50% transparency"
+    text "Blue again"
+@endcode
+ * Equivalent to:
+ * @~french
+ * Crée un @ref text_span et applique une couleur de remplissage RGBA à un contenu.
+ * Exemple :
+@code
+text_box 0, 0, 0.9*window_width, 0.9*window_height,
+    color "blue"
+    color 1.0, 0.0, 0.0, 50%,
+        text "Rouge avec 50% de transparence"
+    text "Bleu de nouveau"
+@endcode
+ * Équivalent à :
+ * @~
+@code
+text_span
+    color r, g, b, a
+    render Body
+@endcode
+ */
+color (r:real, g:real, b:real, a:real, Body:block);
+
+/**
+ * @~english
  * Selects the color by its hue, saturation, lightness, and alpha-channel (transparency) components.
  *
  * @param h hue component of the color,  in degrees (in the range 0.0 to 360.0).
@@ -461,17 +589,17 @@ no_color ();
  * The clear color is used only when Tao Presentations reaches the drawing
  * phase. Therefore, the last @ref clear_color that has been executed during
  * the evaluation phase "wins". For instance:
- * @code
+@code
 clear_color 0, 0, 0, 1         // Black
 color "blue"
 rectangle 0, 0, 200, 100
 clear_color 0.6, 0.6, 0.6, 1   // Gray
- * @endcode
+@endcode
  * In the above example, the rectangle is drawn on a gray background, not
  * on a black one because the value <tt>0, 0, 0, 1</tt> (black) has
  * been replaced with <tt>0.6, 0.6, 0.6, 1</tt> (gray). @n
  * Here is another example:
- * @code
+@code
 page "White background",
     color "blue"
     rectangle 0, 0, 200, 100
@@ -479,7 +607,7 @@ page "Black background",
     clear_color 0, 0, 0, 1     // Black
     color "red"
     rectangle 0, 0, 200, 100
- * @endcode
+@endcode
  * The first page has a white backround (the default), because the
  * <tt>clear_color</tt> line is not executed when page 1 is shown.
  * The second page has a black background because the last @ref clear_color
@@ -496,7 +624,7 @@ page "Black background",
  * In some cases you may want to change this color. For instance, look
  * at the border of the characters in the following example, with and
  * without the @ref clear_color line in the @ref frame_texture block.
- * @code
+@code
 color "black"
 rectangle 0, 0, 600, 200
 color "white"
@@ -512,7 +640,7 @@ frame_texture 600, 200,
     color 1, 0, 0, 75%
     circle 200, 0, 50
 rectangle 0, 0, 600, 200
- * @endcode
+@endcode
  *
  * @~french
  * Définit la couleur d'effacement (clear color).
@@ -527,17 +655,17 @@ rectangle 0, 0, 600, 200
  * Cette couleur n'est utilisée que lorsque Tao Presentations atteint la phase
  * d'affichage. Par conséquent, le dernier appel à @ref clear_color qui a été
  * exécuté "gagne". Par exemple :
- * @code
+@code
 clear_color 0, 0, 0, 1         // Noir
 color "blue"
 rectangle 0, 0, 200, 100
 clear_color 0.6, 0.6, 0.6, 1   // Gris
- * @endcode
+@endcode
  * Ici le rectangle est affiché sur un fond gris, pas noir, car la valeur
  * <tt>0, 0, 0, 1</tt> (noir) a été remplacée par
  * <tt>0.6, 0.6, 0.6, 1</tt> (gris) durant l'exécution et avant l'affichage.@n
  * Voici un autre exemple:
- * @code
+@code
 page "White background",
     color "blue"
     rectangle 0, 0, 200, 100
@@ -545,7 +673,7 @@ page "Black background",
     clear_color 0, 0, 0, 1     // Noir
     color "red"
     rectangle 0, 0, 200, 100
- * @endcode
+@endcode
  * La première page a un fond blanc (le défaut), car la ligne
  * <tt>clear_color</tt> n'est pas exécutée lorsqu'on affiche la page 1.
  * La deuxième page est sur fond noir car le dernier appel à @ref clear_color
@@ -561,7 +689,7 @@ page "Black background",
  * Dans certains cas il peut être utile de changer cette couleur. Par
  * exemple, observez le contour des caractères dans l'exemple suivant,
  * avec et sans la ligne @ref clear_color dans le bloc @ref frame_texture.
- * @code
+@code
 color "black"
 rectangle 0, 0, 600, 200
 color "white"
@@ -577,7 +705,7 @@ frame_texture 600, 200,
     color 1, 0, 0, 75%
     circle 200, 0, 50
 rectangle 0, 0, 600, 200
- * @endcode
+@endcode
  */
 clear_color (r:real, g:real, b:real, a:real);
 
@@ -1074,7 +1202,7 @@ texture_type();
  * calcul décrit dans @a body est effectué de nouveau.
  *
  * @~
- * @code
+@code
 page "Graphs",
     scale 100, 100, 100
     rotatey 20 * time
@@ -1085,7 +1213,7 @@ page "Graphs",
             W -> 0.001 * (page_time mod 60)
             for T in 0..5000 loop
                 line_to 0.01 * T * sin(W * T), 0.01 * T * cos(W * T), sin(7 * W * T) 
- * @endcode
+@endcode
  */
 cached(version:real; body:tree);
 
@@ -1157,12 +1285,12 @@ texture_unit();
  * Notez que lorsque l'image n'est ni grossie ni réduite, c'est le filtre
  * de grossissement qui s'applique.
  * @~
- * @code
+@code
 color "white"
 texture "image.png"
 texture_mag_filter "NEAREST"
 rectangle 0, 0, texture_width, texture_height
- * @endcode
+@endcode
  */
 texture_mag_filter(filter:text);
 
@@ -1578,7 +1706,7 @@ path (t:tree);
  *
  * Un raccourci pour la 2D est disponible :
  * @~
- * @code move_to x:real, y:real @endcode
+@code move_to x:real, y:real @endcode
  */
 move_to (x:real, y:real, z:real);
 
@@ -1592,7 +1720,7 @@ move_to (x:real, y:real, z:real);
  *
  * Un raccourci pour la 2D est disponible :
  * @~
- * @code line_to x:real, y:real @endcode
+@code line_to x:real, y:real @endcode
  */
 line_to (x:real, y:real, z:real);
 
@@ -1616,7 +1744,7 @@ line_to (x:real, y:real, z:real);
  *
  * Un raccourci pour la 2D est disponible :
  * @~
- * @code quad_to cx:real, cy:real, x:real, y:real @endcode
+@code quad_to cx:real, cy:real, x:real, y:real @endcode
  * @image html quad_path.png
  */
 quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
@@ -1643,7 +1771,7 @@ quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
  *
  * Un raccourci pour la 2D est disponible :
  * @~
- * @code cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real @endcode
+@code cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real @endcode
  * @image html cubic_path.png
  */
 cubic_to (c1x:real, c1y:real, c1z:real, c2x:real, c2y:real, c2z:real,
@@ -1747,7 +1875,7 @@ endpoints_style (s:symbol, e:symbol);
  * Voici un exemple de text 3D.
  *
  * @~
- * @code
+@code
 light 0
 light_position 1000, 1000, 1000
 locally
@@ -1760,7 +1888,7 @@ locally
         color "yellow"
         font "Times", 200
         text "Hello"
- * @endcode
+@endcode
  */
 extrude_depth (ed:real);
 
@@ -1782,7 +1910,7 @@ extrude_depth (ed:real);
  * Voici un exemple de text 3D avec chamfrein.
  *
  * @~
- * @code
+@code
 light 0
 light_position 1000, 1000, 1000
 locally
@@ -1796,7 +1924,7 @@ locally
         color "yellow"
         font "Times", 200
         text "Hello"
- * @endcode
+@endcode
  */
 extrude_radius (er:real);
 
@@ -1819,7 +1947,7 @@ extrude_radius (er:real);
  * Voici un exemple de text 3D avec chamfrein.
  *
  * @~
- * @code
+@code
 light 0
 light_position 1000, 1000, 1000
 locally
@@ -1834,7 +1962,7 @@ locally
         color "yellow"
         font "Times", 200
         text "Hello"
- * @endcode
+@endcode
  */
 extrude_count (ec:integer);
 

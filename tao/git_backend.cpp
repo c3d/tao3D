@@ -735,7 +735,7 @@ void GitRepository::computePercentComplete()
 //   Extract % complete from the text output of a clone/fetch/push process
 // ----------------------------------------------------------------------------
 {
-    Process *cmd = (Process *)sender();
+    GitProcess *cmd = (GitProcess *)sender();
     int &pos = cmd->errPos;
     bool matched = false;
     int percent = -1;

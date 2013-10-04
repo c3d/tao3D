@@ -35,6 +35,9 @@
 #include "repository.h"
 #include "update_application.h"
 #endif
+#ifndef CFG_NO_WEBUI
+#include "webui.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -206,6 +209,9 @@ private slots:
     void leaveFullScreen();
     void restartFullScreenTimer();
 #endif
+#ifndef CFG_NO_WEBUI
+    void launchWebUI();
+#endif
 
 private:
     void     createActions();
@@ -341,6 +347,9 @@ private:
     QAction          *zoomInAct;
     QAction          *zoomOutAct;
     QAction          *resetViewAct;
+#ifndef CFG_NO_WEBUI
+    QAction          *launchWebUIAct;
+#endif
     struct
     {
       QByteArray         geometry;
@@ -354,6 +363,9 @@ private:
           visibleTools.clear();
       }
     }                 savedState;
+#ifndef CFG_NO_WEBUI
+    WebUI             webui;
+#endif
 
 public:
     QPrinter         *printer;

@@ -36,12 +36,13 @@ namespace Tao {
 
 ulong Process::snum = 0;
 
-Process::Process(size_t bufSize)
+Process::Process(QObject *parent, size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Create a QProcess without starting it yet
 // ----------------------------------------------------------------------------
-    : id(NULL),
-      aborted(false), errPos(0), percent(0)
+    : QProcess(parent),
+      mode(ReadWrite), id(NULL),
+      aborted(false), errOutMaxSize(100000)
 {
     initialize(bufSize);
 }
@@ -55,9 +56,8 @@ Process::Process(const QString &cmd,
 // ----------------------------------------------------------------------------
 //   Create a QProcess
 // ----------------------------------------------------------------------------
-    : cmd(cmd), args(args), wd(""),
-      id(NULL), aborted(false),
-      errPos(0), percent(0)
+    : cmd(cmd), args(args), wd(""), mode(ReadWrite),
+      id(NULL), aborted(false), errOutMaxSize(100000)
 {
     setWd(wd);
     initialize(bufSize);
@@ -94,7 +94,7 @@ void Process::setWd(const QString &wd)
 
 void Process::start()
 // ----------------------------------------------------------------------------
-//   Start child process
+//   Start child process with current parameters (command, arguments...)
 // ----------------------------------------------------------------------------
 {
     setWd(wd);
@@ -114,7 +114,31 @@ void Process::start()
     }
 
     startTime.start();
-    QProcess::start(cmd, args);
+    QProcess::start(cmd, args, mode);
+}
+
+
+void Process::start(const QString &program, const QStringList &arguments,
+                    QProcess::OpenMode openmode)
+// ----------------------------------------------------------------------------
+//   Start process. Overrides parent method.
+// ----------------------------------------------------------------------------
+{
+    cmd = program;
+    args = arguments;
+    mode = openmode;
+    start();
+}
+
+
+void Process::start(const QString &program, OpenMode openmode)
+// ----------------------------------------------------------------------------
+//   Start process. Overrides parent method.
+// ----------------------------------------------------------------------------
+{
+    cmd = program;
+    mode = openmode;
+    start();
 }
 
 
@@ -243,7 +267,11 @@ void Process::readStandardOutput()
 // ------------------------------------------------------------------------
 {
     QByteArray newOut = QProcess::readAllStandardOutput();
-    out.append(QString::fromUtf8(newOut.data()));
+    if (errOutMaxSize)
+    {
+        out.append(QString::fromUtf8(newOut.data()));
+        out = out.right(errOutMaxSize);
+    }
     emit standardOutputUpdated(newOut);
 }
 
@@ -254,7 +282,11 @@ void Process::readStandardError()
 // ------------------------------------------------------------------------
 {
     QByteArray newErr = QProcess::readAllStandardError();
-    err.append(QString::fromUtf8(newErr.data()));
+    if (errOutMaxSize)
+    {
+        err.append(QString::fromUtf8(newErr.data()));
+        err = err.right(errOutMaxSize);
+    }
     emit standardErrorUpdated(newErr);
 }
 

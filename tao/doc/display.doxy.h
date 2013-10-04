@@ -157,11 +157,11 @@ enable_stereoscopy(mode:name);
  * configuration en démarrant Tao Presentations avec l'option
  * @c -tdisplaymode :
  * @~
- * @code
+@code
 [Display Driver] Registering display function: checkerboard@0x1b4148c0
 [Display Driver] Registering display function: hsplitstereo@0x1c76c110
 [Display Driver] Registering alias: sidebysidestereo => hsplitstereo@0x1c76c110
- * @endcode
+@endcode
  * @~english
  * Display modes can also be selected with the command chooser (Escape
  * key), or with the View/Display mode menu. 

@@ -36,6 +36,7 @@ QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
 !isEmpty(TAO_PLAYER):DEFINES *= TAO_PLAYER
 !isEmpty(NO_DOC_SIGNATURE):DEFINES *= CFG_NO_DOC_SIGNATURE
+!isEmpty(NO_WEBUI):DEFINES *= CFG_NO_WEBUI
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -373,6 +374,12 @@ contains(DEFINES, CFG_NO_DOC_SIGNATURE) {
         document_signature.h
     NOWARN_SOURCES += \
         document_signature.cpp
+}
+contains(DEFINES, CFG_NO_WEBUI) {
+    !build_pass:message("[CFG_NO_WEBUI] Web-based editor disabled")
+} else {
+    HEADERS += webui.h
+    SOURCES += webui.cpp
 }
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp

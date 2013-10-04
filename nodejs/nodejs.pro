@@ -61,7 +61,7 @@ win32 {
 
   QMAKE_STRIP = :  # Prevent make install from stripping node.exe
   install.path = $$APPINST/nodejs/bin
-  install.files = node.exe
+  install.commands = cp node.exe $$install.path
   install.depends = node.exe
   INSTALLS += install
 

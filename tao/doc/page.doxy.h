@@ -273,6 +273,22 @@ page_number ();
 
 /**
  * @~english
+ * Returns the name of the previously displayed page.
+ * @~french
+ * Renvoie le nom de la page affichée précédemment.
+ */
+prev_page_label ();
+
+/**
+ * @~english
+ * Returns the number of the previously displayed page.
+ * @~french
+ * Renvoie le numéro (index) de la page affichée précédemment.
+ */
+prev_page_number ();
+
+/**
+ * @~english
  * Defines a transition period between pages.
  * This primitive executes some code during a given duration when changing
  * page. It may be used to implement transition effects. @n

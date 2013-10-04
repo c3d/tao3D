@@ -2916,7 +2916,7 @@ void Window::setCurrentFile(const QString &fileName)
     QString jsonFile(curFile);
     jsonFile.replace(".ddd", ".json");
     bool hasJSON = QFileInfo(jsonFile).exists();
-    launchWebUIAct->setEnabled(hasJSON);
+    launchWebUIAct->setEnabled(hasJSON && !isReadOnly);
 #endif
 
     // Update the recent file list

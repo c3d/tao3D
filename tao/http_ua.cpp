@@ -21,11 +21,12 @@
 #include "application.h"
 #include "http_ua.h"
 #include <process.h>
-#include "version.h"
 #include <QRegExp>
 
 
 namespace Tao {
+
+extern const char * GITREV_;
 
 
 HttpUserAgent::HttpUserAgent()
@@ -68,7 +69,7 @@ HttpUserAgent::HttpUserAgent()
 #endif
 
    // Get current version of Tao
-   QString ver = GITREV;
+   QString ver = GITREV_;
    QRegExp rxp("([0-9\\.]+)");
    rxp.indexIn(ver);
    version = rxp.cap(1).toDouble();

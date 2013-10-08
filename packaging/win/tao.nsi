@@ -98,6 +98,8 @@ LangString unreg_uri     ${LANG_ENGLISH} "Unregistering $0: URI scheme"
 LangString inst_path_invalid ${LANG_ENGLISH} "Install path is invalid. Some files will not be removed."
 LangString create_dshortcut ${LANG_ENGLISH} "Create desktop shortcut"
 LangString create_qlaunch ${LANG_ENGLISH} "Create quick launch shortcut"
+LangString already_inst  ${LANG_ENGLISH} "Tao Presentations${MAYBE_PLAYER} is already installed.$\n$\nClick 'OK' to remove the previous version or 'Cancel' to cancel this upgrade."
+LangString removing_prev ${LANG_ENGLISH}  "Removing previous installation..."
 
 ; Language strings - French
 LangString sec_tao       ${LANG_FRENCH} "Tao Presentations${MAYBE_PLAYER} (requis)"
@@ -111,6 +113,8 @@ LangString unreg_uri     ${LANG_FRENCH} "Suppression des URIs $0:"
 LangString inst_path_invalid ${LANG_FRENCH} "Le chemin d'installation est invalide. Certains fichiers ne seront pas supprimés."
 LangString create_dshortcut ${LANG_FRENCH} "Créer un raccourci sur le bureau"
 LangString create_qlaunch ${LANG_FRENCH} "Créer un raccourci dans la barre de lancement rapide"
+LangString already_inst  ${LANG_FRENCH} "Tao Presentations${MAYBE_PLAYER} est déjà installé.$\n$\nCliquez sur 'OK' pour désinstaller la version précédente ou sur 'Annuler' pour annuler cette mise à jour."
+LangString removing_prev ${LANG_FRENCH}  "Suppression de la version précédente..."
 
 ; Makes the installer start faster
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -118,6 +122,14 @@ LangString create_qlaunch ${LANG_FRENCH} "Créer un raccourci dans la barre de la
 ;--------------------------------
 
 ; Installer sections
+
+; Uninstall previous version silently
+; The "" makes the section hidden
+Section "" SecUninstallPrevious
+
+  Call UninstallPrevious
+
+SectionEnd
 
 Section $(sec_tao) SectionTao
 
@@ -247,6 +259,35 @@ Function CreateQuickLaunchShortcut
 
   CreateShortCut "$QUICKLAUNCH\Tao Presentations${MAYBE_PLAYER}.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
 
+FunctionEnd
+
+Function UninstallPrevious
+
+  ; Check if program is already installed
+  ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "UninstallString"
+  StrCmp $R0 "" done
+  ReadRegStr $R1 HKLM "SOFTWARE\Taodyne\Tao Presentations${MAYBE_PLAYER}" "Install_Dir"
+
+  ; Write "uninstalling" message
+  DetailPrint $(removing_prev)
+
+  ; Prevent ExecWait from overwriting our message
+  SetDetailsPrint listonly
+
+  ; /S runs the uninstaller silently
+  ; _?= prevents the uninstaller from returning early (by default, the uninstaller
+  ; copies itself into a temporary locations, starts the copy and returns immediately)
+  ExecWait '$R0 /S _?=$R1'
+
+  ; Restore default mode
+  SetDetailsPrint both
+
+  ; Since we used the _?= parameter, the uninstaller could not delete itself, so do it now
+  ; FIXME: Do not hardcode uninstall.exe - but I could not find how to properly escape $R0
+  Delete '$R1\uninstall.exe'
+  RMDir '$R1'
+
+done:
 FunctionEnd
 
 ;--------------------------------

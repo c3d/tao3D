@@ -39,7 +39,7 @@ picture_slide "YouTube Video slide",
         translate 0, 100, -150
         rotatez 5
         rotatey 180 * sin (0.2*time) ^ 19
-        movie 0, 0, 3.2, 3.2, "http://www.youtube.com/watch?v=i0HvkYD5Ec4"
+        movie 0, 0, 3.2, 3.2, "http://www.youtube.com/watch?v=i0HvkYD5Ec4&fmt=43"
     right_column
         - "Video on the left:"
         - "Douce Nuit played by Les Petits Chanteurs à La Croix"

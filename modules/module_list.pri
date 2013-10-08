@@ -44,7 +44,9 @@
        themes/black_white \
        themes/pastel_triangles \
        themes/bright_rectangles \
+       themes/finance \
        themes/lucky_stars \
+       themes/landscapes \
        themes/seasons_greetings \
        themes/water \
        slideshow_3d \
@@ -62,7 +64,8 @@
        news_feed \
        snowfall \
        nodejs \
-       film_strip
+       film_strip \
+       speech
 
     OTHER_MODULES =  \
         DIP          \
@@ -70,7 +73,6 @@
         tao_synchro  \
         tao_tester   \
         tao_quiz     \
-        speech       \
         database     \
         web_remote \
         prez_at

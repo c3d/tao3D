@@ -183,6 +183,8 @@ SOURCES +=     activity.cpp \
     module_renderer.cpp \
     nag_screen.cpp \
     normalize.cpp \
+    opengl_state.cpp \
+    opengl_save.cpp \
     page_layout.cpp \
     path3d.cpp \
     preferences_dialog.cpp \
@@ -211,11 +213,10 @@ SOURCES +=     activity.cpp \
     transforms.cpp \
     tree_cloning.cpp \
     update_application.cpp \
+    version.cpp \
     widget.cpp \
     widget_surface.cpp \
-    window.cpp \
-    opengl_state.cpp \
-    opengl_save.cpp
+    window.cpp
 
 win32 {
     HEADERS += dde_widget.h
@@ -534,6 +535,12 @@ isEmpty(NO_DOC_SIGNATURE) {
   SIGN_XL_INSTPATH=$$APPINST/welcome
   include(../modules/sign_xl.pri)
 }
+
+# Blank document
+blank.path = $$APPINST
+blank.commands = touch \"$$APPINST/blank.ddd\"
+blank.depends = FORCE
+INSTALLS += blank
 
 isEmpty(NO_FONTS) {
   fonts.path  = $$APPINST/fonts

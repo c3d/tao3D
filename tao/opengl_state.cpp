@@ -115,6 +115,7 @@ OpenGLState::OpenGLState()
     : GraphicState(),
 #define GS(type, name)          name##_isDirty(true),
 #include "opengl_state.tbl"
+      Cache(this),
 
       vendorID(UNKNOWN),
       maxTextureCoords(4), maxTextureUnits(4), maxTextureSize(256),
@@ -2163,7 +2164,15 @@ void OpenGLState::DeleteTextures(uint n, GLuint *  ids)
 // ----------------------------------------------------------------------------
 {
     glDeleteTextures(n, ids);
+    Cache.DeleteTextures(n, ids);
+}
 
+
+void OpenGLState::Cache::DeleteTextures(uint n, GLuint *ids)
+// ----------------------------------------------------------------------------
+//   Delete named textures from cached state
+// ----------------------------------------------------------------------------
+{
 // Remove a texture from the textureState then
 // reset associated textureUnitState if necessary
 #define DELETE_TEXTURE(texturesState, textureUnitsState, id)  \
@@ -2186,10 +2195,10 @@ void OpenGLState::DeleteTextures(uint n, GLuint *  ids)
         uint id = ids[i];
 
         // Check if texture exists
-        if(currentTextures.textures.count(id))
+        if(st->currentTextures.textures.count(id))
         {
-            DELETE_TEXTURE(currentTextures, currentTextureUnits, id);
-            DELETE_TEXTURE(textures, textureUnits, id);
+            DELETE_TEXTURE(st->currentTextures, st->currentTextureUnits, id);
+            DELETE_TEXTURE(st->textures, st->textureUnits, id);
         }
     }
 
@@ -2827,6 +2836,12 @@ void LightsState::Sync(LightsState &nl)
             LightState &ls = lights.back();
             ls.Sync(nls, true);
         }
+
+        // If we have enabled at least one light,
+        // we need to assure to synchronise correctly materials
+        // values by forcing color as dirty. Refs #3078
+        if(max == 0)
+            GL.color_isDirty = true;
     }
 
     active = nl.active;

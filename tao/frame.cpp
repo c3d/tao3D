@@ -365,7 +365,11 @@ void FrameInfo::purge()
         // the pointers unconditionaly
         delete renderFBO;
         if (textureFBO != renderFBO)
+        {
+            GLuint tex = texture();
             delete textureFBO;
+            GL.Cache.DeleteTextures(1, &tex);
+        }
         if (depthTextureID)
             GL.DeleteTextures(1, &depthTextureID);
 

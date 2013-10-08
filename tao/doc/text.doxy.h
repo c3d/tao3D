@@ -1484,6 +1484,44 @@ glyph_cache_size_range (min:real, max:real);
 
 glyph_cache_scaling (scaling:real, minSize:real);
 
+
+/**
+ * @~english
+ * Return the width in pixels of the specified text rendered with the
+ * current font.
+ * For example:
+ * @~french
+ * Renvoie la largeur en pixels du texte spécifié dans la police courante.
+ * Par exemple:
+ * @~
+@code
+page "text_width/text_height",
+    Msg -> "1, 2, 3"
+    font "Times", 50
+    locally
+        color "blue", 50%
+        rectangle 0, 0, text_width Msg, text_height Msg
+    text_box 0, 0,  1.2 * text_width Msg, text_height Msg,
+        vertical_align_center
+        align_center
+        text Msg
+@endcode
+ * @see text_height
+ */
+real text_width(T:text);
+
+
+/**
+ * @~english
+ * Return the height in pixels of the specified text rendered with the
+ * current font.
+ * @~french
+ * Renvoie la heuteur en pixels du texte spécifié dans la police courante.
+ * @~
+ * @see text_width
+ */
+real text_height(T:text);
+
 /**
  * @}
  */

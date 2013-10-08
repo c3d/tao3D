@@ -1248,8 +1248,8 @@ Le téléchargement sera à nouveau tenté lors du prochain lancement de l&apos;
     </message>
     <message>
         <location filename="license.cpp" line="662"/>
-        <source>http://taodyne.com/shop/en/search?search_query=%1</source>
-        <translation>http://taodyne.com/shop/fr/recherche?search_query=%1</translation>
+        <source>http://taodyne.com/shop/dev/en/search?search_query=%1</source>
+        <translation>http://taodyne.com/shop/dev/fr/recherche?search_query=%1</translation>
     </message>
     <message>
         <location filename="license.cpp" line="664"/>

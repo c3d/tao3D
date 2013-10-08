@@ -86,7 +86,13 @@ void WebUI::stopServer()
     {
         IFTRACE(webui)
             debug() << "Stopping server\n";
-        server.terminate();
+        // On Windows, the process can't be stopped with server.terminate()
+        // because as stated in the QProcess documentation:
+        // "Console applications on Windows that do not run an event loop, or
+        // whose event loop does not handle the WM_CLOSE message, can only be
+        // terminated by calling kill()."
+        // This looks like a clean solution for all platforms.
+        server.write("quit\n");
         if (!server.waitForFinished(5000))
             server.kill();
     }

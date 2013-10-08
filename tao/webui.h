@@ -43,13 +43,13 @@ public:
 
 public:
     void           launch(QString path);
+    void           stopServer();
 
 protected:
     std::ostream & debug();
     QString        nodePath();
     QString        serverDir();
     void           startServer();
-    void           stopServer();
     void           launchBrowser();
 
 protected slots:

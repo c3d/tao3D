@@ -199,6 +199,7 @@ private slots:
     void onlineDoc();
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     void tutorialsPage();
+    void forumPage();
 #endif
     void documentWasModified();
     void displayModeTriggered(bool on);
@@ -321,6 +322,7 @@ private:
     QAction          *onlineDocAct;
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     QAction          *tutorialsPageAct;
+    QAction          *forumPageAct;
 #endif
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;

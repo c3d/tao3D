@@ -189,7 +189,7 @@ text dir_name(filename:text);
  * specified by @p prefix. @n
  * The following example computes the sum of all lines that have three
  * numerical values:
- * @code
+@code
 // -- test.csv:
 // First value; Second value; Third value
 // 1;12;40
@@ -204,7 +204,7 @@ writeln Total
 
 process_line A:real, B:real, C:real -> Total := Total + A + B + C
 process_line AnythingElse -> false
- * @endcode
+@endcode
  * You may enclose the values in double quotes, in which case:
  * - Integer or real values are interpreted as text
  * - The field separator character looses its special meaning
@@ -225,11 +225,11 @@ Lorem ipsum ; dolor sit amet
 "1";"2"
 @endverbatim
  * If we open it with this:
- * @code
+@code
 load_csv "test.csv", "foo"
 foo A:text, B:text -> writeln "|", A, "|", B, "|"
 foo Others -> nil
- * @endcode
+@endcode
  * ...we obtain:
 @verbatim
 |Lorem|ipsum|
@@ -253,7 +253,7 @@ foo Others -> nil
  * @n
  * L'exemple qui suit fait la somme de toutes les lignes qui contiennent
  * trois valeurs numériques :
- * @code
+@code
 // -- test.csv :
 // Valeur 1; Valeur 2; Valeur 3
 // 1;12;40
@@ -268,7 +268,7 @@ writeln Total
 
 traitement_ligne A:real, B:real, C:real -> Total := Total + A + B + C
 traitement_ligne Autre -> false
- * @endcode
+@endcode
  * Vous pouvez mettre les valeurs entre guillemets, auquel cas :
  * - Les valeurs entières ou réelles sont interprétées comme du texte
  * - Le caractère séparateur de champ perd sa signification
@@ -290,11 +290,11 @@ Lorem ipsum ; dolor sit amet
 "1";"2"
 @endverbatim
  * Si nous ouvrons ce CSV avec le code suivant :
- * @code
+@code
 load_csv "test.csv", "foo"
 foo A:text, B:text -> writeln "|", A, "|", B, "|"
 foo Others -> nil
- * @endcode
+@endcode
  * ...nous obtenons:
 @verbatim
 |Lorem|ipsum|
@@ -353,12 +353,12 @@ tree load_data(filename:text, prefix:text, fs:text, rs:text);
  * The graphical area is captured once the drawing is complete, and only one
  * capture may be active at any given time. Therefore, the following example
  * will create file <tt>capture2.png</tt> with one circle and one rectangle:
- * @code
+@code
 rectangle -150, 0, 200, 100
 screenshot "capture1.png"  // Ignored
 circle 100, 0, 50
 screenshot "capture2.png"
- * @endcode
+@endcode
  * The capture saves the exact content of the application's drawing area,
  * so if a 3D display mode is active (such as anaglyph, interleaved or side
  * by side), the resulting snapshot will be encoded for this mode. @n
@@ -376,12 +376,12 @@ screenshot "capture2.png"
  * une seule capture peut être active pour une trame. Ainsi, l'exemple suivant
  * crée un seul fichier, <tt>capture2.png</tt>, qui contient un rectangle et
  * un cercle.
- * @code
+@code
 rectangle -150, 0, 200, 100
 screenshot "capture1.png"  // Ignoré
 circle 100, 0, 50
 screenshot "capture2.png"
- * @endcode
+@endcode
  * Lorsque @p withAlpha est @c false, le fichier ne comporte pas d'information
  * de transparence.
  */

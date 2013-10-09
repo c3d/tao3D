@@ -118,6 +118,16 @@ PREFIX(PageName,    text,   "page_name",
        SYNOPSIS("The name of the nth page.")
        DESCRIPTION("Return the name of a page given its index")
        RETURNS(text, "The name of the nth page"))
+PREFIX(PrevPageLabel, text,    "prev_page_label", , RTAO(prevPageLabel(self)),
+       GROUP(page)
+       SYNOPSIS("The name of the previous page.")
+       DESCRIPTION("Return the name of the page that was displayed prior to the current one")
+       RETURNS(text, "Return the page name"))
+PREFIX(PrevPageId,    integer, "prev_page_number", , RTAO(prevPageNumber(self)),
+       GROUP(page)
+       SYNOPSIS("The previous page number")
+       DESCRIPTION("Return the number of the page that was displayed prior to the current one")
+       RETURNS(integer, "Return the page number"))
 
 PREFIX(PageWidth,    real,      "page_width", , RTAO(pageWidth(self)),
        GROUP(page)

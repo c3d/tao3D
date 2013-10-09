@@ -11,7 +11,7 @@
  * - inch
  *
  * If you want to specify a translation (which takes pixels) along X-axis of 2 inches, just use
- * @code translatex 2 inch @endcode
+@code translatex 2 inch @endcode
  * @note The size on the screen may not be exactly the one requested, but it is when printing.
  *
  * @~french
@@ -27,7 +27,7 @@
  *
  * Si vous voulez faire une translation (qui demande des pixels) le long de
  * l'axe X, de 2 cm, écrivez simplement :
- * @code translatex 2 cm @endcode
+@code translatex 2 cm @endcode
  * @note La distance à l'écran peut ne pas être exacte (en particulier en cas de
  * projection), mais elle est correcte lors de l'impression sur papier.
  *
@@ -194,13 +194,13 @@ real refresh_time();
  *
  * Par exemple, le code suivant compte le nombre de clics:
  * @~
- * @code
+@code
 N -> -1
 locally
     N := N+1
     text text N
     refresh_on MouseButtonPressEvent
- * @endcode
+@endcode
  * @see refresh, no_refresh_on
  */
 refresh_on (event:integer);
@@ -225,12 +225,12 @@ refresh_on (event:integer);
  * reçu).
  *
  * @~
- * @code
+@code
 locally
     refresh 2.0
     text text screen_mouse_x & ", " & text screen_mouse_y
     no_refresh_on MouseMoveEvent
- * @endcode
+@endcode
  * @see refresh_on, refresh
  */
 no_refresh_on (event:integer);
@@ -294,7 +294,7 @@ user_event (name:text);
  * du @a widget graphique. Par exemple :
  *
  * @~
- * @code
+@code
 locally
     X -> 0
     X := 0
@@ -307,7 +307,7 @@ locally
 locally
     refresh_on MouseButtonPressEvent
     post_event user_event "Reset"
- * @endcode
+@endcode
  * @see refresh_on, no_refresh_on, post_event
  */
 post_event (type:integer);

@@ -659,7 +659,7 @@ void Licenses::Warn(text feature, int days, bool critical)
     QByteArray ba;
     ba = QUrl::toPercentEncoding(q.replace(" ", "+"), QByteArray("+"));
     q.fromUtf8(ba.constData());
-    link = tr("http://taodyne.com/shop/en/search?search_query=%1").arg(q);
+    link = tr("http://taodyne.com/shop/dev/en/search?search_query=%1").arg(q);
 
     QString message = tr("<h3>Warning</h3>");
     if (days > 0)

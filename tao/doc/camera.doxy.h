@@ -80,11 +80,11 @@
  * La position par défaut est (0, 0, 3000).
  * Pour lire seulement une composante vous pouvez écrire :
  * @~
- * @code
+@code
 cam_x -> camera_position at 1
 cam_y -> camera_position at 2
 cam_z -> camera_position at 3
- * @endcode
+@endcode
  * @~english
  * @return 3 real values, separated by commas.
  * @~french
@@ -291,9 +291,9 @@ real depth_at(x:real, y:real);
  * - zFar is 56000 [now 1e6]
  * - Default eye separation for stereoscopy is 10 [now 100]
  * - Polygon offset settings are:
- * @code
+@code
 polygon_offset 0, -0.001, 0, -1
- * @endcode
+@endcode
  * [now 0, -0.1, 0, -1]
  *
  * @~french
@@ -306,9 +306,9 @@ polygon_offset 0, -0.001, 0, -1
  * - zFar est 56000 [maintenant : 1e6]
  * - La distance entre les yeux pour la stéréoscopie est 10 [maintenant : 100]
  * - Les réglages de <em>polygon offset</em> sont :
- * @code
+@code
 polygon_offset 0, -0.001, 0, -1
- * @endcode
+@endcode
  * [maintenant : 0, -0.1, 0, -1]
  */
 old_camera_settings();

@@ -307,7 +307,7 @@ integer year_day (t:real);
  * <tt>if true then</tt>.
  *
  * For example:
- * @code
+@code
 page "Empty page",
     nil
 page "Second page",
@@ -319,7 +319,7 @@ page "Second page",
         after 3.0,
             color "green"
             triangle 300, 0, 100, 100
- * @endcode
+@endcode
  * If you load this example and press the arrow key to display
  * the second page:
  * - a blue rectangle shows up immediately,
@@ -342,7 +342,7 @@ page "Second page",
  * devient équivalente à <tt>if true then</tt>.
  *
  * Par exemple:
- * @code
+@code
 page "Page vide",
     nil
 page "Deuxième page",
@@ -354,7 +354,7 @@ page "Deuxième page",
         after 3.0,
             color "green"
             triangle 300, 0, 100, 100
- * @endcode
+@endcode
  * Si vous chargez cet exemple et enfoncez la touche Flèche vers le bas pour
  * afficher la deuxième page :
  * - un rectangle bleu s'affiche immédiatement,
@@ -383,12 +383,12 @@ after (delay:real, body:tree);
  * 0.0 and 1.0.
  *
  * The following example show a blinking text:
- * @code
+@code
 page "Blinking text",
     every 1.0, 0.75,
         text_box 0, 0, 100, 100,
             text "Blinking"
- * @endcode
+@endcode
  *
  * This primitive must be used inside a @ref page primitive,
  * otherwise its behavior is undefined.
@@ -410,12 +410,12 @@ page "Blinking text",
  * 0.0 et 1.0.
  *
  * L'exemple qui suit montre comment faire clignoter du texte :
- * @code
+@code
 page "Texte clignotant",
     every 1.0, 0.75,
         text_box 0, 0, 100, 100,
             text "Clignotant"
- * @endcode
+@endcode
  *
  * Cette primitive doit être utilisée dans une primitive @ref page,
  * faute de quoi le comportement n'est pas défini.

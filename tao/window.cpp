@@ -1569,7 +1569,17 @@ void Window::tutorialsPage()
 {
     QString url(tr("http://taodyne.com/taopresentations/1.0/tutorials/"));
     QDesktopServices::openUrl(url);
- }
+}
+
+
+void Window::forumPage()
+// ----------------------------------------------------------------------------
+//    Open the forum page on the web
+// ----------------------------------------------------------------------------
+{
+    QString url(tr("http://taodyne.com/taopresentations/1.0/forum/en/"));
+    QDesktopServices::openUrl(url);
+}
 #endif
 
 
@@ -1839,6 +1849,10 @@ void Window::createActions()
     tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
     tutorialsPageAct->setObjectName("tutorialsPage");
     connect(tutorialsPageAct, SIGNAL(triggered()), this,SLOT(tutorialsPage()));
+
+    forumPageAct = new QAction(tr("&Forums (taodyne.com)"), this);
+    forumPageAct->setObjectName("forumPageAct");
+    connect(forumPageAct, SIGNAL(triggered()), this,SLOT(forumPage()));
 #endif
 
 #ifndef CFG_NOFULLSCREEN
@@ -2011,9 +2025,10 @@ void Window::createMenus()
     if (onlineDocAct)
         helpMenu->addAction(onlineDocAct);
 #if defined(TAO_PLAYER) && defined(CFG_NONETWORK)
-    // A player with no download capabilities has no need for a tutorials menu
+    // A player with no download capabilities has no need for a tutorials/forum menu
 #else
     helpMenu->addAction(tutorialsPageAct);
+    helpMenu->addAction(forumPageAct);
 #endif
 
 #ifndef CFG_NO_NEW_FROM_TEMPLATE

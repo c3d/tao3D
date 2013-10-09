@@ -43,6 +43,7 @@ base_slide "Question 1",
     answer "3D presentations" fr "faire des présentations en 3D "
     answer "auto-stereoscopic movies" fr "montrer des films 3D en auto-stéréoscopie"
     answer "all of the above" fr "faire tout ce qui précède"
+    open_answer "other..." fr "autre..."
     total_answer_graph
 
 
@@ -71,8 +72,8 @@ base_slide "Question 3",
 
 
 base_slide "Nom du chien",
-  open_text_question "What is your dog's name ?" fr "Quel est le nom de votre chien ?",
-    quiz_show_text_answers
+  quiz "What is your dog's name?" fr "Quel est le nom de votre chien ?",
+    open_answer
 
 
 base_slide "Zone de dessin",

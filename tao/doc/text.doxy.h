@@ -1365,15 +1365,17 @@ unicode_char(code:text);
  * For instance:
 @code
 page "Cursor",
-    CR -> unicode_char 13
-    Msg -> "This example shows how one may use the 'anchor' primitive to draw a rectangular-shaped cursor inside a text box." & CR & CR & "Press <return> to start over."
+    Msg -> "This example shows how one may use the 'anchor' primitive " &
+           "to draw a rectangular-shaped cursor inside a text box." &
+           cr & cr &
+           "Press <return> to start over."
     MsgLen -> text_length Msg
     Speed -> 0.2
     ShowCursor ->
         page_time < 1/Speed or (integer (page_time * 1.5)) mod 2 = 1 or page_time > 1/Speed + 4
 
     clear_color 0.16, 0.16, 0.13, 1.0
-    text_box 0, 0, 0.8 * window_width, 150,
+    text_box 0, 0, 0.8 * window_width, 200,
         font "Courier New", 24
         color "white"
         align_left
@@ -1389,25 +1391,21 @@ key "Return" -> goto_page page_name 1 ; refresh 0
  * @p anchor does not affect the layout of subsequent text.
  * Here is another example to illustrates this fact:
 @code
-page "Example",    CR -> unicode_char 13
-    Msg -> "This example shows how one may use the 'anchor' primitive to draw a rectangular-shaped cursor inside a text box." & CR & CR & "Press <return> to start over."
-    MsgLen -> text_length Msg
-    Speed -> 30
-    ShowCursor ->
-        page_time < MsgLen/Speed or (integer (page_time * 1.5)) mod 2 = 1 or page_time > MsgLen/Speed + 4
-
-    clear_color 0.16, 0.16, 0.13, 1.0
-    text_box 0, 0, 0.8 * window_width, 150,
-        font "Courier New", 24
-        color "white"
-        align_left
-        text text_range (Msg, 0, integer (Speed * page_time))
-        if ShowCursor then
-            anchor
-                color 0, 0.75, 0.15
-                rectangle 4, 8, 12, 24
-
-key "Return" -> goto_page page_name 1 ; refresh 0
+page "Highlight",
+    Highlight T:text ->
+        // Draw text first to avoid end-of-line problem
+        text T
+        anchor
+            W -> text_width T
+            // Z translation to draw the rectangle under the text
+            translatez -1
+            color "yellow"
+            rectangle -W/2, 8, W, 24
+            color "black"
+    text_box 0, 0, 0.5 * window_width, 100,
+        font "Arial", 24
+        Highlight "Test"; text ": Using anchor to "; Highlight "highlight"
+        text " a word."
 @endcode
  * Note that, in the above code, the highlight rectangle is drawn
  * <em>after</em> the word
@@ -1424,15 +1422,17 @@ key "Return" -> goto_page page_name 1 ; refresh 0
  * Par exemple :
 @code
 page "Curseur",
-    CR -> unicode_char 13
-    Msg -> "Cette exemple montre comment utiliser la primitive ""anchor"" pour dessiner un curseur rectangulaire à l'intérieur d'un texte." & CR & CR & "Appuyez sur <entrée> pour recommencer."
+    Msg -> "Cette exemple montre comment utiliser la primitive ""anchor""" &
+           "pour dessiner un curseur rectangulaire à l'intérieur d'un texte." &
+           cr & cr &
+           "Appuyez sur <entrée> pour recommencer."
     MsgLen -> text_length Msg
     Speed -> 30
     ShowCursor ->
         page_time < MsgLen/Speed or (integer (page_time * 1.5)) mod 2 = 1 or page_time > MsgLen/Speed + 4
 
     clear_color 0.16, 0.16, 0.13, 1.0
-    text_box 0, 0, 0.8 * window_width, 150,
+    text_box 0, 0, 0.8 * window_width, 200,
         font "Courier New", 24
         color "white"
         align_left
@@ -1624,6 +1624,55 @@ real text_width(T:text);
  * @see text_width
  */
 real text_height(T:text);
+
+
+/**
+ * @~english
+ * Replace regular spaces with no-break spaces.
+ * In the following example, no line break will be inserted between the
+ * words "SED DO EIUSMOD", even when the size of the window changes.
+ * @~french
+ * Remplace les espaces classiques par des espaces insécables.
+ * Dans l'exemple qui suit, il n'y aura jamais de retour à la ligne entre les
+ * mots "SED DO EIUSMOD", quelle que soit la largeur de la fenêtre.
+ * @~
+@code
+text_box 0, 0, 0.8 * window_width, 150,
+    font "Courier", 20
+    text "Lorem ipsum dolor " &
+         "sit amet, consectetur adipisicing elit, " &
+         nobreak "SED DO EIUSMOD" &
+         " tempor incididunt ut labore et dolore magna aliqua."
+@endcode
+ */
+text nobreak(T:text);
+
+
+/**
+ * @~english
+ * A carriage return character.
+ * Defined as:
+ * @~french
+ * Un caractère "retour à la ligne".
+ * Défini comme :
+ * @~
+ * @code unicode_char 13 @endcode
+ */
+text cr();
+
+
+
+/**
+ * @~english
+ * A no-break space character.
+ * Defined as:
+ * @~french
+ * Un caractère "espace insécable".
+ * Défini comme :
+ * @~
+ * @code unicode_char 160 @endcode
+ */
+text nbsp();
 
 /**
  * @}

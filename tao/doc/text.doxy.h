@@ -29,19 +29,19 @@
  * Many font-modifying attributes also can be used as text spans. For example,
  * you can create a bold blue text as follows:
 @code
- * bold { color "blue; text "Hello" }
+bold { color "blue; text "Hello" }
 @endcode
  * This is equivalent to:
 @code
- * text_span { bold; color "blue; text "Hello" }
+text_span { bold; color "blue; text "Hello" }
 @endcode
  * In addition, these forms will work with a text argument, as in:
 @code
- * bold "Hello"
+bold "Hello"
 @endcode
  * This is equivalent to:
 @code
- * bold { text "Hello" }
+bold { text "Hello" }
 @endcode
  * This rule applies to: @ref plain, @ref roman, @ref italic,
  * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
@@ -76,19 +76,19 @@
  * utilisés comme des blocs de texte. Par exemple, vous pouvez créer un bloc
  * de texte en gras coloré en bleu de la façon suivante :
 @code
- * bold { color "blue; text "Hello" }
+bold { color "blue; text "Hello" }
 @endcode
  * Ce code est équivalent à :
 @code
- * text_span { bold; color "blue; text "Hello" }
+text_span { bold; color "blue; text "Hello" }
 @endcode
  * De plus, ces formes peuvent aussi prendre un argument sous forme de texte :
 @code
- * bold "Hello"
+bold "Hello"
 @endcode
  * qui est équivalent à :
 @code
- * bold { text "Hello" }
+bold { text "Hello" }
 @endcode
  * Cette règle s'applique à : @ref plain, @ref roman, @ref italic,
  * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
@@ -122,8 +122,8 @@
  * minuscules). Il faut les copier telles qu'elles apparaîssent dans le
  * tableau (y compris les espaces entre les mots). Par exemple :
 @code
- * font "Gentium Plus"
- * font "Allerta/Stencil"
+font "Gentium Plus"
+font "Allerta/Stencil"
 @endcode
  *
  * @~
@@ -331,10 +331,10 @@ text_span(contents:tree);
  * related modifications done in this container are not visible from outside.
  * This function is equivalent to:
 @code
- * text_span
- *     paragraph_break
- *     contents
- *     paragraph_break
+text_span
+    paragraph_break
+    contents
+    paragraph_break
 @endcode
  *
  * @~french
@@ -345,10 +345,10 @@ text_span(contents:tree);
  * faites dans @p contents n'ont pas d'effet à l'extérieur du para_span.
  * Cette fonction est équivalente à :
 @code
- * text_span
- *     paragraph_break
- *     contents
- *     paragraph_break
+text_span
+    paragraph_break
+    contents
+    paragraph_break
 @endcode
  */
 paragraph(contents:tree);
@@ -375,7 +375,7 @@ text(t:text);
  * For instance you may write the following expression to select
  * font family @p Ubuntu in 24 point size and bold weight:
 @code
- * font "Ubuntu", 24, bold
+font "Ubuntu", 24, bold
 @endcode
  * The following arguments are recognized:
  * <ul>
@@ -388,32 +388,32 @@ text(t:text);
  *       keywords: "Bold" is equivalent to @ref bold, "Italic" is equivalent to
  *       @ref italic. "Regular" is equivalent to @ref roman. For instance:
 @code
- * font "Ubuntu/Bold Italic"
+font "Ubuntu/Bold Italic"
 @endcode
  *       has the same effect as:
 @code
- * font "Ubuntu"
- * bold
- * italic
+font "Ubuntu"
+bold
+italic
 @endcode
  *        Consequently, the effect of the style qualifier applies not only
  *        to the current font, but also to the subsequent font declarations.
  *        In the following example, @a both words are italicized:
 @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Hello, "
- *     font "Andika Basic"  // does NOT cancel italic
- *     text "world!"
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Hello, "
+    font "Andika Basic"  // does NOT cancel italic
+    text "world!"
 @endcode
  *        To cancel the italic mode, you would need to call @ref roman or
  *        use the "/Regular" style qualifier, like this:
 @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Hello, "
- *     font "Andika Basic/Regular"  // cancels italic
- *     text "world!"
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Hello, "
+    font "Andika Basic/Regular"  // cancels italic
+    text "world!"
 @endcode
  *   <li> @p number. Sets the font size, in points.
  *   <li> @b plain, @b default, @b normal. Resets all font attributes.
@@ -499,7 +499,7 @@ bold
  * Par exemple, pour sélectionner la police de la famille @p Ubuntu en taille
  * 24 points et en gras :
 @code
- * font "Ubuntu", 24, bold
+font "Ubuntu", 24, bold
 @endcode
  * Les paramètres suivants sont reconnus :
  * <ul>
@@ -514,32 +514,32 @@ bold
  *       "Bold" est équivalent à @ref bold, "Italic" est équivalent à
  *       @ref italic. "Regular" est équivalent à @ref roman. Par exemple :
 @code
- * font "Ubuntu/Bold Italic"
+font "Ubuntu/Bold Italic"
 @endcode
  *       a le même effet que:
 @code
- * font "Ubuntu"
- * bold
- * italic
+font "Ubuntu"
+bold
+italic
 @endcode
  *        Par conséquent, l'effet du qualificatif de style s'applique non
  *        seulement à la police courant, mais aussi aux déclarations suivantes.
  *        Dans l'exemple qui suit, @a les @a deux mots sont en italique :
 @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Andika "
- *     font "Andika Basic"  // n'annule PAS l'italique
- *     text "Basic"
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Andika "
+    font "Andika Basic"  // n'annule PAS l'italique
+    text "Basic"
 @endcode
  *        Pour annuler l'italique, il faut utiliser @ref roman ou le
  *        qualificatif "/Regular" comme ceci :
 @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Andika "
- *     font "Andika Basic/Regular"  // annule l'italique
- *     text "Basic"
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Andika "
+    font "Andika Basic/Regular"  // annule l'italique
+    text "Basic"
 @endcode
  *   <li> @p un nombre. Définit la taille de la police, en points.
  *   <li> @b plain, @b default, @b normal. Ré-initialise tous les attributs.

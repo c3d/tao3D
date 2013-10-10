@@ -696,6 +696,34 @@ value_in_interval_or_greater(Value:real, A:real, B:real, Body);
 
 /**
  * @~english
+ * Evaluate @p Body while @p Value is larger or equal to @p A.
+ * The value of @ref ratio is set to 1.0.
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Evalue @p Body tant que @p Value est supérieure ou égale à @p A.
+ * La valeur de @ref ratio est 1.0.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+@code
+Value in [A..]
+    Body
+@endcode
+ *
+ * @since 1.04 (Tao 1.43)
+ */
+value_greater_than(Value:real, A:real);
+
+
+/**
+ * @~english
  * Shortcut for: page_time in [A..B].
  *
  * This function is documented with this name due to limitations
@@ -821,6 +849,47 @@ page_time_in_interval_or_greater(A:real, B:real, Body);
  * @see value_in_intervals
  */
 page_time_in_intervals(A:real, B:real, C:real, D:real, Body);
+
+
+/**
+ * @~english
+ * Shortcut for: page_time in [A..].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Raccourci pour: page_time in [A..].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+@code
+[A..]
+    Body
+@endcode
+ * @~english
+ * Here is an example.
+ * @~french
+ * Voici un exemple.
+ * @~
+@code
+import Animate
+
+page "The [A.. ] notation",
+    [0..5]
+        text text integer (6 - page_time)
+    [5..]
+        text "The end"
+
+key "Return" -> goto_page page_name 1
+@endcode
+ * @since 1.04 (Tao 1.43)
+ * @see value_greater_than
+ */
+page_time_greater_than(A:real, Body);
 
 /**
  * @}

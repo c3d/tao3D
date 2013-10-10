@@ -1639,6 +1639,15 @@ strong Body     -> bold Body
 para_span Body  -> paragraph Body
 
 
+nobreak T:text ->
+// ----------------------------------------------------------------------------
+//   Prevent word break on spaces by replacing them with a no-break space
+// ----------------------------------------------------------------------------
+    text_replace T, " ", nbsp
+
+// Shortcuts for come special characters
+nbsp -> unicode_char 160
+cr -> unicode_char 13
 
 // ============================================================================
 // 

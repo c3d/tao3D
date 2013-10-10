@@ -28,7 +28,7 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.031
+    version 1.04
 
 module_description "fr",
     name "Animations"
@@ -353,6 +353,15 @@ smooth_down_ratio -> 1 - smooth_ratio
         Body
 
 
+[A:real.. ] Body ->
+// ----------------------------------------------------------------------------
+//   Evaluate Body when page_time >= A, set ratio to 1.0
+// ----------------------------------------------------------------------------
+    if page_time >= A then
+        ratio := 1.0
+        Body
+
+
 Value:real in [A:real..B:real, C:real..D:real] Body ->
 // ----------------------------------------------------------------------------
 //   Evaluate Body if Value is in the given intervals
@@ -391,10 +400,20 @@ Value:real in [A:real..B:real, ] Body ->
         Body
 
 
+Value:real in [A:real.. ] Body ->
+// ----------------------------------------------------------------------------
+//   Evaluate Body when Value >= A, set ratio to 1.0
+// ----------------------------------------------------------------------------
+    if Value >= A then
+        ratio := 1.0
+        Body
+
 // The following definitions are used in the documentation
 value_in_interval Value:real, A:real, B:real, Body -> Value in [A..B] Body
 value_in_intervals Value:real, A:real, B:real, C:real, D:real, Body -> Value in [A..B, C..D] Body
 value_in_interval_or_greater Value:real, A:real, B:real, Body -> Value in [A..B, ] Body
+value_greater_than Value: real, A:real -> Value in [A..] Body
 page_time_in_interval A:real, B:real, Body -> [A..B] Body
 page_time_in_intervals A:real, B:real, C:real, D:real, Body -> [A..B, C..D] Body
 page_time_in_interval_or_greater Value:real, A:real, B:real, Body -> [A..B, ] Body
+page_time_greater_than A:real -> [A..] Body

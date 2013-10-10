@@ -845,6 +845,16 @@ Box3 TextSplit::Space(Layout *where)
 }
 
 
+static inline bool isBreakingSpace(QChar c)
+// ----------------------------------------------------------------------------
+//   Return true if this is a breaking space
+// ----------------------------------------------------------------------------
+{
+    return c != 0xA0 && c.isSpace();
+}
+
+
+
 bool TextSplit::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   Since a text split has already been split, it can just paginate directly
@@ -865,7 +875,7 @@ bool TextSplit::Paginate(PageLayout *page)
 
     // Identify what the last character looks like
     QChar c(XL::Utf8Code(str, last));
-    if (c.isSpace())
+    if (isBreakingSpace(c))
     {
         charOrder = WordBreak;
         if (c == '\n')
@@ -899,7 +909,7 @@ scale TextSplit::TrailingSpaceSize(Layout *where)
     {
         pos = XL::Utf8Previous(str, pos);
         QChar c = QChar(XL::Utf8Code(str, pos));
-        if (!c.isSpace())
+        if (!isBreakingSpace(c))
             break;
 
         // Find the glyph in the glyph cache
@@ -1218,7 +1228,7 @@ bool TextUnit::Paginate(PageLayout *page)
         QChar c = QChar(XL::Utf8Code(str, i));
         BreakOrder charOrder = CharBreak;
         size++;
-        if (c.isSpace())
+        if (isBreakingSpace(c))
         {
             charOrder = WordBreak;
             if (c == '\n')

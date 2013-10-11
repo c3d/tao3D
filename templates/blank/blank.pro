@@ -9,7 +9,7 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/blank
-files.files = template.ini blank.ddd blank.png
+files.files = template.ini blank.ddd blank.json blank.png
 
 INSTALLS += files
 

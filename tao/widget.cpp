@@ -4113,6 +4113,7 @@ void Widget::refreshProgram()
             {
                 // Reached when the main document is initially empty,
                 // then modified
+                TaoSave saveCurrent(current, this);
                 XL::MAIN->LoadFile(sf.name);
                 needBigHammer = true;
                 break;

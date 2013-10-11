@@ -16,6 +16,13 @@ module_description "fr",
     name "Thème Finance"
     description "Un thème pour les présentations financières"
 
+add_search_path "Finance:", module_dir
+
+theme_background_url "Finance" -> ""
+if (file_exists (document_dir & "/images/background.jpg")) then
+    theme_background_url := document_dir & "/images/background.jpg"
+else
+    theme_background_url := "Finance:background.jpg"
 
 import Slides
 import VLCAudioVideo
@@ -29,9 +36,9 @@ theme_boxstyle "Finance",Master:text, "title"  -> color "white", 0.8
 theme_boxstyle "Finance",Master:text,Style:text  -> color finance_color "brown", 0.8
 
 theme_color "Finance", Master:text, "title" -> color finance_color "blue"
-theme_color "Finance",Master:text, "bullet", 1 -> color finance_color "red"
-theme_color "Finance",Master:text, "bullet", 2 -> color finance_color "orange"
-theme_color "Finance",Master:text, "bullet", 3 -> color finance_color "yellow"
+theme_color "Finance",Master:text, "bullet", 1 -> color finance_color "red"; line_color finance_color "red"
+theme_color "Finance",Master:text, "bullet", 2 -> color finance_color "orange"; line_color finance_color "orange"
+theme_color "Finance",Master:text, "bullet", 3 -> color finance_color "yellow"; line_color finance_color "yellow"
 theme_color "Finance", Master:text, Style:text -> color "white"
 
 theme_align "Finance", Master:text, "story" -> vertical_align 0.5
@@ -52,9 +59,10 @@ theme_size "Finance", Master:text, "story", 3 -> 27
 finance_color "blue"  -> "#3366cc"
 finance_color "brown" -> "#333333"
 finance_color "red"   -> "#B72E00"
-finance_color "orange" -> "#EB7F22"
+finance_color "orange" -> "#EFB043"
 finance_color "yellow" -> "#ebd522"
 finance_color "green"  -> "#37a122"
+finance_color "grey"   -> "#96ACC3"
 
 // ============================================================================
 //
@@ -69,17 +77,18 @@ theme_background "Finance", Master:text ->
     clear_color 1,1,1,1
     background -2000,
         color "white"
-        image_px 0, 0, 2304, 1440, "background.jpg"
+        image_px 0, 0, 2304, 1440, theme_background_url
 
     contents 0,
         // Avoid to show two logo during transition
         if(financial_transition_page = 0) then
-            translate -550, 310, 200
-            color "white", 0.8
-            rotatey 10
-            rectangle 300, 80
-            color "white"
-            image_px 0, 0, 300, 95, "logo.png"
+            if (file_exists (document_dir & "/images/logo.png")) then
+                translate -550, 310, 200
+                color "white", 0.8
+                rotatey 10
+                rectangle 300, 80
+                color "white"
+                image_px 0, 0, 300, 95, "logo.png"
 
     // Apply transition
     financial_transition
@@ -236,11 +245,14 @@ theme_bullet_picture "Finance", Master:text, Level:integer ->
         scale3 2% * theme_size ("Finance", Master, "bullet", Level)
         translate -40, 13, 5
         locally
+            theme_color ("Finance", Master, "bullet", Level)
             color "white"
+            line_width 2
             ellipse 0, 0, 35, 35
+        line_width 0
         ellipse_arc 0, 0, 28, 28, 70 * Level * page_time, 330
         color "white"
-        ellipse 0, 0, 20, 20
+        ellipse 0, 0, 17, 17
 
 
 // ============================================================================

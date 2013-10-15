@@ -428,11 +428,11 @@ light_spot_cutoff(x:real);
  * Définit les facteurs d'atténuation de la lumière courante.
  * Équivalent aux appels OpenGL :
  * @~
- * @code
+@code
  * glLightf(id, GL_CONSTANT_ATTENUATION, c);
  * glLightf(id, GL_LINEAR_ATTENUATION, l);
  * glLightf(id, GL_QUADRATIC_ATTENUATION, q);
- * @endcode
+@endcode
  */
 light_attenuation(c:real, l:real, q:real);
 

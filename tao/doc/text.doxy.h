@@ -28,21 +28,21 @@
  * @par Text spans
  * Many font-modifying attributes also can be used as text spans. For example,
  * you can create a bold blue text as follows:
- * @code
- * bold { color "blue; text "Hello" }
- * @endcode
+@code
+bold { color "blue; text "Hello" }
+@endcode
  * This is equivalent to:
- * @code
- * text_span { bold; color "blue; text "Hello" }
- * @endcode
+@code
+text_span { bold; color "blue; text "Hello" }
+@endcode
  * In addition, these forms will work with a text argument, as in:
- * @code
- * bold "Hello"
- * @endcode
+@code
+bold "Hello"
+@endcode
  * This is equivalent to:
- * @code
- * bold { text "Hello" }
- * @endcode
+@code
+bold { text "Hello" }
+@endcode
  * This rule applies to: @ref plain, @ref roman, @ref italic,
  * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
  * @ref overline, @ref strikeout.
@@ -75,21 +75,21 @@
  * Plusieurs attributs influençant la police de caractère peuvent aussi être
  * utilisés comme des blocs de texte. Par exemple, vous pouvez créer un bloc
  * de texte en gras coloré en bleu de la façon suivante :
- * @code
- * bold { color "blue; text "Hello" }
- * @endcode
+@code
+bold { color "blue; text "Hello" }
+@endcode
  * Ce code est équivalent à :
- * @code
- * text_span { bold; color "blue; text "Hello" }
- * @endcode
+@code
+text_span { bold; color "blue; text "Hello" }
+@endcode
  * De plus, ces formes peuvent aussi prendre un argument sous forme de texte :
- * @code
- * bold "Hello"
- * @endcode
+@code
+bold "Hello"
+@endcode
  * qui est équivalent à :
- * @code
- * bold { text "Hello" }
- * @endcode
+@code
+bold { text "Hello" }
+@endcode
  * Cette règle s'applique à : @ref plain, @ref roman, @ref italic,
  * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
  * @ref overline, @ref strikeout.
@@ -121,10 +121,10 @@
  * noms de famille et de style sont sensibles à la casse (majuscules et
  * minuscules). Il faut les copier telles qu'elles apparaîssent dans le
  * tableau (y compris les espaces entre les mots). Par exemple :
- * @code
- * font "Gentium Plus"
- * font "Allerta/Stencil"
- * @endcode
+@code
+font "Gentium Plus"
+font "Allerta/Stencil"
+@endcode
  *
  * @~
  * <table>
@@ -330,12 +330,12 @@ text_span(contents:tree);
  * Text alignment, paragraph space, font, color and other text and paragraph
  * related modifications done in this container are not visible from outside.
  * This function is equivalent to:
- * @code
- * text_span
- *     paragraph_break
- *     contents
- *     paragraph_break
- * @endcode
+@code
+text_span
+    paragraph_break
+    contents
+    paragraph_break
+@endcode
  *
  * @~french
  * Crée un paragraphe isolé.
@@ -344,12 +344,12 @@ text_span(contents:tree);
  * du texte, l'espacement des parapgraphes, les polices, la couleur, qui sont
  * faites dans @p contents n'ont pas d'effet à l'extérieur du para_span.
  * Cette fonction est équivalente à :
- * @code
- * text_span
- *     paragraph_break
- *     contents
- *     paragraph_break
- * @endcode
+@code
+text_span
+    paragraph_break
+    contents
+    paragraph_break
+@endcode
  */
 paragraph(contents:tree);
 
@@ -374,9 +374,9 @@ text(t:text);
  *
  * For instance you may write the following expression to select
  * font family @p Ubuntu in 24 point size and bold weight:
- * @code
- * font "Ubuntu", 24, bold
- * @endcode
+@code
+font "Ubuntu", 24, bold
+@endcode
  * The following arguments are recognized:
  * <ul>
  *   <li> @b "FontFamily" or @b "FontFamily/Style". Selects the font
@@ -387,34 +387,34 @@ text(t:text);
  *       "Demi". @n Some style names are equivalent to style primitives or
  *       keywords: "Bold" is equivalent to @ref bold, "Italic" is equivalent to
  *       @ref italic. "Regular" is equivalent to @ref roman. For instance:
- * @code
- * font "Ubuntu/Bold Italic"
- * @endcode
+@code
+font "Ubuntu/Bold Italic"
+@endcode
  *       has the same effect as:
- * @code
- * font "Ubuntu"
- * bold
- * italic
- * @endcode
+@code
+font "Ubuntu"
+bold
+italic
+@endcode
  *        Consequently, the effect of the style qualifier applies not only
  *        to the current font, but also to the subsequent font declarations.
  *        In the following example, @a both words are italicized:
- * @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Hello, "
- *     font "Andika Basic"  // does NOT cancel italic
- *     text "world!"
- * @endcode
+@code
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Hello, "
+    font "Andika Basic"  // does NOT cancel italic
+    text "world!"
+@endcode
  *        To cancel the italic mode, you would need to call @ref roman or
  *        use the "/Regular" style qualifier, like this:
- * @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Hello, "
- *     font "Andika Basic/Regular"  // cancels italic
- *     text "world!"
- * @endcode
+@code
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Hello, "
+    font "Andika Basic/Regular"  // cancels italic
+    text "world!"
+@endcode
  *   <li> @p number. Sets the font size, in points.
  *   <li> @b plain, @b default, @b normal. Resets all font attributes.
  *       See @ref plain.
@@ -498,9 +498,9 @@ bold
  *
  * Par exemple, pour sélectionner la police de la famille @p Ubuntu en taille
  * 24 points et en gras :
- * @code
- * font "Ubuntu", 24, bold
- * @endcode
+@code
+font "Ubuntu", 24, bold
+@endcode
  * Les paramètres suivants sont reconnus :
  * <ul>
  *   <li> @b "FamilleDeCaractères" ou @b "FamilleDeCaractères/Style".
@@ -513,34 +513,34 @@ bold
  *       primitives qui ont le même effet :
  *       "Bold" est équivalent à @ref bold, "Italic" est équivalent à
  *       @ref italic. "Regular" est équivalent à @ref roman. Par exemple :
- * @code
- * font "Ubuntu/Bold Italic"
- * @endcode
+@code
+font "Ubuntu/Bold Italic"
+@endcode
  *       a le même effet que:
- * @code
- * font "Ubuntu"
- * bold
- * italic
- * @endcode
+@code
+font "Ubuntu"
+bold
+italic
+@endcode
  *        Par conséquent, l'effet du qualificatif de style s'applique non
  *        seulement à la police courant, mais aussi aux déclarations suivantes.
  *        Dans l'exemple qui suit, @a les @a deux mots sont en italique :
- * @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Andika "
- *     font "Andika Basic"  // n'annule PAS l'italique
- *     text "Basic"
- * @endcode
+@code
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Andika "
+    font "Andika Basic"  // n'annule PAS l'italique
+    text "Basic"
+@endcode
  *        Pour annuler l'italique, il faut utiliser @ref roman ou le
  *        qualificatif "/Regular" comme ceci :
- * @code
- * text_box 0, 0, 200, 100,
- *     font "Andika Basic/Italic"
- *     text "Andika "
- *     font "Andika Basic/Regular"  // annule l'italique
- *     text "Basic"
- * @endcode
+@code
+text_box 0, 0, 200, 100,
+    font "Andika Basic/Italic"
+    text "Andika "
+    font "Andika Basic/Regular"  // annule l'italique
+    text "Basic"
+@endcode
  *   <li> @p un nombre. Définit la taille de la police, en points.
  *   <li> @b plain, @b default, @b normal. Ré-initialise tous les attributs.
  *       Cf. @ref plain.
@@ -652,14 +652,14 @@ font_size(size:real);
  * Ré-initialise les attributs de la police de caractères courante.
  * Équivalent au code suivant :
  * @~
- * @code
+@code
 roman
 regular
 underline 0
 stretch 1.0
 overline 0
 strikeout 0
- * @endcode
+@endcode
  */
 plain();
 
@@ -881,7 +881,7 @@ align(center:real, justify:real, spread:real, full_justify:real);
  * Équivalent à :
  *
  * @~
- * @code align center, justify, spread, 0 @endcode
+@code align center, justify, spread, 0 @endcode
  */
 align(center:real, justify:real, spread:real);
 
@@ -895,7 +895,7 @@ align(center:real, justify:real, spread:real);
  * Équivalent à :
  *
  * @~
- * @code align center, justify, 0, 0 @endcode
+@code align center, justify, 0, 0 @endcode
  */
 align(center:real, justify:real);
 
@@ -909,7 +909,7 @@ align(center:real, justify:real);
  * Équivalent à :
  *
  * @~
- * @code align center, 0, 0, 0 @endcode
+@code align center, 0, 0, 0 @endcode
  */
 align(center:real);
 
@@ -921,7 +921,7 @@ align(center:real);
  * Aligne le texte à gauche.
  * Équivalent à :
  * @~
- * @code align 0, 0, 0, 0 @endcode
+@code align 0, 0, 0, 0 @endcode
  */
 align_left();
 
@@ -933,7 +933,7 @@ align_left();
  * Aligne le texte à droite.
  * Équivalent à :
  * @~
- * @code align 1, 0, 0, 0 @endcode
+@code align 1, 0, 0, 0 @endcode
  */
 align_right();
 
@@ -945,7 +945,7 @@ align_right();
  * Centre le texte horizontalement.
  * Équivalent à :
  * @~
- * @code align 0.5, 0, 0, 0 @endcode
+@code align 0.5, 0, 0, 0 @endcode
  */
 align_center();
 
@@ -964,7 +964,7 @@ align_center();
  * La justification se fait en ajustant les espaces entre les mots mais sans
  * modifier les espaces entre les caractères d'un même mot.
  * @~
- * @code align 0, 1, 0, 0 @endcode
+@code align 0, 1, 0, 0 @endcode
  */
 align_justify();
 
@@ -994,7 +994,7 @@ align_left_justify();
  * modifier les espaces entre les caractères d'un même mot.
  * Équivalent à :
  * @~
- * @code align 1, 1, 0, 0 @endcode
+@code align 1, 1, 0, 0 @endcode
  */
 align_right_justify();
 
@@ -1018,7 +1018,7 @@ align_right_justify();
  * modifier les espaces entre les caractères d'un même mot.
  * Équivalent à :
  * @~
- * @code align 1, 1, 0, 0 @endcode
+@code align 1, 1, 0, 0 @endcode
  */
 align_full_justify();
 
@@ -1036,7 +1036,7 @@ align_full_justify();
  * les mots. La dernière ligne de chaque paragraphe est alignée à gauche.
  * Équivalent à :
  * @~
- * @code align 0, 1, 1, 0 @endcode
+@code align 0, 1, 1, 0 @endcode
  */
 align_spread();
 
@@ -1053,7 +1053,7 @@ align_spread();
  * paragraphe).
  * Équivalent à :
  * @~
- * @code align 0, 1, 1, 1 @endcode
+@code align 0, 1, 1, 1 @endcode
  */
 align_full_spread();
 
@@ -1102,7 +1102,7 @@ vertical_align(center:real, justify:real, spread:real, full_justify:real);
  * Définit les paramètres de justification verticale.
  * Équivalent à :
  * @~
- * @code vertical_align center, justify, spread, 0 @endcode
+@code vertical_align center, justify, spread, 0 @endcode
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real, justify:real, spread:real);
@@ -1115,7 +1115,7 @@ vertical_align(center:real, justify:real, spread:real);
  * Définit les paramètres de justification verticale.
  * Équivalent à :
  * @~
- * @code vertical_align center, justify, 0, 0 @endcode
+@code vertical_align center, justify, 0, 0 @endcode
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real, justify:real);
@@ -1128,7 +1128,7 @@ vertical_align(center:real, justify:real);
  * Définit les paramètres de justification verticale.
  * Équivalent à :
  * @~
- * @code vertical_align center, 0, 0, 0 @endcode
+@code vertical_align center, 0, 0, 0 @endcode
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real);
@@ -1146,7 +1146,7 @@ vertical_align(center:real);
  * trouve en bas de la boîte.
  * Équivalent à :
  * @~
- * @code vertical_align 0, 0, 0, 0 @endcode
+@code vertical_align 0, 0, 0, 0 @endcode
  */
 vertical_align_top();
 
@@ -1162,7 +1162,7 @@ vertical_align_top();
  * trouve en haut de la boîte.
  * Équivalent à :
  * @~
- * @code vertical_align 1, 0, 0, 0 @endcode
+@code vertical_align 1, 0, 0, 0 @endcode
  */
 vertical_align_bottom();
 
@@ -1179,7 +1179,7 @@ vertical_align_bottom();
  * répartit également en haut et en bas.
  * Équivalent à :
  * @~
- * @code vertical_align 1, 0, 0, 0 @endcode
+@code vertical_align 1, 0, 0, 0 @endcode
  */
 vertical_align_center();
 
@@ -1191,7 +1191,7 @@ vertical_align_center();
  * Justifie les lignes de texte verticalement dans la boîte de texte.
  * Équivalent à :
  * @~
- * @code vertical_align 0, 1, 0, 1 @endcode
+@code vertical_align 0, 1, 0, 1 @endcode
  */
 vertical_align_justify();
 
@@ -1206,7 +1206,7 @@ vertical_align_justify();
  * au bas de la boîte.
  * Équivalent à :
  * @~
- * @code vertical_align 0, 1, 1, 1 @endcode
+@code vertical_align 0, 1, 1, 1 @endcode
  */
 vertical_align_spread();
 
@@ -1348,60 +1348,163 @@ unicode_char(code:integer);
  * Si @p code n'est pas un entier valide, une chaîne vide est retournée.
  * Par exemple:
  * @~
- * @code
+@code
 uc X -> unicode_char X
 text uc 169 & " Ta" & uc "x6f" & "dy" & uc "x6E" & "e"
- * @endcode
+@endcode
  */
 unicode_char(code:text);
 
 
 /**
  * @~english
- * Positions graphics relative to the current text position.
+ * Positions graphics relative to the current text position without
+ * affecting the layout of subsequent text.
  * The graphics described by @p Body are drawn relative to the current
- * text position, i.e. the graphic moves with the text.
- * For example, the following draws a red dot immediately before "World":
+ * text position, i.e., they move with the text.
+ * For instance:
+@code
+page "Cursor",
+    Msg -> "This example shows how one may use the 'anchor' primitive " &
+           "to draw a rectangular-shaped cursor inside a text box." &
+           cr & cr &
+           "Press <return> to start over."
+    MsgLen -> text_length Msg
+    Speed -> 0.2
+    ShowCursor ->
+        page_time < 1/Speed or (integer (page_time * 1.5)) mod 2 = 1 or page_time > 1/Speed + 4
+
+    clear_color 0.16, 0.16, 0.13, 1.0
+    text_box 0, 0, 0.8 * window_width, 200,
+        font "Courier New", 24
+        color "white"
+        align_left
+        text text_range (Msg, 0, integer (Speed * MsgLen * page_time))
+        if ShowCursor then
+            anchor
+                color 0, 0.75, 0.15
+                rectangle 0, 8, 12, 24
+
+key "Return" -> goto_page page_name 1 ; refresh 0
+@endcode
+ * The graphics take no space in the text, that is,
+ * @p anchor does not affect the layout of subsequent text.
+ * Here is another example to illustrates this fact:
+@code
+page "Highlight",
+    Highlight T:text ->
+        // Draw text first to avoid end-of-line problem
+        text T
+        anchor
+            W -> text_width T
+            // Z translation to draw the rectangle under the text
+            translatez -1
+            color "yellow"
+            rectangle -W/2, 8, W, 24
+            color "black"
+    text_box 0, 0, 0.5 * window_width, 100,
+        font "Arial", 24
+        Highlight "Test"; text ": Using anchor to "; Highlight "highlight"
+        text " a word."
+@endcode
+ * Note that, in the above code, the highlight rectangle is drawn
+ * <em>after</em> the word
+ * that is to be highlighted for a simple reason: the handling of end-of-lines.
+ * Indeed, if the @p anchor block was to be executed before the subsequent word,
+ * there may be circumstances where the rectangle would be drawn at the current
+ * cursor position (the end of a line) but the word would be sent to the next
+ * line because it would not fit in the current line.
  * @~french
- * Positionne un graphique par rapport à la position actuelle du texte.
- * Le graphique décrit par @p Body est positionné par rapport à la
- * position actuelle du texte, c'est à dire que le graphique se
- * déplace avec le texte.
- * Par exemple, pour dessiner un point rouge juste sous "World" :
+ * Affiche des graphismes à la position actuelle du curseur de texte sans
+ * interférer avec le texte qui suit.
+ * Les graphismes décrit par @p Body sont dessinés à la position courante du
+ * curseur de texte, c'est à dire qu'ils se déplacent avec lui.
+ * Par exemple :
+@code
+page "Curseur",
+    Msg -> "Cette exemple montre comment utiliser la primitive ""anchor""" &
+           "pour dessiner un curseur rectangulaire à l'intérieur d'un texte." &
+           cr & cr &
+           "Appuyez sur <entrée> pour recommencer."
+    MsgLen -> text_length Msg
+    Speed -> 30
+    ShowCursor ->
+        page_time < MsgLen/Speed or (integer (page_time * 1.5)) mod 2 = 1 or page_time > MsgLen/Speed + 4
+
+    clear_color 0.16, 0.16, 0.13, 1.0
+    text_box 0, 0, 0.8 * window_width, 200,
+        font "Courier New", 24
+        color "white"
+        align_left
+        text text_range (Msg, 0, integer (Speed * page_time))
+        if ShowCursor then
+            anchor
+                color 0, 0.75, 0.15
+                rectangle 4, 8, 12, 24
+
+key "Return" -> goto_page page_name 1 ; refresh 0
+@endcode
+ * Les éléments dessinés par @p anchor n'affectent pas le positionnement
+ * du texte qui suit. Voici un exemple qui illustre ce fait:
+@code
+page "Surlignage",
+    Surligne T:text ->
+        // Affiche le texte d'abord pour éviter les problèmes en fin de ligne
+        text T
+        anchor
+            W -> text_width T
+            // Translation en Z pour que le rectangle soit derrière le texte
+            translatez -1
+            color "yellow"
+            rectangle -W/2, 8, W, 24
+            color "black"
+    text_box 0, 0, 0.5 * window_width, 100,
+        font "Arial", 24
+        Surligne "Test"
+        text ": Utilisation de anchor pour "
+        Surligne "surligner"
+        text " un mot."
+@endcode
+ * À noter : dans le code ci-dessus, le rectangle jaune est dessiné <em>après</em> le
+ * text qu'il met en évidence pour éviter tout problème en fin de ligne.
+ * En effet, si le bloc @p anchor était exécuté avant l'affichage du mot,
+ * le rectangle pourrait dans certains cas être affiché en fin de ligne
+ * (la position courante du curseur de texte au moment de l'appel) alors que
+ * mot suivant serait rejeté à la ligne suivante pour des raisons de
+ * justification.
  * @~
- * @code
-text_box 0, 0, 800, 600,
-    text "Hello" & text page_time
-    anchor
-        color "red"
-        circle 0, -10, 5
-    text "World"
- * @endcode
+ * @see floating
  */
 anchor(Body:code);
 
 
 /**
  * @~english
- * Positions graphics relative to the current text box
- * The graphics described by @p Body are drawn relative to the current
- * text box, i.e. the graphic does not move with the text.
- * For example, the following draws a rectangle covering the text box:
+ * Positions graphics relative to the current text box.
+ * The graphics described by @p Body are drawn relative to the coordinate
+ * system in which the current @ref text_box is drawn.
+ * The graphics do not move with the text. They are not affected either by the
+ * @p x and @p y parameters of @ref text_box.
+ * For example, the following draws a translucid rectangle of the same size
+ * and at the same position as the text box, but covering only the word 'Hello,':
  * @~french
- * Positionne un graphique par rapport à la position actuelle de la boîte de texte.
- * Le graphique décrit par @p Body est positionné par rapport à la boîte de texte,
- * et non par rapport à la position actuelle du texte, c'est à dire que le graphique
- * ne se déplace pas avec le texte.
- * Par exemple, le code suivant dessine un rectangle couvrant la boîte de texte :
+ * Affiche des graphismes dans le système de coordonnées dans lequel la
+ * boîte de texte actuelle se trouve.
+ * Les graphismes ne se déplace pas avec le texte. Ils ne sont pas non plus
+ * affectés par les paramètres @p x et @p y de @ref text_box.
+ * Par exemple, le code suivant dessine un rectangle translucide de la même
+ * taille que la boîte de texte et à la même position, mais qui couvre
+ * seulement le mot "Hello, " :
  * @~
- * @code
-text_box 0, 0, 800, 600,
-    text "Hello" & text page_time
+@code
+text_box 0, 0, 300, 200,
+    text "Hello, "
     floating
         color "red", 0.3
-        rectangle 0, 0, 800, 600
+        rectangle 0, 0, 300, 200
     text "World"
- * @endcode
+@endcode
+ * @see anchor
  */
 floating(Body:code);
 
@@ -1483,6 +1586,93 @@ glyph_cache_size_range (min:real, max:real);
  */
 
 glyph_cache_scaling (scaling:real, minSize:real);
+
+
+/**
+ * @~english
+ * Return the width in pixels of the specified text rendered with the
+ * current font.
+ * For example:
+ * @~french
+ * Renvoie la largeur en pixels du texte spécifié dans la police courante.
+ * Par exemple:
+ * @~
+@code
+page "text_width/text_height",
+    Msg -> "1, 2, 3"
+    font "Times", 50
+    locally
+        color "blue", 50%
+        rectangle 0, 0, text_width Msg, text_height Msg
+    text_box 0, 0,  1.2 * text_width Msg, text_height Msg,
+        vertical_align_center
+        align_center
+        text Msg
+@endcode
+ * @see text_height
+ */
+real text_width(T:text);
+
+
+/**
+ * @~english
+ * Return the height in pixels of the specified text rendered with the
+ * current font.
+ * @~french
+ * Renvoie la heuteur en pixels du texte spécifié dans la police courante.
+ * @~
+ * @see text_width
+ */
+real text_height(T:text);
+
+
+/**
+ * @~english
+ * Replace regular spaces with no-break spaces.
+ * In the following example, no line break will be inserted between the
+ * words "SED DO EIUSMOD", even when the size of the window changes.
+ * @~french
+ * Remplace les espaces classiques par des espaces insécables.
+ * Dans l'exemple qui suit, il n'y aura jamais de retour à la ligne entre les
+ * mots "SED DO EIUSMOD", quelle que soit la largeur de la fenêtre.
+ * @~
+@code
+text_box 0, 0, 0.8 * window_width, 150,
+    font "Courier", 20
+    text "Lorem ipsum dolor " &
+         "sit amet, consectetur adipisicing elit, " &
+         nobreak "SED DO EIUSMOD" &
+         " tempor incididunt ut labore et dolore magna aliqua."
+@endcode
+ */
+text nobreak(T:text);
+
+
+/**
+ * @~english
+ * A carriage return character.
+ * Defined as:
+ * @~french
+ * Un caractère "retour à la ligne".
+ * Défini comme :
+ * @~
+ * @code unicode_char 13 @endcode
+ */
+text cr();
+
+
+
+/**
+ * @~english
+ * A no-break space character.
+ * Defined as:
+ * @~french
+ * Un caractère "espace insécable".
+ * Défini comme :
+ * @~
+ * @code unicode_char 160 @endcode
+ */
+text nbsp();
 
 /**
  * @}

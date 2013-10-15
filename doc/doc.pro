@@ -31,7 +31,7 @@ equals(HAS_DOXYGEN, 1) {
   include (../main_defs.pri)
   include (../version.pri)
 
-  PROJECT_NUMBER = $$system(bash -c \"git describe --tags --always --dirty=-dirty\")
+  PROJECT_NUMBER = $$system(bash -c \"../tao/updaterev.sh -n\")
   macx:TAO_ICON_FOR_QHCP = ../tao/tao.icns
   win32:TAO_ICON_FOR_QHCP = ../tao/tao.ico
   !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png

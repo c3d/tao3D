@@ -1595,6 +1595,42 @@ blink Body ->
         show seconds mod 2
         render Body
 
+
+color Col:text, Alpha:real, Body:block ->
+// ----------------------------------------------------------------------------
+//   Display text in the given color (by name) and alpha
+// ----------------------------------------------------------------------------
+    text_span
+        color Col, Alpha
+        render Body
+
+
+color Col:text, Body:block ->
+// ----------------------------------------------------------------------------
+//   Display text in the given color (by name)
+// ----------------------------------------------------------------------------
+    text_span
+        color Col
+        render Body
+
+
+color Red:real, Green:real, Blue:real, Alpha:real, Body:block ->
+// ----------------------------------------------------------------------------
+//   Display text in the given color (RGBA)
+// ----------------------------------------------------------------------------
+    text_span
+        color Red, Green, Blue, Alpha
+        render Body
+
+
+color Red:real, Green:real, Blue:real, Body:block ->
+// ----------------------------------------------------------------------------
+//   Display text in the given color (RGB)
+// ----------------------------------------------------------------------------
+    text_span
+        color Red, Green, Blue
+        render Body
+
 // Alternate names for emphasis and strong (<em> and <strong>)
 emphasis Body   -> italic Body
 strong Body     -> bold Body
@@ -1603,6 +1639,15 @@ strong Body     -> bold Body
 para_span Body  -> paragraph Body
 
 
+nobreak T:text ->
+// ----------------------------------------------------------------------------
+//   Prevent word break on spaces by replacing them with a no-break space
+// ----------------------------------------------------------------------------
+    text_replace T, " ", nbsp
+
+// Shortcuts for come special characters
+nbsp -> unicode_char 160
+cr -> unicode_char 13
 
 // ============================================================================
 // 

@@ -114,10 +114,10 @@
  *    valid Tao documents on their own. For instance, you may want to subdivide
  *    a long or complex presentation into several shorter ones, and then create
  *    a main <tt>.ddd</tt> file that will simply import all the others:
- * @code
+@code
 import "first_part.ddd"
 import "second_part.ddd"
- * @endcode
+@endcode
  *    When an imported file cannot be opened as a Tao document on its own,
  *    it is usual to name it with a <tt>.xl</tt> extension to denote that the
  *    file is XL(R) language source.
@@ -149,10 +149,10 @@ import "second_part.ddd"
  *    des documents Tao valides. Vous pouvez par exemple diviser une
  *    présentation longue ou complexe en plusieurs documents plus courts, puis
  *    créer un fichier <tt>.ddd</tt> principal qui importe les autres :
- * @code
+@code
 import "first_part.ddd"
 import "second_part.ddd"
- * @endcode
+@endcode
  *    Lorsqu'un fichier importé ne peut pas être ouvert directement comme un
  *    document Tao, il est habituel de le nommer avec l'extension <tt>.xl</tt>
  *    pour mettre en évidence qu'il s'agit de source XL(R).
@@ -179,37 +179,37 @@ import "second_part.ddd"
  *
  * You can group items and give them names using the rewrite operator @c -> and an
  * indented block, like this:
- * @code
+@code
 my_items ->
     first_item
     second_item
- * @endcode
+@endcode
  * It means that writing @c my_items is equivalent to @c first_item followed by
  * @c second_item. You can also use parameters, such as in:
- * @code
+@code
 my_circle Radius ->
     color "red"
     circle 0, 0, Radius
- * @endcode
+@endcode
  * Here, @c Radius may be considered as a parameter and @c my_circle is like a
  * function (or procedure).
  * @warning The unqualified word @c Radius in the left part of the @c ->
  * operator is in the same lexical scope as @c my_circle. Therefore, suppose
  * you have previously defined a @c Radius symbol, for instance
  * <tt>Radius -> 50</tt>:
- * @code
+@code
 Radius -> 50
 my_circle Radius ->
     color "red"
     circle 0, 0, Radius
- * @endcode
+@endcode
  Then, the definition of @c my_circle would evaluate
  * to:
- * @code
+@code
 my_circle 50 ->
     color "red"
     circle 0, 0, 50
- * @endcode
+@endcode
  * ...which is legal, but probably not what you would expect: in the end,
  * only <tt>my_circle 50</tt> would be defined and could be used. Trying to
  * call @c my_circle with any other value (for instance, 100) would result
@@ -223,11 +223,11 @@ No form matches my_circle 100
  * builtins.
  * In our example, we could also qualify the @c Radius parameter to make
  * it obvious that is is a parameter:
- * @code
+@code
 my_circle Radius:real ->
     color "red"
     circle 0, 0, Radius
- * @endcode
+@endcode
  *
  * @~french
  * @section secDocStructure Structure d'un document
@@ -241,37 +241,37 @@ my_circle Radius:real ->
  *
  * Vous pouvez grouper des éléments et leur donner un nom en utilisant la
  * fléche @c -> de la façon suivante :
- * @code
+@code
 mes_articles ->
     premier_article
     second_article
- * @endcode
+@endcode
  * Celà signifie que @c mes_articles est équivalent à @c premier_article
  * suivi de @c second_article. Vous pouvez également passer des paramètres,
  * par exemple :
- * @code
+@code
 mon_cercle Rayon ->
     color "red"
     circle 0, 0, Rayon
- * @endcode
+@endcode
  * Ici, @c Rayon peut être considéré comme un paramètre et @c mon_cercle est
  * comme une function (ou une procédure).
  * @warning Le nom @c Rayon à gauche de la flèche @c ->
  * est dans le même portée lexicale que @c mon_cercle. Par conséquent,
  * supposons que vous ayez précédemment défini un symbole @c Rayon,
  * par exemple <tt>Rayon -> 50</tt> :
- * @code
+@code
 Rayon -> 50
 mon_cercle Rayon ->
     color "red"
     circle 0, 0, Rayon
- * @endcode
+@endcode
  * Dans ce cas, la définition de @c mon_cercle se transformerait en :
- * @code
+@code
 mon_cercle 50 ->
     color "red"
     circle 0, 0, 50
- * @endcode
+@endcode
  * ...ce qui est valide, mais probablement pas ce que vous attendiez.
  * En effet, seul <tt>mon_cercle 50</tt> serait définit et pourrait
  * être utilisé. Si vous essayiez d'appeler
@@ -288,11 +288,11 @@ No form matches my_circle 100
  * en minuscules).
  * Pour revenir à notre exemple, nous aurions aussi pu qualifier le paramètre
  * @c Rayon pour mettre en évidence le fait qu'il s'agit d'un paramètre :
- * @code
+@code
 mon_cercle Rayon:real ->
     color "red"
     circle 0, 0, Rayon
- * @endcode
+@endcode
  *
  * @~english
  * @section secXLRef The XLR Language
@@ -418,13 +418,13 @@ taille := 10.0 // Initialise la variable
  *
  * The following example shows how events trigger partial execution.
  *
- * @code
+@code
 writeln "1: minutes = " & text minutes
 locally
     writeln "2: seconds = " & text seconds
 locally
     writeln "3: mouse_x = " & text mouse_x
- * @endcode
+@endcode
  *
  * The above code first writes three lines of text, one for each
  * message. This corresponds to the first, complete execution of the
@@ -483,13 +483,13 @@ locally
  * L'exemple qui suit montre comment des événements déclenchent l'exécution
  * partielle du document.
  *
- * @code
+@code
 writeln "1: minutes = " & text minutes
 locally
     writeln "2: seconds = " & text seconds
 locally
     writeln "3: mouse_x = " & text mouse_x
- * @endcode
+@endcode
  *
  * Le code ci-dessus affiche d'abord trois lignes de texte, une pour chaque
  * message. Celà correspond à la première exécution complète du document. @n
@@ -512,9 +512,9 @@ locally
  *
  * Some primitives that take a file name or file path accept a special syntax
  * called a <em>search path prefix</em>. For instance:
- * @code
+@code
 image 0, 0, 100%, 100%, "image:file.jpg"
- * @endcode
+@endcode
  * The @c image: prefix indicates where to find the file. Tao will look for
  * @c file.jpg in several folders and use the first file it can find.
  * Here is where Tao will look for files for each prefix:
@@ -536,9 +536,9 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * Certaines primitives qui prennent pour paramètre un nom de fichier
  * acceptent une syntaxe spéciale appelée un <em>préfixe de chemin
  * additionnel</em>. Par exemple :
- * @code
+@code
 image 0, 0, 100%, 100%, "image:file.jpg"
- * @endcode
+@endcode
  * Le préfixe @c image: indique comment trouver le fichier. Tao va chercher
  * @c file.jpg dans plusieurs dossiers, et utiliser le premier fichier trouvé.
  * Voici les dossiers dans lesquels Tao va chercher pour chaque préfixe :
@@ -590,7 +590,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * (the main document), @c US.ddd (the slides for the US region) and
  * @c Europe.ddd (for Europe), and use the @c import statement. For this
  * usage, @c import expects a file name enclosed in double quotes:
- * @code
+@code
 // SalesReport.ddd
 
 page "Introduction",
@@ -598,7 +598,7 @@ page "Introduction",
 
 import "US.ddd"
 import "Europe.ddd"
- * @endcode
+@endcode
  * With this technique, you can open any of the three @c .ddd files
  * and thus show exactly the information you want.
  *
@@ -606,7 +606,7 @@ import "Europe.ddd"
  * You may use the @c import keyword to bring in definitions or
  * utilities you want to re-use often. Consider for instance the
  * following example:
- * @code
+@code
 // Example.ddd
 import "my_definitions.xl"
 page "Introduction",
@@ -617,15 +617,15 @@ page "Introduction",
         text "This is "
         my_highlight "highlighted"
         text " text"
- * @endcode
- * @code
+@endcode
+@code
 // my_definitions.xl
 my_text_color -> color "black"
 my_highlight T:text ->
     color "red"
     text T
     my_text_color
- * @endcode
+@endcode
  * Just make sure that the file @c my_definitions.xl is located in the same
  * directory as the main document, @c Example.ddd (or any other file that
  * imports it). All the
@@ -648,9 +648,9 @@ my_highlight T:text ->
  * search path prefix. For instance, create a file called
  * @c my_definitions.xl, save it in the user-specific Tao folder
  * (see @ref secSearchPaths "above"), and use it as follows:
- * @code
+@code
 import "xl:my_definitions.xl"
- * @endcode
+@endcode
  *
  * @section secUserModule User Modules
  *
@@ -752,7 +752,7 @@ import "xl:my_definitions.xl"
  * concernant la région US) et @c Europe.ddd (pour l'Europe). Dans le document
  * principal vous utilisez la directive @c import. Pour cet usage, @c import
  * attend un nom de fichier entre guillemets :
- * @code
+@code
 // RapportDesVentes.ddd
 
 page "Introduction",
@@ -760,7 +760,7 @@ page "Introduction",
 
 import "US.ddd"
 import "Europe.ddd"
- * @endcode
+@endcode
  * Grâce à cette technique, vous pouvez ouvrir n'importe lequel des trois
  * fichiers @c .ddd et ainsi montrer exactement l'information que vous
  * désirez.
@@ -768,7 +768,7 @@ import "Europe.ddd"
  * Notez que les fichiers importés peuvent ne pas être des présentations
  * complètes et autonomes. Vous pouvez utiliser le mot-clé @c import pour
  * inclure des définitions que vous utilisez souvent. Par exemple :
- * @code
+@code
 // Exemple.ddd
 import "mes_définitions.xl"
 page "Introduction",
@@ -779,15 +779,15 @@ page "Introduction",
         text "On peut "
         en_évidence "mettre en évidence"
         text " du texte"
- * @endcode
- * @code
+@endcode
+@code
 // mes_définitions.xl
 ma_couleur_de_texte -> color "black"
 en_évidence T:text ->
     color "red"
     text T
     ma_couleur_de_texte
- * @endcode
+@endcode
  * Assurez vous que le fichier @c mes_définitions.xl se trouve dans le même
  * répertoire que le fichier qui l'importe (@c Exemple.ddd).
  * Toutes les définitions dont vous avez besoin se trouvent rassemblées en
@@ -810,9 +810,9 @@ en_évidence T:text ->
  * d'utiliser le préfixe @c xl:. Par exemple, créez un fichier
  * @c mes_définitions.xl, enregistrez-le dans le dossier utilisateur Tao
  * (cf. @ref secSearchPaths "ci-dessus"), et utilisez-le comme suit :
- * @code
+@code
 import "xl:mes_définitions.xl"
- * @endcode
+@endcode
  *
  * @section secUserModule Les modules utilisateur
  *

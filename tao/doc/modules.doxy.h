@@ -109,17 +109,17 @@ import(modulename:name);
  * @~english
  * Loads a source file and makes its definitions available to the main program.
  * For example:
- * @code
+@code
 import "file.xl"
 import "file.ddd"
- * @endcode
+@endcode
  * @~french
  * Charge un fichier source et rend ses définitions disponibles au programme
  * principal. Par exemple:
- * @code
+@code
 import "fichier.xl"
 import "fichier.ddd"
- * @endcode
+@endcode
  */
 import(file:text);
 

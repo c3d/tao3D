@@ -8888,7 +8888,8 @@ Tree_p Widget::ellipseArc(Tree_p self,
 //   Circular sector centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
-    // start and sweep must be provided upsidedown because of y flip. See Bug#787
+    // Start and sweep must be provided upsidedown because of y flip.
+    // See Bug#787
     EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep);
     if (path)
         shape.Draw(*path);
@@ -9853,7 +9854,6 @@ Text_p Widget::loadText(Tree_p self, text file, text encoding)
         file = "doc:" + file;
         fileInfo.setFile(+file);
     }
-    srcFileMonitor.addPath(+file);
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
     LoadTextInfo::PerFile *pf = NULL;

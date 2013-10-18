@@ -1,49 +1,67 @@
-theme "AutumnOnEarth"
+// Document généré par l'Éditeur Tao depuis le fichier
+// sample_slide.json le 2013-10-18T15:52:16.837Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
+
+import AutumnOnEarthTheme
 import VLCAudioVideo
-
-
+theme "AutumnOnEarth"
 main_title_slide "Main title",
     title
         text "Autumn On Earth Theme"
     subtitle
-        text "An environmental theme"
-        line_break
-        font_size 20
-        text "Background image by Norebbo, used with permission"
-        
-
-
-section_slide "Section title",
+        paragraph
+            text "An environmental theme"
+        paragraph
+            text_span
+                font_size 0.7142857142857143 * theme_size(theme, slide_master, "story")
+                text "Background image by Norebbo, used with permission"
+theme "AutumnOnEarth"
+section_slide "Section slide",
     title
         text "Section title"
     subtitle
         text "Section subtitle"
-
-
+theme "AutumnOnEarth"
 slide "Bullet points",
-    * "Bullet points"
-    ** "More bullet points"
-    *** "Deeper"
-    --
-    * "Again"
-    ++ "Numbered text"
-    ++ "Numbered"
-    -- "Additional text"
-
-
+    *
+        text "Bullet points"
+    **
+        text "More bullet points"
+    ***
+        text "Deeper"
+    paragraph
+        text " "
+    *
+        text "Again"
+    +
+        text "Numbered text"
+    +
+        text "Numbered"
+    paragraph
+        - ""
+        text "Additional text"
+theme "AutumnOnEarth"
 picture_slide "Picture slide",
-    translatez -500
-    rotatez 5
-    image 0, 0, 0.8, 0.8, "http://4.bp.blogspot.com/-yl3tNmbZcFs/T1RQRe81siI/AAAAAAAAADY/rwY672aTwko/s1600/end-of-the-world.jpg"
-    movie_only ""
-
-
+    locally
+        color "white"
+        image 40, 0, 70%, 70%, "http://4.bp.blogspot.com/-yl3tNmbZcFs/T1RQRe81siI/AAAAAAAAADY/rwY672aTwko/s1600/end-of-the-world.jpg"
+theme "AutumnOnEarth"
 picture_slide "YouTube Video slide",
-    left_picture
-        translate 240, 100, -150
-        rotatey 180 * sin (0.2*time) ^ 19
-        rotatez 5
-        movie 0, 0, 1.2, 1.2, "http://www.youtube.com/watch?v=rn1n-YYHs4g&fmt=43"
+    locally
+        color "white"
+        movie -250, 0, 100%, 100%, "http://www.youtube.com/watch?v=rn1n-YYHs4g&fmt=43"
     right_column
-        - "Video on the left:"
-        - "Global Warming Documentary by National Geographic"
+        paragraph
+            text_span
+                font_size 0.8571428571428571 * theme_size(theme, slide_master, "story")
+                text "Video on the left:"
+        paragraph
+            text_span
+                font_size 0.8571428571428571 * theme_size(theme, slide_master, "story")
+                text "Global Warming Documentary by National Geographic"
+on "pagechange",
+    if prev_page_label = "YouTube Video slide" then
+        movie_drop "http://www.youtube.com/watch?v=rn1n-YYHs4g&fmt=43"

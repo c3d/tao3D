@@ -1,44 +1,57 @@
+// Document généré par l'Éditeur Tao depuis le fichier
+// sample_slide.json le 2013-10-18T14:24:44.168Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
 
-theme "Keyboard"
+import KeyboardTheme
 import VLCAudioVideo
-
-
+theme "Keyboard"
 main_title_slide "Main title",
     title
         text "Keyboard theme"
     subtitle
-        text "A theme for software presentations"
-
-
+        paragraph
+            text "A theme for software presentations"
+theme "Keyboard"
 section_slide "Section title",
     title
         text "Section title"
     subtitle
         text "Section subtitle"
-
-
+theme "Keyboard"
 slide "Bullet points",
-    * "Bullet points"
-    ** "More bullet points"
-    *** "Deeper"
-    --
-    * "Again"
-    ++ "Numbered text"
-    ++ "Numbered"
-    -- "Additional text"
-
-
+    *
+        text "Bullet points"
+    **
+        text "More bullet points"
+    ***
+        text "Deeper"
+    *
+        text "Again"
+    ++
+        text "Numbered text"
+    ++
+        text "Numbered"
+    paragraph
+        -- ""
+        text "Additional text"
+theme "Keyboard"
 picture_slide "Picture slide",
-    translatez -500
-    image 0, 0, 2.5, 2.5, "http://www.digibarn.com/collections/systems/apple-lisa2xl/apple_lisa_screenshot.gif"
-    movie_only ""
-
-
+    locally
+        color "white"
+        image 0, -80, 200%, 200%, "http://www.digibarn.com/collections/systems/apple-lisa2xl/apple_lisa_screenshot.gif"
+theme "Keyboard"
 picture_slide "YouTube Video slide",
-    left_picture
-        rotatey 15
-        movie_texture "http://www.youtube.com/watch?v=EcDQr75GlxIK&fmt=44"
-        rounded_rectangle 120, 150, 1.5*texture_width, 1.5*texture_height, 150
+    locally
+        color "white"
+        movie -240, 0, 200%, 200%, "http://www.youtube.com/watch?v=EcDQr75GlxIK&fmt=44"
     right_column
-        - "Video on the left:"
-        - "The Typewriter played by Jerry Lewis"
+        paragraph
+            text "Video on the left:"
+        paragraph
+            text "The Typewriter played by Jerry Lewis"
+on "pagechange",
+    if prev_page_label = "YouTube Video slide" then
+        movie_drop "http://www.youtube.com/watch?v=EcDQr75GlxIK&fmt=44"

@@ -181,15 +181,15 @@ draw_materials ->
     // Top circle
     locally
         translate 0, 750, 1250
-        wood 100
+        wood 1
         sphere 0, 0, 0, 500
     locally
         translate -1250, 750, -750
-        granite 100
+        granite 1
         sphere 0, 0, 0, 500
     locally
         translate 1250, 750, -750
-        marble 100
+        marble 1
         sphere 0, 0, 0, 500
     // Bottom circle
     locally

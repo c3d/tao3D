@@ -1,5 +1,23 @@
 Change log for Tao Presentations
 
+1.43 (21-Oct-2013)
+
+#3244 MacOSX build of Tao Presentations won't start unless Qt is installed
+#3243 tao_version, tao_edition and tao_language are not documented
+#3239 Animate: add [A..] notation
+#3238 Improve documentation of anchor and floating
+#3236 Shader or load_text change causes whole program reload, not just data reload
+#3234 Design editions: add link to the developers forum on taodyne.com to the help menu
+#3233 text_width and text_height are not documented
+#3232 License warning dialog has invalid link
+#3231 Add 'nobreak' text modifier to disable word breaks ; add cr and nbsp
+#3227 Non-breaking space breaks
+#3226 Add primitives: prev_page_label and prev_page_number
+#3223 Add text span for color
+#3221 Infinite loop with block passed when expecting an infix
+#3199 Crash when initially empty file become non-empty and contains import statement
+#3091 Write a welcome page for Player Edition
+
 1.42 (24-Sep-2013)
 
 #3208 Add a new Landscapes theme to Tao Presentations

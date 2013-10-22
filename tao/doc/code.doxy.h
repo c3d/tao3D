@@ -636,4 +636,46 @@ boolean meta_modifier();
  */
 disabled (B: block);
 
+/**
+ * @~english
+ * Returns the version identifier of Tao Presentations.
+ * The version is usually un number such as <tt>1.42</tt>, but special builds may
+ * contain other characters such as: <tt>1.0-beta4</tt> or <tt>1.42-22-gec22a39</tt>.
+ * @~french
+ * Renvoie la version de Tao Presentations sous forme d'une chaîne de caractères.
+ * La version est en général un nombre tel que <tt>1.42</tt>, mais certaines
+ * distributions du logiciel peuvent contenir d'autres caractères, par exemple :
+ * <tt>1.0-beta4</tt> ou encode <tt>1.42-22-gec22a39</tt>.
+ */
+text tao_version();
+
+/**
+ * @~english
+ * Returns the string that identifies the edition of Tao Presentations.
+ * Possible values are currently:
+ * @~french
+ * Renvoie une chaîne de caractères qui identifie l'édition de Tao Presentations.
+ * Les valeurs possibles sont actuellement:
+ * @~
+ * - <tt>Design</tt>
+ * - <tt>Design Pro</tt>
+ * - <tt>Player</tt>
+ * - <tt>Player Pro</tt>
+ */
+text tao_edition();
+
+
+/**
+ * @~english
+ * Returns the two-letter ISO 639-1 language code for the current user interface language.
+ * Possible values are currently:
+ * @~french
+ * Renvoie une chaîne de 2 caractères (ISO 639-1) qui identifie la langue de l'interface utilisateur.
+ * Les valeurs possibles sont actuellement:
+ * @~
+ * - <tt>en</tt>
+ * - <tt>fr</tt>
+ */
+text tao_language();
+
 /** @} */

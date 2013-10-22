@@ -872,10 +872,24 @@ QString Uri::repoUri()
 {
     QUrl uri(*this);
     uri.setEncodedQuery(QByteArray());
-    if (uri.scheme() == "tao")
-        uri.setScheme(GeneralPage::taoUriScheme());
-    else if (uri.scheme() == "taos")
-        uri.setScheme("ssh");
+    QString scheme = uri.scheme();
+    bool isTao = scheme == "tao" || scheme == "taos";
+    if (isTao)
+    {
+        if (scheme == "tao")
+            uri.setScheme(GeneralPage::taoUriScheme());
+        else if (scheme == "taos")
+            uri.setScheme("ssh");
+
+        // Use www.taodyne.com as the default host, and examples as default dir
+        if (uri.host() == "")
+        {
+            uri.setHost("www.taodyne.com");
+            QString path = uri.path();
+            if (path.count("/") <= 1)
+                uri.setPath("/examples" + uri.path());
+        }
+    }
 
     return uri.toString();
 }

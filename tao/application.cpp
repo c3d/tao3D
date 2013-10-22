@@ -1208,15 +1208,6 @@ double Application::runTime()
 }
 
 
-void pqs(const QString &qs)
-// ----------------------------------------------------------------------------
-//   Print a QString for debug purpose
-// ----------------------------------------------------------------------------
-{
-    qDebug() << qs << "\n";
-}
-
-
 void Application::internalCleanEverythingAsIfTaoWereNeverRun()
 // ----------------------------------------------------------------------------
 //    Clean persistent stuff that previous Tao runs may have created
@@ -1538,4 +1529,12 @@ bool Application::singleInstanceClientTalkedToServer()
     }
     return false;
 }
+}
+
+void pqs(const QString &qs)
+// ----------------------------------------------------------------------------
+//   Print a QString for debug purpose
+// ----------------------------------------------------------------------------
+{
+    std::cerr << qs.toUtf8().constData() << "\n";
 }

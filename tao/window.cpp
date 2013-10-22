@@ -1322,6 +1322,9 @@ void Window::openUri()
     QString uri = dialog.uri;
     if (uri.isEmpty())
         return;
+    if (uri.startsWith("tao:") || uri.startsWith("taos:"))
+        if (!(uri.startsWith("tao://") || uri.startsWith("taos://")))
+            uri.replace("tao:", "tao:///").replace("taos", "taos:///");
     open(uri);
 }
 

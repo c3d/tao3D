@@ -1,73 +1,59 @@
-theme "Seyes"
+// Document généré par l'Éditeur Tao depuis le fichier
+// sample_slide.json le 2013-10-22T13:53:53.396Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
+
+import SeyesTheme
 import VLCAudioVideo
-import Animate
-
-
+theme "Seyes"
 main_title_slide "Main title",
     title
         text "Seyes Theme"
     subtitle
-        text "A theme for classroom reports"
-
-
+        paragraph
+            text "A theme for classroom reports"
+theme "Seyes"
 section_slide "Section title",
     title
         text "Section title"
     subtitle
         text "Section subtitle"
-
-
+theme "Seyes"
 slide "Bullet points",
-    * "Bullet points"
-    ** "More bullet points"
-    *** "Deeper"
-    --
-    * "Again"
-    ++ "Numbered text"
-    ++ "Numbered"
-    -- "Additional text"
-
-
+    *
+        text "Bullet points"
+    **
+        text "More bullet points"
+    ***
+        text "Deeper"
+    paragraph
+        text " "
+    *
+        text "Again"
+    ++
+        text "Numbered text"
+    ++
+        text "Numbered"
+    paragraph
+        - ""
+        text "Additional text"
+theme "Seyes"
 picture_slide "Picture slide",
-    translatez -500
-    color "lightyellow"
-    image -300, 0, 1.5, 1.5, "http://blog.lesoir.be/jour-apres-jour/files/2008/11/t-20080919-00j0j7-11.jpg"
-    image 500, 0, 1, 1, "http://ars.els-cdn.com/content/image/1-s2.0-S1574101X08006145-si1.gif"
     locally
-        translate 500, -400, 200
-        rotatez random(-5, 15)
-        math_eq eq_of_the_day at random(1, size eq_of_the_day)
-        refresh 0.5
-    movie_only ""
-
-eq_of_the_day -> "\sum_{i=0}^{i=k}{i^k}", "E=m c^2", "E=h \nu", "\gamma=\frac{1}{\sqrt{1-\frac{v^2}{c^2}}}", "{\frac {d}{dx}}\arctan(\sin({x}^{2}))", "\cos x^2+\sin x^2=1", "x^n+y^n=1", "e^{i \pi}+1=0", "J_n^m=\frac{-\rho_m}{-\mu_n}", ""
-
-math_eq Eq:text ->
-    image 0, 0, 1, 1, "http://latex.codecogs.com/png.latex?\dpi{600} " & Eq
-
-
+        color "white"
+        image 0, -100, 120%, 120%, "http://blog.lesoir.be/jour-apres-jour/files/2008/11/t-20080919-00j0j7-11.jpg"
+theme "Seyes"
 picture_slide "YouTube Video slide",
-    left_picture
-        translate 50, 40, -150
-        rotatez 5
-        scale3 80%
-        MOVIE -> "http://www.youtube.com/watch?v=I0pLmcx7aH4&fmt=45"
-        color "white", fade_in(page_time, 100)
-        movie_texture MOVIE
-        rectangle texture_width, texture_height
-        texture ""
-        color "white", 0.5
-        translatey -0.4 * texture_height
-        rectangle 0, 0, texture_width, 0.1 * texture_height
-        text_box 0, 0, texture_width, 0.2 * texture_height,
-            align 90%
-            vertical_align 50%
-            font "Arial", bold, 120
-            text text integer (movie_time MOVIE / 60)
-            text ":"
-            zero integer(movie_time MOVIE mod 60)
-            zero N:integer -> if N < 10 then text "0" & text N else text text N
+    locally
+        color "white"
+        movie -450, -380, 85%, 85%, "http://www.youtube.com/watch?v=I0pLmcx7aH4"
     right_column
-        vertical_align 10%
-        - "Video on the left:"
-        - "The Big Bang Theory - The Best of Sheldon (Season 2)"
+        paragraph
+            text "Video on the left:"
+        paragraph
+            text "The Bug Bang Theory - The Best of Sheldon (Season 2)"
+on "pagechange",
+    if prev_page_label = "YouTube Video slide" then
+        movie_drop "http://www.youtube.com/watch?v=I0pLmcx7aH4"

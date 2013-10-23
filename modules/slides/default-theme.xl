@@ -96,6 +96,9 @@ theme_align Theme:text,Master:text,Style:text,N -> theme_align Theme,Master,"sto
 
 theme_boxstyle Theme:text,Master:text,Style:text-> color "black", 0.1
 
+theme_font_size Theme:text,Master:text,Style:text,Scale:real ->
+    font_size Scale * theme_size(Theme, Master, Style)
+
 
 theme_slide_width  Theme:text -> 1920
 theme_slide_height Theme:text -> 1080

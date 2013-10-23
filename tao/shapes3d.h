@@ -97,6 +97,7 @@ struct MeshBased : Cube
 {
     MeshBased(const Box3 &bounds, bool culling)
         : Cube(bounds), culling(culling) {}
+    void Draw(Layout *where) { Cube::Draw(where); }
     void Draw(Mesh *mesh, Layout *where);
 
     // Define if mesh needs backface culling

@@ -116,6 +116,9 @@
 # Note: Packaging scripts are under ./packaging/
 # --End Usage
 
+# For Qt5.1, avoid massive warningification
+cache()
+
 # Include global definitions and rules.
 include(main.pri)
 

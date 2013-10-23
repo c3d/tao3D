@@ -22,6 +22,14 @@
 
 #include "destination_folder_dialog.h"
 #include "application.h"
+#include <QDialog>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QGridLayout>
+#include <QLabel>
+#include <QDialogButtonBox>
+#include <QPushButton>
+#include <QFileDialog>
 
 namespace Tao {
 

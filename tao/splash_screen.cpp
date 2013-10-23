@@ -26,6 +26,10 @@
 #include "tao_utf8.h"
 
 #include <QtGui>
+#include <QLabel>
+#include <QMessageBox>
+#include <QTextEdit>
+#include <QVBoxLayout>
 
 namespace Tao {
 

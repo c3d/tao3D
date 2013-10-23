@@ -85,7 +85,7 @@ void ModuleInfoDialog::updateInfo(const ModuleInfo &info)
         mi.icon = "qrc:/images/modules.png";
     }
     mi.website = +autoLinkUrls(+mi.website);
-    mi.desc = +autoLinkUrls(Qt::escape(+mi.desc));
+    mi.desc = +autoLinkUrls((+mi.desc).toHtmlEscaped());
 
 
     // Load HTML template

@@ -91,12 +91,16 @@ public:
     bool     needNewWindow();
     bool     setStereo(bool on);
     void     addDisplayModeMenu(QString mode, QString label);
-    bool     hasStackedWidget() { return (stackedWidget->count() > 1); }
     QString  welcomePath();
 #ifndef CFG_NO_DOC_SIGNATURE
     bool     isDocumentSigned();
 #endif
 
+public:
+    virtual
+    bool eventFilter(QObject *obj, QEvent *evt);
+
+public:
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;

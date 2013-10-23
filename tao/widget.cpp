@@ -3765,39 +3765,6 @@ void Widget::endPanning(QMouseEvent *)
 }
 
 
-void Widget::showEvent(QShowEvent *event)
-// ----------------------------------------------------------------------------
-//    Enable animations if widget is visible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-    bool oldFs = hasAnimations();
-    if (!oldFs)
-        taoWindow()->toggleAnimations();
-}
-
-
-void Widget::hideEvent(QHideEvent *event)
-// ----------------------------------------------------------------------------
-//    Disable animations if widget is invisible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-
-    // We don't want to stop refreshing if we are hidden because another widget
-    // has become active (QStackedWidget).
-    // Use case: a primitive implemented in a module calls
-    // ModuleApi::setCurrentWidget to show its own stuff: program refresh has
-    // to continue normally.
-    if (taoWindow()->hasStackedWidget())
-        return;
-
-    bool oldFs = hasAnimations();
-    if (oldFs)
-        taoWindow()->toggleAnimations();
-}
-
-
 
 // ============================================================================
 //

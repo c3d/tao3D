@@ -2932,8 +2932,7 @@ void Window::setCurrentFile(const QString &fileName)
     jsonFile.replace(".ddd", ".json");
     bool editable = QFileInfo(jsonFile).exists() && !isReadOnly;
     launchWebUIAct->setEnabled(editable);
-    if (!editable)
-        webui.stopServer();
+    webui.stopServer();
 #endif
 
     // Update the recent file list

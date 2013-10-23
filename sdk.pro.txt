@@ -4,4 +4,5 @@ include(main.pri)
 TEMPLATE = subdirs
 SUBDIRS = modules
 exists(help_viewer):SUBDIRS += help_viewer
+TAO_CURRENT_PWD = $$PWD
 QMAKE_SUBSTITUTES = fix_qt_refs_app.in

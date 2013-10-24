@@ -56,22 +56,22 @@ QSet<QString> Uri::refreshed;
 
 
 Uri::Uri()
-    : QUrl(), repo(NULL), done(false), progress(NULL), proc(NULL), pos(0),
-      aborted(false), settingsGroup(KNOWN_URIS_GROUP), op(NONE)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
+    : QUrl(), repo(NULL), done(false), progress(NULL), proc(NULL), pos(0),
+      aborted(false), settingsGroup(KNOWN_URIS_GROUP), op(NONE)
 {
     checkRefresh();
 }
 
 
 Uri::Uri(QString uri)
-    : QUrl(uri), repo(NULL), done(false), progress(NULL), proc(NULL), pos(0),
-      aborted(false), settingsGroup(KNOWN_URIS_GROUP), op(NONE)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
+    : QUrl(uri), repo(NULL), done(false), progress(NULL), proc(NULL), pos(0),
+      aborted(false), settingsGroup(KNOWN_URIS_GROUP), op(NONE)
 {
     if (!isValid())
         return;
@@ -488,9 +488,36 @@ void Uri::setQueryItems(const QList<QPair<QString, QString> > & query)
 //    Update query string
 // ----------------------------------------------------------------------------
 {
+#if QT_VERSION >= 0x050000
+    QUrlQuery q(*this);
+    q.setQueryItems(query);
+    setQuery(q);
+#else
     QUrl::setQueryItems(query);
+#endif
     setSettingsGroup();
 }
+
+
+#if QT_VERSION >= 0x050000
+bool Uri::hasQueryItem(const QString & key) const
+// ----------------------------------------------------------------------------
+//   Compatibility binding for testing if an item is in the query
+// ----------------------------------------------------------------------------
+{
+    QUrlQuery q(*this);
+    return q.hasQueryItem(key);
+}
+
+QString Uri::queryItemValue(const QString & key) const
+// ----------------------------------------------------------------------------
+//   Compatibility binding for querying items in the query
+// ----------------------------------------------------------------------------
+{
+    QUrlQuery q(*this);
+    return q.queryItemValue(key);
+}
+#endif
 
 
 QStringList Uri::localProjects()
@@ -871,7 +898,11 @@ QString Uri::repoUri()
 //      => git://example.com/some/project/path
 {
     QUrl uri(*this);
+#if QT_VERSION >= 0x050000
+    uri.setQuery("");
+#else
     uri.setEncodedQuery(QByteArray());
+#endif
     QString scheme = uri.scheme();
     bool isTao = scheme == "tao" || scheme == "taos";
     if (isTao)

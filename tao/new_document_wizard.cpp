@@ -27,6 +27,15 @@
 #include "application.h"
 #include "repository.h"
 
+#include <QPushButton>
+#include <QMessageBox>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QLabel>
+#include <QFileDialog>
+
 namespace Tao {
 
 NewDocumentWizard::NewDocumentWizard(QWidget *parent)
@@ -331,10 +340,11 @@ void DocumentNameAndLocationPage::chooseLocation()
 //   Open a folder selection dialog to select target folder
 // ----------------------------------------------------------------------------
 {
-    QString location = QFileDialog::getExistingDirectory(this,
-                           tr("Choose Document Location"),
-                           Application::defaultProjectFolderPath(),
-                           QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString location = QFileDialog::getExistingDirectory
+        (this,
+         tr("Choose Document Location"),
+         Application::defaultProjectFolderPath(),
+         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (!location.isEmpty())
         docLocationLineEdit->setText(QDir::toNativeSeparators(location));
 }

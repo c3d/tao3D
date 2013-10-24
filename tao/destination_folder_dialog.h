@@ -23,7 +23,9 @@
 // ****************************************************************************
 
 #include <QtGui>
-
+#include <QDialog>
+#include <QComboBox>
+#include <QLineEdit>
 
 namespace Tao {
 

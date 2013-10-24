@@ -132,7 +132,7 @@ void UpdateApplication::resetRequest()
 // ----------------------------------------------------------------------------
 {
     request = QNetworkRequest();
-    request.setRawHeader("User-Agent", userAgent().toAscii());
+    request.setRawHeader("User-Agent", userAgent().toUtf8());
 }
 
 
@@ -647,7 +647,17 @@ bool UpdateApplication::createFile()
     QString fileName = QFileInfo(url.path()).fileName();
 
     // Choose folder
+#if QT_VERSION >= 0x050000
+    // Thank you Qt5 for this insanity, just in case we have several ~/Desktop
+    QString desktop = "";
+    QStringList desktops = QStandardPaths::standardLocations(
+        QStandardPaths::DesktopLocation);
+    if (desktops.size() >= 1)
+        desktop = desktops[0];
+#else
     QString desktop = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
+#endif
+
     QString folder = QFileDialog::getExistingDirectory(NULL,
                                                        tr("Select destination folder"),
                                                        desktop);

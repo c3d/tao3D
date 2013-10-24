@@ -116,6 +116,9 @@
 # Note: Packaging scripts are under ./packaging/
 # --End Usage
 
+# For Qt5.1, avoid massive warningification
+greaterThan(QT_MAJOR_VERSION, 4) { cache() }
+
 # Include global definitions and rules.
 include(main.pri)
 
@@ -163,6 +166,7 @@ kit.commands = \$(MAKE) -C packaging kit
 kit.depends = FORCE
 QMAKE_EXTRA_TARGETS += kit
 
+TAO_CURRENT_PWD = $$PWD
 QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 
 # Display configuration info

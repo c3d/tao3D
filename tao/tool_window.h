@@ -29,11 +29,12 @@
 namespace Tao {
 
 
-class ToolWindow : public QDialog
+struct ToolWindow : QDialog
 // ----------------------------------------------------------------------------
 //   A window with small title bar and borders suitable for tools
 // ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
 public:

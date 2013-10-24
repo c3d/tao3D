@@ -31,7 +31,7 @@ QT_END_NAMESPACE
 
 namespace Tao {
 
-class Widget;
+struct Widget;
 
 class RenderToFileDialog : public QDialog, private Ui::RenderToFileDialog
 {
@@ -45,6 +45,7 @@ public slots:
     virtual void accept();
     virtual void reject();
     virtual void dismiss();
+    virtual void done(int x) { QDialog::done(x); }
     virtual void done();
     virtual void failed();
 

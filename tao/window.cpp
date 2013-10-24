@@ -20,7 +20,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QtGui>
 #include "window.h"
 #include "widget.h"
 #include "apply_changes.h"
@@ -67,11 +66,17 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
 #include <menuinfo.h>
 #include <bfs.h>
+
 #include <QList>
 #include <QRegExp>
+#include <QtGui>
+#include <QDockWidget>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QPrintDialog>
+#include <QPageSetupDialog>
 #ifndef Q_OS_MACX
 #include <QFSFileEngine>
 #endif

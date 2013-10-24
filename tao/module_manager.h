@@ -317,7 +317,7 @@ public:
     //   Information about a module
     // ------------------------------------------------------------------------
     {
-        ModuleInfoPrivate() : ModuleInfo(), enabled(enabled), loaded(false),
+        ModuleInfoPrivate() : ModuleInfo(), enabled(false), loaded(false),
               updateAvailable(false), hasNative(false),
             native(NULL), context(NULL), inError(false), show_preferences(NULL)
             {}
@@ -575,7 +575,7 @@ private:
 friend class CheckForUpdate;
 friend class CheckAllForUpdate;
 friend class UpdateModule;
-friend class SetCwd;
+friend struct SetCwd;
 #ifdef Q_OS_WIN
 friend class SetPath;
 #endif

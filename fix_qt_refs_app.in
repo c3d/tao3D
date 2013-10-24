@@ -22,4 +22,4 @@ doo(){
 # This is the Frameworks directory of Tao Presentations
 doo install_name_tool -add_rpath @executable_path/../../../../Frameworks \"$1\"
 
-doo $$PWD/modules/fix_qt_refs \"$1\" \"$$QMAKE_LIBDIR_QT\"
+doo $$TAO_CURRENT_PWD/modules/fix_qt_refs \"$1\" \"$$[QT_INSTALL_LIBS]\"

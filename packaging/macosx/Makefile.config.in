@@ -11,7 +11,7 @@
 # ******************************************************************************
 
 INSTROOT=$$INSTROOT
-QMAKE_LIBDIR_QT=$$QMAKE_LIBDIR_QT
+QMAKE_LIBDIR_QT=$$[QT_INSTALL_LIBS]
 ARCH=$$ARCH
 NO_SDK=$$NO_SDK
 PACKAGE_APPEND=$$PACKAGE_APPEND

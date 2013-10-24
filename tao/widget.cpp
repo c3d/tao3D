@@ -2533,7 +2533,12 @@ void Widget::resizeGL(int width, int height)
     if (!frameBufferReady())
         return;
 
+    // Use logical widget coordinates, not pixel coordinates (#3254)
+    width = this->width();
+    height = this->height();
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
+    setup(width, height);
+    GL.Sync();
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
     displayLinkMutex.lock();

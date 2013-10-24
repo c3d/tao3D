@@ -167,7 +167,6 @@ kit.depends = FORCE
 QMAKE_EXTRA_TARGETS += kit
 
 TAO_CURRENT_PWD = $$PWD
-message ("Tao Current PWD is approximately " $$TAO_CURRENT_PWD)
 QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 
 # Display configuration info

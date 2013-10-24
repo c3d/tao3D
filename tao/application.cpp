@@ -456,7 +456,7 @@ bool Application::fetchLicenses()
         dirs << QDir(desktop);
 #else
     // Qt4 is a dummy, it only knows about one desktop folder. Stooopid Qt4.
-    QString destkop = QDesktopServices::storageLocation(
+    QString desktop = QDesktopServices::storageLocation(
         QDesktopServices::DesktopLocation);
     dirs << QDir(desktop);
 #endif

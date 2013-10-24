@@ -1,67 +1,65 @@
-theme "PastelTriangles"
+// Document généré par l'Éditeur Tao depuis le fichier
+// sample_slide.json le 2013-10-22T15:14:15.033Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
+
+import PastelTrianglesTheme
 import VLCAudioVideo
-
-
+theme "PastelTriangles"
 main_title_slide "Main title",
     title
         text "Pastel Triangles theme"
     subtitle
-        text "A theme with automated geometric backgrounds"
-
-
+        paragraph
+            text "A theme with automated geometric backgrounds"
+theme "PastelTriangles"
 section_slide "Section title",
     title
         text "Section title"
     subtitle
         text "Section subtitle"
-
-
+theme "PastelTriangles"
 slide "Bullet points",
-    * "Bullet points"
-    ** "More bullet points"
-    *** "Deeper"
-    --
-    * "Again"
-    ++ "Numbered text"
-    ++ "Numbered"
-    -- "Additional text"
-
-
+    *
+        text_span
+            text "Bullet points"
+    **
+        text_span
+            text "More bullet points"
+    ***
+        text_span
+            text "Deeper"
+    paragraph
+        text " "
+    *
+        text_span
+            text "Again"
+    ++
+        text_span
+            text "Numbered text"
+    ++
+        text_span
+            text "Numbered"
+    paragraph
+        - ""
+        text "Additional text"
+theme "PastelTriangles"
 picture_slide "Picture slide",
     locally
-        if seconds = 58 then
-            rotatez -360 * page_time
-        translate 0, 0, -500
-        draw_triangle with 0..seconds
-    locally
-        if seconds = 59 then
-            rotatez 360 * page_time
-        translate 20, 20, -200
-        scale 0.6, 0.6, 0.6
-        draw_triangle with 0..minutes
-        show 0.1
-        draw_triangle with minutes..59
-    locally
-        if seconds = 0 then
-            rotatez -360 * page_time
-        translate -20, -5, -50
-        rotatez -30 * hours
-        color "black", 0.4
-        triangle 0, 100, 150, 150
-    
-    draw_triangle N:integer ->
-        rotatez -6
-        color_hsv 6 * N, 0.3, 0.9, 0.9
-        triangle 0, 500, 50, 150
-    movie_only ""
-
-
+        color "white"
+        image 0, -120, 400%, 400%, "http://www.abandonia.com/files/games/25594/Alpha%20Waves_4.png"
+theme "PastelTriangles"
 picture_slide "YouTube Video slide",
-    left_picture
-        translate 0, 150 + 300 * sin (0.5*time) ^ 140, -150
-        rotatez 5
-        movie 0, 0, 1.5, 1.5, "http://www.youtube.com/watch?v=30T5RQv6rxw&fmt=43"
+    locally
+        color "white"
+        movie -300, 0, 150%, 150%, "http://www.youtube.com/watch?v=30T5RQv6rxw&fmt=43"
     right_column
-        - "Video on the left:"
-        - "Alpha Waves, the first 3D platform game on a PC, edited in 1990 by Infogrames"
-
+        paragraph
+            text "Video on the left:"
+        paragraph
+            text "Alpha Waves, the first 3D platform game on a PC, edited in 1990 by Infogrames"
+on "pagechange",
+    if prev_page_label = "YouTube Video slide" then
+        movie_drop "http://www.youtube.com/watch?v=30T5RQv6rxw&fmt=43"

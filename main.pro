@@ -117,7 +117,7 @@
 # --End Usage
 
 # For Qt5.1, avoid massive warningification
-cache()
+greaterThan(QT_MAJOR_VERSION, 4) { cache() }
 
 # Include global definitions and rules.
 include(main.pri)

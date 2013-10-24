@@ -281,6 +281,7 @@ struct Plane : Shape2
 
     // Draw plane
     virtual void Draw(Layout *where);
+    virtual void Draw(GraphicPath &path) { return Shape2::Draw(path); }
     void Draw(PlaneMesh* plane, Layout *where);
 
 private:

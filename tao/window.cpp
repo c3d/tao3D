@@ -20,7 +20,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QtGui>
 #include "window.h"
 #include "widget.h"
 #include "apply_changes.h"
@@ -67,11 +66,17 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
 #include <menuinfo.h>
 #include <bfs.h>
+
 #include <QList>
 #include <QRegExp>
+#include <QtGui>
+#include <QDockWidget>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QPrintDialog>
+#include <QPageSetupDialog>
 #ifndef Q_OS_MACX
 #include <QFSFileEngine>
 #endif
@@ -133,6 +138,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     errorMessages->setReadOnly(true);
     errorDock->setWidget(errorMessages);
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
+    connect(this, SIGNAL(appendErrorMsg(QString)),
+            errorMessages, SLOT(append(QString)));
+    connect(this, SIGNAL(showErrorWindow()), errorDock, SLOT(show()));
 
     // Create the main widget for displaying Tao stuff
     stackedWidget = new QStackedWidget(this);
@@ -312,11 +320,12 @@ void Window::addError(QString txt)
     if (txt.contains("shader(s) linked."))
         return;
 #endif
-    QTextCursor cursor = errorMessages->textCursor();
-    cursor.movePosition(QTextCursor::End);
-    cursor.insertText(txt + "\n");
+    // Do not call directly errorMessages->append(txt) because callers may
+    // leave in different thread than GUI one. Bug#3202
+    emit appendErrorMsg(txt);
+
     if (!isFullScreen())
-        errorDock->show();
+        emit showErrorWindow(); // Bug#3202
     QString console = +XL::MAIN->options.to_stderr;
     if (console == "on" || (console == "auto" && isFullScreen()))
         std::cerr << +txt << std::endl;
@@ -1315,6 +1324,9 @@ void Window::openUri()
     QString uri = dialog.uri;
     if (uri.isEmpty())
         return;
+    if (uri.startsWith("tao:") || uri.startsWith("taos:"))
+        if (!(uri.startsWith("tao://") || uri.startsWith("taos://")))
+            uri.replace("tao:", "tao:///").replace("taos", "taos:///");
     open(uri);
 }
 

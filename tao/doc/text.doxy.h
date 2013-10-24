@@ -335,6 +335,7 @@ text_span(contents:tree);
  *     paragraph_break
  *     contents
  *     paragraph_break
+ * @endcode
  *
  * @~french
  * Crée un paragraphe isolé.
@@ -348,6 +349,7 @@ text_span(contents:tree);
  *     paragraph_break
  *     contents
  *     paragraph_break
+ * @endcode
  */
 paragraph(contents:tree);
 

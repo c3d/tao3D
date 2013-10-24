@@ -86,26 +86,29 @@
 #include "document_signature.h"
 #endif
 
-#include <QDialog>
-#include <QTextCursor>
-#include <QApplication>
-#include <QToolButton>
-#include <QtGui/QImage>
 #include <cmath>
-#include <QFont>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
-#include <QVariant>
-#ifndef CFG_NO_QTWEBKIT
-#include <QtWebKit>
-#endif
 #include <sys/time.h>
 #include <string.h>
 #include <ctype.h>
 
 #include <QtGui>
+#include <QDialog>
+#include <QTextCursor>
+#include <QApplication>
+#include <QToolButton>
+#include <QtGui/QImage>
+#include <QFont>
+#include <QVariant>
+#include <QMenuBar>
+#include <QStatusBar>
+#include <QMessageBox>
+#ifndef CFG_NO_QTWEBKIT
+#include <QtWebKit>
+#endif
 
 #ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
@@ -3125,7 +3128,7 @@ static text keyName(QKeyEvent *event)
         }
         else
         {
-            int shift = modifiers & Qt::ShiftModifier;
+            Qt::KeyboardModifiers shift = modifiers & Qt::ShiftModifier;
             if (shift && shift != modifiers)
                 name = ctrl = "Shift-" + ctrl;
         }
@@ -8888,7 +8891,8 @@ Tree_p Widget::ellipseArc(Tree_p self,
 //   Circular sector centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
-    // start and sweep must be provided upsidedown because of y flip. See Bug#787
+    // Start and sweep must be provided upsidedown because of y flip.
+    // See Bug#787
     EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep);
     if (path)
         shape.Draw(*path);
@@ -9853,7 +9857,6 @@ Text_p Widget::loadText(Tree_p self, text file, text encoding)
         file = "doc:" + file;
         fileInfo.setFile(+file);
     }
-    srcFileMonitor.addPath(+file);
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
     LoadTextInfo::PerFile *pf = NULL;

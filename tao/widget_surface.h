@@ -30,7 +30,13 @@
 #include "info_trash_can.h"
 #include "tao/tao_info.h"
 #include <QtGui>
-
+#include <QAbstractButton>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QCheckBox>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QAbstractSlider>
 
 namespace Tao {
 
@@ -82,6 +88,7 @@ public:
     typedef WebViewSurface * data_t;
     WebViewSurface(XL::Tree *t, Widget *parent);
     operator data_t() { return this; }
+    virtual GLuint bind() { return WidgetSurface::bind(); }
     virtual GLuint bind(XL::Text *url, XL::Integer_p progress=NULL);
 
 private:
@@ -106,6 +113,7 @@ public:
     typedef LineEditSurface * data_t;
     LineEditSurface(XL::Tree *t, Widget *parent, bool immed=false);
     operator data_t() { return this; }
+    virtual GLuint bind() { return WidgetSurface::bind(); }
     virtual GLuint bind(XL::Text *contents);
 
 private:
@@ -129,6 +137,7 @@ public:
     TextEditSurface(QTextDocument *doc, XL::Block *prog,
                     Widget *parent, bool immed=false);
     operator data_t() { return this; }
+    virtual GLuint bind() { return WidgetSurface::bind(); }
     virtual GLuint bind(QTextDocument *doc);
 
 private:
@@ -150,6 +159,7 @@ struct AbstractButtonSurface : WidgetSurface
 public:
 //    typedef AbstractButtonSurface * data_t;
     AbstractButtonSurface(XL::Tree *t, QAbstractButton *button, QString name);
+    virtual GLuint bind() { return WidgetSurface::bind(); }
     virtual GLuint bind(XL::Text *lbl, XL::Tree *action, XL::Text *sel);
     virtual operator data_t() { return this; }
 
@@ -223,6 +233,7 @@ public:
     virtual ~GroupBoxSurface();
 
     operator data_t() { return this; }
+    virtual GLuint bind() { return WidgetSurface::bind(); }
     virtual GLuint bind(XL::Text *lbl);
     QGridLayout *grid(){
         return (QGridLayout*)widget->layout();
@@ -239,8 +250,7 @@ struct GridGroupBox : QGroupBox
 //    A specialized QGroupBox with a QGridLayout
 // ----------------------------------------------------------------------------
 {
-    GridGroupBox(QWidget* p):
-            QGroupBox(p)
+    GridGroupBox(QWidget* p): QGroupBox(p)
     {
         QGridLayout *grid = new QGridLayout(this);
         grid->setObjectName("groupBox layout");

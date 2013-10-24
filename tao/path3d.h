@@ -28,7 +28,7 @@
 #include "tao_tree.h"
 #include "tao_gl.h"
 
-struct QPainterPath;
+class QPainterPath;
 
 TAO_BEGIN
 

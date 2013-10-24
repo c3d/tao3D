@@ -28,16 +28,16 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.03
+    version 1.031
 
 module_description "fr",
     name "Animations"
     description "Fonctions d'animation."
 
 // ============================================================================
-// 
+//
 //    Interpolation functions
-// 
+//
 // ============================================================================
 
 interpolate S:real, TX:real, X:real ->
@@ -107,9 +107,9 @@ interpolate_scale2 S:real, TScale:real, Scale:real ->
 
 
 // ============================================================================
-// 
+//
 //   Adjustments based on refresh time
-// 
+//
 // ============================================================================
 
 refresh_time_adjust S:real -> (1 - (1 - S) ^ (refresh_time * 60))
@@ -163,31 +163,31 @@ interpolate_scale_rt S:real, TScale:real, Scale:real ->
 
 
 // ============================================================================
-// 
+//
 //   Fade-in and fade-out functions
-// 
+//
 // ============================================================================
 
 fade_in  Value:real, Duration:real  -> -expm1(-5 * Value / Duration)
 fade_out Value:real, Duration:real  -> 1+expm1(-5 * Value / Duration)
-fade_at X:real, N:real -> if X < N - 1 then 0 else if X < N - 0.5 then 2 * (X - N + 1) ^ 2 else if X < N then 1 - 2 * (X - N) ^ 2 else 1 
-fade_out_at X:real, N:real -> 1 - fade_at (X, N) 
-fade_between X:real, A:real, B:real -> (fade_at (X, A) * fade_at ( -X, -B) ) 
+fade_at X:real, N:real -> if X < N - 1 then 0 else if X < N - 0.5 then 2 * (X - N + 1) ^ 2 else if X < N then 1 - 2 * (X - N) ^ 2 else 1
+fade_out_at X:real, N:real -> 1 - fade_at (X, N)
+fade_between X:real, A:real, B:real -> (fade_at (X, A) * fade_at ( -X, -B) )
 
-at N:real -> show fade_at (page_time, N) 
-between A:real, B:real -> show fade_between (page_time, A, B) 
+at N:real -> show fade_at (page_time, N)
+between A:real, B:real -> show fade_between (page_time, A, B)
 
-fade_list T:real, I:real, X:real -> X * fade_at (T, 1) 
-fade_list T:real, I:real, X:real, Rest -> (X * fade_at (T, 1) + fade_list (T - I, I, Rest) ) 
+fade_list T:real, I:real, X:real -> X * fade_at (T, 1)
+fade_list T:real, I:real, X:real, Rest -> (X * fade_at (T, 1) + fade_list (T - I, I, Rest) )
 
-disabled Body -> false 
+disabled Body -> false
 
 
 
 // ============================================================================
-// 
+//
 //   Helpers to skip to a given step in an animation
-// 
+//
 // ============================================================================
 
 step -> 0.0
@@ -216,7 +216,7 @@ skip_to S:real  ->
 // ----------------------------------------------------------------------------
     step := S
     refresh 0
-    
+
 
 
 skip_directly_to S:real  ->
@@ -267,43 +267,43 @@ at_step N:integer ->
 
 
 // ============================================================================
-// 
+//
 //   Specifying the duration of pages
-// 
+//
 // ============================================================================
 
-scheduled_duration -> 30.0 
+scheduled_duration -> 30.0
 
 
-page_duration Duration:real, Name:text -> 
+page_duration Duration:real, Name:text ->
 // ----------------------------------------------------------------------------
 //   Go to the named page after the given duration
 // ----------------------------------------------------------------------------
-    locally
-        scheduled_duration := Duration
-        if page_time > Duration then
-            goto_page Name
+    scheduled_duration := Duration
+    if page_time > Duration then
+        goto_page Name
 
 
 page_duration Duration:real, Page:integer ->
 // ----------------------------------------------------------------------------
 //   Go to a given page number after the given duration
 // ----------------------------------------------------------------------------
-    page_duration Duration, page_name Page 
+    locally
+        page_duration Duration, page_name Page
 
 
 page_duration Duration:real ->
 // ----------------------------------------------------------------------------
 //   Go to the next page after the given duration
 // ----------------------------------------------------------------------------
-    page_duration Duration, page_number + 1 
+    page_duration Duration, page_number + 1
 
 
 
 // ============================================================================
-// 
+//
 //   Specifying something that happens at a given time
-// 
+//
 // ============================================================================
 
 smooth T:real     -> if T < 0 then 0 else if T > 1 then 1 else T^2 * (3 - 2*T)

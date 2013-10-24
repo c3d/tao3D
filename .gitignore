@@ -33,3 +33,4 @@ doc/doc
 /config.h
 *.xl.sig
 *.ddd.sig
+/.qmake.cache

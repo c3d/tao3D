@@ -2533,7 +2533,11 @@ void Widget::resizeGL(int width, int height)
     if (!frameBufferReady())
         return;
 
+    // Use logical widget coordinates, not pixel coordinates (#3254)
+    width = this->width();
+    height = this->height();
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
+    setup(width, height);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
     displayLinkMutex.lock();
@@ -2635,6 +2639,9 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Reset default GL parameters
     setupGL();
+
+    // Sync needed for #3254
+    GL.Sync();
 }
 
 
@@ -3765,39 +3772,6 @@ void Widget::endPanning(QMouseEvent *)
 // ----------------------------------------------------------------------------
 {
     setCursor(savedCursorShape = Qt::OpenHandCursor);
-}
-
-
-void Widget::showEvent(QShowEvent *event)
-// ----------------------------------------------------------------------------
-//    Enable animations if widget is visible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-    bool oldFs = hasAnimations();
-    if (!oldFs)
-        taoWindow()->toggleAnimations();
-}
-
-
-void Widget::hideEvent(QHideEvent *event)
-// ----------------------------------------------------------------------------
-//    Disable animations if widget is invisible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-
-    // We don't want to stop refreshing if we are hidden because another widget
-    // has become active (QStackedWidget).
-    // Use case: a primitive implemented in a module calls
-    // ModuleApi::setCurrentWidget to show its own stuff: program refresh has
-    // to continue normally.
-    if (taoWindow()->hasStackedWidget())
-        return;
-
-    bool oldFs = hasAnimations();
-    if (oldFs)
-        taoWindow()->toggleAnimations();
 }
 
 

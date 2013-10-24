@@ -172,6 +172,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Show status bar immediately avoids later resize of widget
     statusBar()->show();
 
+    // To detect when window is minimized
+    qApp->installEventFilter(this);
+
     // Set current document
     if (sourceFile.isEmpty())
     {
@@ -221,6 +224,21 @@ Window::~Window()
     FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
     delete printer;
+}
+
+
+bool Window::eventFilter(QObject *obj, QEvent *evt)
+// ----------------------------------------------------------------------------
+//   Stop/start animations when window is minimized/restored to save CPU
+// ----------------------------------------------------------------------------
+{
+    if (obj == this && evt->type() == QEvent::WindowStateChange)
+    {
+        bool visible = !(windowState() & Qt::WindowMinimized);
+        if (visible != taoWidget->hasAnimations())
+            toggleAnimations();
+    }
+    return QMainWindow::eventFilter(obj, evt);
 }
 
 

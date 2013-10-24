@@ -66,7 +66,13 @@
 static void win_redirect_io();
 #endif
 
+#if QT_VERSION >= 0x050000
+static void taoQt5MessageHandler(QtMsgType type,
+                                 const QMessageLogContext &,
+                                 const QString &);
+#else
 static void taoQtMessageHandler(QtMsgType type, const char *msg);
+#endif
 
 namespace Tao {
     extern const char * GITREV_;
@@ -114,7 +120,11 @@ int main(int argc, char **argv)
 
     // Messages sent by the Qt implementation (for instance, with qWarning())
     // should be handled like other Tao error messages
+#if QT_VERSION >= 0x050000
+    qInstallMessageHandler(taoQt5MessageHandler);
+#else
     qInstallMsgHandler(taoQtMessageHandler);
+#endif
 
     // Initialize and run the Tao application
     int ret = 0;
@@ -571,6 +581,23 @@ void tao_stack_trace(int fd)
 }
 
 
+#if QT_VERSION >= 0x050000
+static void taoQt5MessageHandler(QtMsgType type,
+                                 const QMessageLogContext &,
+                                 const QString &msg)
+// ----------------------------------------------------------------------------
+//   Handle diagnostic messages from Qt like any other Tao message
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(type);
+    if (qApp && ((Tao::Application*)qApp)->addError(msg.toUtf8()))
+        return;
+    std::cerr << msg.toUtf8().constData();
+}
+
+
+#else
+
 static void taoQtMessageHandler(QtMsgType type, const char *msg)
 // ----------------------------------------------------------------------------
 //   Handle diagnostic messages from Qt like any other Tao message
@@ -581,6 +608,7 @@ static void taoQtMessageHandler(QtMsgType type, const char *msg)
         return;
     std::cerr << msg;
 }
+#endif
 
 
 TAO_BEGIN

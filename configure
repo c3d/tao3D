@@ -176,8 +176,12 @@ osflags() {
   UNAME=`uname`
   case "$UNAME" in
     Darwin)
-      echo "-spec macx-g++ "
-      ;;
+       if ( uname -r | grep -q ^13 ); then
+          echo "-spec macx-llvm"
+       else
+          echo "-spec macx-g++ "
+       fi
+       ;;
     MINGW*)
       echo "-spec win32-g++"
       ;;

@@ -31,14 +31,11 @@
 
 TAO_BEGIN
 
-class DisplayDriver
+struct DisplayDriver
 // ----------------------------------------------------------------------------
 //   Convert a 3D scene to a format suitable for the display hardware
 // ----------------------------------------------------------------------------
 {
-public:
-
-public:
     DisplayDriver();
     ~DisplayDriver();
 

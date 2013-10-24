@@ -164,11 +164,12 @@ private:
 
 
 
-class LicenseDownloadUI : public QObject
+struct LicenseDownloadUI : QObject
 // ------------------------------------------------------------------------
 //   LicenseDownload with a graphical user interface (login/error dialogs)
 // ------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
 public:

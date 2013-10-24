@@ -31,7 +31,11 @@ LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 QT += network \
     opengl \
     svg
-CONFIG += help
+greaterThan(QT_MAJOR_VERSION, 4) {
+    QT += help printsupport
+} else {
+    CONFIG += help
+}
 QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
 !isEmpty(TAO_PLAYER):DEFINES *= TAO_PLAYER
@@ -356,6 +360,7 @@ contains(DEFINES, CFG_NO_QTWEBKIT) {
     !build_pass:message("[CFG_NO_QTWEBKIT] QtWebKit disabled: primitives url/url_texture will do nothing")
 } else {
     QT += webkit
+    greaterThan(QT_MAJOR_VERSION, 4) { QT += webkitwidgets }
 }
 contains(DEFINES, CFG_NO_LICENSE_DOWNLOAD) {
     !build_pass:message("[CFG_NO_LICENSE_DOWNLOAD] License download is disabled")
@@ -399,13 +404,13 @@ macx {
     LIBS += -framework ApplicationServices -framework Foundation \
         -Wl,-macosx_version_min,10.6 \
         -Wl,-rpath,@executable_path/../Frameworks \
-        -Wl,-rpath,$$QMAKE_LIBDIR_QT
+        -Wl,-rpath,$$[QT_INSTALL_LIBS]
 
     # Make sure libGLC references the Qt libraries bundled with the application
     # and not the ones that may be installed on the target system, otherwise
     # they may clash
     FIX_QT_REFS = ../modules/fix_qt_refs
-    QMAKE_POST_LINK = $$FIX_QT_REFS "$(TARGET)" \"$$QMAKE_LIBDIR_QT\"
+    QMAKE_POST_LINK = $$FIX_QT_REFS "$(TARGET)" \"$$[QT_INSTALL_LIBS]\"
 }
 linux-g++* {
     HEADERS += vsync_x11.h

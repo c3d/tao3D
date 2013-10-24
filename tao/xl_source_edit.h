@@ -31,11 +31,12 @@ namespace Tao {
 class XLHighlighter;
 
 
-class XLSourceEdit : public QTextEdit
+struct XLSourceEdit : QTextEdit
 // ----------------------------------------------------------------------------
 //   XL source editor
 // ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
 public:

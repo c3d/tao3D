@@ -58,6 +58,7 @@
 #include <QColorDialog>
 #include <QFontDialog>
 #include <QMutex>
+#include <QPrinter>
 #include <iostream>
 #include <map>
 #include <set>
@@ -102,11 +103,12 @@ struct ShaderProgramInfo;
 
 #define GUI_FEATURE "GUI"
 
-class Widget : public QGLWidget
+struct Widget : QGLWidget
 // ----------------------------------------------------------------------------
 //   This is the widget we use to display XL programs output
 // ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 public:
     typedef std::vector<double>         attribute_args;
@@ -906,26 +908,26 @@ public:
     Text_p xlTr(Tree_p self, text t);
 
 private:
-    friend class Window;
-    friend class Activity;
-    friend class Identify;
-    friend class Selection;
-    friend class MouseFocusTracker;
-    friend class Drag;
-    friend class TextSelect;
-    friend class TextSplit;
-    friend class Manipulator;
-    friend class ControlPoint;
-    friend class Renormalize;
-    friend class Table;
-    friend class DeleteSelectionAction;
-    friend class ModuleRenderer;
-    friend class Layout;
-    friend class StereoLayout;
-    friend class PageLayout;
-    friend class DisplayDriver;
-    friend class GCThread;
-    friend class WidgetSurface;
+    friend struct Window;
+    friend struct Activity;
+    friend struct Identify;
+    friend struct Selection;
+    friend struct MouseFocusTracker;
+    friend struct Drag;
+    friend struct TextSelect;
+    friend struct TextSplit;
+    friend struct Manipulator;
+    friend struct ControlPoint;
+    friend struct Renormalize;
+    friend struct Table;
+    friend struct DeleteSelectionAction;
+    friend struct ModuleRenderer;
+    friend struct Layout;
+    friend struct StereoLayout;
+    friend struct PageLayout;
+    friend struct DisplayDriver;
+    friend struct GCThread;
+    friend struct WidgetSurface;
 
     struct ContextAndCode
     {

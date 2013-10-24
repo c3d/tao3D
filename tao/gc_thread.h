@@ -29,7 +29,7 @@
 
 namespace Tao {
 
-class GCThread : public QThread
+struct GCThread : public QThread
 // ----------------------------------------------------------------------------
 //   Run XL garbage collection in a dedicated thread
 // ----------------------------------------------------------------------------

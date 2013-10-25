@@ -178,7 +178,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       runOnNextDraw(true), contextFilesLoaded(false),
       srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
-      pageW(21), pageH(29.7), blurFactor(0.0),
+      pageW(21), pageH(29.7), blurFactor(0.0), devicePixelRatio(1.0),
       currentFlowName(""), prevPageName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
       pageId(0), pageFound(0), prevPageShown(0), pageShown(1), pageTotal(0),
@@ -387,7 +387,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       srcFileMonitor(o.srcFileMonitor),
       clearCol(o.clearCol),
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
-      pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
+      pageW(o.pageW), pageH(o.pageH),
+      blurFactor(o.blurFactor), devicePixelRatio(o.devicePixelRatio),
       currentFlowName(o.currentFlowName), flows(o.flows),
       prevPageName(o.prevPageName),
       pageName(o.pageName), lastPageName(o.lastPageName),
@@ -950,6 +951,9 @@ void Widget::draw()
     // Run current display algorithm
     stats.begin(Statistics::FRAME);
     stats.begin(Statistics::DRAW);
+#if QT_VERSION >= 0x050000
+    devicePixelRatio = windowHandle()->devicePixelRatio();
+#endif
     displayDriver->display();
     stats.end(Statistics::DRAW);
     stats.end(Statistics::FRAME);
@@ -2405,7 +2409,7 @@ void Widget::resetViewAndRefresh()
 // ----------------------------------------------------------------------------
 {
     resetView();
-    setup(width(), height());
+    setup(renderWidth(), renderHeight());
     QEvent r(QEvent::Resize);
     refreshNow(&r);
 }
@@ -2533,11 +2537,8 @@ void Widget::resizeGL(int width, int height)
     if (!frameBufferReady())
         return;
 
-    // Use logical widget coordinates, not pixel coordinates (#3254)
-    width = this->width();
-    height = this->height();
+    // Use physical pixel coordinates for the viewport (#3254)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
-    setup(width, height);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
     displayLinkMutex.lock();
@@ -2599,9 +2600,8 @@ void Widget::setup(double w, double h, const Box *picking)
     if (h == 0) h = 2;
 
     // Setup viewport
-    uint s = printer && picking ? printOverscaling : 1;
-    GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
-
+    scale s = printer && picking ? printOverscaling : 1;
+    GLint vx = 0, vy = 0, vw = int(w * s), vh = int(h * s);
     GL.Viewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
@@ -2618,8 +2618,8 @@ void Widget::setup(double w, double h, const Box *picking)
         {
             // mouseTrackingViewport not set (by display module), default to
             // current viewport
-            pw = width();
-            ph = height();
+            pw = w;
+            ph = h;
         }
 
         GLint viewport[4] = { 0, 0, pw, ph };
@@ -2639,9 +2639,6 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Reset default GL parameters
     setupGL();
-
-    // Sync needed for #3254
-    GL.Sync();
 }
 
 
@@ -4987,16 +4984,18 @@ Point3 Widget::unproject (coord x, coord y, coord z,
     // Adjust between mouse and OpenGL coordinate systems
     y = height() - y;
 
+    // On Retina display, we need to convert to physical pixels (#3254)
+    x *= devicePixelRatio;
+    y *= devicePixelRatio;
+
     // Get 3D coordinates for the near plane based on window coordinates
-    GLdouble x3dn, y3dn, z3dn;
-    x3dn = y3dn = z3dn = 0.0;
+    GLdouble x3dn = 0, y3dn = 0, z3dn = 0;
     GL.UnProject(x, y, 0.0,
                  model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
-    GLdouble x3df, y3df, z3df;
-    x3df = y3df = z3df = 0;
+    GLdouble x3df = 0, y3df = 0, z3df = 0;
     GL.UnProject(x, y, 1.0,
                  model, proj, viewport,
                  &x3df, &y3df, &z3df);
@@ -5050,7 +5049,7 @@ Point3 Widget::project (coord x, coord y, coord z)
 
 
 Point3 Widget::project (coord x, coord y, coord z,
-                          GLdouble *proj, GLdouble *model, GLint *viewport)
+                        GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
@@ -5065,7 +5064,7 @@ Point3 Widget::project (coord x, coord y, coord z,
 
 
 Point3 Widget::objectToWorld(coord x, coord y,
-                                GLdouble *proj, GLdouble *model, GLint *viewport)
+                             GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //    Convert object coordinates to world coordinates
 // ----------------------------------------------------------------------------
@@ -6962,7 +6961,6 @@ Name_p Widget::panView(Tree_p self, coord dx, coord dy)
     cameraPosition.y += dy;
     cameraTarget.x += dx;
     cameraTarget.y += dy;
-    setup(width(), height()); // Remove?
     return XL::xl_true;
 }
 

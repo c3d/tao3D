@@ -332,7 +332,8 @@ void OpenGLState::Sync(uint64 which)
              mmode = GL_MODELVIEW;
              matrixMode_isDirty = mmode != matrixMode;
          }
-         glLoadMatrixd(mvMatrix.Data(false)));
+         glLoadMatrixd(mvMatrix.Data(false));
+        );
     SYNC(projMatrix,
          if (matrixMode_isDirty || mmode != GL_PROJECTION)
          {

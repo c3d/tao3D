@@ -20,6 +20,7 @@
 //  (C) 2013 Taodyne SAS
 // ****************************************************************************
 
+#include "application.h"
 #include "base.h"
 #include "process.h"
 #include "tao_utf8.h"
@@ -145,8 +146,8 @@ void WebUI::launchBrowser()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(port);
-    QString url = QString("http://localhost:%1/?token=%2").arg(port)
-                    .arg(token);
+    QString url = QString("http://localhost:%1/?lang=%2&token=%3").arg(port)
+                    .arg(TaoApp->lang).arg(token);
     IFTRACE(webui)
         debug() << "Launching browser at: " << +url << "\n";
     if (!QDesktopServices::openUrl(QUrl(url)))

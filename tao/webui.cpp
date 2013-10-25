@@ -33,6 +33,7 @@
 #include <QStringList>
 #include <QUrl>
 #include <QtGlobal>
+#include <QUuid>
 
 namespace Tao {
 
@@ -105,10 +106,11 @@ void WebUI::startServer()
 // ----------------------------------------------------------------------------
 {
     stopServer();
-    IFTRACE(webui)
-        debug() << "Starting server (document: " << +path << ")\n";
+    token = QUuid::createUuid().toString().replace("{", "").replace("}", "");
     QStringList args;
-    args << "server.js" << path;
+    args << "server.js" << "-t" << token << path;
+    IFTRACE(webui)
+        debug() << "Starting server - args: " << +args.join(",") << "\n";
     server.start(nodePath(), args);
 }
 
@@ -143,7 +145,8 @@ void WebUI::launchBrowser()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(port);
-    QString url = QString("http://localhost:%1/").arg(port);
+    QString url = QString("http://localhost:%1/?token=%2").arg(port)
+                    .arg(token);
     IFTRACE(webui)
         debug() << "Launching browser at: " << +url << "\n";
     if (!QDesktopServices::openUrl(QUrl(url)))

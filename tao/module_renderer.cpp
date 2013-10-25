@@ -146,7 +146,7 @@ void ModuleRenderer::Draw(Layout *where)
                   << (intptr_t) callback << "\n";
     }
 
-    GL.Invalidate();
+    // GL.Invalidate();
 }
 
 
@@ -184,7 +184,7 @@ void ModuleRenderer::Identify(Layout *where)
         }
     }
 
-    GL.Invalidate();
+    // GL.Invalidate();
 }
 
 } // namespace Tao

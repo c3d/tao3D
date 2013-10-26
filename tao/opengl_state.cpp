@@ -1434,7 +1434,7 @@ void OpenGLState::Clear(GLuint mask)
 //    Clear buffers to preset values
 // ----------------------------------------------------------------------------
 {
-    Sync(STATE_clearColor);     // Make sure we have right clear color
+    Sync();                     // Need right clear color, viewport, matrix
     glClear(mask);              // Immediate execution
 }
 

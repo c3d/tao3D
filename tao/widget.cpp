@@ -1630,6 +1630,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::Save<double> setFrozenTime(frozenTime, start_time);
     XL::Save<double> saveStartTime(startTime, start_time);
     XL::Save<page_list> savePageNames(pageNames, pageNames);
+    XL::Save<double> savePixelRatio(devicePixelRatio, 1.0);
 
     GLAllStateKeeper saveGL;
     XL::Save<double> saveScaling(scaling, scaling);

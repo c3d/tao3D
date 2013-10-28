@@ -2533,7 +2533,11 @@ void Widget::resizeGL(int width, int height)
     if (!frameBufferReady())
         return;
 
+    // Use logical widget coordinates, not pixel coordinates (#3254)
+    width = this->width();
+    height = this->height();
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
+    setup(width, height);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
     displayLinkMutex.lock();
@@ -2635,6 +2639,9 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Reset default GL parameters
     setupGL();
+
+    // Sync needed for #3254
+    GL.Sync();
 }
 
 

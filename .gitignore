@@ -34,3 +34,4 @@ doc/doc
 *.xl.sig
 *.ddd.sig
 /.qmake.cache
+*.xcodeproj

@@ -109,6 +109,8 @@
 #ifndef CFG_NO_QTWEBKIT
 #include <QtWebKit>
 #endif
+#include <QRunnable>
+#include <QThreadPool>
 
 #ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
@@ -1522,17 +1524,19 @@ void Widget::print(QPrinter *prt)
 }
 
 
-struct SaveImage : QThread
+struct SaveImage : QRunnable
 // ----------------------------------------------------------------------------
 //   A separate thread used to store rendered images to disk
 // ----------------------------------------------------------------------------
 {
-    SaveImage(QString filename, QImage image):
-        QThread(), filename(filename), image(image) {}
-    void run()    { image.save(filename); image = QImage(); }
+    SaveImage(QString filename, QImage image, QSemaphore * semaphore):
+        filename(filename), image(image), semaphore(semaphore)
+        { semaphore->acquire(); }
+    void run()    { image.save(filename); semaphore->release(); }
 public:
-    QString filename;
-    QImage  image;
+    QString      filename;
+    QImage       image;
+    QSemaphore * semaphore;
 };
 
 
@@ -1656,7 +1660,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         fileName.replace("%0d", "%0" + QString("%1d").arg(digits));
     }
 
-    std::vector<SaveImage*> saveThreads;
+    QThreadPool saveThreads(this); // # threads = # of CPU cores, by default
+    // Semaphore limits the number of frames pending save
+    QSemaphore semaphore(QThread::idealThreadCount() + 1);
     QTime fpsTimer;
     fpsTimer.start();
 
@@ -1718,9 +1724,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
         if (dir != "/dev/null")
         {
-            SaveImage *thread = new SaveImage(filePath, frame.toImage());
-            saveThreads.push_back(thread);
-            thread->start();
+            SaveImage * task = new SaveImage(filePath, frame.toImage(),
+                                             &semaphore);
+            saveThreads.start(task);
         }
 
         currentFrame++;
@@ -1734,13 +1740,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         std::cerr << "Rendered " << currentFrame << " frames in "
                   << elapsed << " ms, approximately "
                   << 1000 * currentFrame / elapsed << " FPS\n";
-    while(saveThreads.size())
-    {
-        SaveImage *thread = saveThreads.back();
-        thread->wait();
-        delete thread;
-        saveThreads.pop_back();
-    }
+    saveThreads.waitForDone();
     elapsed = fpsTimer.elapsed();
     IFTRACE(fps)
         std::cerr << "Saved " << currentFrame << " frames in "

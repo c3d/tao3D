@@ -1692,7 +1692,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             commitPageChange(false);
         }
 
-        if (currentFrame == 1)
+        if (currentFrame == firstFrame)
         {
             runProgram();
         }

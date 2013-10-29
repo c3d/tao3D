@@ -928,7 +928,7 @@ bool Application::checkOfflineRendering()
 
     QStringList parms = ropts.split(",");
     int nparms = parms.size();
-    if (nparms < 7 || nparms > 8)
+    if (nparms < 8 || nparms > 9)
     {
         std::cerr << +tr("-render: too few or too many parameters\n");
         return false;
@@ -936,19 +936,18 @@ bool Application::checkOfflineRendering()
 
     int idx = 0;
     int page, x, y;
-    double start, end, fps;
+    double start, end, fps, offset;
     QString folder, disp = "";
 
     page = parms[idx++].toInt();
-    if (page == -1)
-        page = 0; // backward compatibility
     x = parms[idx++].toInt();
     y = parms[idx++].toInt();
     start = parms[idx++].toDouble();
     end = parms[idx++].toDouble();
+    offset = parms[idx++].toDouble();
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
-    if (nparms >= 8)
+    if (nparms >= 9)
         disp = parms[idx++];
 
     if (disp == "help")
@@ -960,15 +959,17 @@ bool Application::checkOfflineRendering()
         return false;
     }
 
-    std::cout << "Starting offline rendering: page=" << page << " width=" << x
-              << " height=" << y << " start=" << start << " end=" << end
+    std::cout << "Starting offline rendering:"
+              << " pagenum=" << page << " width=" << x << " height=" << y
+              << " start-time=" << start << " end-time=" << end
+              << " page-time-offset=" << offset
               << " fps=" << fps << " folder=\"" << +folder << "\""
-              << " displaymode=\"" << +disp << "\"\n";
+              << " display-mode=\"" << +disp << "\"\n";
 
     Widget *widget = win->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    widget->renderFrames(x, y, start, end, folder, fps, page, disp);
+    widget->renderFrames(x, y, start, end, folder, fps, page, offset, disp);
 
     return true;
 }

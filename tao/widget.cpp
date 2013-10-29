@@ -1583,8 +1583,9 @@ static bool checkPrintfFormat(QString str)
 
 
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps, int page, QString disp,
-                          QString fileName, int firstFrame)
+                          QString dir, double fps, int page,
+                          double time_offset, QString disp, QString fileName,
+                          int firstFrame)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
@@ -1627,7 +1628,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     // Set the initial time we want to set and freeze animations
     XL::Save<double> setPageTime(pageStartTime, start_time);
-    XL::Save<double> setFrozenTime(frozenTime, start_time);
+    XL::Save<double> setFrozenTime(frozenTime, start_time + time_offset);
     XL::Save<double> saveStartTime(startTime, start_time);
     XL::Save<page_list> savePageNames(pageNames, pageNames);
 
@@ -1641,7 +1642,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     // Select page, if not current
     if (page)
     {
-        currentTime = start_time;
+        currentTime = start_time + time_offset;
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
@@ -1681,7 +1682,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Set time and run program
-        currentTime = t;
+        currentTime = t + time_offset;
 
         if (gotoPageName != "")
         {
@@ -1690,6 +1691,11 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
                           << "Goto page request: '" << gotoPageName
                           << "' from '" << pageName << "'\n";
             commitPageChange(false);
+            if (time_offset && currentFrame == firstFrame)
+            {
+                frozenTime = start_time + time_offset;
+                pageStartTime = startTime = start_time;
+            }
         }
 
         if (currentFrame == firstFrame)

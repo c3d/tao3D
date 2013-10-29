@@ -54,6 +54,7 @@ public:
     int          x, y;
     double       start, end;
     double       fps;
+    int          startPage; // 0 = current page
 
 private:
     void         dismissShortly();

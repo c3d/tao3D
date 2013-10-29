@@ -38,7 +38,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
       folder(QDir::toNativeSeparators(Application::defaultProjectFolderPath() +
                                     tr("/frames"))),
       fileName("frame%0d.png"),
-      x(640), y(480), start(0.0), end(10.0), fps(25),
+      x(640), y(480), start(0.0), end(10.0), fps(25), startPage(0),
       widget(widget),
       okToDismiss(false), okButton(NULL), rendering(false)
 {
@@ -60,6 +60,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     start = settings.value("start", start).toDouble();
     end = settings.value("end", end).toDouble();
     fps = settings.value("fps", fps).toDouble();
+    startPage = settings.value("startPage", startPage).toInt();
     settings.endGroup();
 
     // Fill values
@@ -73,6 +74,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     startEdit->setText(QString::number(start));
     endEdit->setText(QString::number(end));
     fpsEdit->setText(QString::number(fps));
+    startPageEdit->setText(QString::number(startPage));
 }
 
 
@@ -112,6 +114,7 @@ void RenderToFileDialog::accept()
     start = startEdit->text().toDouble();
     end = endEdit->text().toDouble();
     fps = fpsEdit->text().toDouble();
+    startPage = startPageEdit->text().toInt();
 
     // Save values
     TaoApp->addPathCompletion(folder);
@@ -124,6 +127,7 @@ void RenderToFileDialog::accept()
     settings.setValue("start", start);
     settings.setValue("end", end);
     settings.setValue("fps", fps);
+    settings.setValue("startPage", startPage);
     settings.endGroup();
 
     okButton->setEnabled(false);
@@ -134,7 +138,7 @@ void RenderToFileDialog::accept()
             this, SLOT(done()));
 
     rendering = true;
-    widget->renderFrames(x, y, start, end, folder, fps, -1, "",
+    widget->renderFrames(x, y, start, end, folder, fps, startPage, "",
                          fileName,
                          firstFrameEdit->text().toInt());
 }

@@ -1639,7 +1639,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     offlineRenderingHeight = h;
 
     // Select page, if not current
-    if (page != -1)
+    if (page)
     {
         currentTime = start_time;
         runProgram();

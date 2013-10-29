@@ -940,6 +940,8 @@ bool Application::checkOfflineRendering()
     QString folder, disp = "";
 
     page = parms[idx++].toInt();
+    if (page == -1)
+        page = 0; // backward compatibility
     x = parms[idx++].toInt();
     y = parms[idx++].toInt();
     start = parms[idx++].toDouble();

@@ -23,6 +23,91 @@
    <string>Render to files</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="1" colspan="4">
+    <widget class="QLineEdit" name="folderEdit"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="fileEdit">
+     <property name="toolTip">
+      <string>%0d: frame number with leading zeros; %%: percent; numeric printf formats accepted</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="6">
+    <widget class="QLabel" name="pixelsLabel">
+     <property name="text">
+      <string>pixels</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="fileLabel">
+     <property name="text">
+      <string>File name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="resolutionLabel">
+     <property name="text">
+      <string>Resolution</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="startEndLabel">
+     <property name="text">
+      <string>Start/end time</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0" colspan="8">
+    <widget class="QProgressBar" name="progressBar">
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="4">
+    <widget class="QLineEdit" name="firstFrameEdit">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="fpsEdit"/>
+   </item>
+   <item row="8" column="5" colspan="3">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2">
+    <widget class="QLabel" name="toLabel">
+     <property name="text">
+      <string>to</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="xResolution"/>
+   </item>
+   <item row="2" column="7">
+    <widget class="QPushButton" name="browseButton">
+     <property name="text">
+      <string>Browse...</string>
+     </property>
+    </widget>
+   </item>
    <item row="5" column="1">
     <widget class="QLineEdit" name="startEdit"/>
    </item>
@@ -43,20 +128,6 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="6">
-    <widget class="QLabel" name="secondsLabel">
-     <property name="text">
-      <string>seconds</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="startEndLabel">
-     <property name="text">
-      <string>Start/end time</string>
-     </property>
-    </widget>
-   </item>
    <item row="4" column="2">
     <widget class="QLabel" name="xLabel">
      <property name="text">
@@ -64,40 +135,20 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="3" colspan="2">
-    <widget class="QLineEdit" name="yResolution"/>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="resolutionLabel">
+   <item row="5" column="6">
+    <widget class="QLabel" name="secondsLabel">
      <property name="text">
-      <string>Resolution</string>
+      <string>seconds</string>
      </property>
     </widget>
+   </item>
+   <item row="4" column="3" colspan="2">
+    <widget class="QLineEdit" name="yResolution"/>
    </item>
    <item row="5" column="3" colspan="2">
     <widget class="QLineEdit" name="endEdit">
      <property name="text">
       <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QLineEdit" name="fpsEdit"/>
-   </item>
-   <item row="4" column="6">
-    <widget class="QLabel" name="pixelsLabel">
-     <property name="text">
-      <string>pixels</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="5" colspan="3">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
@@ -108,40 +159,6 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="xResolution"/>
-   </item>
-   <item row="2" column="7">
-    <widget class="QPushButton" name="browseButton">
-     <property name="text">
-      <string>Browse...</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="2">
-    <widget class="QLabel" name="toLabel">
-     <property name="text">
-      <string>to</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="fileLabel">
-     <property name="text">
-      <string>File name</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="fileEdit">
-     <property name="toolTip">
-      <string>%0d: frame number with leading zeros; %%: percent; numeric printf formats accepted</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="3">
     <widget class="QLabel" name="firstFrameLabel">
      <property name="text">
@@ -149,20 +166,17 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="4">
-    <widget class="QLineEdit" name="firstFrameEdit">
+   <item row="6" column="3">
+    <widget class="QLabel" name="startPageLabel">
      <property name="text">
-      <string/>
+      <string>Start page</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1" colspan="4">
-    <widget class="QLineEdit" name="folderEdit"/>
-   </item>
-   <item row="7" column="0" colspan="8">
-    <widget class="QProgressBar" name="progressBar">
-     <property name="value">
-      <number>0</number>
+   <item row="6" column="4">
+    <widget class="QLineEdit" name="startPageEdit">
+     <property name="toolTip">
+      <string>0 for current page</string>
      </property>
     </widget>
    </item>

@@ -157,7 +157,7 @@ public slots:
     void        zoomOut();
     void        saveAndCommit();
     void        renderFrames(int w, int h, double startT, double endT,
-                             QString dir, double fps = 25.0, int page = -1,
+                             QString dir, double fps = 25.0, int page = 0,
                              QString displayName = "",
                              QString fileName = "frame%0d.png", int firstFrame = 1);
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }

@@ -39,6 +39,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
                                     tr("/frames"))),
       fileName("frame%0d.png"),
       x(640), y(480), start(0.0), end(10.0), fps(25), startPage(0),
+      timeOffset(0.0),
       widget(widget),
       okToDismiss(false), okButton(NULL), rendering(false)
 {
@@ -61,6 +62,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     end = settings.value("end", end).toDouble();
     fps = settings.value("fps", fps).toDouble();
     startPage = settings.value("startPage", startPage).toInt();
+    timeOffset = settings.value("timeOffset", timeOffset).toDouble();
     settings.endGroup();
 
     // Fill values
@@ -75,6 +77,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     endEdit->setText(QString::number(end));
     fpsEdit->setText(QString::number(fps));
     startPageEdit->setText(QString::number(startPage));
+    timeOffsetEdit->setText(QString::number(timeOffset));
 }
 
 
@@ -115,6 +118,7 @@ void RenderToFileDialog::accept()
     end = endEdit->text().toDouble();
     fps = fpsEdit->text().toDouble();
     startPage = startPageEdit->text().toInt();
+    timeOffset = timeOffsetEdit->text().toDouble();
 
     // Save values
     TaoApp->addPathCompletion(folder);
@@ -128,6 +132,7 @@ void RenderToFileDialog::accept()
     settings.setValue("end", end);
     settings.setValue("fps", fps);
     settings.setValue("startPage", startPage);
+    settings.setValue("timeOffset", timeOffset);
     settings.endGroup();
 
     okButton->setEnabled(false);
@@ -138,8 +143,8 @@ void RenderToFileDialog::accept()
             this, SLOT(done()));
 
     rendering = true;
-    widget->renderFrames(x, y, start, end, folder, fps, startPage, 0.0, "",
-                         fileName,
+    widget->renderFrames(x, y, start, end, folder, fps, startPage, timeOffset,
+                         "", fileName,
                          firstFrameEdit->text().toInt());
 }
 

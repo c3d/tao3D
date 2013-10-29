@@ -54,7 +54,8 @@ public:
     int          x, y;
     double       start, end;
     double       fps;
-    int          startPage; // 0 = current page
+    int          startPage;  // 0 = current page
+    double       timeOffset; // initial value of page_time in startPage
 
 private:
     void         dismissShortly();

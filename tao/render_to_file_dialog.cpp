@@ -38,7 +38,7 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
       folder(QDir::toNativeSeparators(Application::defaultProjectFolderPath() +
                                     tr("/frames"))),
       fileName("frame%0d.png"),
-      x(640), y(480), start(0.0), end(10.0), fps(25), startPage(0),
+      x(640), y(480), start(-1.0), duration(10.0), fps(25), startPage(0),
       timeOffset(0.0),
       widget(widget),
       okToDismiss(false), okButton(NULL), rendering(false)
@@ -58,8 +58,8 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     fileName = settings.value("fileName", fileName).toString();
     x = settings.value("x", x).toInt();
     y = settings.value("y", y).toInt();
-    start = settings.value("start", start).toDouble();
-    end = settings.value("end", end).toDouble();
+    start = settings.value("start2", start).toDouble();
+    duration = settings.value("duration", duration).toDouble();
     fps = settings.value("fps", fps).toDouble();
     startPage = settings.value("startPage", startPage).toInt();
     timeOffset = settings.value("timeOffset", timeOffset).toDouble();
@@ -73,8 +73,8 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
     folderEdit->setCompleter(pc);
     xResolution->setText(QString::number(x));
     yResolution->setText(QString::number(y));
-    startEdit->setText(QString::number(start));
-    endEdit->setText(QString::number(end));
+    startTimeEdit->setText(QString::number(start));
+    durationEdit->setText(QString::number(duration));
     fpsEdit->setText(QString::number(fps));
     startPageEdit->setText(QString::number(startPage));
     timeOffsetEdit->setText(QString::number(timeOffset));
@@ -114,8 +114,8 @@ void RenderToFileDialog::accept()
     fileName = fileEdit->text();
     x = xResolution->text().toInt();
     y = yResolution->text().toInt();
-    start = startEdit->text().toDouble();
-    end = endEdit->text().toDouble();
+    start = startTimeEdit->text().toDouble();
+    duration = durationEdit->text().toDouble();
     fps = fpsEdit->text().toDouble();
     startPage = startPageEdit->text().toInt();
     timeOffset = timeOffsetEdit->text().toDouble();
@@ -128,8 +128,8 @@ void RenderToFileDialog::accept()
     settings.setValue("fileName", fileName);
     settings.setValue("x", x);
     settings.setValue("y", y);
-    settings.setValue("start", start);
-    settings.setValue("end", end);
+    settings.setValue("start2", start);
+    settings.setValue("end", duration);
     settings.setValue("fps", fps);
     settings.setValue("startPage", startPage);
     settings.setValue("timeOffset", timeOffset);
@@ -143,7 +143,7 @@ void RenderToFileDialog::accept()
             this, SLOT(done()));
 
     rendering = true;
-    widget->renderFrames(x, y, start, end - start, folder, fps, startPage,
+    widget->renderFrames(x, y, start, duration, folder, fps, startPage,
                          timeOffset, "", fileName,
                          firstFrameEdit->text().toInt());
 }

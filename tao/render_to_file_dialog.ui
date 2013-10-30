@@ -43,20 +43,6 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="startEndLabel">
-     <property name="text">
-      <string>Start/end time</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="2">
-    <widget class="QLabel" name="toLabel">
-     <property name="text">
-      <string>to</string>
-     </property>
-    </widget>
-   </item>
    <item row="9" column="0" colspan="8">
     <widget class="QProgressBar" name="progressBar">
      <property name="value">
@@ -88,13 +74,6 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="3" colspan="2">
-    <widget class="QLineEdit" name="endEdit">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="0">
     <widget class="QLabel" name="folderLabel">
      <property name="text">
@@ -115,23 +94,6 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="6">
-    <widget class="QLabel" name="secondsLabel">
-     <property name="text">
-      <string>seconds</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="fpsLabel">
-     <property name="text">
-      <string>Frames per second</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QLineEdit" name="fpsEdit"/>
-   </item>
    <item row="3" column="1">
     <widget class="QLineEdit" name="fileEdit">
      <property name="toolTip">
@@ -141,9 +103,6 @@
       <string/>
      </property>
     </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="startEdit"/>
    </item>
    <item row="3" column="3">
     <widget class="QLabel" name="firstFrameLabel">
@@ -201,6 +160,51 @@
      </property>
     </widget>
    </item>
+   <item row="6" column="3">
+    <widget class="QLabel" name="durationLabel">
+     <property name="text">
+      <string>Duration</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="4">
+    <widget class="QLineEdit" name="durationEdit">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="6">
+    <widget class="QLabel" name="secondsLabel">
+     <property name="text">
+      <string>seconds</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="startTimeLabel">
+     <property name="text">
+      <string>Start time</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="startTimeEdit">
+     <property name="toolTip">
+      <string>Unix time in seconds, -1 for current date/time</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="fpsLabel">
+     <property name="text">
+      <string>Frames per second</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="fpsEdit"/>
+   </item>
   </layout>
  </widget>
  <tabstops>
@@ -210,9 +214,6 @@
   <tabstop>firstFrameEdit</tabstop>
   <tabstop>xResolution</tabstop>
   <tabstop>yResolution</tabstop>
-  <tabstop>startEdit</tabstop>
-  <tabstop>endEdit</tabstop>
-  <tabstop>fpsEdit</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>

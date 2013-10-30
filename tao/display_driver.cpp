@@ -559,7 +559,7 @@ int DisplayDriver::renderHeight()
 //   Dimension in pixels is rounded down to an even value to avoid display
 //   artifacts as the window is resized (half pixels)
 {
-    int h = Widget::Tao()->height();
+    int h = Widget::Tao()->renderHeight();
     return even(h);
 }
 
@@ -571,7 +571,7 @@ int DisplayDriver::renderWidth()
 //   Dimension in pixels is rounded down to an even value to avoid display
 //   artifacts as the window is resized (half pixels)
 {
-    int w = Widget::Tao()->width();
+    int w = Widget::Tao()->renderWidth();
     return even(w);
 }
 
@@ -599,7 +599,8 @@ double DisplayDriver::zoom()
 //   Current zoom factor
 // ----------------------------------------------------------------------------
 {
-    return Widget::Tao()->zoom;
+    Widget *widget = Widget::Tao();
+    return widget->zoom * widget->devicePixelRatio;
 }
 
 

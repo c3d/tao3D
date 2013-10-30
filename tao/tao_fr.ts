@@ -325,42 +325,42 @@
         <translation>Rendu fichier</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="117"/>
+        <location filename="render_to_file_dialog.ui" line="111"/>
         <source>Select the destination folder and the rendering options:</source>
         <translation>Choisissez le dossier de destination et les options de rendu :</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="158"/>
+        <location filename="render_to_file_dialog.ui" line="101"/>
         <source>Destination folder</source>
         <translation>Dossier de destination</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="107"/>
+        <location filename="render_to_file_dialog.ui" line="80"/>
         <source>Browse...</source>
         <translation>Parcourir...</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="49"/>
+        <location filename="render_to_file_dialog.ui" line="87"/>
         <source>File name</source>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="32"/>
+        <location filename="render_to_file_dialog.ui" line="138"/>
         <source>%0d: frame number with leading zeros; %%: percent; numeric printf formats accepted</source>
         <translation>%0d = numéro d&apos;image précédé de zéros, %% = pourcent, formats printf acceptés</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="165"/>
+        <location filename="render_to_file_dialog.ui" line="151"/>
         <source>First frame</source>
         <translation>Première image</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="56"/>
+        <location filename="render_to_file_dialog.ui" line="165"/>
         <source>Resolution</source>
         <translation>Résolution</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="134"/>
+        <location filename="render_to_file_dialog.ui" line="32"/>
         <source>x</source>
         <translation>x</translation>
     </message>
@@ -370,32 +370,38 @@
         <translation>pixels</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="63"/>
+        <location filename="render_to_file_dialog.ui" line="49"/>
         <source>Start/end time</source>
         <translation>Début/fin</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="97"/>
+        <location filename="render_to_file_dialog.ui" line="56"/>
         <source>to</source>
         <translation>à</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="141"/>
+        <location filename="render_to_file_dialog.ui" line="121"/>
+        <location filename="render_to_file_dialog.ui" line="196"/>
         <source>seconds</source>
         <translation>secondes</translation>
     </message>
     <message>
         <location filename="render_to_file_dialog.ui" line="172"/>
+        <source>with time offset</source>
+        <translation>à partir de</translation>
+    </message>
+    <message>
+        <location filename="render_to_file_dialog.ui" line="179"/>
         <source>Start page</source>
         <translation>Depuis la page</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="179"/>
+        <location filename="render_to_file_dialog.ui" line="186"/>
         <source>0 for current page</source>
         <translation>0 pour la page en cours</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.ui" line="127"/>
+        <location filename="render_to_file_dialog.ui" line="128"/>
         <source>Frames per second</source>
         <translation>Images par seconde</translation>
     </message>
@@ -460,20 +466,20 @@
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1107"/>
+        <location filename="application.cpp" line="1108"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1240"/>
-        <location filename="application.cpp" line="1256"/>
-        <location filename="application.cpp" line="1269"/>
-        <location filename="application.cpp" line="1282"/>
+        <location filename="application.cpp" line="1241"/>
+        <location filename="application.cpp" line="1257"/>
+        <location filename="application.cpp" line="1270"/>
+        <location filename="application.cpp" line="1283"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1241"/>
+        <location filename="application.cpp" line="1242"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -484,7 +490,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1257"/>
+        <location filename="application.cpp" line="1258"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -493,7 +499,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1270"/>
+        <location filename="application.cpp" line="1271"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -502,7 +508,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1283"/>
+        <location filename="application.cpp" line="1284"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -1925,27 +1931,27 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
         <translation>/frames</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.cpp" line="95"/>
+        <location filename="render_to_file_dialog.cpp" line="98"/>
         <source>Folder does not exist</source>
         <translation>Le dossier n&apos;existe pas</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.cpp" line="96"/>
+        <location filename="render_to_file_dialog.cpp" line="99"/>
         <source>Do you want do create folder: %1?</source>
         <translation>Voulez-vous créer le dossier %1 ?</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.cpp" line="104"/>
+        <location filename="render_to_file_dialog.cpp" line="107"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.cpp" line="105"/>
+        <location filename="render_to_file_dialog.cpp" line="108"/>
         <source>Could not create folder.</source>
         <translation>Impossible de créer le dossier.</translation>
     </message>
     <message>
-        <location filename="render_to_file_dialog.cpp" line="203"/>
+        <location filename="render_to_file_dialog.cpp" line="208"/>
         <source>Select destination folder</source>
         <translation>Choissisez un dossier de destination</translation>
     </message>
@@ -2266,32 +2272,32 @@ Code : %1
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1600"/>
+        <location filename="widget.cpp" line="1601"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="1601"/>
+        <location filename="widget.cpp" line="1602"/>
         <source>Invalid file name. Check any % format specification and remember to use %% to insert a percent character.</source>
         <translation>Nom de fichier invalide. Vérifiez que la spécification de format (%) et utilisez %% pour insérer un caractère pourcent.</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2738"/>
+        <location filename="widget.cpp" line="2744"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2744"/>
+        <location filename="widget.cpp" line="2750"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12552"/>
+        <location filename="widget.cpp" line="12558"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="12553"/>
+        <location filename="widget.cpp" line="12559"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

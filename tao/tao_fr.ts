@@ -381,7 +381,7 @@
     </message>
     <message>
         <location filename="render_to_file_dialog.ui" line="121"/>
-        <location filename="render_to_file_dialog.ui" line="196"/>
+        <location filename="render_to_file_dialog.ui" line="200"/>
         <source>seconds</source>
         <translation>secondes</translation>
     </message>
@@ -399,6 +399,11 @@
         <location filename="render_to_file_dialog.ui" line="186"/>
         <source>0 for current page</source>
         <translation>0 pour la page en cours</translation>
+    </message>
+    <message>
+        <location filename="render_to_file_dialog.ui" line="193"/>
+        <source>The value of page_time for the first frame in start page</source>
+        <translation>Valeur de page_time pour la première image de la première page/translation>
     </message>
     <message>
         <location filename="render_to_file_dialog.ui" line="128"/>

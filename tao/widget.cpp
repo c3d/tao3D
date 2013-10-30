@@ -1667,14 +1667,14 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     QTime fpsTimer;
     fpsTimer.start();
 
-    for (double t = start_time; t < end_time; t += 1.0/fps)
+    for (double t = start_time; t < start_time + duration; t += 1.0/fps)
     {
 #define CHECK_CANCELED() \
     if (renderFramesCanceled == 2) { inOfflineRendering = false; return; } \
     else if (renderFramesCanceled == 1) { renderFramesCanceled = 0; break; }
 
         // Show progress information
-        percent = 100*currentFrame/frameCount;
+        percent = 100*(currentFrame-firstFrame)/frameCount;
         if (percent != prevPercent)
         {
             prevPercent = percent;

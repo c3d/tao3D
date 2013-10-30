@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
+    <width>767</width>
     <height>308</height>
    </rect>
   </property>
@@ -188,7 +188,11 @@
     </widget>
    </item>
    <item row="7" column="4">
-    <widget class="QLineEdit" name="timeOffsetEdit"/>
+    <widget class="QLineEdit" name="timeOffsetEdit">
+     <property name="toolTip">
+      <string>The value of page_time for the first frame in start page</string>
+     </property>
+    </widget>
    </item>
    <item row="7" column="6">
     <widget class="QLabel" name="secondsLabel2">

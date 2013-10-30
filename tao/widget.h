@@ -156,7 +156,7 @@ public slots:
     void        zoomIn();
     void        zoomOut();
     void        saveAndCommit();
-    void        renderFrames(int w, int h, double startT, double endT,
+    void        renderFrames(int w, int h, double start_time, double duration,
                              QString dir, double fps = 25.0, int page = 0,
                              double time_offset = 0.0,
                              QString displayName = "",

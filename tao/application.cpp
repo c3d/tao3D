@@ -936,14 +936,14 @@ bool Application::checkOfflineRendering()
 
     int idx = 0;
     int page, x, y;
-    double start, end, fps, offset;
+    double start, duration, fps, offset;
     QString folder, disp = "";
 
     page = parms[idx++].toInt();
     x = parms[idx++].toInt();
     y = parms[idx++].toInt();
     start = parms[idx++].toDouble();
-    end = parms[idx++].toDouble();
+    duration = parms[idx++].toDouble();
     offset = parms[idx++].toDouble();
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
@@ -961,7 +961,7 @@ bool Application::checkOfflineRendering()
 
     std::cout << "Starting offline rendering:"
               << " pagenum=" << page << " width=" << x << " height=" << y
-              << " start-time=" << start << " end-time=" << end
+              << " start-time=" << start << " duration=" << duration
               << " page-time-offset=" << offset
               << " fps=" << fps << " folder=\"" << +folder << "\""
               << " display-mode=\"" << +disp << "\"\n";
@@ -969,7 +969,8 @@ bool Application::checkOfflineRendering()
     Widget *widget = win->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    widget->renderFrames(x, y, start, end, folder, fps, page, offset, disp);
+    widget->renderFrames(x, y, start, duration, folder, fps, page, offset,
+                         disp);
 
     return true;
 }

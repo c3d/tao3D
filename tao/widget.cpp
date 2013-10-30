@@ -1582,7 +1582,7 @@ static bool checkPrintfFormat(QString str)
 }
 
 
-void Widget::renderFrames(int w, int h, double start_time, double end_time,
+void Widget::renderFrames(int w, int h, double start_time, double duration,
                           QString dir, double fps, int page,
                           double time_offset, QString disp, QString fileName,
                           int firstFrame)
@@ -1627,6 +1627,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     }
 
     // Set the initial time we want to set and freeze animations
+    if (start_time == -1)
+        start_time = trueCurrentTime();
     XL::Save<double> setPageTime(pageStartTime, start_time);
     XL::Save<double> setFrozenTime(frozenTime, start_time + time_offset);
     XL::Save<double> saveStartTime(startTime, start_time);
@@ -1651,7 +1653,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     FrameInfo frame(w, h);
 
     // Render frames for the whole time range
-    int currentFrame = firstFrame, frameCount = (end_time - start_time) * fps;
+    int currentFrame = firstFrame, frameCount = duration * fps;
     int percent, prevPercent = 0;
     int digits = (int)log10(frameCount) + 1;
 

@@ -143,8 +143,8 @@ void RenderToFileDialog::accept()
             this, SLOT(done()));
 
     rendering = true;
-    widget->renderFrames(x, y, start, end, folder, fps, startPage, timeOffset,
-                         "", fileName,
+    widget->renderFrames(x, y, start, end - start, folder, fps, startPage,
+                         timeOffset, "", fileName,
                          firstFrameEdit->text().toInt());
 }
 

@@ -207,6 +207,8 @@ public:
     void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
                           double *toScreen);
     bool        stereoIdentEnabled(void) { return stereoIdent; }
+    int         renderWidth()  { return width()  * devicePixelRatio; }
+    int         renderHeight() { return height() * devicePixelRatio; }
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -976,7 +978,7 @@ private:
     FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;
-    scale                 pageW, pageH, blurFactor;
+    scale                 pageW, pageH, blurFactor, devicePixelRatio;
     text                  currentFlowName;
     flow_map              flows;
     text                  prevPageName, pageName, lastPageName;

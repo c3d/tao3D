@@ -403,7 +403,7 @@
     <message>
         <location filename="render_to_file_dialog.ui" line="193"/>
         <source>The value of page_time for the first frame in start page</source>
-        <translation>Valeur de page_time pour la première image de la première page/translation>
+        <translation>Valeur de page_time pour la première image de la première page</translation>
     </message>
     <message>
         <location filename="render_to_file_dialog.ui" line="128"/>

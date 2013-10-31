@@ -12699,6 +12699,9 @@ void Widget::deleteSelection()
     if (!xlProgram || !markChange("Deleted selection"))
         return;
 
+    if (!hasSelection())
+        return;
+
     XL::Tree *what = xlProgram->tree;
     if (what)
     {

@@ -215,6 +215,7 @@ public:
     bool        forwardEvent(QMouseEvent *event);
     void        keyPressEvent(QKeyEvent *event);
     void        keyReleaseEvent(QKeyEvent *event);
+    void        handleKeyEvent(QKeyEvent *event, bool keypress);
     void        mousePressEvent(QMouseEvent *);
     void        mouseReleaseEvent(QMouseEvent *);
     void        mouseMoveEvent(QMouseEvent *);
@@ -1036,7 +1037,15 @@ private:
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
     uint                  keyboardModifiers;
-
+    text                  prevKeyPressText; // persists until next QKeyEvent
+public:
+    // Key event info accessed directly from .tbl. Valid only when current
+    // refresh is caused by the QKeyEvent
+    bool                  keyPressed;   // false if released
+    text                  keyEventName; // e.g., "a", "A", "~A", "~Ctrl-A"
+    text                  keyText;      // QKeyEvent::text()
+    text                  keyName;      // QKeyEvent::key()
+private:
 
     // Menus and widgets
     QMenu                *currentMenu;

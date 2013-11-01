@@ -533,11 +533,93 @@ depth_function (func:text);
 
 /**
  * @~english
- * Sends a keypress event.
+ * The symbolic name of the key being pressed or released.
+ * The returned text starts with <tt>Key_</tt>, followed by the name of the
+ * key. For instance: <tt>Key_A</tt>, <tt>Key_B</tt>, <tt>Key_Return</tt>, etc.
+ * The names are as defined by the
+ * <a href="http://qt-project.org/doc/qt-4.8/qt.html#Key-enum">Qt::Key</a>
+ * enumeration (not all values are implemented). @n
+ * This primitive returns an empty string when the code is being executed
+ * for another reason than a key press or key release event, or the key is not
+ * known.
  * @~french
- * Envoie un événement clavier.
+ * Le nom symbolique de la touche appuyée ou relâchée.
+ * Le format du nom est <tt>Key_</tt> suivi du nom de la touche en
+ * anglais. Par exemple :  <tt>Key_A</tt>, <tt>Key_B</tt>, <tt>Key_Return</tt>,
+ * etc. Les noms sont ceux définis par l'énumération
+ * <a href="http://qt-project.org/doc/qt-4.8/qt.html#Key-enum">Qt::Key</a>
+ * (toutes les valeurs ne sont pas implémentées).
+ * Cette primitive renvoie une chaîne vide si le code n'est pas exécuté en
+ * raison d'un événement clavier, ou si la touche est inconnue.
+ * @~
+ * @see key_text, key_event, key_pressed, keyboard_modifiers, on
  */
-key(keyname:text);
+text key_name();
+
+/**
+ * @~english
+ * The text that the key press or key release has generated.
+ * This primitive returns an empty string when no text has been generated.
+ * For instance, pressing the Shift key will generate an event with
+ * @ref key_name = 'Key_Shift' but an empty @ref key_text value.
+ * The function also returns an empty string when it is executed for another
+ * reason than a key press or key release event.
+ * @~french
+ * Le texte généré par la touche appuyée ou relâchée.
+ * Cette primitive renvoie une chaîne vide si aucun texte n'a été généré.
+ * Par exemple, un appui sur la touche Shift génère un événement avec
+ * @ref key_name = 'Key_Shift' mais @ref key_text est vide. Cette fonction
+ * renvoie également une chaîne vide si le code n'est pas exécuté en
+ * raison d'un événement clavier.
+ * @~
+  * @see key_name, key_event, key_pressed, keyboard_modifiers, on
+ */
+text key_text();
+
+/**
+ * @~english
+ * A string that describes which key or key combination event occured.
+ * Returns a text string that gives information on which keys have
+ * been pressed or released. It starts with a tilde character (~)
+ * if a key was released, otherwise the event was a key press.
+ * Here are some examples:
+ * - <tt>a</tt> the 'A' key was pressed and generated a lowercase 'a'
+ * - <tt>~a</tt> the 'A' key was released
+ * - <tt>A</tt> the 'A' key was pressed, and generated an uppercase 'A'
+ * (due to caps lock being on, or in combination with the Shift key)
+ * - <tt>~A</tt> an uppercase 'A' was generated previously, then the 'A'
+ * key was released, or 'Shift' was released
+ * - <tt>Control-A</tt> the control key then the 'A' key where pressed
+ * @~french
+ * Une chaîne de caractères qui décrit quelle touche ou combinaison de
+ * touches a été enfoncée ou relachée.
+ * La chaine renvoyée commence par un tilde (~) si une touche vient d'être
+ * relâchée, sinon l'évènement est un appui sur une touche.
+ * Voici quelques exemples :
+ * - <tt>a</tt> la touche 'A' a été enfoncée et a généré la lettre 'a'
+ * minuscule
+ * - <tt>~a</tt> la touche 'A' a été relachée
+ * - <tt>A</tt> la touche 'A' a été enfoncée et a généré la lettre 'A'
+ * majuscule (à cause du verrouilage en majuscule ou de la touche
+ * majuscule 'Shift')
+ * - <tt>~A</tt> un 'A' majuscule a été généré, puis la touche 'A' a été
+ * relâchée, ou la touche majuscule (Shift) a été relâchée
+ * - <tt>Control-A</tt> la touche contrôle (Control) puis la touche 'A'
+ * ont été enfoncées
+ * @~
+ * @see key_name, key_text, key_pressed, keyboard_modifiers, on
+ */
+text key_event();
+
+/**
+ * @~english
+ * Return true if the current event is a keypress, false otherwise.
+ * @~french
+ * Renvoie vrai si l'évènement courant est un appui sur une touche, faux sinon.
+ * @~
+ * @see key_name, key_text, key_event, keyboard_modifiers, on
+ */
+boolean key_pressed();
 
 /**
  * @~english

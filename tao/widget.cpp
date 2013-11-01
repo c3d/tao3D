@@ -206,6 +206,8 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       selection(), selectionTrees(), selectNextTime(), actionMap(),
       hadSelection(false), selectionChanged(false),
       w_event(NULL), focusWidget(NULL), keyboardModifiers(0),
+      prevKeyPressText(""), keyPressed(false), keyEventName(""), keyText(""),
+      keyName(""),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       menuItems(QVector<MenuInfo*>(10, NULL)), menuCount(0),
       colorAction(NULL), fontAction(NULL),
@@ -433,6 +435,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       hadSelection(o.hadSelection), selectionChanged(o.selectionChanged),
       w_event(o.w_event), focusWidget(o.focusWidget),
       keyboardModifiers(o.keyboardModifiers),
+      prevKeyPressText(o.prevKeyPressText), keyPressed(o.keyPressed),
+      keyEventName(o.keyEventName), keyText(o.keyText), keyName(o.keyName),
       currentMenu(o.currentMenu), currentMenuBar(o.currentMenuBar),
       currentToolBar(o.currentToolBar),
       menuItems(o.menuItems), menuCount(o.menuCount),
@@ -2876,14 +2880,254 @@ bool Widget::forwardEvent(QMouseEvent *event)
 }
 
 
-static text keyName(QKeyEvent *event)
+static text toKeyName(QKeyEvent *event)
+// ----------------------------------------------------------------------------
+//   Return text form of QKeyEvent::key()
+// ----------------------------------------------------------------------------
+{
+    text ret =  "";
+
+#define CHK(key) case Qt::key: ret = #key ; break
+
+    uint key = (uint) event->key();
+    switch(key)
+    {
+    CHK(Key_Space);
+    CHK(Key_A); CHK(Key_B); CHK(Key_C); CHK(Key_D); CHK(Key_E); CHK(Key_F);
+    CHK(Key_G); CHK(Key_H); CHK(Key_I); CHK(Key_J); CHK(Key_K); CHK(Key_L);
+    CHK(Key_M); CHK(Key_N); CHK(Key_O); CHK(Key_P); CHK(Key_Q); CHK(Key_R);
+    CHK(Key_S); CHK(Key_T); CHK(Key_U); CHK(Key_V); CHK(Key_W); CHK(Key_X);
+    CHK(Key_Y); CHK(Key_Z);
+    CHK(Key_0); CHK(Key_1); CHK(Key_2); CHK(Key_3); CHK(Key_4); CHK(Key_5);
+    CHK(Key_6); CHK(Key_7); CHK(Key_8); CHK(Key_9);
+    CHK(Key_Exclam);
+    CHK(Key_QuoteDbl);
+    CHK(Key_NumberSign);
+    CHK(Key_Dollar);
+    CHK(Key_Percent);
+    CHK(Key_Ampersand);
+    CHK(Key_Apostrophe);
+    CHK(Key_ParenLeft);
+    CHK(Key_ParenRight);
+    CHK(Key_Asterisk);
+    CHK(Key_Plus);
+    CHK(Key_Comma);
+    CHK(Key_Minus);
+    CHK(Key_Period);
+    CHK(Key_Slash);
+    CHK(Key_Colon);
+    CHK(Key_Semicolon);
+    CHK(Key_Less);
+    CHK(Key_Equal);
+    CHK(Key_Greater);
+    CHK(Key_Question);
+    CHK(Key_At);
+    CHK(Key_BracketLeft);
+    CHK(Key_Backslash);
+    CHK(Key_BracketRight);
+    CHK(Key_AsciiCircum);
+    CHK(Key_Underscore);
+    CHK(Key_QuoteLeft);
+    CHK(Key_BraceLeft);
+    CHK(Key_Bar);
+    CHK(Key_BraceRight);
+    CHK(Key_AsciiTilde);
+    CHK(Key_Escape);
+    CHK(Key_Tab);
+    CHK(Key_Backtab);
+    CHK(Key_Backspace);
+    CHK(Key_Return);
+    CHK(Key_Enter);
+    CHK(Key_Insert);
+    CHK(Key_Delete);
+    CHK(Key_Pause);
+    CHK(Key_Print);
+    CHK(Key_SysReq);
+    CHK(Key_Clear);
+    CHK(Key_Home);
+    CHK(Key_End);
+    CHK(Key_Left);
+    CHK(Key_Up);
+    CHK(Key_Right);
+    CHK(Key_Down);
+    CHK(Key_PageUp);
+    CHK(Key_PageDown);
+    CHK(Key_Shift);
+    CHK(Key_Control);
+    CHK(Key_Meta);
+    CHK(Key_Alt);
+    CHK(Key_AltGr);
+    CHK(Key_CapsLock);
+    CHK(Key_NumLock);
+    CHK(Key_ScrollLock);
+    CHK(Key_F1);  CHK(Key_F2);  CHK(Key_F3);  CHK(Key_F4);  CHK(Key_F5);
+    CHK(Key_F6);  CHK(Key_F7);  CHK(Key_F8);  CHK(Key_F9);  CHK(Key_F10);
+    CHK(Key_F11); CHK(Key_F12); CHK(Key_F13); CHK(Key_F14); CHK(Key_F15);
+    CHK(Key_F16); CHK(Key_F17); CHK(Key_F18); CHK(Key_F19); CHK(Key_F20);
+    CHK(Key_F21); CHK(Key_F22); CHK(Key_F23); CHK(Key_F24); CHK(Key_F25);
+    CHK(Key_F26); CHK(Key_F27); CHK(Key_F28); CHK(Key_F29); CHK(Key_F30);
+    CHK(Key_F31); CHK(Key_F32); CHK(Key_F33); CHK(Key_F34); CHK(Key_F35);
+    CHK(Key_Menu);
+    CHK(Key_Help);
+    CHK(Key_Back);
+    CHK(Key_Forward);
+    CHK(Key_Stop);
+    CHK(Key_Refresh);
+    CHK(Key_VolumeDown);
+    CHK(Key_VolumeMute);
+    CHK(Key_VolumeUp);
+    CHK(Key_BassBoost);
+    CHK(Key_BassUp);
+    CHK(Key_BassDown);
+    CHK(Key_TrebleUp);
+    CHK(Key_TrebleDown);
+    CHK(Key_MediaPlay);
+    CHK(Key_MediaStop);
+    CHK(Key_MediaPrevious);
+    CHK(Key_MediaNext);
+    CHK(Key_MediaRecord);
+    CHK(Key_HomePage);
+    CHK(Key_Favorites);
+    CHK(Key_Search);
+    CHK(Key_Standby);
+    CHK(Key_OpenUrl);
+    CHK(Key_LaunchMail);
+    CHK(Key_LaunchMedia);
+    CHK(Key_Launch0); CHK(Key_Launch1); CHK(Key_Launch2); CHK(Key_Launch3);
+    CHK(Key_Launch4); CHK(Key_Launch5); CHK(Key_Launch6); CHK(Key_Launch7);
+    CHK(Key_Launch8); CHK(Key_Launch9); CHK(Key_LaunchA); CHK(Key_LaunchB);
+    CHK(Key_LaunchC); CHK(Key_LaunchD); CHK(Key_LaunchE); CHK(Key_LaunchF);
+    CHK(Key_MonBrightnessUp);
+    CHK(Key_MonBrightnessDown);
+    CHK(Key_KeyboardLightOnOff);
+    CHK(Key_KeyboardBrightnessUp);
+    CHK(Key_KeyboardBrightnessDown);
+    CHK(Key_PowerOff);
+    CHK(Key_WakeUp);
+    CHK(Key_Eject);
+    CHK(Key_ScreenSaver);
+    CHK(Key_WWW);
+    CHK(Key_Memo);
+    CHK(Key_LightBulb);
+    CHK(Key_Shop);
+    CHK(Key_History);
+    CHK(Key_AddFavorite);
+    CHK(Key_HotLinks);
+    CHK(Key_BrightnessAdjust);
+    CHK(Key_Finance);
+    CHK(Key_Community);
+    CHK(Key_AudioRewind);
+    CHK(Key_BackForward);
+    CHK(Key_ApplicationLeft);
+    CHK(Key_ApplicationRight);
+    CHK(Key_Book);
+    CHK(Key_CD);
+    CHK(Key_Calculator);
+    CHK(Key_ToDoList);
+    CHK(Key_ClearGrab);
+    CHK(Key_Close);
+    CHK(Key_Copy);
+    CHK(Key_Cut);
+    CHK(Key_Display);
+    CHK(Key_DOS);
+    CHK(Key_Documents);
+    CHK(Key_Excel);
+    CHK(Key_Explorer);
+    CHK(Key_Game);
+    CHK(Key_Go);
+    CHK(Key_iTouch);
+    CHK(Key_LogOff);
+    CHK(Key_Market);
+    CHK(Key_Meeting);
+    CHK(Key_MenuKB);
+    CHK(Key_MenuPB);
+    CHK(Key_MySites);
+    CHK(Key_News);
+    CHK(Key_OfficeHome);
+    CHK(Key_Option);
+    CHK(Key_Paste);
+    CHK(Key_Phone);
+    CHK(Key_Calendar);
+    CHK(Key_Reply);
+    CHK(Key_Reload);
+    CHK(Key_RotateWindows);
+    CHK(Key_RotationPB);
+    CHK(Key_RotationKB);
+    CHK(Key_Save);
+    CHK(Key_Send);
+    CHK(Key_Spell);
+    CHK(Key_SplitScreen);
+    CHK(Key_Support);
+    CHK(Key_TaskPane);
+    CHK(Key_Terminal);
+    CHK(Key_Tools);
+    CHK(Key_Travel);
+    CHK(Key_Video);
+    CHK(Key_Word);
+    CHK(Key_Xfer);
+    CHK(Key_ZoomIn);
+    CHK(Key_ZoomOut);
+    CHK(Key_Away);
+    CHK(Key_Messenger);
+    CHK(Key_WebCam);
+    CHK(Key_MailForward);
+    CHK(Key_Pictures);
+    CHK(Key_Music);
+    CHK(Key_Battery);
+    CHK(Key_Bluetooth);
+    CHK(Key_WLAN);
+    CHK(Key_UWB);
+    CHK(Key_AudioForward);
+    CHK(Key_AudioRepeat);
+    CHK(Key_AudioRandomPlay);
+    CHK(Key_Subtitle);
+    CHK(Key_AudioCycleTrack);
+    CHK(Key_Time);
+    CHK(Key_Hibernate);
+    CHK(Key_View);
+    CHK(Key_TopMenu);
+    CHK(Key_PowerDown);
+    CHK(Key_Suspend);
+    CHK(Key_ContrastAdjust);
+    CHK(Key_MediaLast);
+    CHK(Key_Call);
+    CHK(Key_Context1);
+    CHK(Key_Context2);
+    CHK(Key_Context3);
+    CHK(Key_Context4);
+    CHK(Key_Flip);
+    CHK(Key_Hangup);
+    CHK(Key_No);
+    CHK(Key_Select);
+    CHK(Key_Yes);
+    CHK(Key_Execute);
+    CHK(Key_Printer);
+    CHK(Key_Play);
+    CHK(Key_Sleep);
+    CHK(Key_Zoom);
+    CHK(Key_Cancel);
+    }
+
+#undef CHK
+
+    return ret;
+}
+
+
+static text toKeyEventName(QKeyEvent *event, uint prevModifiers,
+                           text prevKeyText)
 // ----------------------------------------------------------------------------
 //   Return the properly formatted key name for a key event
 // ----------------------------------------------------------------------------
 {
-    // Try to find if there is a callback in the code for this key
     text name = +event->text();
     text ctrl = "";             // Name for Control, Meta and Alt
+
+    if (event->type() == QEvent::KeyRelease &&
+        name == "" && prevKeyText != "")
+    {
+        return "~" + prevKeyText;
+    }
 
     uint key = (uint) event->key();
     switch(key)
@@ -3174,30 +3418,42 @@ static text keyName(QKeyEvent *event)
     }
 
     // Add modifiers to the name if we have them
-    static Qt::KeyboardModifiers modifiers = 0;
+    Qt::KeyboardModifiers modifiers = event->modifiers();
+    Qt::KeyboardModifiers mod = 0;
     if (event->type() == QEvent::KeyPress)
-        modifiers = event->modifiers();
-    if (modifiers)
     {
-        if (ctrl == "")
-        {
-            if (name.length() != 1 && (modifiers & Qt::ShiftModifier))
-                name = "Shift-" + name;
-            ctrl = name;
-        }
-        else
-        {
-            Qt::KeyboardModifiers shift = modifiers & Qt::ShiftModifier;
-            if (shift && shift != modifiers)
-                name = ctrl = "Shift-" + ctrl;
-        }
-        if (modifiers & Qt::ControlModifier)
-            name = ctrl = "Control-" + ctrl;
-        if (modifiers & Qt::AltModifier)
-            name = ctrl = "Alt-" + ctrl;
-        if (modifiers & Qt::MetaModifier)
-            name = ctrl = "Meta-" + ctrl;
+        mod = modifiers;
     }
+    else if (event->type() == QEvent::KeyRelease)
+    {
+        mod = (Qt::KeyboardModifiers)(modifiers ^ prevModifiers);
+    }
+    if (ctrl == "")
+    {
+        if (name.length() != 1 && (mod & Qt::ShiftModifier))
+            name = "Shift-" + name;
+        ctrl = name;
+    }
+    else
+    {
+        Qt::KeyboardModifiers shift = mod & Qt::ShiftModifier;
+        if (shift && shift != mod)
+            name = ctrl = "Shift-" + ctrl;
+    }
+    if (mod & Qt::ControlModifier)
+        name = ctrl = "Control-" + ctrl;
+    if (mod & Qt::AltModifier)
+        name = ctrl = "Alt-" + ctrl;
+    if (mod & Qt::MetaModifier)
+        name = ctrl = "Meta-" + ctrl;
+
+    if (event->type() == QEvent::KeyRelease)
+        name = "~" + name;
+
+    // Make sure name does not end with "-" (modifiers only)
+    size_t len = name.length();
+    if (name[len - 1] == '-')
+        name = name.substr(0, len - 1);
 
     return name;
 }
@@ -3208,35 +3464,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 //   A key is pressed
 // ----------------------------------------------------------------------------
 {
-#ifdef CFG_TIMED_FULLSCREEN
-    emit userActivity();
-#endif
-
-    TaoSave saveCurrent(current, this);
-    EventSave save(this->w_event, event);
-    keyboardModifiers = event->modifiers();
-
-    // Forward it down the regular event chain
-    if (forwardEvent(event))
-        return;
-
-    // Get the name of the key
-    text key = keyName(event);
-
-    // Check if one of the activities handled the key
-    bool handled = false;
-    Activity *next;
-    for (Activity *a = activities; a; a = next)
-    {
-        Activity * n = a->next;
-        next = a->Key(key);
-        handled |= next != n;
-    }
-
-    // If the key was not handled by any activity, forward to document
-    if (!handled && xlProgram)
-        (XL::XLCall ("key"), key) (xlProgram);
-    updateGL();
+    handleKeyEvent(event, true);
 }
 
 
@@ -3245,18 +3473,57 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 //   A key is released
 // ----------------------------------------------------------------------------
 {
+    handleKeyEvent(event, false);
+}
+
+
+void Widget::handleKeyEvent(QKeyEvent *event, bool keypress)
+// ----------------------------------------------------------------------------
+//   Save info about keypress/keyreleased event, and forward.
+// ----------------------------------------------------------------------------
+{
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
-    keyboardModifiers = event->modifiers();
 
-    // Forward it down the regular event chain
+    // Record event info
+    uint prevKeyboardModifiers = keyboardModifiers;
+    keyboardModifiers = event->modifiers();
+    XL::Save<bool> saveKeyPressed(keyPressed, keypress);
+    XL::Save<text> saveKeyName(keyName, toKeyName(event));
+    XL::Save<text> saveKeyText(keyText, +event->text());
+    XL::Save<text> saveKeyEvent(keyEventName,
+                                toKeyEventName(event,
+                                               prevKeyboardModifiers,
+                                               prevKeyPressText));
+    // Remember keypress event->text() until next event
+    prevKeyPressText = keypress ? keyText : "";
+
+    // Forward event down the regular event chain
     if (forwardEvent(event))
         return;
 
-    // Now call "key" in the current context with the ~ prefix
-    if (!xlProgram) return;
-    text name = "~" + keyName(event);
-    (XL::XLCall ("key"), name) (xlProgram);
+    bool handled = false;
+    if (keypress)
+    {
+        // Check if one of the activities handled the key
+        Activity *next;
+        for (Activity *a = activities; a; a = next)
+        {
+            Activity * n = a->next;
+            next = a->Key(keyEventName);
+            handled |= next != n;
+        }
+    }
+
+    // If the key was not handled by any activity, forward to document
+    if (!handled && xlProgram)
+        (XL::XLCall ("key"), keyEventName) (xlProgram);
+    if (keypress)
+        updateGL();
 }
 
 
@@ -6056,6 +6323,8 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
+    // First handle actions not related to a shape
+    QString qname(+name);
     if (name == "pagechange")
     {
         if (!pageChangeActions.count(self))
@@ -6066,6 +6335,71 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
             pageChangeActions[self] = cc;
         }
         return XL::xl_true;
+    }
+    else if ((+name).startsWith("keydown"))
+    {
+        refreshOn(QEvent::KeyPress);
+
+        if (keyPressed)
+        {
+            QRegExp re(".*");
+            if (qname.startsWith("keydown:"))
+                re = QRegExp(qname.mid(qname.indexOf(':') + 1));
+
+            QString qkeyName = +keyName;
+            QString qkeyText = +keyText;
+            QString qkeyEvent = +keyEventName;
+            bool eval = (!qkeyEvent.isEmpty() && re.exactMatch(qkeyEvent)) ||
+                        (!qkeyName.isEmpty()  && re.exactMatch(qkeyName))  ||
+                        (!qkeyText.isEmpty()  && re.exactMatch(qkeyText));
+            if (eval)
+                return context->Evaluate(action);
+        }
+    }
+    else if ((+name).startsWith("keyup"))
+    {
+        refreshOn(QEvent::KeyRelease);
+
+        if (!keyPressed)
+        {
+            QRegExp re(".*");
+            if (qname.startsWith("keyup:"))
+                re = QRegExp(qname.mid(qname.indexOf(':') + 1));
+
+            QString qkeyName = +keyName;
+            QString qkeyText = +keyText;
+            QString qkeyEvent = (+keyEventName).mid(1); // Remove leading ~
+            bool eval = (!qkeyEvent.isEmpty() && re.exactMatch(qkeyEvent)) ||
+                        (!qkeyName.isEmpty()  && re.exactMatch(qkeyName))  ||
+                        (!qkeyText.isEmpty()  && re.exactMatch(qkeyText));
+            if (eval)
+                return context->Evaluate(action);
+        }
+    }
+    else if ((+name).startsWith("key"))
+    {
+        refreshOn(QEvent::KeyPress);
+        refreshOn(QEvent::KeyRelease);
+
+        QRegExp re(".*");
+        if (qname.startsWith("key:"))
+            re = QRegExp(qname.mid(qname.indexOf(':') + 1));
+
+        QString qkeyName = +keyName;
+        QString qkeyText = +keyText;
+        if (!keyPressed)
+        {
+            if (!qkeyName.isEmpty())
+                qkeyName = "~" + qkeyName;
+            if (!qkeyText.isEmpty())
+                qkeyText = "~" + qkeyText;
+            // keyEvent already has the ~
+        }
+        bool eval = (!(+keyEventName).isEmpty() && re.exactMatch(+keyEventName))  ||
+                    (!qkeyName.isEmpty()    && re.exactMatch(qkeyName)) ||
+                    (!qkeyText.isEmpty()    && re.exactMatch(qkeyText));
+        if (eval)
+            return context->Evaluate(action);
     }
 
     IFTRACE(layoutevents)

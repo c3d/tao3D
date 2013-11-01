@@ -762,6 +762,11 @@ PREFIX(KeyboardModifiers, integer, "keyboard_modifiers", ,
                    "Note: On Windows keyboards, the Meta modifier is mapped "
                    "to the optional Windows key.")
        RETURNS(integer, "The current modifiers"))
+PREFIX(KeyPressed, boolean, "key_pressed", , return TAO(keyPressed) ? XL::xl_true : XL::xl_false,)
+PREFIX(KeyEvent,   text,    "key_name",    , return new Text(TAO(keyName)),)
+PREFIX(KeyText,    text,    "key_text",    , return new Text(TAO(keyText)),)
+PREFIX(Key,        text,    "key_event",   , return new Text(TAO(keyEventName)),)
+
 PREFIX(EnableAnimations,  boolean,  "enable_animations",
        PARM(an, boolean, "on or off"),
        RTAO(enableAnimations(self, an)),

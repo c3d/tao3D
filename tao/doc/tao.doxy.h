@@ -526,8 +526,10 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * - @b system: the application folder.
  *
  * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> on Windows,
- * <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX,
+ * <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations</tt> on MacOSX,
  * and <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> on Linux.
+ * Replace <tt>Tao Presentations</tt> with <tt>Tao Presentations Player</tt>
+ * if you are using the player's edition.
  * The application folder is where Tao Presentation is installed.
  * 
  * @~french
@@ -551,8 +553,10 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *
  * Le chemin du dossier utilisateur Tao est
  * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> sous Windows,
- * <tt>$HOME/Library/Application Support/Tao Presentations</tt> sous MacOSX,
+ * <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations</tt> sous MacOSX,
  * et <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> sous Linux.
+ * Remplacez <tt>Tao Presentations</tt> par <tt>Tao Presentations Player</tt>
+ * si vous utilisez le lecteur Tao.
  */
 /**
  * @~english
@@ -848,12 +852,12 @@ import "xl:mes_définitions.xl"
  * d'ouvrir le répertoire du module.
  *  - Copiez le répertoire @c tao_visuals dans le répertoire @c modules de
  * votre compte utilisateur. Plus précisément, vous obtiendrez :
- *    - Windows: <tt>%%APPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *    - Windows: <tt>%%APPDATA%\\Taodyne\\Tao Presentations\\modules\\tao_visuals</tt>.
  *      Pour ouvrir <tt>%%APPDATA%</tt> facilement, tapez simplement
  *      <tt>%%APPDATA%</tt> dans le menu Démarrer.
- *    - MacOSX: <tt>$HOME/Library/Application Support/Tao Presentations/modules/tao_visuals</tt>.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations/modules/tao_visuals</tt>.
  *      <tt>$HOME</tt> est votre répertoire utilisateur.
- *    - <tt>$HOME/.tao/modules/tao_visuals</tt> sur Linux.
+ *    - <tt>$HOME/.local/share/data/Taodyne/Tao Presentations/modules/tao_visuals</tt> sur Linux.
  *  - Renommez le module. Vous devez renommer le dossier mais également le
  * fichier XL principal : <tt>tao_visuals/tao_visuals.xl</tt> doit devenir
  * <tt>mon_module/mon_module.xl</tt>.

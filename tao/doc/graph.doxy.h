@@ -2152,6 +2152,44 @@ circle (x:real, y:real, r:real);
 
 /**
  * @~english
+ * Draws an elliptic arc.
+ *
+ * Elliptic arc centered around (@p x, @p y) that occupies the given
+ * rectangle, beginning at the specified @p start angle and extending
+ * @p sweep degrees counter-clockwise. Angles are specified in
+ * degrees. Clockwise arcs can be specified using negative angles.
+ * @n
+ * An elliptic arc is normally open, but you may close the path as
+ * follows:
+@code
+path
+    ellipse_arc ...
+    close_path
+@endcode
+ *
+ * @~french
+ * Affiche un arc d'ellipse.
+ *
+ * L'arc est inscrit dans le rectangle centré en (@p x, @p y).
+ * Il commence à l'angle @p start (en degrés) et s'étend sur @p sweep degrés
+ * dans le sens contraire des aiguilles d'une montre. Des arcs qui
+ * s'étendent dans l'autre sens peuvent être tracés en utilisant des angles
+ * négatifs.
+ * @n
+ * Un arc d'ellipse est normalement ouvert, mais vous pouvez le fermer
+ * en écrivant:
+@code
+path
+    elipse_arc ...
+    close_path
+@endcode
+ * @~
+ * @image html ellipse_arc.png
+ */
+ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
+
+/**
+ * @~english
  * Draws an elliptic sector.
  *
  * Elliptic sector centered around (@p x, @p y) that occupies the given
@@ -2162,15 +2200,15 @@ circle (x:real, y:real, r:real);
  * @~french
  * Affiche un secteur elliptique.
  *
- * Le secteur elliptique est inscrit dans le rectangle centré en (@p x, @p y).
+ * Le secteur est inscrit dans le rectangle centré en (@p x, @p y).
  * Il commence à l'angle @p start (en degrés) et s'étend sur @p sweep degrés
  * dans le sens contraire des aiguilles d'une montre. Des arcs qui
  * s'étendent dans l'autre sens peuvent être tracés en utilisant des angles
  * négatifs.
  * @~
- * @image html ellipse_arc.png
+ * @image html ellipse_sector.png
  */
-ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
+ellipse_sector (x:real, y:real, w:real, h:real, start:real, sweep:real);
 
 /**
  * @~english

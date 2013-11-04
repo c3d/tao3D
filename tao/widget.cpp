@@ -9267,12 +9267,32 @@ Tree_p Widget::ellipseArc(Tree_p self,
                           Real_p cx, Real_p cy, Real_p w, Real_p h,
                           Real_p start, Real_p sweep)
 // ----------------------------------------------------------------------------
-//   Circular sector centered around (cx,cy)
+//   Elliptical arc centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
     // Start and sweep must be provided upsidedown because of y flip.
     // See Bug#787
     EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new EllipseArc(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::ellipseSector(Tree_p self,
+                              Real_p cx, Real_p cy, Real_p w, Real_p h,
+                              Real_p start, Real_p sweep)
+// ----------------------------------------------------------------------------
+//   Elliptical sector centered around (cx,cy)
+// ----------------------------------------------------------------------------
+{
+    EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep, true);
     if (path)
         shape.Draw(*path);
     else

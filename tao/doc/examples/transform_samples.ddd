@@ -68,7 +68,7 @@ page "rotation",
     
     line_color "black"
     line_width 2 
-    ellipse_arc 0,0,200,200, 0, 45
+    ellipse_sector 0,0,200,200, 0, 45
     
 page "rotation_translation", 
   locally
@@ -92,7 +92,7 @@ page "rotation_translation",
         translate -150, 150, 0
         line_color "tao_green"
         line_width 2 
-        ellipse_arc 0,0,200,200, 0, 45
+        ellipse_sector 0,0,200,200, 0, 45
     locally
         line_color "tao_blue"
         line_width 2 
@@ -129,7 +129,7 @@ page "rotation_translation",
     locally
         line_color "tao_green"
         line_width 2 
-        ellipse_arc 0,0,200,200, 0, 45
+        ellipse_sector 0,0,200,200, 0, 45
     locally
         rotatez 45
         line_color "tao_blue"

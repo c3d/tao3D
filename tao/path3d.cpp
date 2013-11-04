@@ -1235,6 +1235,8 @@ GraphicPath& GraphicPath::addQtPath(QPainterPath &qt, scale sy)
         }
         elements.push_back(Element(kind, position));
         bounds |= position;
+        if (i == 0 && kind == MOVE_TO)
+            start = position;
     }
 
     return *this;

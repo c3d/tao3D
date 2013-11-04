@@ -617,6 +617,8 @@ public:
                         Real_p w, Real_p h);
     Tree_p      ellipseArc(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Real_p start, Real_p sweep);
+    Tree_p      ellipseSector(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+                             Real_p start, Real_p sweep);
     Tree_p      roundedRectangle(Tree_p self,
                                  Real_p cx, Real_p cy, Real_p w, Real_p h,
                                  Real_p r);

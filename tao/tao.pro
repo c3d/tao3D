@@ -419,7 +419,8 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
     xl.stylesheet \
     git.stylesheet \
     nocomment.stylesheet \
-    debug.stylesheet
+    debug.stylesheet \
+    error_filters.txt
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \

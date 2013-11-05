@@ -39,7 +39,6 @@
  * @ref key_event, @ref key_name or @ref key_text matches the given regular
  * expression. The syntax is the one used by
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
- * For details and examples, see @ref on_keydown_example.
  * - @c keydown, @c keydown:\<regexp\>
  * Similar to @c key or @c key:\<regexp\>, but only applies to key press
  * events.
@@ -72,13 +71,14 @@
  * exécuté que si la valeur de @ref key_event, @ref key_name ou @ref key_text
  * correspond à l'expression régulière donnée. La syntaxe est celle de
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
- * Pour plus de détails ainsi que des exemples, voir @ref on_keydown_example.
  * - @c keydown, @c keydown:\<regexp\>
  * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant à l'appui sur une touche.
  * - @c keyup, @c keyup:\<regexp\>
  * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant au relâchement d'une touche.
+ * @~
+ * @see @ref refKeyboardEvents
  */
 on (n:text, t:tree);
 
@@ -311,18 +311,3 @@ wheel_event (x, y);
 enable_selection_rectangle (on:boolean);
 
 /** @} */
-
-/**
- * @~english
- * @page on_keydown_example on "keydown" example
- * The following example relies on the @ref on "on \"keydown:<regexp>\"" syntax
- * to implement keyboard shortcuts, as well as a simple command processing
- * page.
- * @include on_keydown.ddd
- * @~french
- * @page on_keydown_example on "keydown" (exemple)
- * L'exemple suivant utilise la syntaxe @ref on "on \"keydown:<regexp>\"" pour
- * implémenter des raccourcis clavier, ainsi qu'un interpréteur de commandes
- * simple.
- * @include on_keydown_fr.ddd
- */

@@ -1,5 +1,5 @@
 // Surcharge le raccourci qui éteint l'affichage 
-key "b" -> nil
+key "b" -> {}
 
 on "keydown:Control-X",
     if page_label != "Commandes" then

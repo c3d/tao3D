@@ -1,5 +1,5 @@
 // Override default shortcut that blanks the screen
-key "b" -> nil
+key "b" -> {}
 
 on "keydown:Control-X",
     if page_label != "Command prompt" then

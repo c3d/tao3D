@@ -32,19 +32,19 @@
  * get information about the page that was displayed previously).
  * If the previous page has a @ref transition, the code is excuted
  * after the transition is done.
- * - @c key, @c key:<regexp>
+ * - @c key, @c key:\<regexp\>
  * The code is executed when the event that caused the current evaluation of
  * the program is a keyboard event (key press or key release).
- * If  @em :<regexp> is given, the code is executed only when the value of
+ * If  @em :\<regexp\> is given, the code is executed only when the value of
  * @ref key_event, @ref key_name or @ref key_text matches the given regular
  * expression. The syntax is the one used by
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
- * For details and examples, see @ref on_key.
- * - @c keydown, @c keydown:<regexp>
- * Similar to @c key or @c key:<regexp>, but only applies to key press
+ * For details and examples, see @ref on_keydown_example.
+ * - @c keydown, @c keydown:\<regexp\>
+ * Similar to @c key or @c key:\<regexp\>, but only applies to key press
  * events.
- * - @c keyup, @c keyup:<regexp>
- * Similar to @c key or @c key:<regexp>, but only applies to key release
+ * - @c keyup, @c keyup:\<regexp\>
+ * Similar to @c key or @c key:\<regexp\>, but only applies to key release
  * events.
  *
  * @~french
@@ -66,18 +66,18 @@
  * d'obtenir des informations sur la page affichée précédemment).
  * Si une transition (cf. @ref transition) est associée à la page précédente,
  * le code @c t est exécuté lorsque la transition s'est terminée.
- * - @c key, @c key:<regexp>
+ * - @c key, @c key:\<regexp\>
  * Le code est exécuté si l'évènement qui a provoqué l'évaluation du programme
- * est un évènement clavier. Si @em :<regexp> est précisée, le code n'est
+ * est un évènement clavier. Si @em :\<regexp\> est précisée, le code n'est
  * exécuté que si la valeur de @ref key_event, @ref key_name ou @ref key_text
  * correspond à l'expression régulière donnée. La syntaxe est celle de
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
- * Pour plus de détails ainsi que des exemples, voir @ref on_key.
- * - @c keydown, @c keydown:<regexp>
- * Similaire à @c key ou @c key:<regexp>, mais ne prend en compte que les
+ * Pour plus de détails ainsi que des exemples, voir @ref on_keydown_example.
+ * - @c keydown, @c keydown:\<regexp\>
+ * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant à l'appui sur une touche.
- * - @c keyup, @c keyup:<regexp>
- * Similaire à @c key ou @c key:<regexp>, mais ne prend en compte que les
+ * - @c keyup, @c keyup:\<regexp\>
+ * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant au relâchement d'une touche.
  */
 on (n:text, t:tree);
@@ -314,13 +314,13 @@ enable_selection_rectangle (on:boolean);
 
 /**
  * @~english
- * @page on_key on "key"
+ * @page on_keydown_example on "keydown" example
  * The following example relies on the @ref on "on \"keydown:<regexp>\"" syntax
  * to implement keyboard shortcuts, as well as a simple command processing
  * page.
  * @include on_keydown.ddd
  * @~french
- * @page on_key on "key"
+ * @page on_keydown_example on "keydown" (exemple)
  * L'exemple suivant utilise la syntaxe @ref on "on \"keydown:<regexp>\"" pour
  * implémenter des raccourcis clavier, ainsi qu'un interpréteur de commandes
  * simple.

@@ -184,6 +184,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       currentFlowName(""), prevPageName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
       pageId(0), pageFound(0), prevPageShown(0), pageShown(1), pageTotal(0),
+      pageEntry(0), pageExit(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
@@ -234,7 +235,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
-      editCursor(NULL),
+      inRunPageExitHandlers(false), pageHasExitHandler(false), editCursor(NULL),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
       , isDocumentSigned(false)
@@ -402,6 +403,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pageId(o.pageId), pageFound(o.pageFound), prevPageShown(o.prevPageShown),
       pageShown(o.pageFound),
       pageTotal(o.pageTotal), pageToPrint(o.pageToPrint),
+      pageEntry(o.pageEntry), pageExit(o.pageExit),
       pageTree(o.pageTree), transitionTree(o.transitionTree),
       transitionStartTime(o.transitionStartTime),
       transitionDurationValue(o.transitionDurationValue),
@@ -483,7 +485,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       offlineRenderingHeight(o.offlineRenderingHeight),
       toDialogLabel(o.toDialogLabel),
       pendingEvents(), // Nothing transferred from o's event queue
-      inDraw(o.inDraw), changeReason(o.changeReason),
+      inDraw(o.inDraw), inRunPageExitHandlers(o.inRunPageExitHandlers),
+      pageHasExitHandler(o.pageHasExitHandler), changeReason(o.changeReason),
       editCursor(o.editCursor),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
@@ -1038,6 +1041,9 @@ void Widget::commitPageChange(bool afterTransition)
 //   Commit a page change, e.g. as a result of 'goto_page' or transition end
 // ----------------------------------------------------------------------------
 {
+    if (runPageExitHandlers())
+        return;
+
     PurgeAnonymousFrameInfo purgemf;
     runPurgeAction(purgemf);
 
@@ -1085,6 +1091,38 @@ void Widget::commitPageChange(bool afterTransition)
 }
 
 
+bool Widget::runPageExitHandlers()
+// ----------------------------------------------------------------------------
+//    If current page has exit handlers, run them
+// ----------------------------------------------------------------------------
+{
+    // If current page has exit handlers, perform an additional evaluation of
+    // the program to run them now
+    if (pageHasExitHandler)
+    {
+        if (inRunPageExitHandlers)
+            return true;
+        IFTRACE(pages)
+            std::cerr << "Running exit handler(s) for page " << pageShown
+                      << "\n";
+        do
+        {
+            // Prevent recursion
+            XL::Save<bool> saveInRPEH(inRunPageExitHandlers, true);
+            // Mark pageExit so page exit handler(s) of current page will run
+            XL::Save<uint> savePageExit(pageExit, pageShown);
+            runProgramOnce();
+        } while (0);
+    }
+    else
+    {
+        IFTRACE(pages)
+            std::cerr << "Page " << pageShown << " has no exit handler\n";
+    }
+    return false;
+}
+
+
 bool Widget::refreshNow(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Redraw the widget due to event or run program entirely
@@ -1126,6 +1164,7 @@ bool Widget::refreshNow(QEvent *event)
             transitionPageName = pageName;
         }
         event = NULL; // Force full refresh
+        pageEntry = 0;
     }
 
 #if defined(Q_OS_WIN)
@@ -1676,6 +1715,8 @@ void Widget::renderFrames(int w, int h, double start_time, double duration,
         displayDriver->setDisplayFunction("2D");
     }
 
+    XL::Save<uint> savePageEntry(pageEntry, pageEntry);
+
     // Set the initial time we want to set and freeze animations
     if (start_time == -1)
         start_time = trueCurrentTime();
@@ -1749,6 +1790,7 @@ void Widget::renderFrames(int w, int h, double start_time, double duration,
                 frozenTime = start_time + time_offset;
                 pageStartTime = startTime = start_time;
             }
+            pageEntry = 0;
         }
 
         if (currentFrame == firstFrame)
@@ -1849,6 +1891,8 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
         displayDriver->setDisplayFunction(disp);
     }
 
+    XL::Save<uint> savePageEntry(pageEntry, pageEntry);
+
     // Set the initial time we want to set and freeze animations
     XL::Save<double> setPageTime(pageStartTime, 0);
     XL::Save<double> setFrozenTime(frozenTime, pageTime);
@@ -1889,6 +1933,7 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
                           << "Goto page request: '" << gotoPageName
                           << "' from '" << pageName << "'\n";
         commitPageChange(false);
+        pageEntry = 0;
     }
 
     pageStartTime = startTime = 0; // REVISIT
@@ -2710,6 +2755,7 @@ void Widget::reset()
     pageShown = 1;       // BUG #1986
     gotoPageName = "";   // BUG #2069
     pageName = "";       // BUG #2069
+    pageEntry = pageExit = 0;
 }
 
 
@@ -4368,6 +4414,13 @@ void Widget::refreshProgram()
     if (toReload.isEmpty() || !xlProgram || xlProgram->readOnly)
         return;
 
+    do
+    {
+        TaoSave saveCurrent(current, this);
+        runPageExitHandlers();
+        pageEntry = 0; // will run page entry handlers of displayed page
+    } while (0);
+
     Repository *repo = repository();
     bool needBigHammer = false;
     bool needRefresh   = false;
@@ -5629,7 +5682,13 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
             if (pageId > 1)
                 pageLinks["Up"] = lastPageName;
             pageTree = body;
+            pageHasExitHandler = false;
+            bool isPageEntry = (pageEntry == 0);
+            if (isPageEntry)
+                pageEntry = pageId;
             saveAndEvaluate(context, body);
+            if (isPageEntry)
+                pageEntry = (uint)-1; // assuming < 4 billion pages ;-)
         }
     }
     else if (pageName == lastPageName)
@@ -6400,6 +6459,16 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
                     (!qkeyText.isEmpty()    && re.exactMatch(qkeyText));
         if (eval)
             return context->Evaluate(action);
+    }
+    else if (name == "pageentry" && pageEntry == pageId)
+    {
+        return context->Evaluate(action);
+    }
+    else if (name == "pageexit")
+    {
+        if (pageExit == pageId)
+            return context->Evaluate(action);
+        pageHasExitHandler = true;
     }
 
     IFTRACE(layoutevents)

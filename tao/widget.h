@@ -989,6 +989,7 @@ private:
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, prevPageShown, pageShown, pageTotal, pageToPrint;
+    uint                  pageEntry, pageExit;
     Tree_p                pageTree, transitionTree;
     double                transitionStartTime, transitionDurationValue;
     Tree_p                currentShape;
@@ -1127,6 +1128,7 @@ private:
     void                  refreshOn(int type,
                                     double nextRefresh = DBL_MAX);
     void                  commitPageChange(bool afterTransition);
+    bool                  runPageExitHandlers();
 
 public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
@@ -1154,7 +1156,7 @@ private:
     void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
     void                  setCurrentTime();
-    bool inDraw;
+    bool                  inDraw, inRunPageExitHandlers, pageHasExitHandler;
     text                  changeReason;
 
     QTextCursor          * editCursor;

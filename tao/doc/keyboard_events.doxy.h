@@ -1,7 +1,9 @@
 /**
  * @~english
  * @page refKeyboardEvents Keyboard events
- * Tao Presentation offers two mechanisms to deal with keyboard events:
+ *
+ * Tao Presentation offers two mechanisms to execute code when a key is
+ * pressed or released.
  * - One is global, and consists in defining one or several forms similar
  * to: <tt>key "X" -> ...</tt>. Being in the global scope, these definitions
  * apply to all pages.
@@ -106,8 +108,8 @@ page "Translation",
  * @include on_keydown.ddd
  * @~french
  * @page refKeyboardEvents Événements clavier
- * Tao Presentations propose deux mécanismes distincts pour traiter les
- * événements du clavier :
+ * Tao Presentations propose deux mécanismes distincts pour exécuter du code
+ * lors de l'appui ou du relâchement d'une touche.
  * - Le premier est global : il s'agit de définir une ou plusieurs fonctions
  * de la forme <tt>key "X" -> ...</tt>. Ces définitions s'appliquent à
  * toutes les page.

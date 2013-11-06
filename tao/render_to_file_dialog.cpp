@@ -129,7 +129,7 @@ void RenderToFileDialog::accept()
     settings.setValue("x", x);
     settings.setValue("y", y);
     settings.setValue("start2", start);
-    settings.setValue("end", duration);
+    settings.setValue("duration", duration);
     settings.setValue("fps", fps);
     settings.setValue("startPage", startPage);
     settings.setValue("timeOffset", timeOffset);

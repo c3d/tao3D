@@ -94,20 +94,22 @@ page "Images", do
  * @~english
  * Creates a new page or make page current.
  *
- * Creates a new page in the document with the given @p name, or add to the
- * content of a previously created page. The body contents will be evaluated
+ * Creates a new page in the document with the given @p name.
+ * The body contents will be evaluated
  * only when the page is being displayed. The order of pages in the document
- * is the order of page creation.
+ * is the order of page creation. If a page with the same name already
+ * an error is displayed.
  *
  * @returns The name of the previous page.
  *
  * @~french
  * Crée une nouvelle page ou complète une page existante.
  *
- * Crée une nouvelle page nommée @p name dans le document, ou ajoute du
- * contenu à la page si elle existe déjà. Le contenu de la page (@p body) n'est
+ * Crée une nouvelle page nommée @p name dans le document.
+ * Le contenu de la page (@p body) n'est
  * évalué que lorsque la page est affichée. L'ordre d'affichage des pages
- * est l'ordre de leur déclaration.
+ * est l'ordre de leur déclaration. Si une page de même nom existe déjà,
+ * une erreur est affichée.
  *
  * @returns Le nom de la page précédente.
  */

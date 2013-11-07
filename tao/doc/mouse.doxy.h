@@ -26,30 +26,30 @@
  *
  * In addition, the following event names are available which are not related
  * to a shape:
- * - @c pagechange @n
+ * - @c pagechange (since 1.18)@n
  * The code @c t associated with this event is executed when a page change
  * has just occurred and @ref page_name or @ref page_number point to the new
  * page (@ref prev_page_name and @ref prev_page_number are available to
  * get information about the page that was displayed previously).
  * If the previous page has a @ref transition, the code is excuted
  * after the transition is done.
- * - @c key, @c key:\<regexp\> @n
+ * - @c key, @c key:\<regexp\> (since 1.44) @n
  * The code is executed when the event that caused the current evaluation of
  * the program is a keyboard event (key press or key release).
  * If  @em :\<regexp\> is given, the code is executed only when the value of
  * @ref key_event, @ref key_name or @ref key_text matches the given regular
  * expression. The syntax is the one used by
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
- * - @c keydown, @c keydown:\<regexp\> @n
+ * - @c keydown, @c keydown:\<regexp\> (since 1.44) @n
  * Similar to @c key or @c key:\<regexp\>, but only applies to key press
  * events.
- * - @c keyup, @c keyup:\<regexp\> @n
+ * - @c keyup, @c keyup:\<regexp\> (since 1.44) @n
  * Similar to @c key or @c key:\<regexp\>, but only applies to key release
  * events.
- * - @c pageentry @n
+ * - @c pageentry (since 1.44) @n
  * The code is executed if the page is being evaluated for the first time,
  * or is being evaluated again after another page has been shown.
- * - @c pageexit @n
+ * - @c pageexit (since 1.44) @n
  * The code is executed immediately before a page change.
  * @~french
  * Associe du code à un événement.
@@ -63,7 +63,7 @@
  *
  * D'autre part, les noms d'évènement suivants, indépendant de @c shape ou
  * @c active_widget, peuvent être utilisés :
- * - @c pagechange @n
+ * - @c pagechange  (depuis 1.18)@n
  * Cet événement correspond à un changement de page. Lors le code @c t
  * s'exécute, le changement de page vient de se produire (et par conséquent,
  * @ref page_name ou @ref page_number désignent la nouvelle page ; les
@@ -71,22 +71,22 @@
  * d'obtenir des informations sur la page affichée précédemment).
  * Si une transition (cf. @ref transition) est associée à la page précédente,
  * le code @c t est exécuté lorsque la transition s'est terminée.
- * - @c key, @c key:\<regexp\> @n
+ * - @c key, @c key:\<regexp\> (depuis 1.44) @n
  * Le code est exécuté si l'évènement qui a provoqué l'évaluation du programme
  * est un évènement clavier. Si @em :\<regexp\> est précisée, le code n'est
  * exécuté que si la valeur de @ref key_event, @ref key_name ou @ref key_text
  * correspond à l'expression régulière donnée. La syntaxe est celle de
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
- * - @c keydown, @c keydown:\<regexp\> @n
+ * - @c keydown, @c keydown:\<regexp\> (depuis 1.44) @n
  * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant à l'appui sur une touche.
- * - @c keyup, @c keyup:\<regexp\> @n
+ * - @c keyup, @c keyup:\<regexp\> (depuis 1.44) @n
  * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant au relâchement d'une touche.
- * - @c pageentry @n
+ * - @c pageentry (depuis 1.44) @n
  * Le code est exécuté si la page est évaluée pour la première fois, ou est
  * évaluée de nouveau après qu'un autre page a été affichée.
- * - @c pageexit @n
+ * - @c pageexit (depuis 1.44) @n
  * Le code est exécuté immédiatement avant un changement de page.
  * @~
  * @see @ref refKeyboardEvents, @ref refPageEvents

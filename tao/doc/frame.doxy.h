@@ -140,7 +140,7 @@ integer canvas( w:real, h:real, body:tree);
  * texture dynamique. La valeur de canal alpha donnée en argument
  * spécifie le seuil d'opacité minimum, entre 0.0 et 1.0.
  */
-frame_pixel_count(alphaMin:real);
+integer frame_pixel_count(alphaMin:real);
 
 
 /**
@@ -201,7 +201,7 @@ integer frame_texture_with_depth( w:real, h:real, d:integer, body:tree);
  * Hauteur du cadre.
  * Renvoie la hauteur du cadre courant.
  */
-frame_height ();
+real frame_height ();
 
 /**
  * @~english
@@ -212,6 +212,6 @@ frame_height ();
  * Largeur du cadre.
  * Renvoie la largeur du cadre courant.
  */
-frame_width ();
+real frame_width ();
 
 /** @} */

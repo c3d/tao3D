@@ -343,7 +343,7 @@ exit (n:integer);
  * si la fonctionalité Git est incluse dans l'application et n'a pas été
  * désactivée au démarrage de Tao Presentations.
  */
-current_repository ();
+boolean current_repository ();
 
 
 /**
@@ -353,7 +353,7 @@ current_repository ();
  * Checkout a branch or a commit from the git repository, if available.
  * @p t must be a valid version identifier: branch name, tag name or commit ID.
  * @see current_repository.
- * @returns True if the checkout succeded, false otherwise.
+ * @returns @c true if the checkout succeded, @c false otherwise.
  *
  * @~french
  * Extrait une version du document.
@@ -362,7 +362,7 @@ current_repository ();
  * @p t doit être un identifiant de version valide : nom de branche, de tag ou
  * identifiant de commit.
  * @see current_repository.
- * @returns Vrai si le @a checkout a réussi, faux sinon.
+ * @return @c true si le @a checkout a réussi, @c false sinon.
  */
 boolean checkout (t:text);
 
@@ -374,7 +374,7 @@ boolean checkout (t:text);
  * @p name is the name of the feature to test. Valid feature names are:
  *   - @b git document versioning with Git
  *
- * @returns True if the feature is compiled in, false otherwise.
+ * @return @c true if the feature is compiled in, @c false otherwise.
  *
  * @~french
  * Vérifie si une fonctionalité Tao est disponible.
@@ -382,7 +382,7 @@ boolean checkout (t:text);
  * @p name est le nom de la fonctionalité à tester. Les noms valides sont :
  *   - @b git La gestion de l'historique du document
  *
- * @returns Vrai si la fonctionalité est disponible, faux sinon.
+ * @return @c true si la fonctionalité est disponible, @c false sinon.
  */
 boolean is_available (name:text);
 
@@ -405,14 +405,14 @@ text GL_version();
  *
  * @p name is the name of the OpenGL extension to test.
  *
- * @returns True if the extension is available, false otherwise.
+ * @return @c true if the extension is available, @c false otherwise.
  *
  * @~french
  * Vérifie si une extension OpenGL est disponible.
  *
  * @p name est le nom de l'estension à tester.
  *
- * @returns Vrai si l'extension est disponible, faux sinon.
+ * @return @c true si l'extension est disponible, @c false sinon.
  */
 boolean is_ext_available (name:text);
 

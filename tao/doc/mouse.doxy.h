@@ -185,7 +185,7 @@ on_mouseover (t:tree);
  *<TR><TD> Qt::MidButton</TD><TD> 0x00000004</TD><TD>Le bouton du milieu.</TD></TR>
  * </TABLE>
  */
-mouse_buttons ();
+integer mouse_buttons ();
 
 /**
  * @~english
@@ -215,7 +215,7 @@ mouse_buttons ();
  * mouse_x correspond à des pixels, (X=0, Y=0) étant le centre de l'écran,
  * l'axe X étant vers la droite, l'axe Y étant vers le haut.
  */
-mouse_x ();
+real mouse_x ();
 
 /**
  * @~english
@@ -245,7 +245,7 @@ mouse_x ();
  * mouse_y correspond à des pixels, (X=0, Y=0) étant le centre de l'écran,
  * l'axe X étant vers la droite, l'axe Y étant vers le haut.
  */
-mouse_y ();
+real mouse_y ();
 
 /**
  * @~english
@@ -259,7 +259,7 @@ mouse_y ();
  * à l'abscisse X = 0, tandis que le bord droit est en
  * X = @ref window_width.
  */
-screen_mouse_x ();
+integer screen_mouse_x ();
 
 /**
  * @~english
@@ -273,7 +273,7 @@ screen_mouse_x ();
  * à l'ordonnée Y = 0, tandis que le haut est en
  * Y = @ref window_height.
  */
-screen_mouse_y ();
+integer screen_mouse_y ();
 
 
 /**
@@ -313,12 +313,14 @@ wheel_event (x, y);
  * Enable or disable the selection rectangle.
  * This primitive controls whether a selection rectangle is drawn as the left
  * mouse button is pressed and the mouse is dragged.
+ * @return the previous state
  *
  * @~french
  * Active ou désactive le rectangle de sélection.
  * Cette primitive permet de contrôler si un rectangle de sélection est tracé
  * lorsque le bouton gauche est enfoncé et la souris est déplacée.
+ * @return l'état précédent
  */
-enable_selection_rectangle (on:boolean);
+boolean enable_selection_rectangle (on:boolean);
 
 /** @} */

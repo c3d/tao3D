@@ -1148,7 +1148,7 @@ copy_texture();
  * Teste si l'unité de texture courante a une texture.
  * @return vrai si une texture est présente, faux sinon.
  */
-has_texture();
+boolean has_texture();
 
 /**
  * @~english
@@ -1157,7 +1157,7 @@ has_texture();
  * @~french
  * Renvoie la largeur de la texture courante.
  */
-texture_width();
+integer texture_width();
 
 /**
  * @~english
@@ -1166,7 +1166,7 @@ texture_width();
  * @~french
  * Renvoie la hauteur de la texture courante.
  */
-texture_height();
+integer texture_height();
 
 /**
  * @~english
@@ -1180,7 +1180,7 @@ texture_height();
  * <a href="http://www.opengl.org/registry/#specfiles">spécification OpenGL</a>.
  *
  */
-texture_type();
+integer texture_type();
 
 
 /**
@@ -1242,7 +1242,7 @@ texture_unit (unit:integer);
  * @~french
  * Renvoie l'unité de texture active.
  */
-texture_unit();
+integer texture_unit();
 
 /**
  * @~english

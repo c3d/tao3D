@@ -28,8 +28,8 @@
  * to a shape:
  * - @c pagechange @n
  * The code @c t associated with this event is executed when a page change
- * has just occurred and @ref page_label or @ref page_number point to the new
- * page (@ref prev_page_label and @ref prev_page_number are available to
+ * has just occurred and @ref page_name or @ref page_number point to the new
+ * page (@ref prev_page_name and @ref prev_page_number are available to
  * get information about the page that was displayed previously).
  * If the previous page has a @ref transition, the code is excuted
  * after the transition is done.
@@ -66,8 +66,8 @@
  * - @c pagechange @n
  * Cet événement correspond à un changement de page. Lors le code @c t
  * s'exécute, le changement de page vient de se produire (et par conséquent,
- * @ref page_label ou @ref page_number désignent la nouvelle page ; les
- * primitives @ref prev_page_label et @ref prev_page_number permettent
+ * @ref page_name ou @ref page_number désignent la nouvelle page ; les
+ * primitives @ref prev_page_name et @ref prev_page_number permettent
  * d'obtenir des informations sur la page affichée précédemment).
  * Si une transition (cf. @ref transition) est associée à la page précédente,
  * le code @c t est exécuté lorsque la transition s'est terminée.

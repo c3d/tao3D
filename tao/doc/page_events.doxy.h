@@ -81,7 +81,7 @@ page "The End", {}
  * Lorsqu'une page est redémarrée, c'est-à-dire lorsque la page en cours est
  * sélectionnée dans le menu de sélection des pages (Ctrl-G, Cmd-G sur Mac) :
  * - l'événements @c pageexit est généré, immédiatement suivi de @c pageentry
- * - l'exécution de la page reprend à @ref pagetime = 0
+ * - l'exécution de la page reprend à @ref page_time = 0
  *
  * @section refPageEntry on "pageentry" : exemple
  * Dans l'exemple suivant, le cercle affiché sur la page 1 peut être déplacé

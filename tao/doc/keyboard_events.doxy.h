@@ -130,7 +130,7 @@ page "Translation",
  * relâchement de la touche, car
  * @ref on "on \"keydown\"" implique @ref refresh_on KeyPressEvent. Ensuite,
  * @ref on "on \"keydown:Return\"" exécutera son contenu lors de l'appui sur
- * la touche @c <Return>.
+ * la touche @c Return.
  * @include key_event_refresh_fr.ddd
  * 2. L'événement est ensuite traité pour déclencher certains comportements
  * comme Ctrl-C (Cmd-C sur Mac) qui copie l'écran ou la forme sélectionnée

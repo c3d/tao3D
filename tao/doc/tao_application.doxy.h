@@ -73,12 +73,12 @@ show_error(err:boolean);
  * @~english
  * Controls time dependant animations.
  * @p animations true run animations, @p animations false stop them.
- * @returns [boolean] The previous value.
+ * @returns the previous value.
  *
  * @~french
  * Active ou désactive les animations.
  * Lorsque @p animations vaut @c false, le temps est virtuellement figé.
- * @returns [boolean] La valeur précédente.
+ * @returns la valeur précédente.
  */
 boolean enable_animations(animations:boolean);
 
@@ -88,11 +88,11 @@ boolean enable_animations(animations:boolean);
  * Controls the display of rendering statistics.
  *
  * Shows or hides fps statistics.
- * @returns [boolean] The previous value.
+ * @returns the previous value.
  *
  * @~french
  * Active ou désactive les statistiques d'affichage.
- * @returns [boolean] La valeur précédente.
+ * @returns la valeur précédente.
  */
 boolean show_statistics(flag:boolean);
 
@@ -120,7 +120,7 @@ reset_view();
  * @~french
  * Renvoie le facteur de zoom courant.
  */
-zoom();
+real zoom();
 
 
 /**

@@ -80,8 +80,18 @@ PREFIX(EllipseArc,  tree,  "ellipse_arc",
        PARM(sweep, real, "sweep angle"),
        RTAO(ellipseArc(self, x, y, w, h, start, sweep)),
        GROUP(graph:path:shape)
-       SYNOPSIS("Elliptic sector")
-       DESCRIPTION("Elliptic sector centered around (cx,cy) that occupies the given rectangle, beginning at the specified startAngle and extending sweepLength degrees counter-clockwise. Angles are specified in degrees. Clockwise arcs can be specified using negative angles."))
+       SYNOPSIS("Elliptic arc")
+       DESCRIPTION("Elliptic arc centered around (cx,cy) that occupies the given rectangle, beginning at the specified startAngle and extending sweepLength degrees counter-clockwise. Angles are specified in degrees. Clockwise arcs can be specified using negative angles."))
+PREFIX(EllipseSector,  tree,  "ellipse_sector",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of the ellipse")
+       PARM(h,real, "height of the ellipse")
+       PARM(start, real, "start angle")
+       PARM(sweep, real, "sweep angle"),
+       RTAO(ellipseSector(self, x, y, w, h, start, sweep)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Elliptic sector"))
 PREFIX(RoundedRectangle,  tree,  "rounded_rectangle",
        PARM(x,real, "x-coordinate")
        PARM(y,real, "y-coordinate")

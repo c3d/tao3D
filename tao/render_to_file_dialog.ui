@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
-    <height>274</height>
+    <width>767</width>
+    <height>308</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,39 +23,8 @@
    <string>Render to files</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="startEdit"/>
-   </item>
-   <item row="0" column="0" colspan="6">
-    <widget class="QLabel" name="msgLabel">
-     <property name="text">
-      <string>Select the destination folder and the rendering options:</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="fpsLabel">
-     <property name="text">
-      <string>Frames per second</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="6">
-    <widget class="QLabel" name="secondsLabel">
-     <property name="text">
-      <string>seconds</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="startEndLabel">
-     <property name="text">
-      <string>Start/end time</string>
-     </property>
-    </widget>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="xResolution"/>
    </item>
    <item row="4" column="2">
     <widget class="QLabel" name="xLabel">
@@ -67,23 +36,6 @@
    <item row="4" column="3" colspan="2">
     <widget class="QLineEdit" name="yResolution"/>
    </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="resolutionLabel">
-     <property name="text">
-      <string>Resolution</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="3" colspan="2">
-    <widget class="QLineEdit" name="endEdit">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QLineEdit" name="fpsEdit"/>
-   </item>
    <item row="4" column="6">
     <widget class="QLabel" name="pixelsLabel">
      <property name="text">
@@ -91,13 +43,34 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="5" colspan="3">
+   <item row="9" column="0" colspan="8">
+    <widget class="QProgressBar" name="progressBar">
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="5" colspan="3">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="7">
+    <widget class="QPushButton" name="browseButton">
+     <property name="text">
+      <string>Browse...</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="fileLabel">
+     <property name="text">
+      <string>File name</string>
      </property>
     </widget>
    </item>
@@ -108,27 +81,16 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="xResolution"/>
+   <item row="2" column="1" colspan="4">
+    <widget class="QLineEdit" name="folderEdit"/>
    </item>
-   <item row="2" column="7">
-    <widget class="QPushButton" name="browseButton">
+   <item row="0" column="0" colspan="6">
+    <widget class="QLabel" name="msgLabel">
      <property name="text">
-      <string>Browse...</string>
+      <string>Select the destination folder and the rendering options:</string>
      </property>
-    </widget>
-   </item>
-   <item row="5" column="2">
-    <widget class="QLabel" name="toLabel">
-     <property name="text">
-      <string>to</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="fileLabel">
-     <property name="text">
-      <string>File name</string>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -156,15 +118,92 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="1" colspan="4">
-    <widget class="QLineEdit" name="folderEdit"/>
-   </item>
-   <item row="7" column="0" colspan="8">
-    <widget class="QProgressBar" name="progressBar">
-     <property name="value">
-      <number>0</number>
+   <item row="4" column="0">
+    <widget class="QLabel" name="resolutionLabel">
+     <property name="text">
+      <string>Resolution</string>
      </property>
     </widget>
+   </item>
+   <item row="7" column="3">
+    <widget class="QLabel" name="timeOffsetLabel">
+     <property name="text">
+      <string>with time offset</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="startPageLabel">
+     <property name="text">
+      <string>Start page</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QLineEdit" name="startPageEdit">
+     <property name="toolTip">
+      <string>0 for current page</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="4">
+    <widget class="QLineEdit" name="timeOffsetEdit">
+     <property name="toolTip">
+      <string>The value of page_time for the first frame in start page</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="6">
+    <widget class="QLabel" name="secondsLabel2">
+     <property name="text">
+      <string>seconds</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="3">
+    <widget class="QLabel" name="durationLabel">
+     <property name="text">
+      <string>Duration</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="4">
+    <widget class="QLineEdit" name="durationEdit">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="6">
+    <widget class="QLabel" name="secondsLabel">
+     <property name="text">
+      <string>seconds</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="startTimeLabel">
+     <property name="text">
+      <string>Start time</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="startTimeEdit">
+     <property name="toolTip">
+      <string>Unix time in seconds, -1 for current date/time</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="fpsLabel">
+     <property name="text">
+      <string>Frames per second</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="fpsEdit"/>
    </item>
   </layout>
  </widget>
@@ -175,9 +214,6 @@
   <tabstop>firstFrameEdit</tabstop>
   <tabstop>xResolution</tabstop>
   <tabstop>yResolution</tabstop>
-  <tabstop>startEdit</tabstop>
-  <tabstop>endEdit</tabstop>
-  <tabstop>fpsEdit</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>

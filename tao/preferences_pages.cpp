@@ -21,7 +21,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QtGui>
 #include "preferences_pages.h"
 #include "main.h"
 #include "application.h"
@@ -29,6 +28,19 @@
 #include "tao_gl.h"
 #include "opengl_state.h"
 #include "texture_cache.h"
+#include <QtGui>
+#include <QGroupBox>
+#include <QCheckBox>
+#include <QLabel>
+#include <QComboBox>
+#include <QPushButton>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QLineEdit>
+#include <QStackedWidget>
+#include <QProgressBar>
+#include <QAction>
+#include <QToolButton>
 
 
 namespace Tao {

@@ -95,11 +95,13 @@
  * @~english
  * Creates and shows a chooser with the given caption.
  * A chooser shows a selection among the possible commands.
+ * @return @c true on success, @c false otherwise.
  * @~french
  * Crée et affiche un menu interactif avec le titre spécifié.
  * Le menu permet de choisir une commande parmi une liste.
+ * @return @c true en cas de succès, sinon @c false.
  */
-tree chooser(caption:text);
+boolean chooser(caption:text);
 
 
 /**
@@ -108,13 +110,15 @@ tree chooser(caption:text);
  * Creates a chooser item, associates the @p action code block to the item,
  * and appends a new line to the current chooser list. @p action is
  * executed when the user presses the return key on the highlighted command.
+ * @return @c true on success, @c false otherwise.
  * @~french
  * Ajoute une commande au menu actuellement affiché.
  * Crée une commande dans le menu, y associe le bloc de code @p action,
  * et ajoute une ligne supplémentaire à la liste des commandes du menu.
  * @p action est exécutée quand l'utilisateur appuie sur la touche Entrée.
+ * @return @c true en cas de succès, sinon @c false.
  */
-tree chooser_choice(label:text, action:tree);
+boolean chooser_choice(label:text, action:tree);
 
 
 /**
@@ -129,6 +133,7 @@ tree chooser_choice(label:text, action:tree);
  *    @li the end of the symbol name, with all underscores changed into spaces.
  *
  * When a command is chosen, the associated action is executed.
+ * @return @c true on success, @c false otherwise.
  * @~french
  * Ajoute une commande au menu actuellement affiché, par symbole.
  * Tous les symboles, dans la table de symboles courante, qui ont un préfixe en
@@ -142,8 +147,9 @@ tree chooser_choice(label:text, action:tree);
  *        remplacés par un espace.
  *
  * Quand une commande est sélectionnée, l'action associée est exécutée.
+ * @return @c true en cas de succès, sinon @c false.
  */
-tree chooser_commands(prefix:text, label_prefix:text);
+boolean chooser_commands(prefix:text, label_prefix:text);
 
 /**
  * @~english
@@ -159,6 +165,7 @@ tree chooser_commands(prefix:text, label_prefix:text);
  *
  * When a command is chosen, the symbol action is executed and is passed the
  * page name (without the page number).
+ * @return @c true on success, @c false otherwise.
  * @~french
  * Ajoute une commande au menu en cours pour chaque page du document.
  * Cette primitive est utile lorsque vous souhaitez donner à l'utilisateur
@@ -174,8 +181,9 @@ tree chooser_commands(prefix:text, label_prefix:text);
  *
  * Quand une commande est sélectionnées, @p action est exécutée et reçoit
  * le nom de la page (sans le numéro de page).
+ * @return @c true en cas de succès, sinon @c false.
  */
-tree chooser_pages(action:name, label_prefix:text);
+boolean chooser_pages(action:name, label_prefix:text);
 
 /**
  * @}

@@ -22,6 +22,11 @@
 // ****************************************************************************
 
 #include <QtGui>
+#include <QListWidget>
+#include <QListView>
+#include <QStackedWidget>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 #include "preferences_dialog.h"
 #include "preferences_pages.h"

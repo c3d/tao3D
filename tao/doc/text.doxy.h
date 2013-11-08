@@ -357,8 +357,26 @@ paragraph(contents:tree);
 /**
  * @~english
  * Inserts text into a text box.
+ * Note that @c text is also a native type of the XL language, as well
+ * as the cast operator to this type. Therefore you may write the following:
+@code
+text_box 0, 0, 100, 100,
+    text text hours
+@endcode
+ * In this case the first occurrence of @c text is the name of this
+ * function, while the second occurrence is used to convert the integer
+ * value returned by @ref hours to a text string.
  * @~french
  * Ajoute du texte dans une zone de texte.
+ * Notez que @c text est également un type natif du language, et un opérateur
+ * de conversion vers ce type. Par conséquent vous pouvez écrire :
+@code
+text_box 0, 0, 100, 100,
+    text text hours
+@endcode
+ * Dans ce cas, la première occurrence de @c text est un appel à la fonction
+ * documentée ici, alors que la seconde occurrence permet de convertir la
+ * valeur entière renvoyée par @ref hours en une chaîne de caractères.
  * @~
  * @see text_box.
  */

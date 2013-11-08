@@ -28,6 +28,7 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QPointer>
+#include <QPrinter>
 #include <QStackedWidget>
 #include "main.h"
 #include "tao.h"
@@ -51,20 +52,21 @@ QT_END_NAMESPACE
 namespace Tao {
 
 struct Widget;
-class SplashScreen;
-class GitToolBar;
-class Uri;
-class ToolWindow;
-class XLSourceEdit;
-class Repository;
-class Assistant;
+struct SplashScreen;
+struct GitToolBar;
+struct Uri;
+struct ToolWindow;
+struct XLSourceEdit;
+struct Repository;
+struct Assistant;
 
 
-class Window : public QMainWindow
+struct Window : public QMainWindow
 // ----------------------------------------------------------------------------
 //    The main window where we display our stuff
 // ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
     // Number of items to show in the "File/Open Recent" list
@@ -94,12 +96,16 @@ public:
     bool     needNewWindow();
     bool     setStereo(bool on);
     void     addDisplayModeMenu(QString mode, QString label);
-    bool     hasStackedWidget() { return (stackedWidget->count() > 1); }
     QString  welcomePath();
 #ifndef CFG_NO_DOC_SIGNATURE
     bool     isDocumentSigned();
 #endif
 
+public:
+    virtual
+    bool eventFilter(QObject *obj, QEvent *evt);
+
+public:
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;

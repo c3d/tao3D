@@ -395,7 +395,7 @@ quizz_graph "piechart", Index:integer, Value:real, Total:real  ->
         colorpie Index
         if Total > 0.0 then
             cylinder 0, 0, -5, 20, 20, 10
-            ellipse_arc 0, 0, 40, 40, 0, 360.0 * (Value / Total)
+            ellipse_sector 0, 0, 40, 40, 0, 360.0 * (Value / Total)
 
 
 graph_bullet Text:text, score:real, total: real ->
@@ -439,7 +439,7 @@ fullpie "answer" ->
         draw_pie idx:integer ->
             v := (real (quizz_score idx)) / t
             colorpie idx
-            ellipse_arc 0, 0, 100, 100, draw_start, 360.0 * v
+            ellipse_sector 0, 0, 100, 100, draw_start, 360.0 * v
             draw_start := draw_start + (360.0 * v)
 
         translatex 500

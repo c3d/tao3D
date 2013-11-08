@@ -32,7 +32,7 @@ class QLabel;
 namespace Tao {
 
 
-class SplashScreen : public QSplashScreen
+struct SplashScreen : QSplashScreen
 // ----------------------------------------------------------------------------
 //    The Tao splash screen
 // ----------------------------------------------------------------------------

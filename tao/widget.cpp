@@ -86,26 +86,31 @@
 #include "document_signature.h"
 #endif
 
-#include <QDialog>
-#include <QTextCursor>
-#include <QApplication>
-#include <QToolButton>
-#include <QtGui/QImage>
 #include <cmath>
-#include <QFont>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
-#include <QVariant>
-#ifndef CFG_NO_QTWEBKIT
-#include <QtWebKit>
-#endif
 #include <sys/time.h>
 #include <string.h>
 #include <ctype.h>
 
 #include <QtGui>
+#include <QDialog>
+#include <QTextCursor>
+#include <QApplication>
+#include <QToolButton>
+#include <QtGui/QImage>
+#include <QFont>
+#include <QVariant>
+#include <QMenuBar>
+#include <QStatusBar>
+#include <QMessageBox>
+#ifndef CFG_NO_QTWEBKIT
+#include <QtWebKit>
+#endif
+#include <QRunnable>
+#include <QThreadPool>
 
 #ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
@@ -175,10 +180,11 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       runOnNextDraw(true), contextFilesLoaded(false),
       srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
-      pageW(21), pageH(29.7), blurFactor(0.0),
+      pageW(21), pageH(29.7), blurFactor(0.0), devicePixelRatio(1.0),
       currentFlowName(""), prevPageName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
       pageId(0), pageFound(0), prevPageShown(0), pageShown(1), pageTotal(0),
+      pageEntry(0), pageExit(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
@@ -201,6 +207,8 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       selection(), selectionTrees(), selectNextTime(), actionMap(),
       hadSelection(false), selectionChanged(false),
       w_event(NULL), focusWidget(NULL), keyboardModifiers(0),
+      prevKeyPressText(""), keyPressed(false), keyEventName(""), keyText(""),
+      keyName(""),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
       menuItems(QVector<MenuInfo*>(10, NULL)), menuCount(0),
       colorAction(NULL), fontAction(NULL),
@@ -227,7 +235,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
-      editCursor(NULL),
+      inRunPageExitHandlers(false), pageHasExitHandler(false), editCursor(NULL),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
       , isDocumentSigned(false)
@@ -384,7 +392,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       srcFileMonitor(o.srcFileMonitor),
       clearCol(o.clearCol),
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
-      pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
+      pageW(o.pageW), pageH(o.pageH),
+      blurFactor(o.blurFactor), devicePixelRatio(o.devicePixelRatio),
       currentFlowName(o.currentFlowName), flows(o.flows),
       prevPageName(o.prevPageName),
       pageName(o.pageName), lastPageName(o.lastPageName),
@@ -394,6 +403,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pageId(o.pageId), pageFound(o.pageFound), prevPageShown(o.prevPageShown),
       pageShown(o.pageFound),
       pageTotal(o.pageTotal), pageToPrint(o.pageToPrint),
+      pageEntry(o.pageEntry), pageExit(o.pageExit),
       pageTree(o.pageTree), transitionTree(o.transitionTree),
       transitionStartTime(o.transitionStartTime),
       transitionDurationValue(o.transitionDurationValue),
@@ -427,6 +437,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       hadSelection(o.hadSelection), selectionChanged(o.selectionChanged),
       w_event(o.w_event), focusWidget(o.focusWidget),
       keyboardModifiers(o.keyboardModifiers),
+      prevKeyPressText(o.prevKeyPressText), keyPressed(o.keyPressed),
+      keyEventName(o.keyEventName), keyText(o.keyText), keyName(o.keyName),
       currentMenu(o.currentMenu), currentMenuBar(o.currentMenuBar),
       currentToolBar(o.currentToolBar),
       menuItems(o.menuItems), menuCount(o.menuCount),
@@ -473,7 +485,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       offlineRenderingHeight(o.offlineRenderingHeight),
       toDialogLabel(o.toDialogLabel),
       pendingEvents(), // Nothing transferred from o's event queue
-      inDraw(o.inDraw), changeReason(o.changeReason),
+      inDraw(o.inDraw), inRunPageExitHandlers(o.inRunPageExitHandlers),
+      pageHasExitHandler(o.pageHasExitHandler), changeReason(o.changeReason),
       editCursor(o.editCursor),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
@@ -947,6 +960,9 @@ void Widget::draw()
     // Run current display algorithm
     stats.begin(Statistics::FRAME);
     stats.begin(Statistics::DRAW);
+#if QT_VERSION >= 0x050000
+    devicePixelRatio = windowHandle()->devicePixelRatio();
+#endif
     displayDriver->display();
     stats.end(Statistics::DRAW);
     stats.end(Statistics::FRAME);
@@ -1025,6 +1041,9 @@ void Widget::commitPageChange(bool afterTransition)
 //   Commit a page change, e.g. as a result of 'goto_page' or transition end
 // ----------------------------------------------------------------------------
 {
+    if (runPageExitHandlers())
+        return;
+
     PurgeAnonymousFrameInfo purgemf;
     runPurgeAction(purgemf);
 
@@ -1072,12 +1091,44 @@ void Widget::commitPageChange(bool afterTransition)
 }
 
 
+bool Widget::runPageExitHandlers()
+// ----------------------------------------------------------------------------
+//    If current page has exit handlers, run them
+// ----------------------------------------------------------------------------
+{
+    // If current page has exit handlers, perform an additional evaluation of
+    // the program to run them now
+    if (pageHasExitHandler)
+    {
+        if (inRunPageExitHandlers)
+            return true;
+        IFTRACE(pages)
+            std::cerr << "Running exit handler(s) for page " << pageShown
+                      << "\n";
+        do
+        {
+            // Prevent recursion
+            XL::Save<bool> saveInRPEH(inRunPageExitHandlers, true);
+            // Mark pageExit so page exit handler(s) of current page will run
+            XL::Save<uint> savePageExit(pageExit, pageShown);
+            runProgramOnce();
+        } while (0);
+    }
+    else
+    {
+        IFTRACE(pages)
+            std::cerr << "Page " << pageShown << " has no exit handler\n";
+    }
+    return false;
+}
+
+
 bool Widget::refreshNow(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inDraw || inError)
+    if (inDraw || inError || printer)
         return false;
 
     // Update times
@@ -1113,6 +1164,7 @@ bool Widget::refreshNow(QEvent *event)
             transitionPageName = pageName;
         }
         event = NULL; // Force full refresh
+        pageEntry = 0;
     }
 
 #if defined(Q_OS_WIN)
@@ -1442,10 +1494,15 @@ void Widget::print(QPrinter *prt)
         lastPage = pageTotal ? pageTotal : 1;
 
     // Get the printable area in the page and create a GL frame for it
+    printer->setFullPage(true);
     QRect pageRect = printer->pageRect();
     QPainter painter(printer);
     uint w = pageRect.width(), h = pageRect.height();
     FrameInfo frame(w, h);
+    IFTRACE(print)
+        std::cerr << "Page rectangle: "
+                  << pageRect.top() << ", " << pageRect.left() << ", "
+                  << pageRect.bottom() << ", " << pageRect.right() << "\n";
 
     // Get the status bar
     QStatusBar *status = taoWindow()->statusBar();
@@ -1455,6 +1512,15 @@ void Widget::print(QPrinter *prt)
     XL::Save<double> setPageTime(pageStartTime, 0);
     XL::Save<double> setFrozenTime(frozenTime, 0);
     XL::Save<double> saveStartTime(startTime, 0);
+    XL::Save<double> savePixelRatio(devicePixelRatio, 1);
+
+    // Save page information
+    XL::Save<text> saveLastPage(lastPageName, pageName);
+    XL::Save<text> savePageName(pageName, transitionPageName);
+    XL::Save<page_map> saveLinks(pageLinks, pageLinks);
+    XL::Save<page_list> saveList(pageNames, pageNames);
+    XL::Save<uint> savePageFound(pageFound, 0);
+    XL::Save<Tree_p> savePageTree(pageTree, pageTree);
 
     // Render the given page range
     for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
@@ -1463,6 +1529,16 @@ void Widget::print(QPrinter *prt)
         QImage bigPicture(w * n, h * n, QImage::Format_RGB888);
         QPainter bigPainter(&bigPicture);
         bigPicture.fill(-1);
+        IFTRACE(print)
+            std::cerr << "Printing page " << pageToPrint
+                  << " size " << w << "x" << h
+                      << " at " << printOverscaling << "x overscaling\n";
+
+        // Show crude progress information
+        status->showMessage(tr("Printing page %1/%2...")
+                            .arg(pageToPrint - firstPage + 1)
+                            .arg(lastPage - firstPage + 1));
+        QApplication::processEvents();
 
         // Center display on screen
         XL::Save<double> savePrintTime(pagePrintTime, 0);
@@ -1479,36 +1555,52 @@ void Widget::print(QPrinter *prt)
             runProgram();
         }
 
-        // Show crude progress information
-        status->showMessage(tr("Printing page %1/%2...")
-                            .arg(pageToPrint - firstPage + 1)
-                            .arg(lastPage - firstPage + 1));
-
         // We draw small fragments for overscaling
+        int tile = 0, tiles = (2*n-1)*(2*n-1);
         for (int r = -n+1; r < n; r++)
         {
             for (int c = -n+1; c < n; c++)
             {
                 double s = 1.0 / n;
 
+                // Crude progress information
+                // WARNING: do not run QApplication::processEvents here,
+                // as it could mess upour carefully setup drawing environment
+                tile++;
+                uint pct = 100 * tile/tiles;
+                status->showMessage(tr("Printing page %1/%2 (%3%)")
+                                    .arg(pageToPrint - firstPage + 1)
+                                    .arg(lastPage - firstPage + 1)
+                                    .arg(pct));
+                status->repaint(); // Does not work on MacOSX?
+
+                IFTRACE(print)
+                    std::cerr << "Page " << pageToPrint
+                              << " row " << r << " column " << c << "\n";
+
                 // Draw the layout in the frame context
                 id = idDepth = 0;
                 frame.begin();
                 Box box(c * w * s, (n - 1 - r) * h * s, w, h);
                 setup(w, h, &box);
+
+                setGlClearColor();
+                GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+                
                 space->Draw(NULL);
                 frame.end();
 
                 // Draw fragment
                 QImage image(frame.toImage());
-                image = image.convertToFormat(QImage::Format_RGB888);
+                // image = image.convertToFormat(QImage::Format_RGB888);
                 QRect rect(c*w, r*h, w, h);
                 bigPainter.drawImage(rect, image);
             }
         }
 
         // Draw the resulting big picture into the printer
-        painter.drawImage(pageRect, bigPicture);
+        QRect printRect(0, 0, pageRect.width(), pageRect.height());
+        painter.drawImage(printRect, bigPicture);
 
         if (pageToPrint < lastPage)
             printer->newPage();
@@ -1516,20 +1608,24 @@ void Widget::print(QPrinter *prt)
 
     // Finish the job
     painter.end();
+    status->showMessage("");
+    setup(width(), height());
 }
 
 
-struct SaveImage : QThread
+struct SaveImage : QRunnable
 // ----------------------------------------------------------------------------
 //   A separate thread used to store rendered images to disk
 // ----------------------------------------------------------------------------
 {
-    SaveImage(QString filename, QImage image):
-        QThread(), filename(filename), image(image) {}
-    void run()    { image.save(filename); image = QImage(); }
+    SaveImage(QString filename, QImage image, QSemaphore * semaphore):
+        filename(filename), image(image), semaphore(semaphore)
+        { semaphore->acquire(); }
+    void run()    { image.save(filename); semaphore->release(); }
 public:
-    QString filename;
-    QImage  image;
+    QString      filename;
+    QImage       image;
+    QSemaphore * semaphore;
 };
 
 
@@ -1575,9 +1671,10 @@ static bool checkPrintfFormat(QString str)
 }
 
 
-void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps, int page, QString disp,
-                          QString fileName, int firstFrame)
+void Widget::renderFrames(int w, int h, double start_time, double duration,
+                          QString dir, double fps, int page,
+                          double time_offset, QString disp, QString fileName,
+                          int firstFrame)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
@@ -1618,11 +1715,16 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         displayDriver->setDisplayFunction("2D");
     }
 
+    XL::Save<uint> savePageEntry(pageEntry, pageEntry);
+
     // Set the initial time we want to set and freeze animations
+    if (start_time == -1)
+        start_time = trueCurrentTime();
     XL::Save<double> setPageTime(pageStartTime, start_time);
-    XL::Save<double> setFrozenTime(frozenTime, start_time);
+    XL::Save<double> setFrozenTime(frozenTime, start_time + time_offset);
     XL::Save<double> saveStartTime(startTime, start_time);
     XL::Save<page_list> savePageNames(pageNames, pageNames);
+    XL::Save<double> savePixelRatio(devicePixelRatio, 1.0);
 
     GLAllStateKeeper saveGL;
     XL::Save<double> saveScaling(scaling, scaling);
@@ -1632,9 +1734,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     offlineRenderingHeight = h;
 
     // Select page, if not current
-    if (page != -1)
+    if (page)
     {
-        currentTime = start_time;
+        currentTime = start_time + time_offset;
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
@@ -1643,7 +1745,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     FrameInfo frame(w, h);
 
     // Render frames for the whole time range
-    int currentFrame = firstFrame, frameCount = (end_time - start_time) * fps;
+    int currentFrame = firstFrame, frameCount = duration * fps;
     int percent, prevPercent = 0;
     int digits = (int)log10(frameCount) + 1;
 
@@ -1653,18 +1755,20 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         fileName.replace("%0d", "%0" + QString("%1d").arg(digits));
     }
 
-    std::vector<SaveImage*> saveThreads;
+    QThreadPool saveThreads(this); // # threads = # of CPU cores, by default
+    // Semaphore limits the number of frames pending save
+    QSemaphore semaphore(QThread::idealThreadCount() + 1);
     QTime fpsTimer;
     fpsTimer.start();
 
-    for (double t = start_time; t < end_time; t += 1.0/fps)
+    for (double t = start_time; t < start_time + duration; t += 1.0/fps)
     {
 #define CHECK_CANCELED() \
     if (renderFramesCanceled == 2) { inOfflineRendering = false; return; } \
     else if (renderFramesCanceled == 1) { renderFramesCanceled = 0; break; }
 
         // Show progress information
-        percent = 100*currentFrame/frameCount;
+        percent = 100*(currentFrame-firstFrame)/frameCount;
         if (percent != prevPercent)
         {
             prevPercent = percent;
@@ -1672,7 +1776,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Set time and run program
-        currentTime = t;
+        currentTime = t + time_offset;
 
         if (gotoPageName != "")
         {
@@ -1681,9 +1785,15 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
                           << "Goto page request: '" << gotoPageName
                           << "' from '" << pageName << "'\n";
             commitPageChange(false);
+            if (time_offset && currentFrame == firstFrame)
+            {
+                frozenTime = start_time + time_offset;
+                pageStartTime = startTime = start_time;
+            }
+            pageEntry = 0;
         }
 
-        if (currentFrame == 1)
+        if (currentFrame == firstFrame)
         {
             runProgram();
         }
@@ -1715,9 +1825,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
         if (dir != "/dev/null")
         {
-            SaveImage *thread = new SaveImage(filePath, frame.toImage());
-            saveThreads.push_back(thread);
-            thread->start();
+            SaveImage * task = new SaveImage(filePath, frame.toImage(),
+                                             &semaphore);
+            saveThreads.start(task);
         }
 
         currentFrame++;
@@ -1731,13 +1841,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         std::cerr << "Rendered " << currentFrame << " frames in "
                   << elapsed << " ms, approximately "
                   << 1000 * currentFrame / elapsed << " FPS\n";
-    while(saveThreads.size())
-    {
-        SaveImage *thread = saveThreads.back();
-        thread->wait();
-        delete thread;
-        saveThreads.pop_back();
-    }
+    saveThreads.waitForDone();
     elapsed = fpsTimer.elapsed();
     IFTRACE(fps)
         std::cerr << "Saved " << currentFrame << " frames in "
@@ -1787,6 +1891,8 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
         displayDriver->setDisplayFunction(disp);
     }
 
+    XL::Save<uint> savePageEntry(pageEntry, pageEntry);
+
     // Set the initial time we want to set and freeze animations
     XL::Save<double> setPageTime(pageStartTime, 0);
     XL::Save<double> setFrozenTime(frozenTime, pageTime);
@@ -1827,6 +1933,7 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
                           << "Goto page request: '" << gotoPageName
                           << "' from '" << pageName << "'\n";
         commitPageChange(false);
+        pageEntry = 0;
     }
 
     pageStartTime = startTime = 0; // REVISIT
@@ -2402,7 +2509,7 @@ void Widget::resetViewAndRefresh()
 // ----------------------------------------------------------------------------
 {
     resetView();
-    setup(width(), height());
+    setup(renderWidth(), renderHeight());
     QEvent r(QEvent::Resize);
     refreshNow(&r);
 }
@@ -2530,6 +2637,7 @@ void Widget::resizeGL(int width, int height)
     if (!frameBufferReady())
         return;
 
+    // Use physical pixel coordinates for the viewport (#3254)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
@@ -2592,9 +2700,8 @@ void Widget::setup(double w, double h, const Box *picking)
     if (h == 0) h = 2;
 
     // Setup viewport
-    uint s = printer && picking ? printOverscaling : 1;
-    GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
-
+    scale s = printer && picking ? printOverscaling : 1;
+    GLint vx = 0, vy = 0, vw = int(w * s), vh = int(h * s);
     GL.Viewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
@@ -2611,8 +2718,8 @@ void Widget::setup(double w, double h, const Box *picking)
         {
             // mouseTrackingViewport not set (by display module), default to
             // current viewport
-            pw = width();
-            ph = height();
+            pw = w;
+            ph = h;
         }
 
         GLint viewport[4] = { 0, 0, pw, ph };
@@ -2648,6 +2755,7 @@ void Widget::reset()
     pageShown = 1;       // BUG #1986
     gotoPageName = "";   // BUG #2069
     pageName = "";       // BUG #2069
+    pageEntry = pageExit = 0;
 }
 
 
@@ -2818,14 +2926,254 @@ bool Widget::forwardEvent(QMouseEvent *event)
 }
 
 
-static text keyName(QKeyEvent *event)
+static text toKeyName(QKeyEvent *event)
+// ----------------------------------------------------------------------------
+//   Return text form of QKeyEvent::key()
+// ----------------------------------------------------------------------------
+{
+    text ret =  "";
+
+#define CHK(key) case Qt::key: ret = #key ; break
+
+    uint key = (uint) event->key();
+    switch(key)
+    {
+    CHK(Key_Space);
+    CHK(Key_A); CHK(Key_B); CHK(Key_C); CHK(Key_D); CHK(Key_E); CHK(Key_F);
+    CHK(Key_G); CHK(Key_H); CHK(Key_I); CHK(Key_J); CHK(Key_K); CHK(Key_L);
+    CHK(Key_M); CHK(Key_N); CHK(Key_O); CHK(Key_P); CHK(Key_Q); CHK(Key_R);
+    CHK(Key_S); CHK(Key_T); CHK(Key_U); CHK(Key_V); CHK(Key_W); CHK(Key_X);
+    CHK(Key_Y); CHK(Key_Z);
+    CHK(Key_0); CHK(Key_1); CHK(Key_2); CHK(Key_3); CHK(Key_4); CHK(Key_5);
+    CHK(Key_6); CHK(Key_7); CHK(Key_8); CHK(Key_9);
+    CHK(Key_Exclam);
+    CHK(Key_QuoteDbl);
+    CHK(Key_NumberSign);
+    CHK(Key_Dollar);
+    CHK(Key_Percent);
+    CHK(Key_Ampersand);
+    CHK(Key_Apostrophe);
+    CHK(Key_ParenLeft);
+    CHK(Key_ParenRight);
+    CHK(Key_Asterisk);
+    CHK(Key_Plus);
+    CHK(Key_Comma);
+    CHK(Key_Minus);
+    CHK(Key_Period);
+    CHK(Key_Slash);
+    CHK(Key_Colon);
+    CHK(Key_Semicolon);
+    CHK(Key_Less);
+    CHK(Key_Equal);
+    CHK(Key_Greater);
+    CHK(Key_Question);
+    CHK(Key_At);
+    CHK(Key_BracketLeft);
+    CHK(Key_Backslash);
+    CHK(Key_BracketRight);
+    CHK(Key_AsciiCircum);
+    CHK(Key_Underscore);
+    CHK(Key_QuoteLeft);
+    CHK(Key_BraceLeft);
+    CHK(Key_Bar);
+    CHK(Key_BraceRight);
+    CHK(Key_AsciiTilde);
+    CHK(Key_Escape);
+    CHK(Key_Tab);
+    CHK(Key_Backtab);
+    CHK(Key_Backspace);
+    CHK(Key_Return);
+    CHK(Key_Enter);
+    CHK(Key_Insert);
+    CHK(Key_Delete);
+    CHK(Key_Pause);
+    CHK(Key_Print);
+    CHK(Key_SysReq);
+    CHK(Key_Clear);
+    CHK(Key_Home);
+    CHK(Key_End);
+    CHK(Key_Left);
+    CHK(Key_Up);
+    CHK(Key_Right);
+    CHK(Key_Down);
+    CHK(Key_PageUp);
+    CHK(Key_PageDown);
+    CHK(Key_Shift);
+    CHK(Key_Control);
+    CHK(Key_Meta);
+    CHK(Key_Alt);
+    CHK(Key_AltGr);
+    CHK(Key_CapsLock);
+    CHK(Key_NumLock);
+    CHK(Key_ScrollLock);
+    CHK(Key_F1);  CHK(Key_F2);  CHK(Key_F3);  CHK(Key_F4);  CHK(Key_F5);
+    CHK(Key_F6);  CHK(Key_F7);  CHK(Key_F8);  CHK(Key_F9);  CHK(Key_F10);
+    CHK(Key_F11); CHK(Key_F12); CHK(Key_F13); CHK(Key_F14); CHK(Key_F15);
+    CHK(Key_F16); CHK(Key_F17); CHK(Key_F18); CHK(Key_F19); CHK(Key_F20);
+    CHK(Key_F21); CHK(Key_F22); CHK(Key_F23); CHK(Key_F24); CHK(Key_F25);
+    CHK(Key_F26); CHK(Key_F27); CHK(Key_F28); CHK(Key_F29); CHK(Key_F30);
+    CHK(Key_F31); CHK(Key_F32); CHK(Key_F33); CHK(Key_F34); CHK(Key_F35);
+    CHK(Key_Menu);
+    CHK(Key_Help);
+    CHK(Key_Back);
+    CHK(Key_Forward);
+    CHK(Key_Stop);
+    CHK(Key_Refresh);
+    CHK(Key_VolumeDown);
+    CHK(Key_VolumeMute);
+    CHK(Key_VolumeUp);
+    CHK(Key_BassBoost);
+    CHK(Key_BassUp);
+    CHK(Key_BassDown);
+    CHK(Key_TrebleUp);
+    CHK(Key_TrebleDown);
+    CHK(Key_MediaPlay);
+    CHK(Key_MediaStop);
+    CHK(Key_MediaPrevious);
+    CHK(Key_MediaNext);
+    CHK(Key_MediaRecord);
+    CHK(Key_HomePage);
+    CHK(Key_Favorites);
+    CHK(Key_Search);
+    CHK(Key_Standby);
+    CHK(Key_OpenUrl);
+    CHK(Key_LaunchMail);
+    CHK(Key_LaunchMedia);
+    CHK(Key_Launch0); CHK(Key_Launch1); CHK(Key_Launch2); CHK(Key_Launch3);
+    CHK(Key_Launch4); CHK(Key_Launch5); CHK(Key_Launch6); CHK(Key_Launch7);
+    CHK(Key_Launch8); CHK(Key_Launch9); CHK(Key_LaunchA); CHK(Key_LaunchB);
+    CHK(Key_LaunchC); CHK(Key_LaunchD); CHK(Key_LaunchE); CHK(Key_LaunchF);
+    CHK(Key_MonBrightnessUp);
+    CHK(Key_MonBrightnessDown);
+    CHK(Key_KeyboardLightOnOff);
+    CHK(Key_KeyboardBrightnessUp);
+    CHK(Key_KeyboardBrightnessDown);
+    CHK(Key_PowerOff);
+    CHK(Key_WakeUp);
+    CHK(Key_Eject);
+    CHK(Key_ScreenSaver);
+    CHK(Key_WWW);
+    CHK(Key_Memo);
+    CHK(Key_LightBulb);
+    CHK(Key_Shop);
+    CHK(Key_History);
+    CHK(Key_AddFavorite);
+    CHK(Key_HotLinks);
+    CHK(Key_BrightnessAdjust);
+    CHK(Key_Finance);
+    CHK(Key_Community);
+    CHK(Key_AudioRewind);
+    CHK(Key_BackForward);
+    CHK(Key_ApplicationLeft);
+    CHK(Key_ApplicationRight);
+    CHK(Key_Book);
+    CHK(Key_CD);
+    CHK(Key_Calculator);
+    CHK(Key_ToDoList);
+    CHK(Key_ClearGrab);
+    CHK(Key_Close);
+    CHK(Key_Copy);
+    CHK(Key_Cut);
+    CHK(Key_Display);
+    CHK(Key_DOS);
+    CHK(Key_Documents);
+    CHK(Key_Excel);
+    CHK(Key_Explorer);
+    CHK(Key_Game);
+    CHK(Key_Go);
+    CHK(Key_iTouch);
+    CHK(Key_LogOff);
+    CHK(Key_Market);
+    CHK(Key_Meeting);
+    CHK(Key_MenuKB);
+    CHK(Key_MenuPB);
+    CHK(Key_MySites);
+    CHK(Key_News);
+    CHK(Key_OfficeHome);
+    CHK(Key_Option);
+    CHK(Key_Paste);
+    CHK(Key_Phone);
+    CHK(Key_Calendar);
+    CHK(Key_Reply);
+    CHK(Key_Reload);
+    CHK(Key_RotateWindows);
+    CHK(Key_RotationPB);
+    CHK(Key_RotationKB);
+    CHK(Key_Save);
+    CHK(Key_Send);
+    CHK(Key_Spell);
+    CHK(Key_SplitScreen);
+    CHK(Key_Support);
+    CHK(Key_TaskPane);
+    CHK(Key_Terminal);
+    CHK(Key_Tools);
+    CHK(Key_Travel);
+    CHK(Key_Video);
+    CHK(Key_Word);
+    CHK(Key_Xfer);
+    CHK(Key_ZoomIn);
+    CHK(Key_ZoomOut);
+    CHK(Key_Away);
+    CHK(Key_Messenger);
+    CHK(Key_WebCam);
+    CHK(Key_MailForward);
+    CHK(Key_Pictures);
+    CHK(Key_Music);
+    CHK(Key_Battery);
+    CHK(Key_Bluetooth);
+    CHK(Key_WLAN);
+    CHK(Key_UWB);
+    CHK(Key_AudioForward);
+    CHK(Key_AudioRepeat);
+    CHK(Key_AudioRandomPlay);
+    CHK(Key_Subtitle);
+    CHK(Key_AudioCycleTrack);
+    CHK(Key_Time);
+    CHK(Key_Hibernate);
+    CHK(Key_View);
+    CHK(Key_TopMenu);
+    CHK(Key_PowerDown);
+    CHK(Key_Suspend);
+    CHK(Key_ContrastAdjust);
+    CHK(Key_MediaLast);
+    CHK(Key_Call);
+    CHK(Key_Context1);
+    CHK(Key_Context2);
+    CHK(Key_Context3);
+    CHK(Key_Context4);
+    CHK(Key_Flip);
+    CHK(Key_Hangup);
+    CHK(Key_No);
+    CHK(Key_Select);
+    CHK(Key_Yes);
+    CHK(Key_Execute);
+    CHK(Key_Printer);
+    CHK(Key_Play);
+    CHK(Key_Sleep);
+    CHK(Key_Zoom);
+    CHK(Key_Cancel);
+    }
+
+#undef CHK
+
+    return ret;
+}
+
+
+static text toKeyEventName(QKeyEvent *event, uint prevModifiers,
+                           text prevKeyText)
 // ----------------------------------------------------------------------------
 //   Return the properly formatted key name for a key event
 // ----------------------------------------------------------------------------
 {
-    // Try to find if there is a callback in the code for this key
     text name = +event->text();
     text ctrl = "";             // Name for Control, Meta and Alt
+
+    if (event->type() == QEvent::KeyRelease &&
+        name == "" && prevKeyText != "")
+    {
+        return "~" + prevKeyText;
+    }
 
     uint key = (uint) event->key();
     switch(key)
@@ -3116,30 +3464,42 @@ static text keyName(QKeyEvent *event)
     }
 
     // Add modifiers to the name if we have them
-    static Qt::KeyboardModifiers modifiers = 0;
+    Qt::KeyboardModifiers modifiers = event->modifiers();
+    Qt::KeyboardModifiers mod = 0;
     if (event->type() == QEvent::KeyPress)
-        modifiers = event->modifiers();
-    if (modifiers)
     {
-        if (ctrl == "")
-        {
-            if (name.length() != 1 && (modifiers & Qt::ShiftModifier))
-                name = "Shift-" + name;
-            ctrl = name;
-        }
-        else
-        {
-            int shift = modifiers & Qt::ShiftModifier;
-            if (shift && shift != modifiers)
-                name = ctrl = "Shift-" + ctrl;
-        }
-        if (modifiers & Qt::ControlModifier)
-            name = ctrl = "Control-" + ctrl;
-        if (modifiers & Qt::AltModifier)
-            name = ctrl = "Alt-" + ctrl;
-        if (modifiers & Qt::MetaModifier)
-            name = ctrl = "Meta-" + ctrl;
+        mod = modifiers;
     }
+    else if (event->type() == QEvent::KeyRelease)
+    {
+        mod = (Qt::KeyboardModifiers)(modifiers ^ prevModifiers);
+    }
+    if (ctrl == "")
+    {
+        if (name.length() != 1 && (mod & Qt::ShiftModifier))
+            name = "Shift-" + name;
+        ctrl = name;
+    }
+    else
+    {
+        Qt::KeyboardModifiers shift = mod & Qt::ShiftModifier;
+        if (shift && shift != mod)
+            name = ctrl = "Shift-" + ctrl;
+    }
+    if (mod & Qt::ControlModifier)
+        name = ctrl = "Control-" + ctrl;
+    if (mod & Qt::AltModifier)
+        name = ctrl = "Alt-" + ctrl;
+    if (mod & Qt::MetaModifier)
+        name = ctrl = "Meta-" + ctrl;
+
+    if (event->type() == QEvent::KeyRelease)
+        name = "~" + name;
+
+    // Make sure name does not end with "-" (modifiers only)
+    size_t len = name.length();
+    if (name[len - 1] == '-')
+        name = name.substr(0, len - 1);
 
     return name;
 }
@@ -3150,35 +3510,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 //   A key is pressed
 // ----------------------------------------------------------------------------
 {
-#ifdef CFG_TIMED_FULLSCREEN
-    emit userActivity();
-#endif
-
-    TaoSave saveCurrent(current, this);
-    EventSave save(this->w_event, event);
-    keyboardModifiers = event->modifiers();
-
-    // Forward it down the regular event chain
-    if (forwardEvent(event))
-        return;
-
-    // Get the name of the key
-    text key = keyName(event);
-
-    // Check if one of the activities handled the key
-    bool handled = false;
-    Activity *next;
-    for (Activity *a = activities; a; a = next)
-    {
-        Activity * n = a->next;
-        next = a->Key(key);
-        handled |= next != n;
-    }
-
-    // If the key was not handled by any activity, forward to document
-    if (!handled && xlProgram)
-        (XL::XLCall ("key"), key) (xlProgram);
-    updateGL();
+    handleKeyEvent(event, true);
 }
 
 
@@ -3187,18 +3519,57 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 //   A key is released
 // ----------------------------------------------------------------------------
 {
+    handleKeyEvent(event, false);
+}
+
+
+void Widget::handleKeyEvent(QKeyEvent *event, bool keypress)
+// ----------------------------------------------------------------------------
+//   Save info about keypress/keyreleased event, and forward.
+// ----------------------------------------------------------------------------
+{
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
-    keyboardModifiers = event->modifiers();
 
-    // Forward it down the regular event chain
+    // Record event info
+    uint prevKeyboardModifiers = keyboardModifiers;
+    keyboardModifiers = event->modifiers();
+    XL::Save<bool> saveKeyPressed(keyPressed, keypress);
+    XL::Save<text> saveKeyName(keyName, toKeyName(event));
+    XL::Save<text> saveKeyText(keyText, +event->text());
+    XL::Save<text> saveKeyEvent(keyEventName,
+                                toKeyEventName(event,
+                                               prevKeyboardModifiers,
+                                               prevKeyPressText));
+    // Remember keypress event->text() until next event
+    prevKeyPressText = keypress ? keyText : "";
+
+    // Forward event down the regular event chain
     if (forwardEvent(event))
         return;
 
-    // Now call "key" in the current context with the ~ prefix
-    if (!xlProgram) return;
-    text name = "~" + keyName(event);
-    (XL::XLCall ("key"), name) (xlProgram);
+    bool handled = false;
+    if (keypress)
+    {
+        // Check if one of the activities handled the key
+        Activity *next;
+        for (Activity *a = activities; a; a = next)
+        {
+            Activity * n = a->next;
+            next = a->Key(keyEventName);
+            handled |= next != n;
+        }
+    }
+
+    // If the key was not handled by any activity, forward to document
+    if (!handled && xlProgram)
+        (XL::XLCall ("key"), keyEventName) (xlProgram);
+    if (keypress)
+        updateGL();
 }
 
 
@@ -3765,39 +4136,6 @@ void Widget::endPanning(QMouseEvent *)
 }
 
 
-void Widget::showEvent(QShowEvent *event)
-// ----------------------------------------------------------------------------
-//    Enable animations if widget is visible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-    bool oldFs = hasAnimations();
-    if (!oldFs)
-        taoWindow()->toggleAnimations();
-}
-
-
-void Widget::hideEvent(QHideEvent *event)
-// ----------------------------------------------------------------------------
-//    Disable animations if widget is invisible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-
-    // We don't want to stop refreshing if we are hidden because another widget
-    // has become active (QStackedWidget).
-    // Use case: a primitive implemented in a module calls
-    // ModuleApi::setCurrentWidget to show its own stuff: program refresh has
-    // to continue normally.
-    if (taoWindow()->hasStackedWidget())
-        return;
-
-    bool oldFs = hasAnimations();
-    if (oldFs)
-        taoWindow()->toggleAnimations();
-}
-
-
 
 // ============================================================================
 //
@@ -4075,6 +4413,13 @@ void Widget::refreshProgram()
 {
     if (toReload.isEmpty() || !xlProgram || xlProgram->readOnly)
         return;
+
+    do
+    {
+        TaoSave saveCurrent(current, this);
+        runPageExitHandlers();
+        pageEntry = 0; // will run page entry handlers of displayed page
+    } while (0);
 
     Repository *repo = repository();
     bool needBigHammer = false;
@@ -5010,16 +5355,18 @@ Point3 Widget::unproject (coord x, coord y, coord z,
     // Adjust between mouse and OpenGL coordinate systems
     y = height() - y;
 
+    // On Retina display, we need to convert to physical pixels (#3254)
+    x *= devicePixelRatio;
+    y *= devicePixelRatio;
+
     // Get 3D coordinates for the near plane based on window coordinates
-    GLdouble x3dn, y3dn, z3dn;
-    x3dn = y3dn = z3dn = 0.0;
+    GLdouble x3dn = 0, y3dn = 0, z3dn = 0;
     GL.UnProject(x, y, 0.0,
                  model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
-    GLdouble x3df, y3df, z3df;
-    x3df = y3df = z3df = 0;
+    GLdouble x3df = 0, y3df = 0, z3df = 0;
     GL.UnProject(x, y, 1.0,
                  model, proj, viewport,
                  &x3df, &y3df, &z3df);
@@ -5073,7 +5420,7 @@ Point3 Widget::project (coord x, coord y, coord z)
 
 
 Point3 Widget::project (coord x, coord y, coord z,
-                          GLdouble *proj, GLdouble *model, GLint *viewport)
+                        GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
@@ -5088,7 +5435,7 @@ Point3 Widget::project (coord x, coord y, coord z,
 
 
 Point3 Widget::objectToWorld(coord x, coord y,
-                                GLdouble *proj, GLdouble *model, GLint *viewport)
+                             GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //    Convert object coordinates to world coordinates
 // ----------------------------------------------------------------------------
@@ -5323,7 +5670,7 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
     if (drawAllPages || pageName == name)
     {
         // Check if we already displayed a page with that name
-        if (pageFound && !drawAllPages)
+        if (pageFound && !(drawAllPages || printer))
         {
             Ooops("Page name $1 is already used", namePtr);
         }
@@ -5335,7 +5682,13 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
             if (pageId > 1)
                 pageLinks["Up"] = lastPageName;
             pageTree = body;
+            pageHasExitHandler = false;
+            bool isPageEntry = (pageEntry == 0);
+            if (isPageEntry)
+                pageEntry = pageId;
             saveAndEvaluate(context, body);
+            if (isPageEntry)
+                pageEntry = (uint)-1; // assuming < 4 billion pages ;-)
         }
     }
     else if (pageName == lastPageName)
@@ -5698,7 +6051,7 @@ XL::Real_p Widget::windowWidth(Tree_p self)
     refreshOn(QEvent::Resize);
     double w = printer ? printer->paperRect().width() : width();
     w *= displayDriver->windowWidthFactor();
-    return new Real(w);
+    return new Real(w, self->Position());
 }
 
 
@@ -5710,7 +6063,7 @@ XL::Real_p Widget::windowHeight(Tree_p self)
     refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
     h *= displayDriver->windowHeightFactor();
-    return new Real(h);
+    return new Real(h, self->Position());
 }
 
 
@@ -5726,7 +6079,7 @@ Integer_p Widget::seconds(Tree_p self, double t)
         double refresh = (double)(int)tm + 1.0;
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(second);
+    return new XL::Integer(second, self->Position());
 }
 
 
@@ -5749,7 +6102,7 @@ Integer_p Widget::minutes(Tree_p self, double t)
         double refresh = toSecsSinceEpoch(next);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(minute);
+    return new XL::Integer(minute, self->Position());
 }
 
 
@@ -5772,7 +6125,7 @@ Integer_p Widget::hours(Tree_p self, double t)
         double refresh = toSecsSinceEpoch(next);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(hour);
+    return new XL::Integer(hour, self->Position());
 }
 
 
@@ -5789,7 +6142,7 @@ Integer_p Widget::day(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(day);
+    return new XL::Integer(day, self->Position());
 }
 
 
@@ -5806,7 +6159,7 @@ Integer_p Widget::weekDay(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(day);
+    return new XL::Integer(day, self->Position());
 }
 
 
@@ -5823,7 +6176,7 @@ Integer_p Widget::yearDay(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(day);
+    return new XL::Integer(day, self->Position());
 }
 
 
@@ -5840,7 +6193,7 @@ Integer_p Widget::month(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(month);
+    return new XL::Integer(month, self->Position());
 }
 
 
@@ -5857,7 +6210,7 @@ Integer_p Widget::year(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(year);
+    return new XL::Integer(year, self->Position());
 }
 
 
@@ -5869,7 +6222,7 @@ XL::Real_p Widget::time(Tree_p self)
     refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
-    return new XL::Real(frozenTime);
+    return new XL::Real(frozenTime, self->Position());
 }
 
 
@@ -5881,8 +6234,7 @@ XL::Real_p Widget::pageTime(Tree_p self)
     refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
-    return new XL::Real(frozenTime - pageStartTime,
-                           self->Position());
+    return new XL::Real(frozenTime - pageStartTime, self->Position());
 }
 
 
@@ -6030,6 +6382,8 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
+    // First handle actions not related to a shape
+    QString qname(+name);
     if (name == "pagechange")
     {
         if (!pageChangeActions.count(self))
@@ -6040,6 +6394,81 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
             pageChangeActions[self] = cc;
         }
         return XL::xl_true;
+    }
+    else if ((+name).startsWith("keydown"))
+    {
+        refreshOn(QEvent::KeyPress);
+
+        if (keyPressed)
+        {
+            QRegExp re(".*");
+            if (qname.startsWith("keydown:"))
+                re = QRegExp(qname.mid(qname.indexOf(':') + 1));
+
+            QString qkeyName = +keyName;
+            QString qkeyText = +keyText;
+            QString qkeyEvent = +keyEventName;
+            bool eval = (!qkeyEvent.isEmpty() && re.exactMatch(qkeyEvent)) ||
+                        (!qkeyName.isEmpty()  && re.exactMatch(qkeyName))  ||
+                        (!qkeyText.isEmpty()  && re.exactMatch(qkeyText));
+            if (eval)
+                return context->Evaluate(action);
+        }
+    }
+    else if ((+name).startsWith("keyup"))
+    {
+        refreshOn(QEvent::KeyRelease);
+
+        if (!keyPressed)
+        {
+            QRegExp re(".*");
+            if (qname.startsWith("keyup:"))
+                re = QRegExp(qname.mid(qname.indexOf(':') + 1));
+
+            QString qkeyName = +keyName;
+            QString qkeyText = +keyText;
+            QString qkeyEvent = (+keyEventName).mid(1); // Remove leading ~
+            bool eval = (!qkeyEvent.isEmpty() && re.exactMatch(qkeyEvent)) ||
+                        (!qkeyName.isEmpty()  && re.exactMatch(qkeyName))  ||
+                        (!qkeyText.isEmpty()  && re.exactMatch(qkeyText));
+            if (eval)
+                return context->Evaluate(action);
+        }
+    }
+    else if ((+name).startsWith("key"))
+    {
+        refreshOn(QEvent::KeyPress);
+        refreshOn(QEvent::KeyRelease);
+
+        QRegExp re(".*");
+        if (qname.startsWith("key:"))
+            re = QRegExp(qname.mid(qname.indexOf(':') + 1));
+
+        QString qkeyName = +keyName;
+        QString qkeyText = +keyText;
+        if (!keyPressed)
+        {
+            if (!qkeyName.isEmpty())
+                qkeyName = "~" + qkeyName;
+            if (!qkeyText.isEmpty())
+                qkeyText = "~" + qkeyText;
+            // keyEvent already has the ~
+        }
+        bool eval = (!(+keyEventName).isEmpty() && re.exactMatch(+keyEventName))  ||
+                    (!qkeyName.isEmpty()    && re.exactMatch(qkeyName)) ||
+                    (!qkeyText.isEmpty()    && re.exactMatch(qkeyText));
+        if (eval)
+            return context->Evaluate(action);
+    }
+    else if (name == "pageentry" && pageEntry == pageId)
+    {
+        return context->Evaluate(action);
+    }
+    else if (name == "pageexit")
+    {
+        if (pageExit == pageId)
+            return context->Evaluate(action);
+        pageHasExitHandler = true;
     }
 
     IFTRACE(layoutevents)
@@ -6985,7 +7414,6 @@ Name_p Widget::panView(Tree_p self, coord dx, coord dy)
     cameraPosition.y += dy;
     cameraTarget.x += dx;
     cameraTarget.y += dy;
-    setup(width(), height()); // Remove?
     return XL::xl_true;
 }
 
@@ -8908,12 +9336,32 @@ Tree_p Widget::ellipseArc(Tree_p self,
                           Real_p cx, Real_p cy, Real_p w, Real_p h,
                           Real_p start, Real_p sweep)
 // ----------------------------------------------------------------------------
-//   Circular sector centered around (cx,cy)
+//   Elliptical arc centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
     // Start and sweep must be provided upsidedown because of y flip.
     // See Bug#787
     EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep);
+    if (path)
+        shape.Draw(*path);
+    else
+        layout->Add(new EllipseArc(shape));
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, cx, cy, w, h));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::ellipseSector(Tree_p self,
+                              Real_p cx, Real_p cy, Real_p w, Real_p h,
+                              Real_p start, Real_p sweep)
+// ----------------------------------------------------------------------------
+//   Elliptical sector centered around (cx,cy)
+// ----------------------------------------------------------------------------
+{
+    EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep, true);
     if (path)
         shape.Draw(*path);
     else
@@ -12672,6 +13120,9 @@ void Widget::deleteSelection()
 {
     // Check if the source was modified, if so, do not update the tree
     if (!xlProgram || !markChange("Deleted selection"))
+        return;
+
+    if (!hasSelection())
         return;
 
     XL::Tree *what = xlProgram->tree;

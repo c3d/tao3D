@@ -156,13 +156,14 @@ struct Ellipse : Rectangle
 
 struct EllipseArc : Ellipse
 // ----------------------------------------------------------------------------
-//    An arc of ellipse that fits within the given bounds
+//    An arc of ellipse or ellipse sector that fits within the given bounds
 // ----------------------------------------------------------------------------
 {
-    EllipseArc(const Box &b, float start, float sweep)
-        : Ellipse(b), start(start), sweep(sweep) {}
+    EllipseArc(const Box &b, float start, float sweep, bool sector = false)
+        : Ellipse(b), start(start), sweep(sweep), sector(sector) {}
     virtual void        Draw(GraphicPath &path);
     float start, sweep;
+    bool  sector;
 };
 
 
@@ -281,6 +282,7 @@ struct Plane : Shape2
 
     // Draw plane
     virtual void Draw(Layout *where);
+    virtual void Draw(GraphicPath &path) { return Shape2::Draw(path); }
     void Draw(PlaneMesh* plane, Layout *where);
 
 private:

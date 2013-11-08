@@ -164,12 +164,14 @@ enable_stereoscopy(mode:name);
 @endcode
  * @~english
  * Display modes can also be selected with the command chooser (Escape
- * key), or with the View/Display mode menu. 
+ * key), or with the View/Display mode menu.
+ * @return @c true on success, @c false otherwise.
  * @~french
  * Les modes d'affichage peuvent également être sélectionnés par le menu
  * interactif (touche Échap), ou par le menu Affichage/Mode d'affichage.
+ * @return @c true en cas de succès, sinon @c false.
  */
-display_mode(mode:text);
+boolean display_mode(mode:text);
 
 /**
  * @~english

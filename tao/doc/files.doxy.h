@@ -143,7 +143,7 @@ text load_text(path:text);
  * Vérifie si un fichier existe ou non.
  * Permet de vérifier si le fichier @p filename existe ou non.
  */
-bool file_exists(filename:text);
+boolean file_exists(filename:text);
 
 /**
  * @~english
@@ -308,7 +308,7 @@ foo Others -> nil
 |1|2|
 @endverbatim
  */
-tree load_csv(filename:text, prefix:text);
+load_csv(filename:text, prefix:text);
 
 
 /**
@@ -321,7 +321,7 @@ tree load_csv(filename:text, prefix:text);
  * Similaire à @ref load_csv mais le séparateur de champs est la
  * tabulation.
  */
-tree load_tsv(filename:text, prefix:text);
+load_tsv(filename:text, prefix:text);
 
 
 /**
@@ -337,7 +337,7 @@ tree load_tsv(filename:text, prefix:text);
  * @p fs et @p rs permettent de préciser quels caractères utiliser comme
  * séparateurs de champs et d'enregistrements, respectivement.
  */
-tree load_data(filename:text, prefix:text, fs:text, rs:text);
+load_data(filename:text, prefix:text, fs:text, rs:text);
 
 
 /**

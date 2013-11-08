@@ -23,16 +23,34 @@
  * Currently known event names are:
  * - @c click
  * - @c mouseover
- * In addition, the following event name is available which is not related to
- * a shape:
- * - @c pagechange
+ *
+ * In addition, the following event names are available which are not related
+ * to a shape:
+ * - @c pagechange (since 1.18)@n
  * The code @c t associated with this event is executed when a page change
- * has just occurred and @ref page_label or @ref page_number point to the new
- * page (@ref prev_page_label and @ref prev_page_number are available to
+ * has just occurred and @ref page_name or @ref page_number point to the new
+ * page (@ref prev_page_name and @ref prev_page_number are available to
  * get information about the page that was displayed previously).
  * If the previous page has a @ref transition, the code is excuted
  * after the transition is done.
- *
+ * - @c key, @c key:\<regexp\> (since 1.44) @n
+ * The code is executed when the event that caused the current evaluation of
+ * the program is a keyboard event (key press or key release).
+ * If  @em :\<regexp\> is given, the code is executed only when the value of
+ * @ref key_event, @ref key_name or @ref key_text matches the given regular
+ * expression. The syntax is the one used by
+ * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
+ * - @c keydown, @c keydown:\<regexp\> (since 1.44) @n
+ * Similar to @c key or @c key:\<regexp\>, but only applies to key press
+ * events.
+ * - @c keyup, @c keyup:\<regexp\> (since 1.44) @n
+ * Similar to @c key or @c key:\<regexp\>, but only applies to key release
+ * events.
+ * - @c pageentry (since 1.44) @n
+ * The code is executed if the page is being evaluated for the first time,
+ * or is being evaluated again after another page has been shown.
+ * - @c pageexit (since 1.44) @n
+ * The code is executed immediately before a page change.
  * @~french
  * Associe du code à un événement.
  *
@@ -42,16 +60,36 @@
  * Les noms valides sont :
  * - @c click : clic de souris
  * - @c mouseover : passage du pointeur de souris (sans clic)
- * D'autre part, l'évènement suivant, indépendant de @c shape ou
- * @c active_widget), est disponible:
- * - @c pagechange
+ *
+ * D'autre part, les noms d'évènement suivants, indépendant de @c shape ou
+ * @c active_widget, peuvent être utilisés :
+ * - @c pagechange  (depuis 1.18)@n
  * Cet événement correspond à un changement de page. Lors le code @c t
  * s'exécute, le changement de page vient de se produire (et par conséquent,
- * @ref page_label ou @ref page_number désignent la nouvelle page ; les
- * primitives @ref prev_page_label et @ref prev_page_number permettent
+ * @ref page_name ou @ref page_number désignent la nouvelle page ; les
+ * primitives @ref prev_page_name et @ref prev_page_number permettent
  * d'obtenir des informations sur la page affichée précédemment).
  * Si une transition (cf. @ref transition) est associée à la page précédente,
  * le code @c t est exécuté lorsque la transition s'est terminée.
+ * - @c key, @c key:\<regexp\> (depuis 1.44) @n
+ * Le code est exécuté si l'évènement qui a provoqué l'évaluation du programme
+ * est un évènement clavier. Si @em :\<regexp\> est précisée, le code n'est
+ * exécuté que si la valeur de @ref key_event, @ref key_name ou @ref key_text
+ * correspond à l'expression régulière donnée. La syntaxe est celle de
+ * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
+ * - @c keydown, @c keydown:\<regexp\> (depuis 1.44) @n
+ * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
+ * évènement correspondant à l'appui sur une touche.
+ * - @c keyup, @c keyup:\<regexp\> (depuis 1.44) @n
+ * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
+ * évènement correspondant au relâchement d'une touche.
+ * - @c pageentry (depuis 1.44) @n
+ * Le code est exécuté si la page est évaluée pour la première fois, ou est
+ * évaluée de nouveau après qu'un autre page a été affichée.
+ * - @c pageexit (depuis 1.44) @n
+ * Le code est exécuté immédiatement avant un changement de page.
+ * @~
+ * @see @ref refKeyboardEvents, @ref refPageEvents
  */
 on (n:text, t:tree);
 
@@ -147,7 +185,7 @@ on_mouseover (t:tree);
  *<TR><TD> Qt::MidButton</TD><TD> 0x00000004</TD><TD>Le bouton du milieu.</TD></TR>
  * </TABLE>
  */
-mouse_buttons ();
+integer mouse_buttons ();
 
 /**
  * @~english
@@ -177,7 +215,7 @@ mouse_buttons ();
  * mouse_x correspond à des pixels, (X=0, Y=0) étant le centre de l'écran,
  * l'axe X étant vers la droite, l'axe Y étant vers le haut.
  */
-mouse_x ();
+real mouse_x ();
 
 /**
  * @~english
@@ -207,7 +245,7 @@ mouse_x ();
  * mouse_y correspond à des pixels, (X=0, Y=0) étant le centre de l'écran,
  * l'axe X étant vers la droite, l'axe Y étant vers le haut.
  */
-mouse_y ();
+real mouse_y ();
 
 /**
  * @~english
@@ -221,7 +259,7 @@ mouse_y ();
  * à l'abscisse X = 0, tandis que le bord droit est en
  * X = @ref window_width.
  */
-screen_mouse_x ();
+integer screen_mouse_x ();
 
 /**
  * @~english
@@ -235,7 +273,7 @@ screen_mouse_x ();
  * à l'ordonnée Y = 0, tandis que le haut est en
  * Y = @ref window_height.
  */
-screen_mouse_y ();
+integer screen_mouse_y ();
 
 
 /**
@@ -275,12 +313,14 @@ wheel_event (x, y);
  * Enable or disable the selection rectangle.
  * This primitive controls whether a selection rectangle is drawn as the left
  * mouse button is pressed and the mouse is dragged.
+ * @return the previous state
  *
  * @~french
  * Active ou désactive le rectangle de sélection.
  * Cette primitive permet de contrôler si un rectangle de sélection est tracé
  * lorsque le bouton gauche est enfoncé et la souris est déplacée.
+ * @return l'état précédent
  */
-enable_selection_rectangle (on:boolean);
+boolean enable_selection_rectangle (on:boolean);
 
 /** @} */

@@ -1,56 +1,62 @@
-theme "LuckyStars"
-import VLCAudioVideo
+// Document généré par l'Éditeur Tao depuis le fichier
+// ls.json le 2013-11-08T14:28:10.959Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
+
+import LuckyStarsTheme
 import MovieCredits
-import Animate
-
-
+import VLCAudioVideo
+theme "LuckyStars"
 main_title_slide "Main title",
     title
-        text "Lucky Star theme"
+        text "Lucky Stars theme"
     subtitle
-        text "A space-based theme"
-
-
+        paragraph
+            text "A space-based theme"
 section_slide "Section title",
     title
-        text "Lucky Star theme"
+        text "Lucky Stars theme"
     subtitle
         text "A simple space-based theme"
-
-
 slide "Bullet points",
     * "Bullet points"
     ** "More bullet points"
     *** "Deeper"
-    --
+    paragraph
+        text " "
     * "Again"
     ++ "Numbered text"
     ++ "Numbered"
-    -- "Additional text"
-
-
-picture_slide "Picture slide",
+    paragraph
+        - ""
+        text "Additional text"
+picture_slide "Nouvelle page 1",
     mc_size 1200, 2000
-
-    translatey -100
-    mc_star_wars_crawl 55,
-        title T:text -> align 0.5; text T
-        line T:text -> paragraph_break; align 0, 1; text T
-
-        title "A NEW HOPE FOR PRESENTATIONS"
-        line "The world of presentations is in chaos. The ancient power of bullet points is gone. Kids born with iPads in their hands don't believe in this old religion anymore."
-        line "But a glimmer of hope remains. Hidden in a remote place called Taodyne, three computer gurus versed in ancient computer science found a new way to jolt your audience."
-        line "The fight has just begun, a fight for the freedom to put some creativity back in presentations. To win this battle, Taodyne needs your help..."
-
-    movie_only ""
-
-
+    mc_star_wars_crawl 30,
+        paragraph
+            text "A NEW HOPE FOR PRESENTATIONS"
+        paragraph
+            text "The world of presentations is in chaos. The ancient power of bullet points is gone. Kids born with iPads in their hands don't believe in this old religion anymore."
+        paragraph
+            text "But a glimmer of hope remains. Hidden in a remote place called Taodyne, three computer gurus versed in ancient computer science found a new way to jolt your audience."
+        paragraph
+            text "The fight has just begun, a fight for the freedom to put some creativity back in presentations. To win this battle, Taodyne needs your help..."
 picture_slide "YouTube Video slide",
-    left_picture
-        translate 100, 100, -4500 + 4100 * fade_in(page_time, 50)
-        rotatey 35
-        scale3 fade_in(page_time, 50)
-        movie 0, 0, 3.5, 3.5, "http://www.youtube.com/watch?v=oALxLNOhI6I&fmt=43"
+    locally
+        color "white"
+        movie -100, -50, 250%, 250%, "http://www.youtube.com/watch?v=oALxLNOhI6I"
     right_column
-        - "Video on the left:"
-        - "2010 (1984)"
+        vertical_align_top
+        paragraph
+            text " "
+        paragraph
+            - ""
+            text "Video on the left:"
+        paragraph
+            - ""
+            text "2010 (1984)"
+    on "pagechange",
+        if prev_page_label = "YouTube Video slide" then
+            movie_drop "http://www.youtube.com/watch?v=oALxLNOhI6I"

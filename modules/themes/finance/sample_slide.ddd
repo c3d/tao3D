@@ -1,36 +1,70 @@
+// Document généré par l'Éditeur Tao depuis le fichier
+// sample_slide.json le 2013-11-08T17:41:54.279Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
 
+import FinanceTheme
 theme "Finance"
-
-key "e" -> lang "en"; time
-key "f" -> lang "fr"; time
-
+main_title_slide "Finance",
+    title
+        text "Finance"
+    subtitle
+        paragraph
+            text "A plain theme with blue and gray colors"
 main_title_slide "Main title",
     title
-        text "Finance template for Tao Presentations" fr "Thème 'Finance' pour Tao Presentations"
+        text "Main title"
     subtitle
-        text "Press E or F to change the language" fr "Appuyer sur E ou F pour changer la langue"
-    page_duration 3.0
-
-title_slide "First slide",
-    story
-        text "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-    page_duration 3.0
-
-title_slide "Second slide",
-    story
-        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-        ** "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-        ** "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-        ** "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-    page_duration 3
-
-title_slide "Third slide",
+        paragraph
+            text "Subtitle"
+section_slide "Section title",
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+slide "Bullet points",
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    * "Again"
+    ++
+        text_span
+            text "Numbered text"
+    ++
+        text_span
+            text "Numbered"
+picture_slide "Picture slide",
+    locally
+        color "white"
+        image 0, -100, 160%, 160%, "http://i2.wp.com/smashfreakz.com/wp-content/uploads/2013/05/chart-psd-30.jpg"
+base_slide "Base slide",
+    title
+        text "Base slide"
+    subtitle
+        text "Lorem ipsum"
     left_column
-        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-        * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
-    right_picture
-        image 0, 0, 1.1, 1.1, "http://i2.wp.com/smashfreakz.com/wp-content/uploads/2013/05/chart-psd-30.jpg"
-    page_duration 3
+        vertical_align_top
+        align_left
+        paragraph
+            text " "
+        paragraph
+            text "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do."
+        paragraph
+            text " "
+        paragraph
+            text "Eiusmod tempor incididunt ut labore et dolore."
+    right_column
+        vertical_align_top
+        align_left
+        paragraph
+            text_span
+                text " "
+        paragraph
+            text "Excepteur sint occaecat cupidatat non proident, sunt in culpa "
+            text_span
+                text "qui officia deserunt mollit anim id est laborum."
+    picture
+        color "white"
+        image 0, -260, 150%, 150%, "http://ak5.picdn.net/shutterstock/videos/2870281/preview/stock-footage--d-growing-business-chart-in-blue-different-variations-of-this-file-as-well-as-many-other-business.jpg"

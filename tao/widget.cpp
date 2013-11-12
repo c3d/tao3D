@@ -85,6 +85,9 @@
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
 #endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+#include "nag_screen.h"
+#endif
 
 #include <cmath>
 #include <iostream>
@@ -238,7 +241,10 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       inRunPageExitHandlers(false), pageHasExitHandler(false), editCursor(NULL),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
-      , isDocumentSigned(false)
+    , isDocumentSigned(false)
+#endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    , pageLimitationDialogShown(false)
 #endif
 {
 #ifdef MACOSX_DISPLAYLINK
@@ -491,6 +497,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
     , isDocumentSigned(o.isDocumentSigned)
+#endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    , pageLimitationDialogShown(o.pageLimitationDialogShown)
 #endif
 {
     setObjectName(QString("Widget"));
@@ -2756,6 +2765,9 @@ void Widget::reset()
     gotoPageName = "";   // BUG #2069
     pageName = "";       // BUG #2069
     pageEntry = pageExit = 0;
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    pageLimitationDialogShown = false;
+#endif
 }
 
 
@@ -4378,10 +4390,6 @@ bool Widget::checkDocumentSigned()
 //   Scan all files used by the document, check if they have a SignatureInfo
 // ----------------------------------------------------------------------------
 {
-    if (TaoApp->edition == Application::Player ||
-        TaoApp->edition == Application::Design)
-        return false;
-
     bool sig = false;
     using namespace XL;
     source_files &files = MAIN->files;
@@ -5655,6 +5663,35 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
                   << " /" << pageTotal
                   << " target '" << pageName
                   << "' '" << name << "'\n";
+
+    // Evaluation mode check
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    if (pageId == CFG_UNLICENSED_MAX_PAGES
+        && (TaoApp->edition == Application::Player ||
+            TaoApp->edition == Application::Design)
+#ifndef CFG_NO_DOC_SIGNATURE
+        && !isDocSigned()
+#endif
+       )
+    {
+        if (!pageLimitationDialogShown)
+        {
+            pageLimitationDialogShown = true;
+            IFTRACE2(pages, lic)
+                std::cerr << "Maximum number of pages allowed reached\n";
+            QString info;
+            info = tr("<p>This unlicensed version of Tao Presentations "
+                      "has a limit of 5 pages per document.</p>"
+                      "<p>You may suppress this limitation by purchasing a "
+                      "Pro license.</p><p>Thank you.</p>");
+            NagScreen nag;
+            nag.setText(tr("<h3>Warning</h3>"));
+            nag.setInformativeText(info);
+            nag.exec();
+        }
+        return new Text(pageName);
+    }
+#endif
 
     // We start with first page if we had no page set
     if (pageName == "")

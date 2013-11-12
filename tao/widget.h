@@ -1167,6 +1167,9 @@ private:
 #ifndef CFG_NO_DOC_SIGNATURE
     bool                  isDocumentSigned;
 #endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    bool                  pageLimitationDialogShown;
+#endif
 };
 
 

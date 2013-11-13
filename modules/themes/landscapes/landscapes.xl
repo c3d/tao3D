@@ -19,15 +19,22 @@ module_description "fr",
 import Slides
 import VLCAudioVideo
 
+add_search_path "Landscapes:", module_dir
+
 theme_slide_width  "Landscapes" -> 1920
 theme_slide_height "Landscapes" -> 1080
 
 data landscapes // Array of landscapes
 
-// Load pictures
+// Load pictures from document folder
 landscape_index -> 0
 landscape_index := 0
 landscape with files "landscapes/*"
+
+// If no one, then load from module folder
+if(landscape_index = 0) then
+    for i in 1..8 loop
+        landscape "Landscapes:" & i & ".jpg"
 
 landscape T:text ->
 // ----------------------------------------------------------------------------
@@ -35,6 +42,7 @@ landscape T:text ->
 // ----------------------------------------------------------------------------
     landscapes[landscape_index] := T
     landscape_index := landscape_index + 1
+landscape Other -> false
 
 theme_background "Landscapes", Master:text ->
 // ----------------------------------------------------------------------------

@@ -35,8 +35,12 @@ QT_END_NAMESPACE
 
 namespace Tao {
 
-class Assistant : public QObject
+struct Assistant : QObject
+// ----------------------------------------------------------------------------
+//    Help viewer assistant
+// ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
 public:

@@ -377,7 +377,7 @@ void Application::deferredInit()
     ssHeartBeatCommand = env.value("TAO_SS_HEARTBEAT_CMD");
 #endif
 
-    XL::MAIN = this->xlr = xlr;
+    XL::MAIN = xlr;
     if (XL::MAIN->options.enable_modules)
         checkModules();
 
@@ -447,9 +447,21 @@ bool Application::fetchLicenses()
 // ----------------------------------------------------------------------------
 {
     QList<QDir> dirs;
-    dirs << QDir(QDesktopServices::storageLocation(
-                     QDesktopServices::DesktopLocation))
-         << QDir(Application::userLicenseFolderPath())
+
+#if QT_VERSION >= 0x050000
+    // Thank you Qt5 for this insanity, just in case we have several ~/Desktop
+    QStringList desktops = QStandardPaths::standardLocations(
+        QStandardPaths::DesktopLocation);
+    foreach(QString desktop, desktops)
+        dirs << QDir(desktop);
+#else
+    // Qt4 is a dummy, it only knows about one desktop folder. Stooopid Qt4.
+    QString desktop = QDesktopServices::storageLocation(
+        QDesktopServices::DesktopLocation);
+    dirs << QDir(desktop);
+#endif
+
+    dirs << QDir(Application::userLicenseFolderPath())
          << QDir(Application::appLicenseFolderPath());
 
     // Add paths given on the command line
@@ -583,14 +595,14 @@ bool Application::checkGL()
     useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
-        QGLWidget gl(QGLFormat(QGL::StereoBuffers));
+        QGLWidget gl((QGLFormat(QGL::StereoBuffers)));
         hasGLStereoBuffers = gl.format().stereo();
         IFTRACE(displaymode)
             std::cerr << "GL stereo buffers support: " << hasGLStereoBuffers
                       << "\n";
     }
     {
-        QGLWidget gl(QGLFormat(QGL::SampleBuffers));
+        QGLWidget gl((QGLFormat(QGL::SampleBuffers)));
         int samples = gl.format().samples();
         hasGLMultisample = samples > 1;
         IFTRACE(displaymode)
@@ -916,7 +928,7 @@ bool Application::checkOfflineRendering()
 
     QStringList parms = ropts.split(",");
     int nparms = parms.size();
-    if (nparms < 7 || nparms > 8)
+    if (nparms < 8 || nparms > 9)
     {
         std::cerr << +tr("-render: too few or too many parameters\n");
         return false;
@@ -924,17 +936,18 @@ bool Application::checkOfflineRendering()
 
     int idx = 0;
     int page, x, y;
-    double start, end, fps;
+    double start, duration, fps, offset;
     QString folder, disp = "";
 
     page = parms[idx++].toInt();
     x = parms[idx++].toInt();
     y = parms[idx++].toInt();
     start = parms[idx++].toDouble();
-    end = parms[idx++].toDouble();
+    duration = parms[idx++].toDouble();
+    offset = parms[idx++].toDouble();
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
-    if (nparms >= 8)
+    if (nparms >= 9)
         disp = parms[idx++];
 
     if (disp == "help")
@@ -946,15 +959,18 @@ bool Application::checkOfflineRendering()
         return false;
     }
 
-    std::cout << "Starting offline rendering: page=" << page << " width=" << x
-              << " height=" << y << " start=" << start << " end=" << end
+    std::cout << "Starting offline rendering:"
+              << " pagenum=" << page << " width=" << x << " height=" << y
+              << " start-time=" << start << " duration=" << duration
+              << " page-time-offset=" << offset
               << " fps=" << fps << " folder=\"" << +folder << "\""
-              << " displaymode=\"" << +disp << "\"\n";
+              << " display-mode=\"" << +disp << "\"\n";
 
     Widget *widget = win->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    widget->renderFrames(x, y, start, end, folder, fps, page, disp);
+    widget->renderFrames(x, y, start, duration, folder, fps, page, offset,
+                         disp);
 
     return true;
 }
@@ -1099,7 +1115,16 @@ QString Application::defaultTaoPreferencesFolderPath()
 //    The folder proposed to find user.xl, theme.xl, etc...
 // ----------------------------------------------------------------------------
 {
+#if QT_VERSION >= 0x050000
+    // Thank you Qt5 for this insanity, just in case we have several ~/Desktop
+    QStringList data = QStandardPaths::standardLocations(
+        QStandardPaths::DataLocation);
+    if (data.size() >= 1)
+        return data[0];
+    return "";                  // WARNING?
+#else
     return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+#endif
 }
 
 
@@ -1205,15 +1230,6 @@ double Application::runTime()
 // ----------------------------------------------------------------------------
 {
     return (Widget::trueCurrentTime() - TaoApp->startTime);
-}
-
-
-void pqs(const QString &qs)
-// ----------------------------------------------------------------------------
-//   Print a QString for debug purpose
-// ----------------------------------------------------------------------------
-{
-    qDebug() << qs << "\n";
 }
 
 
@@ -1538,4 +1554,12 @@ bool Application::singleInstanceClientTalkedToServer()
     }
     return false;
 }
+}
+
+void pqs(const QString &qs)
+// ----------------------------------------------------------------------------
+//   Print a QString for debug purpose
+// ----------------------------------------------------------------------------
+{
+    std::cerr << qs.toUtf8().constData() << "\n";
 }

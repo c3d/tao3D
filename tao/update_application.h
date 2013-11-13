@@ -38,11 +38,12 @@
 namespace Tao {
 
 
-class UpdateApplication : public QObject, HttpUserAgent
+struct UpdateApplication : QObject, HttpUserAgent
 // ------------------------------------------------------------------------
 //   Asynchronously update the main application
 // ------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
     enum State { Idle, WaitingForUpdate, Downloading, Downloaded,

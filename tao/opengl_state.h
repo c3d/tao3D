@@ -769,7 +769,7 @@ public:
 
         OpenGLState * st;
     } Cache;
-    friend class Cache;
+    friend struct Cache;
 
 public:
     enum VendorID           vendorID;
@@ -806,7 +806,7 @@ public:
 
 private:
     // Structure used to push/pop state
-    friend class OpenGLSave;
+    friend struct OpenGLSave;
     OpenGLSave *save;
 
     // Return the current texture matrix

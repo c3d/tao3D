@@ -58,6 +58,7 @@
 #include <QColorDialog>
 #include <QFontDialog>
 #include <QMutex>
+#include <QPrinter>
 #include <iostream>
 #include <map>
 #include <set>
@@ -102,11 +103,12 @@ struct ShaderProgramInfo;
 
 #define GUI_FEATURE "GUI"
 
-class Widget : public QGLWidget
+struct Widget : QGLWidget
 // ----------------------------------------------------------------------------
 //   This is the widget we use to display XL programs output
 // ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 public:
     typedef std::vector<double>         attribute_args;
@@ -154,10 +156,12 @@ public slots:
     void        zoomIn();
     void        zoomOut();
     void        saveAndCommit();
-    void        renderFrames(int w, int h, double startT, double endT,
-                             QString dir, double fps = 25.0, int page = -1,
+    void        renderFrames(int w, int h, double start_time, double duration,
+                             QString dir, double fps = 25.0, int page = 0,
+                             double time_offset = 0.0,
                              QString displayName = "",
-                             QString fileName = "frame%0d.png", int firstFrame = 1);
+                             QString fileName = "frame%0d.png",
+                             int firstFrame = 1);
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
     void        addToReloadList(const QString &path) { toReload.append(path); }
 #ifdef MACOSX_DISPLAYLINK
@@ -203,20 +207,21 @@ public:
     void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
                           double *toScreen);
     bool        stereoIdentEnabled(void) { return stereoIdent; }
+    int         renderWidth()  { return width()  * devicePixelRatio; }
+    int         renderHeight() { return height() * devicePixelRatio; }
 
     // Events
     bool        forwardEvent(QEvent *event);
     bool        forwardEvent(QMouseEvent *event);
     void        keyPressEvent(QKeyEvent *event);
     void        keyReleaseEvent(QKeyEvent *event);
+    void        handleKeyEvent(QKeyEvent *event, bool keypress);
     void        mousePressEvent(QMouseEvent *);
     void        mouseReleaseEvent(QMouseEvent *);
     void        mouseMoveEvent(QMouseEvent *);
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
-    void        showEvent(QShowEvent *);
-    void        hideEvent(QHideEvent *);
     virtual
     bool        event(QEvent *event);
 #ifdef MACOSX_DISPLAYLINK
@@ -612,6 +617,8 @@ public:
                         Real_p w, Real_p h);
     Tree_p      ellipseArc(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            Real_p start, Real_p sweep);
+    Tree_p      ellipseSector(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+                             Real_p start, Real_p sweep);
     Tree_p      roundedRectangle(Tree_p self,
                                  Real_p cx, Real_p cy, Real_p w, Real_p h,
                                  Real_p r);
@@ -906,26 +913,26 @@ public:
     Text_p xlTr(Tree_p self, text t);
 
 private:
-    friend class Window;
-    friend class Activity;
-    friend class Identify;
-    friend class Selection;
-    friend class MouseFocusTracker;
-    friend class Drag;
-    friend class TextSelect;
-    friend class TextSplit;
-    friend class Manipulator;
-    friend class ControlPoint;
-    friend class Renormalize;
-    friend class Table;
-    friend class DeleteSelectionAction;
-    friend class ModuleRenderer;
-    friend class Layout;
-    friend class StereoLayout;
-    friend class PageLayout;
-    friend class DisplayDriver;
-    friend class GCThread;
-    friend class WidgetSurface;
+    friend struct Window;
+    friend struct Activity;
+    friend struct Identify;
+    friend struct Selection;
+    friend struct MouseFocusTracker;
+    friend struct Drag;
+    friend struct TextSelect;
+    friend struct TextSplit;
+    friend struct Manipulator;
+    friend struct ControlPoint;
+    friend struct Renormalize;
+    friend struct Table;
+    friend struct DeleteSelectionAction;
+    friend struct ModuleRenderer;
+    friend struct Layout;
+    friend struct StereoLayout;
+    friend struct PageLayout;
+    friend struct DisplayDriver;
+    friend struct GCThread;
+    friend struct WidgetSurface;
 
     struct ContextAndCode
     {
@@ -974,7 +981,7 @@ private:
     FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;
-    scale                 pageW, pageH, blurFactor;
+    scale                 pageW, pageH, blurFactor, devicePixelRatio;
     text                  currentFlowName;
     flow_map              flows;
     text                  prevPageName, pageName, lastPageName;
@@ -982,6 +989,7 @@ private:
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, prevPageShown, pageShown, pageTotal, pageToPrint;
+    uint                  pageEntry, pageExit;
     Tree_p                pageTree, transitionTree;
     double                transitionStartTime, transitionDurationValue;
     Tree_p                currentShape;
@@ -1032,7 +1040,15 @@ private:
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
     uint                  keyboardModifiers;
-
+    text                  prevKeyPressText; // persists until next QKeyEvent
+public:
+    // Key event info accessed directly from .tbl. Valid only when current
+    // refresh is caused by the QKeyEvent
+    bool                  keyPressed;   // false if released
+    text                  keyEventName; // e.g., "a", "A", "~A", "~Ctrl-A"
+    text                  keyText;      // QKeyEvent::text()
+    text                  keyName;      // QKeyEvent::key()
+private:
 
     // Menus and widgets
     QMenu                *currentMenu;
@@ -1112,6 +1128,7 @@ private:
     void                  refreshOn(int type,
                                     double nextRefresh = DBL_MAX);
     void                  commitPageChange(bool afterTransition);
+    bool                  runPageExitHandlers();
 
 public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
@@ -1139,7 +1156,7 @@ private:
     void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
     void                  setCurrentTime();
-    bool inDraw;
+    bool                  inDraw, inRunPageExitHandlers, pageHasExitHandler;
     text                  changeReason;
 
     QTextCursor          * editCursor;
@@ -1149,6 +1166,9 @@ private:
     bool                  isInvalid;
 #ifndef CFG_NO_DOC_SIGNATURE
     bool                  isDocumentSigned;
+#endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    bool                  pageLimitationDialogShown;
 #endif
 };
 

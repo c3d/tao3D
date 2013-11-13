@@ -51,4 +51,7 @@ inline text operator +(QString s)
 
 TAO_END
 
+// Print a string for debug purpose
+extern void pqs(const QString &qs);
+
 #endif // TAO_UTF8_H

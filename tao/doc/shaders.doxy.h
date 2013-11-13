@@ -127,7 +127,7 @@ shader_program false
  texture ""
  @endcode
  */
-boolean shader_program(c:code);
+shader_program(c:code);
 
 /**
  * @~english
@@ -137,7 +137,7 @@ boolean shader_program(c:code);
  * Ajoute un nouveau vertex shader au programme de shaders courant.
  * Le code source du shader est donné par le paramètre @p src.
  */
-boolean vertex_shader(src:text);
+vertex_shader(src:text);
 
 /**
  * @~english
@@ -148,7 +148,7 @@ boolean vertex_shader(src:text);
  * shaders courant.
  * Le code source est lu depuis le fichier @p f.
  */
-boolean vertex_shader_file(f:text);
+vertex_shader_file(f:text);
 
 /**
  * @~english
@@ -158,7 +158,7 @@ boolean vertex_shader_file(f:text);
  * Ajoute un nouveau fragment shader au programme de shaders courant.
  * Le code source du shader est donné par le paramètre @p src.
  */
-boolean fragment_shader(src:text);
+fragment_shader(src:text);
 
 /**
  * @~english
@@ -169,7 +169,7 @@ boolean fragment_shader(src:text);
  * shaders courant.
  * Le code source est lu depuis le fichier @p f.
  */
-boolean fragment_shader_file(f:text);
+fragment_shader_file(f:text);
 
 /**
  * @~english
@@ -179,7 +179,7 @@ boolean fragment_shader_file(f:text);
  * Ajoute un nouveau geometry shader au programme de shaders courant.
  * Le code source du shader est donné par le paramètre @p src.
  */
-boolean geometry_shader(src:text);
+geometry_shader(src:text);
 
 /**
  * @~english
@@ -190,7 +190,7 @@ boolean geometry_shader(src:text);
  * shaders courant.
  * Le code source est lu depuis le fichier @p f.
  */
-boolean geometry_shader_file(f:text);
+geometry_shader_file(f:text);
 
 /**
  * @~english
@@ -216,7 +216,7 @@ integer geometry_shader_input();
  * @~
  * @see geometry_shader_input().
  */
-boolean geometry_shader_input(type:integer);
+geometry_shader_input(type:integer);
 
 /**
  * @~english
@@ -240,7 +240,7 @@ integer geometry_shader_output();
  * @~
  * @see geometry_shader_output().
  */
-boolean geometry_shader_output(type:integer);
+geometry_shader_output(type:integer);
 
 /**
  * @~english
@@ -268,7 +268,7 @@ integer geometry_shader_count();
  * @~
  * @see geometry_shader_count()
  */
-boolean geometry_shader_count(n:integer);
+geometry_shader_count(n:integer);
 
 
 /**
@@ -297,7 +297,7 @@ shader_set foo := 0.5 * sin time  // Définit la valeur de la variable foo
 shader_set bar := (0.0; 1.0)      // Définit bar[0] = 0.0 et bar[1] = 1.0
 @endcode
  */
-boolean shader_set(c:code);
+shader_set(c:code);
 
 /**
  * @~english

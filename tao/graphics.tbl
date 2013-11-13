@@ -96,11 +96,6 @@ PREFIX(TransitionNextPage, tree, "transition_next_page",,
        GROUP(page)
        SYNOPSIS("Evaluate the next page in a transition"))
 
-PREFIX(PageLabel,    text,      "page_label", , RTAO(pageLabel(self)),
-       GROUP(page)
-       SYNOPSIS("The current page name.")
-       DESCRIPTION("Return the current page name")
-       RETURNS(text, "Return the label of the current page"))
 PREFIX(PageId,       integer,   "page_number", , RTAO(pageNumber(self)),
        GROUP(page)
        SYNOPSIS("The current page number")
@@ -111,18 +106,25 @@ PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)),
        SYNOPSIS("The number of page.")
        DESCRIPTION("Return the number of pages in the current document")
        RETURNS(integer, "The number of pages in the current document"))
-PREFIX(PageName,    text,   "page_name",
+PREFIX(PageName,     text,      "page_name", , RTAO(pageLabel(self)),
+       GROUP(page)
+       SYNOPSIS("The current page name.")
+       DESCRIPTION("Return the current page name")
+       RETURNS(text, "Return the name of the current page"))
+PREFIX(PageLabelDeprecated, text, "page_label", , RTAO(pageLabel(self)),) /* Synonym for page_name, deprecated */
+PREFIX(PageNameAt,   text,      "page_name",
        PARM(n, integer, "Index of page, starting at 0"),
        RTAO(pageNameAtIndex(self, n)),
        GROUP(page)
        SYNOPSIS("The name of the nth page.")
        DESCRIPTION("Return the name of a page given its index")
        RETURNS(text, "The name of the nth page"))
-PREFIX(PrevPageLabel, text,    "prev_page_label", , RTAO(prevPageLabel(self)),
+PREFIX(PrevPageName, text,   "prev_page_name", , RTAO(prevPageLabel(self)),
        GROUP(page)
        SYNOPSIS("The name of the previous page.")
        DESCRIPTION("Return the name of the page that was displayed prior to the current one")
        RETURNS(text, "Return the page name"))
+PREFIX(PrevPageLabelDeprecated, text,  "prev_page_label", , RTAO(prevPageLabel(self)),) /* Synonym for prev_page_name, deprecated */
 PREFIX(PrevPageId,    integer, "prev_page_number", , RTAO(prevPageNumber(self)),
        GROUP(page)
        SYNOPSIS("The previous page number")
@@ -762,6 +764,11 @@ PREFIX(KeyboardModifiers, integer, "keyboard_modifiers", ,
                    "Note: On Windows keyboards, the Meta modifier is mapped "
                    "to the optional Windows key.")
        RETURNS(integer, "The current modifiers"))
+PREFIX(KeyPressed, boolean, "key_pressed", , return TAO(keyPressed) ? XL::xl_true : XL::xl_false,)
+PREFIX(KeyEvent,   text,    "key_name",    , return new Text(TAO(keyName)),)
+PREFIX(KeyText,    text,    "key_text",    , return new Text(TAO(keyText)),)
+PREFIX(Key,        text,    "key_event",   , return new Text(TAO(keyEventName)),)
+
 PREFIX(EnableAnimations,  boolean,  "enable_animations",
        PARM(an, boolean, "on or off"),
        RTAO(enableAnimations(self, an)),

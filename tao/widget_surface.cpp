@@ -30,11 +30,17 @@
 #include "tree_cloning.h"
 #include "text_edit.h"
 #include "widget.h"
-#ifndef CFG_NO_QTWEBKIT
-#include <QtWebKit>
-#endif
 #include <cstring>
 #include <string>
+
+#include <QLineEdit>
+#include <QTextEdit>
+#ifndef CFG_NO_QTWEBKIT
+#include <QtWebKit>
+#if QT_VERSION >= 0x050000
+#include <QtWebKitWidgets/QWebView>
+#endif
+#endif
 
 TAO_BEGIN
 

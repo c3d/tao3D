@@ -72,7 +72,7 @@ protected:
     typedef std::map<text, GlyphEntry>  TextMap;
 
 protected:
-    friend class GlyphCache;
+    friend struct GlyphCache;
     QFont       font;    
     CodeMap     codes;
     TextMap     texts;

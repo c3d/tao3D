@@ -22,6 +22,8 @@ FORMS   += ssh_ask_pass_dialog.ui
 
 win32:CONFIG += console
 
+greaterThan(QT_MAJOR_VERSION, 4) { QT += widgets }
+
 target.path = $$APPINST
 INSTALLS    = target
 

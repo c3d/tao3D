@@ -166,27 +166,27 @@ display_mode_chooser ->
 // ----------------------------------------------------------------------------
 //   List the available display modes for the chooser
 // ----------------------------------------------------------------------------
-    if has_display_mode quadstereo then
+    if has_display_mode "quadstereo" then
         chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
-    if has_display_mode hsplitstereo then
+    if has_display_mode "hsplitstereo" then
         chooser_choice tr "Enable stereoscopy (side by side)", {enable_stereoscopy hsplit}
         chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
-    if has_display_mode vsplitstereo then
+    if has_display_mode "vsplitstereo" then
         chooser_choice tr "Enable stereoscopy (over/under)", {enable_stereoscopy vsplit}
         chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
-    if has_display_mode hintstereo then
+    if has_display_mode "hintstereo" then
         chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
-    if has_display_mode hframepacking then
+    if has_display_mode "hframepacking" then
         chooser_choice tr "Enable stereoscopy (horizontal frame packing)", {enable_stereoscopy hframepacking}
-    if has_display_mode vsplitstereo then
+    if has_display_mode "vsplitstereo" then
         chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
-    if has_display_mode alioscopy then
+    if has_display_mode "alioscopy" then
         chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
     if has_display_mode "2dplusdepth" then
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
-    if has_display_mode tridelity then
+    if has_display_mode "tridelity" then
         chooser_choice tr "Enable stereoscopy (Tridelity MV)", {enable_stereoscopy tridelity}
     if has_display_mode "anaglyph" then
         chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}

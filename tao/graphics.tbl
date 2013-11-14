@@ -347,13 +347,6 @@ PREFIX(isGLExtensionAvailable,  boolean,  "is_ext_available",
        SYNOPSIS("Check if an OpenGL extension is available")
        DESCRIPTION("Check if a specific OpenGL extension is available with the current version of the program")
        RETURNS( boolean, "True if the extension is available, false otherwise.") )
-PREFIX(HasDisplayMode,  boolean,  "has_display_mode",
-       PARM(name, symbol, "The name of the display mode to test"),
-       RTAO(hasDisplayMode(self, name)),
-       GROUP(misc)
-       SYNOPSIS("Check if a display mode is available")
-       DESCRIPTION("Check if a specific display mode is available and can be used")
-       RETURNS(boolean, "True if the mode is available, false otherwise.") )
 PREFIX(GetWorldZ,  real,  "depth_at",
        PARM(x, real, "x-coordinates on the screen")
        PARM(y, real, "y-coordinates on the screen"),

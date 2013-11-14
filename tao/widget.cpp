@@ -13603,15 +13603,6 @@ bool Widget::isGLExtensionAvailable(text name)
 }
 
 
-Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
-// ----------------------------------------------------------------------------
-//   Check if a display mode is available
-// ----------------------------------------------------------------------------
-{
-    return hasDisplayModeText(self, name->value);
-}
-
-
 Name_p Widget::hasDisplayModeText(Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Check if a display mode is available

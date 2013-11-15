@@ -88,6 +88,7 @@
 #ifdef CFG_UNLICENSED_MAX_PAGES
 #include "nag_screen.h"
 #endif
+#include "flight_recorder.h"
 
 #include <cmath>
 #include <iostream>
@@ -247,6 +248,8 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     , pageLimitationDialogShown(false)
 #endif
 {
+    RECORD(ALWAYS, "Widget constructor", "this", (intptr_t) this);
+
 #ifdef MACOSX_DISPLAYLINK
     if (DisplayLink == -1)
     {
@@ -502,6 +505,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     , pageLimitationDialogShown(o.pageLimitationDialogShown)
 #endif
 {
+    RECORD(ALWAYS, "Widget copy constructor", "this", (intptr_t) this,
+           "o", (intptr_t)&o);
     setObjectName(QString("Widget"));
 
     memcpy(focusProjection, o.focusProjection, sizeof(focusProjection));
@@ -597,6 +602,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Widget destructor", "this", (intptr_t) this);
     xlProgram = NULL;           // Mark widget as invalid
     current = NULL;
     delete space;

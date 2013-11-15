@@ -50,6 +50,7 @@
 #include "license_download.h"
 #endif
 #include "nag_screen.h"
+#include "flight_recorder.h"
 
 #include <QString>
 #include <QSettings>
@@ -562,6 +563,7 @@ bool Application::checkGL()
     text GLExtensionsAvailable = "?";
 
     {
+        RECORD(ALWAYS, "Reading GL info");
         // We need a valid GL context to read the information strings
         QGLWidget gl;
         gl.makeCurrent();
@@ -576,6 +578,7 @@ bool Application::checkGL()
     }
 
     // Basic sanity tests to check if we can actually run
+    RECORD(ALWAYS, "Checking GL >= 2.0");
     if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
         QString msg = tr("This system (%1, %2, %3) doesn't support "
@@ -584,6 +587,7 @@ bool Application::checkGL()
         QMessageBox::warning(NULL, tr("OpenGL support"), msg);
         return false;
     }
+    RECORD(ALWAYS, "Checking frame buffer objects");
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
     {
         QMessageBox::warning(NULL, tr("FBO support"),
@@ -595,6 +599,7 @@ bool Application::checkGL()
     useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
+        RECORD(ALWAYS, "Checking quad buffer");
         QGLWidget gl((QGLFormat(QGL::StereoBuffers)));
         hasGLStereoBuffers = gl.format().stereo();
         IFTRACE(displaymode)
@@ -602,6 +607,7 @@ bool Application::checkGL()
                       << "\n";
     }
     {
+        RECORD(ALWAYS, "Checking sample buffers");
         QGLWidget gl((QGLFormat(QGL::SampleBuffers)));
         int samples = gl.format().samples();
         hasGLMultisample = samples > 1;
@@ -610,6 +616,7 @@ bool Application::checkGL()
                       << " (samples per pixel: " << samples << ")\n";
         if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
         {
+            RECORD(ALWAYS, "Checking FBO sample buffers");
             // Check if FBOs have sample buffers
             gl.makeCurrent();
             QGLFramebufferObjectFormat format;

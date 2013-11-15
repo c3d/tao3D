@@ -95,7 +95,7 @@ void Licenses::addLicenseFile(kstring licfname)
 //      features "foo|bar|zoo.*|gloo[a-z]+"
 //      expires 5 dec 1968
 {
-    RECORD(ALWAYS, "Adding license file", licfname);
+    RECORD(ALWAYS, "Adding license file", strdup(licfname));
     IFTRACE(lic)
         debug() << "Loading license file " << licfname << "\n";
 
@@ -610,7 +610,7 @@ void Licenses::licenseError(kstring file, QString reason)
 //   We had a problem with the licenses - Quick exit
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "License error", (+reason).c_str(), 0, file, 0);
+    RECORD(ALWAYS, "License error", strdup((+reason).c_str()), 0, file, 0);
     licenses.clear();
 
 #ifdef KEYGEN

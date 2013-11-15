@@ -127,6 +127,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     offlineRendering = Widget::offlineRenderingAPI;
     currentPageTime = Widget::currentPageTimeAPI;
+    DevicePixelRatio = Widget::DevicePixelRatioAPI;
 }
 
 TAO_END

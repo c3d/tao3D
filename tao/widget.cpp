@@ -1317,6 +1317,16 @@ bool Widget::offlineRenderingAPI()
 }
 
 
+double Widget::DevicePixelRatioAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to device pixel ratio
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = findTaoWidget();
+    return widget->devicePixelRatio;
+}
+
+
 void Widget::makeGLContextCurrent()
 // ----------------------------------------------------------------------------
 //   Make GL context of the current Tao widget the current GL context
@@ -13128,7 +13138,7 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
         *top = toInsert;
         toInsert->SetSymbols(xlProgram->symbols);
     }
-    else
+    else if (top)
     {
         if (Infix *statements = program->AsInfix())
         {
@@ -13142,6 +13152,10 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
         XL::Symbols *symbols = (*what)->Symbols();
         *what = new XL::Infix("\n", *what, toInsert);
         (*what)->SetSymbols(symbols);
+    }
+    else
+    {
+        xlProgram->tree = toInsert;
     }
 
     // Reload the program and mark the changes

@@ -196,7 +196,9 @@ public:
     uint        showGlErrors();
     QFont &     currentFont();
     QPrinter *  currentPrinter() { return printer; }
-    double      printerScaling() { return printer ? printOverscaling : 1; }
+    double      printerScaling() { return (printer
+                                           ? printOverscaling
+                                           : devicePixelRatio); }
     double      scalingFactorFromCamera();
     void        legacyDraw();
     void        drawStereoIdent();
@@ -1134,6 +1136,7 @@ public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
     static double         currentPageTimeAPI();
+    static double         DevicePixelRatioAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);

@@ -255,6 +255,7 @@ void install_first_exception_handler(void)
 //   Install an unhandled exception handler that happens before LLVM
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Setting unhandled exception filter");
     // Windows-specific ugliness
     PrimaryExceptionFilter =
         SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);

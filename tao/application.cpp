@@ -214,6 +214,7 @@ void Application::deferredInit()
     gcThread = new GCThread;
     if (xlr->options.threaded_gc)
     {
+        RECORD(ALWAYS, "Starting GC thread");
         IFTRACE(memory)
             std::cerr << "Threaded GC is enabled\n";
         gcThread->moveToThread(gcThread);
@@ -284,6 +285,7 @@ void Application::deferredInit()
 #endif
 
     // Create main window
+    RECORD(ALWAYS, "Creating main window");
     win = new Window (xlr, contextFiles);
 
 #if defined (CFG_WITH_EULA)
@@ -314,6 +316,7 @@ void Application::deferredInit()
                         cmdLineArguments.contains("-h"));
     if (showSplash)
     {
+        RECORD(ALWAYS, "Creating splash screen");
         splash = new SplashScreen();
         splash->show();
         splash->raise();
@@ -323,14 +326,17 @@ void Application::deferredInit()
     install_first_exception_handler();
 
     // Application updater
+    RECORD(ALWAYS, "Creating application updater");
     updateApp = new UpdateApplication;
 
     // Initialize the graphics just below contents of basics.tbl
     Initialize();
+    RECORD(ALWAYS, "CreateScope");
     xlr->CreateScope();
 
     // Activate basic compilation
     xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
+    RECORD(ALWAYS, "SetupCompiler");
     xlr->SetupCompiler();
 
     // Load settings
@@ -364,8 +370,10 @@ void Application::deferredInit()
     // ("Save as..." box will land there)
     createDefaultProjectFolder();
 
+    RECORD(ALWAYS, "Loading settings");
     loadSettings();
 
+    RECORD(ALWAYS, "Loading fonts");
     loadFonts();
 
     // The aboutToQuit signal is the recommended way for cleaning things up
@@ -396,6 +404,8 @@ void Application::deferredInit()
 
     // We're ready to go
     processCommandLineFile();
+
+    RECORD(ALWAYS, "End of deferred init");
 }
 
 
@@ -642,6 +652,7 @@ bool Application::checkGL()
                               "look jagged."));
     }
 
+    RECORD(ALWAYS, "End of GL checks");
     return true;
 }
 
@@ -651,6 +662,7 @@ void Application::checkModules()
 //   Initialize module manager, check module configuration
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Checking modules");
     moduleManager = ModuleManager::moduleManager();
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
@@ -659,7 +671,9 @@ void Application::checkModules()
     moduleManager->init();
     // Load and initialize only auto-load modules (the ones that do not have an
     // import_name, or have the auto_load property set)
+    RECORD(ALWAYS, "Loading auto-load modules");
     moduleManager->loadAutoLoadModules(XL::MAIN->context);
+    RECORD(ALWAYS, "Modules checked");
 }
 
 
@@ -717,6 +731,7 @@ void Application::processCommandLineFile()
 //   Handle command-line files or URIs
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "processCommandLineFile");
     Q_ASSERT(win);
 
     // Find file or URI
@@ -760,6 +775,7 @@ void Application::processCommandLineFile()
     if (st == 0)
         win->open(win->welcomePath());
     win->show();
+    RECORD(ALWAYS, "Main window shown");
 
     // Now that main window has been shown (if it had to), we can set the
     // "quit on last window closed" flag.
@@ -767,6 +783,7 @@ void Application::processCommandLineFile()
 
     if (splash)
     {
+        RECORD(ALWAYS, "Deleting splash screen");
         splash->close();
         delete splash;
     }

@@ -936,6 +936,8 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Draw");
+
     // The viewport used for mouse projection is (potentially) set by the
     // display function, clear it for current frame
     memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
@@ -1145,6 +1147,8 @@ bool Widget::refreshNow(QEvent *event)
 {
     if (inDraw || inError || printer)
         return false;
+
+    RECORD(ALWAYS, "Refresh");
 
     // Update times
     setCurrentTime();
@@ -1429,6 +1433,8 @@ void Widget::runProgram()
 //   (and only twice to avoid infinite loops). For example, if the page
 //   title is translated, it may not match on the next draw. See #2060.
 {
+    RECORD(ALWAYS, "Run");
+
 #if defined(Q_OS_WIN)
     // #3017
     makeCurrent();

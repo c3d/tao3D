@@ -26,6 +26,7 @@
 #include "context.h"
 #include "application.h"
 #include "tao_utf8.h"
+#include "flight_recorder.h"
 #include <QDir>
 #include <QFileDialog>
 #include <QDialog>
@@ -184,6 +185,7 @@ void UpdateApplication::check(bool show)
     // If 'show' is false, no interaction with the user occurs
     // until the algorithm detects that an update is available.
 
+    RECORD(ALWAYS, "Check for update");
     IFTRACE(update)
         debug() << "Checking for update (interactive: " << show << ")\n";
 

@@ -366,8 +366,10 @@ theme_bullet_picture "Finance", Master:text, Level:integer ->
             color "white"
             line_width 2
             ellipse 0, 0, 35, 35
+        translatez 2
         line_width 0
         ellipse_arc 0, 0, 28, 28, 70 * Level * page_time, 330
+        translatez 2
         color "white"
         ellipse 0, 0, 17, 17
 

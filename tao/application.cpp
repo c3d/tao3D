@@ -100,7 +100,7 @@ Application::Application(int & argc, char ** argv)
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
-      splash(NULL), xlr(NULL), screenSaverBlocked(false),
+      splash(NULL), win(NULL), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), peer(NULL), textureCache(NULL)
 {
 #if defined(Q_OS_WIN32)

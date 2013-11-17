@@ -62,6 +62,7 @@
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
 #include "document_signature.h"
 #endif
+#include "flight_recorder.h"
 
 #include <iostream>
 #include <sstream>
@@ -120,6 +121,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #endif
       splashScreen(NULL), aboutSplash(NULL)
 {
+    RECORD(ALWAYS, "Window constructor", "this", (intptr_t)this);
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
     src = new ToolWindow(tr("Document Source"), this, "Tao::Window::src");
@@ -221,6 +223,7 @@ Window::~Window()
 //   Destroy a document window and free associated resources
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Window destructor", "this", (intptr_t)this);
     FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
     delete printer;
@@ -2361,6 +2364,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Loading file");
     IFTRACE(fileload)
         std::cerr << "Opening document: " << +fileName << "\n";
 

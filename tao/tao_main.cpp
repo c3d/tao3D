@@ -255,6 +255,7 @@ void install_first_exception_handler(void)
 //   Install an unhandled exception handler that happens before LLVM
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Setting unhandled exception filter");
     // Windows-specific ugliness
     PrimaryExceptionFilter =
         SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
@@ -622,26 +623,22 @@ int Main::LoadFile(text file, bool updateContext,
                                  importSymbols);
 
 #ifndef CFG_NO_DOC_SIGNATURE
-    if (TaoApp->edition == Application::PlayerPro ||
-        TaoApp->edition == Application::DesignPro)
+    // (Re-) check file signature.
+    XL::SourceFile &sf = XL::MAIN->files[file];
+    SignatureInfo * si = sf.GetInfo<SignatureInfo>();
+    if (!si)
     {
-        // (Re-) check file signature.
-        XL::SourceFile &sf = XL::MAIN->files[file];
-        SignatureInfo * si = sf.GetInfo<SignatureInfo>();
-        if (!si)
-        {
-            si = new SignatureInfo(file);
-            sf.SetInfo<SignatureInfo>(si);
-        }
-        SignatureInfo::Status st = si->loadAndCheckSignature();
-        if (st != SignatureInfo::SI_VALID)
-        {
-            sf.Remove(si);
-            delete si;
-        }
-        // Now if SourceFile has a SignatureInfo it means it has a valid
-        // signature.
+        si = new SignatureInfo(file);
+        sf.SetInfo<SignatureInfo>(si);
     }
+    SignatureInfo::Status st = si->loadAndCheckSignature();
+    if (st != SignatureInfo::SI_VALID)
+    {
+        sf.Remove(si);
+        delete si;
+    }
+    // Now if SourceFile has a SignatureInfo it means it has a valid
+    // signature.
 #endif
 
     return ret;

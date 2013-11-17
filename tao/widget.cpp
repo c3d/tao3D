@@ -85,6 +85,10 @@
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
 #endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+#include "nag_screen.h"
+#endif
+#include "flight_recorder.h"
 
 #include <cmath>
 #include <iostream>
@@ -238,9 +242,14 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       inRunPageExitHandlers(false), pageHasExitHandler(false), editCursor(NULL),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
-      , isDocumentSigned(false)
+    , isDocumentSigned(false)
+#endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    , pageLimitationDialogShown(false)
 #endif
 {
+    RECORD(ALWAYS, "Widget constructor", "this", (intptr_t) this);
+
 #ifdef MACOSX_DISPLAYLINK
     if (DisplayLink == -1)
     {
@@ -492,7 +501,12 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #ifndef CFG_NO_DOC_SIGNATURE
     , isDocumentSigned(o.isDocumentSigned)
 #endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    , pageLimitationDialogShown(o.pageLimitationDialogShown)
+#endif
 {
+    RECORD(ALWAYS, "Widget copy constructor", "this", (intptr_t) this,
+           "o", (intptr_t)&o);
     setObjectName(QString("Widget"));
 
     memcpy(focusProjection, o.focusProjection, sizeof(focusProjection));
@@ -588,6 +602,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Widget destructor", "this", (intptr_t) this);
     xlProgram = NULL;           // Mark widget as invalid
     current = NULL;
     delete space;
@@ -921,6 +936,8 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Draw");
+
     // The viewport used for mouse projection is (potentially) set by the
     // display function, clear it for current frame
     memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
@@ -1130,6 +1147,8 @@ bool Widget::refreshNow(QEvent *event)
 {
     if (inDraw || inError || printer)
         return false;
+
+    RECORD(ALWAYS, "Refresh");
 
     // Update times
     setCurrentTime();
@@ -1414,6 +1433,8 @@ void Widget::runProgram()
 //   (and only twice to avoid infinite loops). For example, if the page
 //   title is translated, it may not match on the next draw. See #2060.
 {
+    RECORD(ALWAYS, "Run");
+
 #if defined(Q_OS_WIN)
     // #3017
     makeCurrent();
@@ -2756,6 +2777,9 @@ void Widget::reset()
     gotoPageName = "";   // BUG #2069
     pageName = "";       // BUG #2069
     pageEntry = pageExit = 0;
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    pageLimitationDialogShown = false;
+#endif
 }
 
 
@@ -4378,10 +4402,6 @@ bool Widget::checkDocumentSigned()
 //   Scan all files used by the document, check if they have a SignatureInfo
 // ----------------------------------------------------------------------------
 {
-    if (TaoApp->edition == Application::Player ||
-        TaoApp->edition == Application::Design)
-        return false;
-
     bool sig = false;
     using namespace XL;
     source_files &files = MAIN->files;
@@ -5655,6 +5675,35 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
                   << " /" << pageTotal
                   << " target '" << pageName
                   << "' '" << name << "'\n";
+
+    // Evaluation mode check
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    if (pageId == CFG_UNLICENSED_MAX_PAGES
+        && (TaoApp->edition == Application::Player ||
+            TaoApp->edition == Application::Design)
+#ifndef CFG_NO_DOC_SIGNATURE
+        && !isDocSigned()
+#endif
+       )
+    {
+        if (!pageLimitationDialogShown)
+        {
+            pageLimitationDialogShown = true;
+            IFTRACE2(pages, lic)
+                std::cerr << "Maximum number of pages allowed reached\n";
+            QString info;
+            info = tr("<p>This unlicensed version of Tao Presentations "
+                      "has a limit of 5 pages per document.</p>"
+                      "<p>You may suppress this limitation by purchasing a "
+                      "Pro license.</p><p>Thank you.</p>");
+            NagScreen nag;
+            nag.setText(tr("<h3>Warning</h3>"));
+            nag.setInformativeText(info);
+            nag.exec();
+        }
+        return new Text(pageName);
+    }
+#endif
 
     // We start with first page if we had no page set
     if (pageName == "")
@@ -8095,7 +8144,7 @@ Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
     if (!gradient)
     {
         Ooops("No gradient defined $1", self);
-        return 0;
+        return XL::xl_false;
     }
 
     QColor color;
@@ -8113,7 +8162,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
     if (texUnit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
-        return 0;
+        return new XL::Integer((longlong)0);
     }
 
     layout->Add(new TextureUnit(texUnit));
@@ -8126,10 +8175,10 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if ((!glIsTexture(texId)) && (texId != 0))
+    if (!GL.currentTextures.textures.count(texId))
     {
-        Ooops("Invalid texture id $1", self);
-        return 0;
+        Ooops(+QString("Invalid texture id (%1) $1").arg(texId), self);
+        return new XL::Integer((longlong)0);
     }
 
     // Get corresponding texture type
@@ -8487,14 +8536,11 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
     if (unit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
-        return 0;
+        return XL::xl_false;
     }
 
     uint hasTexture = GL.ActiveTextureUnits() & (1ULL << unit);
-    if (hasTexture)
-        return XL::xl_true;
-
-    return XL::xl_false;
+    return hasTexture ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -8917,7 +8963,7 @@ Integer* Widget::geometryInputType(Tree_p self)
     if (!currentShaderProgram)
     {
         Ooops("No shader program while executing $1", self);
-        return 0;
+        return new XL::Integer((longlong)0);
     }
     return new XL::Integer(currentShaderProgram->program->geometryInputType());
 }
@@ -8955,7 +9001,7 @@ Integer* Widget::geometryOutputType(Tree_p self)
     if (!currentShaderProgram)
     {
         Ooops("No shader program while executing $1", self);
-        return 0;
+        return new XL::Integer((longlong)0);
     }
     return new XL::Integer(currentShaderProgram->program->geometryOutputType());
 }
@@ -8990,7 +9036,7 @@ Integer* Widget::geometryOutputCount(Tree_p self)
     if (!currentShaderProgram)
     {
         Ooops("No shader program while executing $1", self);
-        return 0;
+        return new XL::Integer((longlong)0);
     }
 
     QGLShaderProgram *prog = currentShaderProgram->program;
@@ -11005,7 +11051,7 @@ Integer* Widget::thumbnail(Context *context,
 
     // Prohibit recursion on thumbnails
     if (page == pageName || !xlProgram)
-        return 0;
+        new XL::Integer((longlong)0);
 
     double w = width() * s;
     double h = height() * s;
@@ -13566,15 +13612,6 @@ bool Widget::isGLExtensionAvailable(text name)
         return isAvailable;
     }
     return false;
-}
-
-
-Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
-// ----------------------------------------------------------------------------
-//   Check if a display mode is available
-// ----------------------------------------------------------------------------
-{
-    return hasDisplayModeText(self, name->value);
 }
 
 

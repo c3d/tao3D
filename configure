@@ -172,7 +172,7 @@ done
 if [ "$EDITION" = "Internal" ] ; then
   :
 else
-  FLAGS="$FLAGS DEFINES+=CFG_NOGIT modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"
+  FLAGS="$FLAGS DEFINES+=CFG_NOGIT DEFINES+=CFG_UNLICENSED_MAX_PAGES=5 modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"
 fi
 
 # Default QMake flags for each OS

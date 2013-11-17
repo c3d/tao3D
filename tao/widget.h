@@ -874,7 +874,6 @@ public:
     Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
-    Name_p      hasDisplayMode(Tree_p self, Name_p name);
     Real_p      getWorldZ(Tree_p, Real_p x, Real_p y);
     Real_p      getWorldCoordinates(Tree_p, Real_p x, Real_p y,
                                     Real_p wx, Real_p wy, Real_p wz);
@@ -1166,6 +1165,9 @@ private:
     bool                  isInvalid;
 #ifndef CFG_NO_DOC_SIGNATURE
     bool                  isDocumentSigned;
+#endif
+#ifdef CFG_UNLICENSED_MAX_PAGES
+    bool                  pageLimitationDialogShown;
 #endif
 };
 

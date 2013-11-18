@@ -1,0 +1,22 @@
+page "Welcome" fr "Bienvenue",
+    clear_color 0.16, 0.16, 0.13, 1.0
+    color "white"
+    text_box 0, 0, window_width, window_height,
+        align_center ; vertical_align_center
+        font "Arial"
+        font_size Sz
+        text_span
+            font_size 0.6 * Sz
+            text "Welcome to " fr "Bienvenue dans " & cr
+        text " " & cr & "Tao Presentations " & tao_edition & cr & " " & cr
+        text_span
+            font_size 0.6 * Sz
+            text  "version " & tao_version & cr
+        text " " & cr
+        text_span
+            font "Courier New"
+            font_size 0.4 * Sz
+            text "© Taodyne SAS - taodyne.com"
+
+Sz -> (min(window_width, window_height))/12.0
+A fr B -> if tao_language = "fr" then B else A

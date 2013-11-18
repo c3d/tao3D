@@ -178,10 +178,10 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       runOnNextDraw(true), contextFilesLoaded(false),
       srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
-      pageW(21), pageH(29.7), blurFactor(0.0),
-      currentFlowName(""), pageName(""), lastPageName(""),
+      pageW(21), pageH(29.7), blurFactor(0.0), devicePixelRatio(1.0),
+      currentFlowName(""), prevPageName(""), pageName(""), lastPageName(""),
       gotoPageName(""), transitionPageName(""),
-      pageId(0), pageFound(0), pageShown(1), pageTotal(0),
+      pageId(0), pageFound(0), prevPageShown(0), pageShown(1), pageTotal(0),
       pageTree(NULL), transitionTree(NULL),
       transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
@@ -387,13 +387,16 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       srcFileMonitor(o.srcFileMonitor),
       clearCol(o.clearCol),
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
-      pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
+      pageW(o.pageW), pageH(o.pageH),
+      blurFactor(o.blurFactor), devicePixelRatio(o.devicePixelRatio),
       currentFlowName(o.currentFlowName), flows(o.flows),
+      prevPageName(o.prevPageName),
       pageName(o.pageName), lastPageName(o.lastPageName),
       gotoPageName(o.gotoPageName), transitionPageName(o.transitionPageName),
       pageLinks(o.pageLinks), pageNames(o.pageNames),
       newPageNames(o.newPageNames),
-      pageId(o.pageId), pageFound(o.pageFound), pageShown(o.pageFound),
+      pageId(o.pageId), pageFound(o.pageFound), prevPageShown(o.prevPageShown),
+      pageShown(o.pageFound),
       pageTotal(o.pageTotal), pageToPrint(o.pageToPrint),
       pageTree(o.pageTree), transitionTree(o.transitionTree),
       transitionStartTime(o.transitionStartTime),
@@ -948,6 +951,9 @@ void Widget::draw()
     // Run current display algorithm
     stats.begin(Statistics::FRAME);
     stats.begin(Statistics::DRAW);
+#if QT_VERSION >= 0x050000
+    devicePixelRatio = windowHandle()->devicePixelRatio();
+#endif
     displayDriver->display();
     stats.end(Statistics::DRAW);
     stats.end(Statistics::FRAME);
@@ -1029,8 +1035,10 @@ void Widget::commitPageChange(bool afterTransition)
     PurgeAnonymousFrameInfo purgemf;
     runPurgeAction(purgemf);
 
+    prevPageName = pageName;
     pageName = gotoPageName;
     resetTimes();
+    prevPageShown = pageShown;
     for (uint p = 0; p < pageNames.size(); p++)
         if (pageNames[p] == gotoPageName)
             pageShown = p + 1;
@@ -1076,7 +1084,7 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inDraw || inError)
+    if (inDraw || inError || printer)
         return false;
 
     // Update times
@@ -1441,10 +1449,15 @@ void Widget::print(QPrinter *prt)
         lastPage = pageTotal ? pageTotal : 1;
 
     // Get the printable area in the page and create a GL frame for it
+    printer->setFullPage(true);
     QRect pageRect = printer->pageRect();
     QPainter painter(printer);
     uint w = pageRect.width(), h = pageRect.height();
     FrameInfo frame(w, h);
+    IFTRACE(print)
+        std::cerr << "Page rectangle: "
+                  << pageRect.top() << ", " << pageRect.left() << ", "
+                  << pageRect.bottom() << ", " << pageRect.right() << "\n";
 
     // Get the status bar
     QStatusBar *status = taoWindow()->statusBar();
@@ -1454,6 +1467,15 @@ void Widget::print(QPrinter *prt)
     XL::Save<double> setPageTime(pageStartTime, 0);
     XL::Save<double> setFrozenTime(frozenTime, 0);
     XL::Save<double> saveStartTime(startTime, 0);
+    XL::Save<double> savePixelRatio(devicePixelRatio, 1);
+
+    // Save page information
+    XL::Save<text> saveLastPage(lastPageName, pageName);
+    XL::Save<text> savePageName(pageName, transitionPageName);
+    XL::Save<page_map> saveLinks(pageLinks, pageLinks);
+    XL::Save<page_list> saveList(pageNames, pageNames);
+    XL::Save<uint> savePageFound(pageFound, 0);
+    XL::Save<Tree_p> savePageTree(pageTree, pageTree);
 
     // Render the given page range
     for (pageToPrint = firstPage; pageToPrint <= lastPage; pageToPrint++)
@@ -1462,6 +1484,16 @@ void Widget::print(QPrinter *prt)
         QImage bigPicture(w * n, h * n, QImage::Format_RGB888);
         QPainter bigPainter(&bigPicture);
         bigPicture.fill(-1);
+        IFTRACE(print)
+            std::cerr << "Printing page " << pageToPrint
+                  << " size " << w << "x" << h
+                      << " at " << printOverscaling << "x overscaling\n";
+
+        // Show crude progress information
+        status->showMessage(tr("Printing page %1/%2...")
+                            .arg(pageToPrint - firstPage + 1)
+                            .arg(lastPage - firstPage + 1));
+        QApplication::processEvents();
 
         // Center display on screen
         XL::Save<double> savePrintTime(pagePrintTime, 0);
@@ -1478,36 +1510,52 @@ void Widget::print(QPrinter *prt)
             runProgram();
         }
 
-        // Show crude progress information
-        status->showMessage(tr("Printing page %1/%2...")
-                            .arg(pageToPrint - firstPage + 1)
-                            .arg(lastPage - firstPage + 1));
-
         // We draw small fragments for overscaling
+        int tile = 0, tiles = (2*n-1)*(2*n-1);
         for (int r = -n+1; r < n; r++)
         {
             for (int c = -n+1; c < n; c++)
             {
                 double s = 1.0 / n;
 
+                // Crude progress information
+                // WARNING: do not run QApplication::processEvents here,
+                // as it could mess upour carefully setup drawing environment
+                tile++;
+                uint pct = 100 * tile/tiles;
+                status->showMessage(tr("Printing page %1/%2 (%3%)")
+                                    .arg(pageToPrint - firstPage + 1)
+                                    .arg(lastPage - firstPage + 1)
+                                    .arg(pct));
+                status->repaint(); // Does not work on MacOSX?
+
+                IFTRACE(print)
+                    std::cerr << "Page " << pageToPrint
+                              << " row " << r << " column " << c << "\n";
+
                 // Draw the layout in the frame context
                 id = idDepth = 0;
                 frame.begin();
                 Box box(c * w * s, (n - 1 - r) * h * s, w, h);
                 setup(w, h, &box);
+
+                setGlClearColor();
+                GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+                
                 space->Draw(NULL);
                 frame.end();
 
                 // Draw fragment
                 QImage image(frame.toImage());
-                image = image.convertToFormat(QImage::Format_RGB888);
+                // image = image.convertToFormat(QImage::Format_RGB888);
                 QRect rect(c*w, r*h, w, h);
                 bigPainter.drawImage(rect, image);
             }
         }
 
         // Draw the resulting big picture into the printer
-        painter.drawImage(pageRect, bigPicture);
+        QRect printRect(0, 0, pageRect.width(), pageRect.height());
+        painter.drawImage(printRect, bigPicture);
 
         if (pageToPrint < lastPage)
             printer->newPage();
@@ -1515,6 +1563,8 @@ void Widget::print(QPrinter *prt)
 
     // Finish the job
     painter.end();
+    status->showMessage("");
+    setup(width(), height());
 }
 
 
@@ -1622,6 +1672,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::Save<double> setFrozenTime(frozenTime, start_time);
     XL::Save<double> saveStartTime(startTime, start_time);
     XL::Save<page_list> savePageNames(pageNames, pageNames);
+    XL::Save<double> savePixelRatio(devicePixelRatio, 1.0);
 
     GLAllStateKeeper saveGL;
     XL::Save<double> saveScaling(scaling, scaling);
@@ -2401,7 +2452,7 @@ void Widget::resetViewAndRefresh()
 // ----------------------------------------------------------------------------
 {
     resetView();
-    setup(width(), height());
+    setup(renderWidth(), renderHeight());
     QEvent r(QEvent::Resize);
     refreshNow(&r);
 }
@@ -2529,6 +2580,7 @@ void Widget::resizeGL(int width, int height)
     if (!frameBufferReady())
         return;
 
+    // Use physical pixel coordinates for the viewport (#3254)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
@@ -2591,9 +2643,8 @@ void Widget::setup(double w, double h, const Box *picking)
     if (h == 0) h = 2;
 
     // Setup viewport
-    uint s = printer && picking ? printOverscaling : 1;
-    GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
-
+    scale s = printer && picking ? printOverscaling : 1;
+    GLint vx = 0, vy = 0, vw = int(w * s), vh = int(h * s);
     GL.Viewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
@@ -2610,8 +2661,8 @@ void Widget::setup(double w, double h, const Box *picking)
         {
             // mouseTrackingViewport not set (by display module), default to
             // current viewport
-            pw = width();
-            ph = height();
+            pw = w;
+            ph = h;
         }
 
         GLint viewport[4] = { 0, 0, pw, ph };
@@ -3764,39 +3815,6 @@ void Widget::endPanning(QMouseEvent *)
 }
 
 
-void Widget::showEvent(QShowEvent *event)
-// ----------------------------------------------------------------------------
-//    Enable animations if widget is visible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-    bool oldFs = hasAnimations();
-    if (!oldFs)
-        taoWindow()->toggleAnimations();
-}
-
-
-void Widget::hideEvent(QHideEvent *event)
-// ----------------------------------------------------------------------------
-//    Disable animations if widget is invisible
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(event);
-
-    // We don't want to stop refreshing if we are hidden because another widget
-    // has become active (QStackedWidget).
-    // Use case: a primitive implemented in a module calls
-    // ModuleApi::setCurrentWidget to show its own stuff: program refresh has
-    // to continue normally.
-    if (taoWindow()->hasStackedWidget())
-        return;
-
-    bool oldFs = hasAnimations();
-    if (oldFs)
-        taoWindow()->toggleAnimations();
-}
-
-
 
 // ============================================================================
 //
@@ -4112,6 +4130,7 @@ void Widget::refreshProgram()
             {
                 // Reached when the main document is initially empty,
                 // then modified
+                TaoSave saveCurrent(current, this);
                 XL::MAIN->LoadFile(sf.name);
                 needBigHammer = true;
                 break;
@@ -5008,16 +5027,18 @@ Point3 Widget::unproject (coord x, coord y, coord z,
     // Adjust between mouse and OpenGL coordinate systems
     y = height() - y;
 
+    // On Retina display, we need to convert to physical pixels (#3254)
+    x *= devicePixelRatio;
+    y *= devicePixelRatio;
+
     // Get 3D coordinates for the near plane based on window coordinates
-    GLdouble x3dn, y3dn, z3dn;
-    x3dn = y3dn = z3dn = 0.0;
+    GLdouble x3dn = 0, y3dn = 0, z3dn = 0;
     GL.UnProject(x, y, 0.0,
                  model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
-    GLdouble x3df, y3df, z3df;
-    x3df = y3df = z3df = 0;
+    GLdouble x3df = 0, y3df = 0, z3df = 0;
     GL.UnProject(x, y, 1.0,
                  model, proj, viewport,
                  &x3df, &y3df, &z3df);
@@ -5071,7 +5092,7 @@ Point3 Widget::project (coord x, coord y, coord z)
 
 
 Point3 Widget::project (coord x, coord y, coord z,
-                          GLdouble *proj, GLdouble *model, GLint *viewport)
+                        GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
@@ -5086,7 +5107,7 @@ Point3 Widget::project (coord x, coord y, coord z,
 
 
 Point3 Widget::objectToWorld(coord x, coord y,
-                                GLdouble *proj, GLdouble *model, GLint *viewport)
+                             GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //    Convert object coordinates to world coordinates
 // ----------------------------------------------------------------------------
@@ -5321,7 +5342,7 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
     if (drawAllPages || pageName == name)
     {
         // Check if we already displayed a page with that name
-        if (pageFound && !drawAllPages)
+        if (pageFound && !(drawAllPages || printer))
         {
             Ooops("Page name $1 is already used", namePtr);
         }
@@ -5457,6 +5478,24 @@ XL::Real_p Widget::pageHeight(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Real(pageH);
+}
+
+
+XL::Integer_p Widget::prevPageNumber(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the number of the previous page (the one displayed before current)
+// ----------------------------------------------------------------------------
+{
+    return new Integer(prevPageShown);
+}
+
+
+XL::Text_p Widget::prevPageLabel(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the label of the previous page (the one displayed before current)
+// ----------------------------------------------------------------------------
+{
+    return new Text(prevPageName);
 }
 
 
@@ -5678,7 +5717,7 @@ XL::Real_p Widget::windowWidth(Tree_p self)
     refreshOn(QEvent::Resize);
     double w = printer ? printer->paperRect().width() : width();
     w *= displayDriver->windowWidthFactor();
-    return new Real(w);
+    return new Real(w, self->Position());
 }
 
 
@@ -5690,7 +5729,7 @@ XL::Real_p Widget::windowHeight(Tree_p self)
     refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
     h *= displayDriver->windowHeightFactor();
-    return new Real(h);
+    return new Real(h, self->Position());
 }
 
 
@@ -5706,7 +5745,7 @@ Integer_p Widget::seconds(Tree_p self, double t)
         double refresh = (double)(int)tm + 1.0;
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(second);
+    return new XL::Integer(second, self->Position());
 }
 
 
@@ -5729,7 +5768,7 @@ Integer_p Widget::minutes(Tree_p self, double t)
         double refresh = toSecsSinceEpoch(next);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(minute);
+    return new XL::Integer(minute, self->Position());
 }
 
 
@@ -5752,7 +5791,7 @@ Integer_p Widget::hours(Tree_p self, double t)
         double refresh = toSecsSinceEpoch(next);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(hour);
+    return new XL::Integer(hour, self->Position());
 }
 
 
@@ -5769,7 +5808,7 @@ Integer_p Widget::day(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(day);
+    return new XL::Integer(day, self->Position());
 }
 
 
@@ -5786,7 +5825,7 @@ Integer_p Widget::weekDay(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(day);
+    return new XL::Integer(day, self->Position());
 }
 
 
@@ -5803,7 +5842,7 @@ Integer_p Widget::yearDay(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(day);
+    return new XL::Integer(day, self->Position());
 }
 
 
@@ -5820,7 +5859,7 @@ Integer_p Widget::month(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(month);
+    return new XL::Integer(month, self->Position());
 }
 
 
@@ -5837,7 +5876,7 @@ Integer_p Widget::year(Tree_p self, double t)
         double refresh = nextDay(now);
         refreshOn(QEvent::Timer, refresh);
     }
-    return new XL::Integer(year);
+    return new XL::Integer(year, self->Position());
 }
 
 
@@ -5849,7 +5888,7 @@ XL::Real_p Widget::time(Tree_p self)
     refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
-    return new XL::Real(frozenTime);
+    return new XL::Real(frozenTime, self->Position());
 }
 
 
@@ -5861,8 +5900,7 @@ XL::Real_p Widget::pageTime(Tree_p self)
     refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
-    return new XL::Real(frozenTime - pageStartTime,
-                           self->Position());
+    return new XL::Real(frozenTime - pageStartTime, self->Position());
 }
 
 
@@ -6965,7 +7003,6 @@ Name_p Widget::panView(Tree_p self, coord dx, coord dy)
     cameraPosition.y += dy;
     cameraTarget.x += dx;
     cameraTarget.y += dy;
-    setup(width(), height()); // Remove?
     return XL::xl_true;
 }
 

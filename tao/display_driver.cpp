@@ -262,7 +262,6 @@ std::ostream & DisplayDriver::debug()
 //
 // ============================================================================
 
-
 void DisplayDriver::displayBackBuffer(void *)
 // ----------------------------------------------------------------------------
 //   Default, usual 2D rendering into OpenGL back buffer
@@ -307,9 +306,9 @@ void DisplayDriver::displayBackBuffer(void *)
 void DisplayDriver::displayBackBufferFBO(void *obj)
 // ----------------------------------------------------------------------------
 //   Like displayBackBuffer, but first render into a framebuffer object.
+// ----------------------------------------------------------------------------
 //   This function enables better antialiasing on platforms that do not have
 //   multisample GL widget, but do support multisample FBOs.
-// ----------------------------------------------------------------------------
 {
     // Save graphic state
     Tao::GraphicSave *save = GL.Save();
@@ -560,7 +559,7 @@ int DisplayDriver::renderHeight()
 //   Dimension in pixels is rounded down to an even value to avoid display
 //   artifacts as the window is resized (half pixels)
 {
-    int h = Widget::Tao()->height();
+    int h = Widget::Tao()->renderHeight();
     return even(h);
 }
 
@@ -572,7 +571,7 @@ int DisplayDriver::renderWidth()
 //   Dimension in pixels is rounded down to an even value to avoid display
 //   artifacts as the window is resized (half pixels)
 {
-    int w = Widget::Tao()->width();
+    int w = Widget::Tao()->renderWidth();
     return even(w);
 }
 
@@ -600,7 +599,8 @@ double DisplayDriver::zoom()
 //   Current zoom factor
 // ----------------------------------------------------------------------------
 {
-    return Widget::Tao()->zoom;
+    Widget *widget = Widget::Tao();
+    return widget->zoom * widget->devicePixelRatio;
 }
 
 

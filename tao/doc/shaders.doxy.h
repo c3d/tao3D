@@ -16,7 +16,7 @@
  * they allow multi-line text. In the latter case, please note that the file
  * path is relative to the current document directory.
  * For example:
- * @code
+@code
 // Writing shader code inline
 shader_program
     fragment_shader <<
@@ -25,7 +25,7 @@ shader_program
 // Loading shader code from a file
 shader_program
     fragment_shader_file "my_shader.fs"
- * @endcode
+@endcode
  *
  * @par Example
  *
@@ -57,7 +57,7 @@ shader_program
  * guillemets ("). Si, par contre, vous chargez votre code source GLSL depuis
  * un fichier, notez que le chemin est relatif au dossier du document.
  * Par exemple :
- * @code
+@code
 // Pour créer un fragment shader avec le code dans le document
 shader_program
     fragment_shader <<
@@ -66,7 +66,7 @@ shader_program
 // Pour créer un fragment shader depuis un fichier source
 shader_program
     fragment_shader_file "mon_shader.fs"
- * @endcode
+@endcode
  *
  * @par Exemple
  *
@@ -280,10 +280,10 @@ boolean geometry_shader_count(n:integer);
  * found, its value is set accordingly.
  *
  * For example:
- * @code
+@code
 shader_set foo := 0.5 * sin time  // Sets variable foo
 shader_set bar := (0.0; 1.0)      // Sets bar[0] to 0.0 and bar[1] to 1.0
- * @endcode
+@endcode
  * @~french
  * Définit une variable uniforme ou un attribut du programme de shaders
  * courant.
@@ -292,10 +292,10 @@ shader_set bar := (0.0; 1.0)      // Sets bar[0] to 0.0 and bar[1] to 1.0
  * est précisé. Si la variable est trouvée, sa valeur est mise à jour.
  *
  * Par example:
- * @code
+@code
 shader_set foo := 0.5 * sin time  // Définit la valeur de la variable foo
 shader_set bar := (0.0; 1.0)      // Définit bar[0] = 0.0 et bar[1] = 1.0
- * @endcode
+@endcode
  */
 boolean shader_set(c:code);
 

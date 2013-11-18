@@ -30,7 +30,7 @@
  * de Qt, documentée ici: http://qt-project.org/doc/qt-4.8/qregexp.html
  *
  * @~
- * @code import RegExp @endcode
+@code import RegExp @endcode
  * @see regexp_match
  * @see regexp_search
  * @see regexp_parse
@@ -69,7 +69,7 @@ regexp_match(text input, text pattern);
  * @~french
  * Vérifie si un texte contient une certaine expression
  * régulière. Cette forme est infixe, c'est à dire qu'on écrit :
- * @code input matches pattern @endcode
+@code input matches pattern @endcode
  *
  * @param input Le texte d'entrée à explorer
  * @param pattern L'expression régulière à rerchercher dans @ref input.
@@ -113,23 +113,23 @@ regexp_search(text input, text pattern);
  * "rectangle", and draw a picture otherwise, then you use the
  * following code:
  *
- * @code
+@code
  * pattern_match InputText,
  *     "c[ie]rcle"      -> circle 0, 0, 100
  *     "rect(angle)?"   -> rectangle 0, 0, 100, 100
  *     image 0, 0, 1, 1, "MyImage.jpg"
- * @endcode
+@endcode
  *
  * By default, regular expressions are "greedy". You can prefix a
  * regular expression with a unary minus to make it ungreedy. This is
  * useful for example when parsing text like:
- * @code "A <b>bold</b> text in <b>two places</b>" @endcode
+@code "A <b>bold</b> text in <b>two places</b>" @endcode
  *
  * For example, you can get the "bold" text as follows:
- * @code
+@code
  * pattern_match InputText,
  *     - "<b>.*</b>"    -> draw_bold_text regexp_captured 1
- * @endcode
+@endcode
  * 
  * @param input The text to search
  * @param code  The block of code describing the patterns
@@ -155,12 +155,12 @@ regexp_search(text input, text pattern);
  * "cercle", et tracer un rectangle si le texte contient "rect" ou
  * "rectangle", et, sinon, tracer une image, vous pouvez utiliser le code suivant :
  *
- * @code
+@code
  * pattern_match InputText,
  *     "c[ie]rcle"      -> circle 0, 0, 100
  *     "rect(angle)?"   -> rectangle 0, 0, 100, 100
  *     image 0, 0, 1, 1, "MyImage.jpg"
- * @endcode
+@endcode
  *
  * Par défaut, les expressions régulières sont "gourmandes", c'est à
  * dire qu'elles essaient de capturer le maximum de texte. On peut
@@ -169,10 +169,10 @@ regexp_search(text input, text pattern);
  * comme : @code "Un texte <b>gras</b> à <b>deux endroits</b>" @endcode
  *
  * Par exemple, on peut obtenir le texte "gras", on peut utiliser :
- * @code
+@code
  * pattern_match InputText,
  *     - "<b>.*</b>"    -> draw_bold_text regexp_captured 1
- * @endcode
+@endcode
  * 
  * @param input Le texte à analyser
  * @param code  Le bloc de code décrivant les actions et expressions régulières
@@ -194,11 +194,11 @@ regexp_parse(text input, tree code);
  * "circle" or "cercle" in a text, and return the number of items
  * drawn, you can use something like:
  *
- * @code
+@code
  * count := 0
  * regexp_parse_last InputText,
  *     "c[ie]rcle" -> circle 0, 0, 5; translatex 10; count := count + 1
- * @endcode
+@endcode
  *
  * @param input The text to search
  * @param code  The block of code describing the patterns
@@ -217,11 +217,11 @@ regexp_parse(text input, tree code);
  * "cercle" ou "circle" dans un texte, et retourner le nombre
  * d'éléments tracés, vous pouvez utiliser :
  *
- * @code
+@code
  * count := 0
  * regexp_parse_last InputText,
  *     "c[ie]rcle" -> circle 0, 0, 5; translatex 10; count := count + 1
- * @endcode
+@endcode
  *
  * @param input Le texte à analyser
  * @param code  Le bloc de code décrivant les actions et expressions régulières
@@ -241,7 +241,7 @@ regexp_parse_last(text input, tree code);
  * For example, if you want to draw a list containing a "Vowel" for every
  * occurence of a vowel, and "Consonent" for every consonent, you can use:
  *
- * @code
+@code
  * InputText -> "Hello World"
  * letters ->
  *     regexp_parse_all InputText,
@@ -249,11 +249,11 @@ regexp_parse_last(text input, tree code);
  *         "[a-z]"     -> "Consonent "
  *         "."        -> "Other "
  * writeln letters
- * @endcode
+@endcode
  * The output will be:
- * @code
+@code
  * Other Vowel Consonent Consonent Vowel Other Other Vowel Consonent Consonent Consonent nil
- * @endcode
+@endcode
  * @param input The text to search
  * @param code  The block of code describing the patterns
  *
@@ -269,7 +269,7 @@ regexp_parse_last(text input, tree code);
  * Par exemple, si on veut faire une liste contenant "Voyelle" pour
  * chaque voyelle, et "Consonne" pour chaque consonne, on peut utiliser :
  *
- * @code
+@code
  * InputText -> "Hello World"
  * letters ->
  *     regexp_parse_all InputText,
@@ -277,11 +277,11 @@ regexp_parse_last(text input, tree code);
  *         "[a-z]"    -> "Consonne"
  *         "."        -> "Autre"
  * writeln letters
- * @endcode
+@endcode
  * La sortie va donner :
- * @code
+@code
  * Autre Voyelle Consonne Consonne Voyelle Autre Autre Voyelle Consonne Consonne Consonne nil
- * @endcode
+@endcode
  * @param input Le texte à analyser
  * @param code  Le bloc de code décrivant les actions et expressions régulières
  * 
@@ -302,11 +302,11 @@ regexp_parse_all(text input, tree code);
  * For example, if you want to extract the plain text from an HTML or
  * XML stream, removing all the tags, you can use the following:
  *
- * @code
+@code
  * regexp_parse_text InputText,
  *     - "<.*>"  -> ""
  *     - "[^<]+" -> regexp_captured 0
- * @endcode
+@endcode
  *
  * @param input The text to search
  * @param code  The block of code describing the patterns
@@ -323,11 +323,11 @@ regexp_parse_all(text input, tree code);
  * Par exemple, pour extraire le texte d'un fichier HTML ou XML, vous
  * pouvez utiliser le code suivant :
  *
- * @code
+@code
  * regexp_parse_text InputText,
  *     - "<.*>"  -> ""
  *     - "[^<]+" -> regexp_captured 0
- * @endcode
+@endcode
  *
  * @param input Le texte à analyser
  * @param code  Le bloc de code décrivant les actions et expressions régulières

@@ -205,6 +205,8 @@ public:
     void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
                           double *toScreen);
     bool        stereoIdentEnabled(void) { return stereoIdent; }
+    int         renderWidth()  { return width()  * devicePixelRatio; }
+    int         renderHeight() { return height() * devicePixelRatio; }
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -217,8 +219,6 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
-    void        showEvent(QShowEvent *);
-    void        hideEvent(QHideEvent *);
     virtual
     bool        event(QEvent *event);
 #ifdef MACOSX_DISPLAYLINK
@@ -378,6 +378,8 @@ public:
     Text_p      pageNameAtIndex(Tree_p self, uint index);
     Real_p      pageWidth(Tree_p self);
     Real_p      pageHeight(Tree_p self);
+    Text_p      prevPageLabel(Tree_p self);
+    Integer_p   prevPageNumber(Tree_p self);
 
     // Transitions
     Tree_p      transition(Context *, Tree_p self, double dur, Tree_p body);
@@ -974,14 +976,14 @@ private:
     FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;
-    scale                 pageW, pageH, blurFactor;
+    scale                 pageW, pageH, blurFactor, devicePixelRatio;
     text                  currentFlowName;
     flow_map              flows;
-    text                  pageName, lastPageName;
+    text                  prevPageName, pageName, lastPageName;
     text                  gotoPageName, transitionPageName;
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
-    uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
+    uint                  pageId, pageFound, prevPageShown, pageShown, pageTotal, pageToPrint;
     Tree_p                pageTree, transitionTree;
     double                transitionStartTime, transitionDurationValue;
     Tree_p                currentShape;

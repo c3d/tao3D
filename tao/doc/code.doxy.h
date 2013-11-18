@@ -11,7 +11,7 @@
  * - inch
  *
  * If you want to specify a translation (which takes pixels) along X-axis of 2 inches, just use
- * @code translatex 2 inch @endcode
+@code translatex 2 inch @endcode
  * @note The size on the screen may not be exactly the one requested, but it is when printing.
  *
  * @~french
@@ -27,7 +27,7 @@
  *
  * Si vous voulez faire une translation (qui demande des pixels) le long de
  * l'axe X, de 2 cm, écrivez simplement :
- * @code translatex 2 cm @endcode
+@code translatex 2 cm @endcode
  * @note La distance à l'écran peut ne pas être exacte (en particulier en cas de
  * projection), mais elle est correcte lors de l'impression sur papier.
  *
@@ -194,13 +194,13 @@ real refresh_time();
  *
  * Par exemple, le code suivant compte le nombre de clics:
  * @~
- * @code
+@code
 N -> -1
 locally
     N := N+1
     text text N
     refresh_on MouseButtonPressEvent
- * @endcode
+@endcode
  * @see refresh, no_refresh_on
  */
 refresh_on (event:integer);
@@ -225,12 +225,12 @@ refresh_on (event:integer);
  * reçu).
  *
  * @~
- * @code
+@code
 locally
     refresh 2.0
     text text screen_mouse_x & ", " & text screen_mouse_y
     no_refresh_on MouseMoveEvent
- * @endcode
+@endcode
  * @see refresh_on, refresh
  */
 no_refresh_on (event:integer);
@@ -294,7 +294,7 @@ user_event (name:text);
  * du @a widget graphique. Par exemple :
  *
  * @~
- * @code
+@code
 locally
     X -> 0
     X := 0
@@ -307,7 +307,7 @@ locally
 locally
     refresh_on MouseButtonPressEvent
     post_event user_event "Reset"
- * @endcode
+@endcode
  * @see refresh_on, no_refresh_on, post_event
  */
 post_event (type:integer);
@@ -635,5 +635,47 @@ boolean meta_modifier();
  * Empêche l'exécution d'un bloc de code.
  */
 disabled (B: block);
+
+/**
+ * @~english
+ * Returns the version identifier of Tao Presentations.
+ * The version is usually un number such as <tt>1.42</tt>, but special builds may
+ * contain other characters such as: <tt>1.0-beta4</tt> or <tt>1.42-22-gec22a39</tt>.
+ * @~french
+ * Renvoie la version de Tao Presentations sous forme d'une chaîne de caractères.
+ * La version est en général un nombre tel que <tt>1.42</tt>, mais certaines
+ * distributions du logiciel peuvent contenir d'autres caractères, par exemple :
+ * <tt>1.0-beta4</tt> ou encode <tt>1.42-22-gec22a39</tt>.
+ */
+text tao_version();
+
+/**
+ * @~english
+ * Returns the string that identifies the edition of Tao Presentations.
+ * Possible values are currently:
+ * @~french
+ * Renvoie une chaîne de caractères qui identifie l'édition de Tao Presentations.
+ * Les valeurs possibles sont actuellement:
+ * @~
+ * - <tt>Design</tt>
+ * - <tt>Design Pro</tt>
+ * - <tt>Player</tt>
+ * - <tt>Player Pro</tt>
+ */
+text tao_edition();
+
+
+/**
+ * @~english
+ * Returns the two-letter ISO 639-1 language code for the current user interface language.
+ * Possible values are currently:
+ * @~french
+ * Renvoie une chaîne de 2 caractères (ISO 639-1) qui identifie la langue de l'interface utilisateur.
+ * Les valeurs possibles sont actuellement:
+ * @~
+ * - <tt>en</tt>
+ * - <tt>fr</tt>
+ */
+text tao_language();
 
 /** @} */

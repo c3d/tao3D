@@ -93,12 +93,16 @@ public:
     bool     needNewWindow();
     bool     setStereo(bool on);
     void     addDisplayModeMenu(QString mode, QString label);
-    bool     hasStackedWidget() { return (stackedWidget->count() > 1); }
     QString  welcomePath();
 #ifndef CFG_NO_DOC_SIGNATURE
     bool     isDocumentSigned();
 #endif
 
+public:
+    virtual
+    bool eventFilter(QObject *obj, QEvent *evt);
+
+public:
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;
@@ -201,6 +205,7 @@ private slots:
     void onlineDoc();
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     void tutorialsPage();
+    void forumPage();
 #endif
     void documentWasModified();
     void displayModeTriggered(bool on);
@@ -323,6 +328,7 @@ private:
     QAction          *onlineDocAct;
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
     QAction          *tutorialsPageAct;
+    QAction          *forumPageAct;
 #endif
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;

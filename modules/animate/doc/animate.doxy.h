@@ -477,11 +477,11 @@ smooth(real T);
  * @~english
  * Smooth a linear value between two values @p Low and @p High.
  * This is equivalent to:
- * @code smooth((T-Low)/(High-Low)) @endcode
+@code smooth((T-Low)/(High-Low)) @endcode
  * @~french
  * Adoucit une valeur linéaire entre deux valeurs @p Low et @p High.
  * Cette fonction est équivalente à :
- * @code smooth((T-Low)/(High-Low)) @endcode
+@code smooth((T-Low)/(High-Low)) @endcode
  * @~
  * @since 1.02 (Tao 1.20)
  */
@@ -513,9 +513,9 @@ real ratio;
  * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
  * @ref page_time_in_interval, cette valeur est égale à :
  * @~
- * @code
+@code
 1 - ratio
- * @endcode
+@endcode
  * @see ratio
  * @since 1.02 (Tao 1.20)
  */
@@ -532,9 +532,9 @@ real down_ratio;
  * Lorsqu'elle est utilisée dans le cadre de @ref value_in_interval ou
  * @ref page_time_in_interval, cette valeur est égale à :
  * @~
- * @code
+@code
 smooth ratio
- * @endcode
+@endcode
  * @see smooth, ratio
  * @since 1.02 (Tao 1.20)
  */
@@ -581,10 +581,10 @@ real smooth_down_ratio;
  * recommandée est la suivante :
  *
  * @~
- * @code
+@code
  Value in [A..B]
      Body
- * @endcode
+@endcode
  *
  * @~english
  * For instance:
@@ -593,7 +593,7 @@ real smooth_down_ratio;
  * Par exemple:
  *
  * @~
- * @code
+@code
 import Animate
 
 W -> window_width/3
@@ -603,7 +603,7 @@ mouse_x in [-W/2 .. 0]
 mouse_x in [0 .. W/2]
     color "gray", ratio
 rectangle 0, 0, W, window_height
- * @endcode
+@endcode
  * @since 1.02 (Tao 1.20)
  */
 value_in_interval(Value:real, A:real, B:real, Body);
@@ -635,10 +635,10 @@ value_in_interval(Value:real, A:real, B:real, Body);
  * recommandée est la suivante :
  *
  * @~
- * @code
+@code
 Value in [A..B, C..D]
     Body
- * @endcode
+@endcode
  *
  * @~english
  * For instance:
@@ -647,14 +647,14 @@ Value in [A..B, C..D]
  * Par exemple :
  *
  * @~
- * @code
+@code
 import Animate
 
 W -> window_width/3
 mouse_x in [-W/2..-W/4, W/4..W/2]
     color "gray", ratio
     rectangle 0, 0, W, window_height
- * @endcode
+@endcode
  * @since 1.02 (Tao 1.20)
  */
 value_in_intervals(Value:real, A:real, B:real, C:real, D:real, Body);
@@ -684,14 +684,101 @@ value_in_intervals(Value:real, A:real, B:real, C:real, D:real, Body);
  * recommandée est la suivante :
  *
  * @~
- * @code
+@code
  Value in [A..B, ]
      Body
- * @endcode
+@endcode
  *
  * @since 1.03 (Tao 1.30)
  */
 value_in_interval_or_greater(Value:real, A:real, B:real, Body);
+
+
+/**
+ * @~english
+ * Evaluate @p Body while @p Value is larger or equal to @p A.
+ * The value of @ref ratio is set to 1.0.
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Evalue @p Body tant que @p Value est supérieure ou égale à @p A.
+ * La valeur de @ref ratio est 1.0.
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ *
+ * @~
+@code
+Value in [A..]
+    Body
+@endcode
+ *
+ * @since 1.04 (Tao 1.43)
+ */
+value_greater_than(Value:real, A:real);
+
+
+/**
+ * @~english
+ * Shortcut for: page_time in [A..B].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Raccourci pour: page_time in [A..B].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+@code
+[A..B]
+    Body
+@endcode
+ * @~english
+ * Here is an example.
+ * @~french
+ * Voici un exemple.
+ * @~
+@code
+import Animate
+
+page "The [A..B] notation",
+    clear_color 0, 0, 0, 1
+    text_box 0, 0, window_width, window_height,
+        align_center
+        vertical_align_center
+        font "Arial", 40
+        Print 0, "The [A .. B] notation"
+        Print 2, "is"
+        Print 4, "a cool trick!"
+    text_box 0, 0, window_width-20, window_height,
+        align_right
+        vertical_align_bottom
+        font "Arial", 20
+        color "white"
+        text "Press <return> to restart"
+
+Print Time:real, T:text ->
+    after Time,
+        color "white"
+        [Time .. Time+0.5]
+            color_hsv 30, down_ratio, 1.0
+        text T
+        paragraph_break
+
+key "Return" -> goto_page page_name 1
+@endcode
+ * @since 1.02 (Tao 1.20)
+ * @see value_in_interval
+ */
+page_time_in_interval(A:real, B:real, Body);
 
 
 /**
@@ -709,16 +796,16 @@ value_in_interval_or_greater(Value:real, A:real, B:real, Body);
  * limitations de l'outil de génération de cette documentation. La notation
  * recommandée est la suivante :
  * @~
- * @code
+@code
 [A..B, ]
     Body
- * @endcode
+@endcode
  * @~english
  * Here is an example.
  * @~french
  * Voici un exemple.
  * @~
- * @code
+@code
 import Animate
 
 page "The [A..B, ] notation",
@@ -732,7 +819,7 @@ page "The [A..B, ] notation",
 Square X:real, S:real -> rectangle X*window_width/4, 0, 100*S, 100*S
 
 key "Return" -> goto_page page_name 1
- * @endcode
+@endcode
  * @since 1.03 (Tao 1.30)
  * @see value_in_interval_or_greater
  */
@@ -754,14 +841,55 @@ page_time_in_interval_or_greater(A:real, B:real, Body);
  * limitations de l'outil de génération de cette documentation. La notation
  * recommandée est la suivante :
  * @~
- * @code
+@code
 [A..B, C..D]
     Body
- * @endcode
+@endcode
  * @since 1.02 (Tao 1.20)
  * @see value_in_intervals
  */
 page_time_in_intervals(A:real, B:real, C:real, D:real, Body);
+
+
+/**
+ * @~english
+ * Shortcut for: page_time in [A..].
+ *
+ * This function is documented with this name due to limitations
+ * in the documentation tool. The recommended notation to use this feature is
+ * the following:
+ *
+ * @~french
+ * Raccourci pour: page_time in [A..].
+ *
+ * Cette fonction est documentée sous ce nom à cause de
+ * limitations de l'outil de génération de cette documentation. La notation
+ * recommandée est la suivante :
+ * @~
+@code
+[A..]
+    Body
+@endcode
+ * @~english
+ * Here is an example.
+ * @~french
+ * Voici un exemple.
+ * @~
+@code
+import Animate
+
+page "The [A.. ] notation",
+    [0..5]
+        text text integer (6 - page_time)
+    [5..]
+        text "The end"
+
+key "Return" -> goto_page page_name 1
+@endcode
+ * @since 1.04 (Tao 1.43)
+ * @see value_greater_than
+ */
+page_time_greater_than(A:real, Body);
 
 /**
  * @}

@@ -351,34 +351,32 @@ void FrameInfo::purge()
 // ----------------------------------------------------------------------------
 {
     if (context)
+        context->makeCurrent();
+    if (depthTextureID)
     {
-        if (depthTextureID &&
-            context == QGLContext::currentContext())
-        {
-            // Delete the texture only if the GL context has not changed.
-            // If it has changed, do NOT try to restore the previous context as
-            // it may have been invalidated (see #3017).
-            GL.DeleteTextures(1, &depthTextureID);
-        }
-
-        // ~QGLFrameBufferObject checks the GL context so it's OK to delete
-        // the pointers unconditionaly
-        delete renderFBO;
-        if (textureFBO != renderFBO)
-        {
-            GLuint tex = texture();
-            delete textureFBO;
-            GL.Cache.DeleteTextures(1, &tex);
-        }
-        if (depthTextureID)
-            GL.DeleteTextures(1, &depthTextureID);
-
-        IFTRACE(fbo)
-            std::cerr << "[FrameInfo] Purged " << context << "\n";
-        renderFBO = textureFBO = NULL;
-        depthTextureID = 0;
-        context = NULL;
+        // Delete the texture only if the GL context has not changed.
+        // If it has changed, do NOT try to restore the previous context as
+        // it may have been invalidated (see #3017).
+        GL.DeleteTextures(1, &depthTextureID);
     }
+    
+    // ~QGLFrameBufferObject checks the GL context so it's OK to delete
+    // the pointers unconditionaly
+    delete renderFBO;
+    if (textureFBO != renderFBO)
+    {
+        GLuint tex = texture();
+        delete textureFBO;
+        GL.Cache.DeleteTextures(1, &tex);
+    }
+    if (depthTextureID)
+        GL.DeleteTextures(1, &depthTextureID);
+    
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Purged " << context << "\n";
+    renderFBO = textureFBO = NULL;
+    depthTextureID = 0;
+    context = NULL;
 }
 
 

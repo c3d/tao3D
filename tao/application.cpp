@@ -627,18 +627,24 @@ bool Application::checkGL()
         if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
         {
             RECORD(ALWAYS, "Checking FBO sample buffers");
-            // Check if FBOs have sample buffers
             gl.makeCurrent();
             QGLFramebufferObjectFormat format;
             format.setSamples(4);
             QGLFramebufferObject fbo(100, 100, format);
-            QGLFramebufferObjectFormat actualFormat = fbo.format();
-            int samples = actualFormat.samples();
-            hasFBOMultisample = samples > 1;
+            int samples = 0;
+            if (fbo.isValid())
+            {
+                samples = fbo.format().samples();
+                hasFBOMultisample = samples > 1;
+            }
             IFTRACE(displaymode)
-                std::cerr << "GL FBO multisample support: "
-                          << hasFBOMultisample
-                          << " (samples per pixel: " << samples << ")\n";
+            {
+                std::cerr << "GL FBO supported; multisample support: "
+                          << hasFBOMultisample;
+                if (samples)
+                    std::cerr << " (samples per pixel: " << samples <<")";
+                std::cerr << "\n";
+            }
         }
 
         // Enable font bitmap cache only if we don't have multisampling

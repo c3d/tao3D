@@ -94,7 +94,8 @@ void FrameInfo::resize(uint w, uint h)
     // on MacOSX
     const uint SAMPLES = 4;
     const uint maxTextureSize = GL.MaxTextureSize();
-    bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit();
+    bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit() &&
+                          TaoApp->hasFBOMultisample;
     if (w >= maxTextureSize || h >= maxTextureSize)
     {
         IFTRACE(fbo)
@@ -120,29 +121,10 @@ void FrameInfo::resize(uint w, uint h)
         QGLFramebufferObjectFormat mformat(format);
         mformat.setSamples(SAMPLES);
         renderFBO = new QGLFramebufferObject(w, h, mformat);
-        QGLFramebufferObjectFormat actualFormat = renderFBO->format();
-        int samples = actualFormat.samples();
-        if (samples > 1)
-        {
-            // REVISIT: we pass format to have a depth buffer attachment.
-            // This is required only when we want to later use depthTexture().
-            // TODO: specify at object creation?
-            textureFBO = new QGLFramebufferObject(w, h, format);
-        }
-        else
-        {
-            // Multisample framebuffer objects are not supported.
-            // Normally we could just do: textureFBO = renderFBO, to use
-            // the FBO as a texture.
-            // But on Windows/VMWare, even when samples == 0 the
-            // FBO cannot be used directly as a texture.
-            // 2 options: (1) create a textureFBO and blit as if MS was
-            // enabled, or (2) re-create render FBO without asking for
-            // multisampling. (2) is obviously better.
-            delete renderFBO;
-            renderFBO = new QGLFramebufferObject(w, h, format);
-            textureFBO = renderFBO;
-        }
+        // REVISIT: we pass format to have a depth buffer attachment.
+        // This is required only when we want to later use depthTexture().
+        // TODO: specify at object creation?
+        textureFBO = new QGLFramebufferObject(w, h, format);
     }
     else
     {

@@ -51,6 +51,7 @@
 #endif
 #include "nag_screen.h"
 #include "flight_recorder.h"
+#include "tao_gl.h"
 
 #include <QString>
 #include <QSettings>
@@ -97,7 +98,7 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
-      hasFBOMultisample(false), hasGLStereoBuffers(false),
+      hasFBOMultisample(false), hasGLStereoBuffers(false), hasMipmap(false),
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), win(NULL), xlr(NULL), screenSaverBlocked(false),
@@ -580,10 +581,16 @@ bool Application::checkGL()
 
         if (QGLContext::currentContext()->isValid())
         {
+            glewInit();
+
             GLVendor   = getGLText(GL_VENDOR);
             GLRenderer = getGLText(GL_RENDERER);
             GLVersionAvailable = getGLText(GL_VERSION);
             GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
+
+            hasMipmap = (glGenerateMipmap != NULL);
+            IFTRACE(displaymode)
+                std::cerr << "GL mipmap support: " << hasMipmap << "\n";
         }
     }
 

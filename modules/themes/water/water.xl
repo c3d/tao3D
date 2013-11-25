@@ -26,6 +26,43 @@ add_search_path "Water:", module_dir
 theme_slide_width  "Water" -> 1920
 theme_slide_height "Water" -> 1080
 
+
+// ============================================================================
+//
+//   Chart
+//
+// ============================================================================
+
+// Chart font size
+theme_size "Water", Master:text, "chart_data" -> 30
+theme_size "Water", Master:text, "chart_label" -> 30
+theme_size "Water", Master:text, "chart_tick" -> 30
+theme_size "Water", Master:text, "chart_title" -> 50
+theme_size "Water", Master:text, "chart_legend" -> 40
+
+
+// Chart colors
+theme_color "Water", Master:text, "line", N:integer ->
+    T := 0.8 / (chart_datasets_count - 1)
+    line_color_hsv 210 + (N - 1), 0.8 - (N - 1) * T, 1.0, 0.8
+theme_color "Water", "pie", Style:text, N:integer ->
+    T := 0.8 / ((chart_count chart_first) - 1)
+    color_hsv 210 + (N - 1), 0.8 - (N - 1) * T, 1.0, 0.8
+    line_color "black"
+    line_width 0.3
+theme_color "Water", Master:text, Style:text, N:integer ->
+    T := 0.8 / (chart_datasets_count - 1)
+    color_hsv 210 + (N - 1), 0.8 - T * (N - 1), 1.0, 0.8
+    line_color "black"
+    line_width 0.3
+
+
+// ============================================================================
+//
+//   Global theme
+//
+// ============================================================================
+
 theme_background "Water",Master:text ->
     clear_color 0, 0, 0, 1
     background -900,
@@ -43,7 +80,7 @@ theme_size "Water",Master:text,"title"       -> 120
 theme_size "Water",Master:text,"subtitle"    -> 80
 
 theme_color "lightblue" -> "#3399FF"
-theme_color "Water",Master:text,"title"     -> color theme_color "lightblue"
+theme_color "Water",Master:text,"title"     -> light 0, false; color theme_color "lightblue"
 theme_color "Water",Master:text,"story"     -> color "black"
 
 theme_font "Water",Master:text,Style:text     -> font "Yanone Kaffeesatz", "Yanone Kaffeesatz Regular"

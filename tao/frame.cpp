@@ -354,7 +354,8 @@ void FrameInfo::purge()
         }
 
         IFTRACE(fbo)
-            std::cerr << "[FrameInfo] Purged " << context << "\n";
+            std::cerr << "[FrameInfo] Purged " << context << " current "
+                      << QGLContext::currentContext() << "\n";
         renderFBO = textureFBO = NULL;
         depthTextureID = 0;
         context = NULL;

@@ -348,7 +348,7 @@ void FrameInfo::purge()
         delete renderFBO;
         if (textureFBO != renderFBO)
         {
-            GLuint tex = texture();
+            GLuint tex = textureFBO->texture();
             delete textureFBO;
             GL.Cache.DeleteTextures(1, &tex);
         }

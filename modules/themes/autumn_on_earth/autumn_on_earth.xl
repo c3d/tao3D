@@ -36,7 +36,76 @@ add_search_path "AutumnOnEarth:", module_dir
 theme_slide_width  "AutumnOnEarth" -> 1024
 theme_slide_height "AutumnOnEarth" -> 768
 
+theme_drawing_width "AutumnOnEarth" -> 500
+theme_drawing_height "AutumnOnEarth" -> 540
 
+
+// ============================================================================
+//
+//    Theme charts
+//
+// ============================================================================
+
+theme_chart_layout "AutumnOnEarth", "pie", Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Pie chart layout for Autumn theme
+// ----------------------------------------------------------------------------
+    chart 0, -35, 400, 400, Style, Format
+
+    chart_flow 0, 235, 850, 50, "chart_title"
+    chart_flow 425, -25, 300, 400, "chart_legend"
+
+
+theme_chart_layout "AutumnOnEarth", Master:text, Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Default chart layout for Autumn theme
+// ----------------------------------------------------------------------------
+    chart_flow 0, 235, 850, 50, "chart_title"
+    chart_flow 425, -25, 300, 400, "chart_legend"
+
+    chart_flow 265, -225, 100, 50, "chart_xlabel"
+    chart_flow -475, 200, 100, 50, "chart_ylabel"
+
+    // Draw axis
+    chart_xaxis -475, -225, 700, 400, Style, Format
+    chart_yaxis -475, -225, 700, 400, Style, Format
+
+    chart -475, -225, 700, 400, Style, Format
+
+// Size
+theme_size "AutumnOnEarth", Master:text, "chart_data" -> 20
+theme_size "AutumnOnEarth", Master:text, "chart_label" -> 20
+theme_size "AutumnOnEarth", Master:text, "chart_tick" -> 20
+theme_size "AutumnOnEarth", Master:text, "chart_title" -> 30
+theme_size "AutumnOnEarth", Master:text, "chart_legend" -> 25
+
+// Alignment of charts components
+theme_align "AutumnOnEarth", Master:text, "chart_data" -> align 0.5; vertical_align 0.5
+theme_align "AutumnOnEarth", Master:text, "chart_tick" -> align 0.5; vertical_align 0.5
+theme_align "AutumnOnEarth", Master:text, "chart_label" -> align 0.5; vertical_align 0.45
+theme_align "AutumnOnEarth", Master:text, "chart_title" -> align 0.5; vertical_align 0.5
+theme_align "AutumnOnEarth", Master:text, "chart_entry", N:integer -> theme_align Theme,Master,"chart_legend",N
+theme_align Theme:text, "pie", "chart_legend" ->
+    align 0.0
+    vertical_align 0.5
+    paragraph_space 0, (30.0 / (chart_count chart_first))
+    margins 90, 0
+theme_align "AutumnOnEarth", Master:text, "chart_legend" ->
+    align 0.0
+    vertical_align 0.5
+    paragraph_space 0, 30
+    margins 90, 0
+
+// Colors
+theme_color "AutumnOnEarth", Master:text, "line", N:integer ->
+    T := 0.55 / chart_datasets_count
+    line_color_hsv 9, 0.65 - T * N, 0.4 + T * N
+theme_color "AutumnOnEarth", "pie", Style:text, N:integer ->
+    T := 0.55 / (chart_count chart_first)
+    color_hsv 9, 0.65 - T * N, 0.4 + T * N
+theme_color "AutumnOnEarth", Master:text, Style:text, N:integer ->
+    T := 0.55 / chart_datasets_count
+    color_hsv 9, 0.65 - T * N, 0.4 + T * N
 
 // ============================================================================
 // 

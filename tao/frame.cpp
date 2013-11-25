@@ -352,8 +352,6 @@ void FrameInfo::purge()
             delete textureFBO;
             GL.Cache.DeleteTextures(1, &tex);
         }
-        if (depthTextureID)
-            GL.DeleteTextures(1, &depthTextureID);
 
         IFTRACE(fbo)
             std::cerr << "[FrameInfo] Purged " << context << "\n";

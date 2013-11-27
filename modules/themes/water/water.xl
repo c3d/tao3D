@@ -5,6 +5,7 @@
 
 import Slides
 import WaterSurface
+import Charts
 
 module_description
     id "d0dc1693-bb4e-4884-87b1-c2f29d437c58"
@@ -38,8 +39,6 @@ theme_size "Water", Master:text, "chart_data" -> 30
 theme_size "Water", Master:text, "chart_label" -> 30
 theme_size "Water", Master:text, "chart_tick" -> 30
 theme_size "Water", Master:text, "chart_title" -> 50
-theme_size "Water", Master:text, "chart_legend" -> 40
-
 
 // Chart colors
 theme_color "Water", Master:text, "line", N:integer ->
@@ -50,7 +49,10 @@ theme_color "Water", "pie", Style:text, N:integer ->
     color_hsv 210 + (N - 1), 0.8 - (N - 1) * T, 1.0, 0.8
     line_color "black"
     line_width 0.3
-theme_color "Water", Master:text, Style:text, N:integer ->
+
+theme_color "Water", "area", Style:text, N:integer -> theme_color "Water", "bar", Style, N
+theme_color "Water", "line", Style:text, N:integer -> theme_color "Water", "bar", Style, N
+theme_color "Water", "bar", Style:text, N:integer ->
     T := 0.8 / (chart_datasets_count - 1)
     color_hsv 210 + (N - 1), 0.8 - T * (N - 1), 1.0, 0.8
     line_color "black"
@@ -99,7 +101,6 @@ theme_box "Water",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
             gradient_color 0.5, 0.9, 0.9, 1, 0.95
             gradient_color 1.0, 0.9, 0.9, 1, 1.0
         rectangle X, Y, W + 10, H + 10
-
 
 
 theme_bullet_picture "Water", Master:text, Level:integer ->

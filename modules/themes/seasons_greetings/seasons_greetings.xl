@@ -5,6 +5,7 @@
 
 import Slides
 import Snowfall
+import Charts
 
 module_description
     id "C91502F7-2CC0-40C5-8E89-75893D886B49" 
@@ -34,7 +35,9 @@ theme_slide_height "SeasonsGreetings" -> 1080
 // ============================================================================
 
 theme_color "SeasonsGreetings", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
-theme_color "SeasonsGreetings", Master:text, Style:text, N -> color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
+theme_color "SeasonsGreetings", "area", Style:text, N:integer -> theme_color "SeasonsGreetings", "bar", Style, N
+theme_color "SeasonsGreetings", "line", Style:text, N:integer -> theme_color "SeasonsGreetings", "bar", Style, N
+theme_color "SeasonsGreetings", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
 
 theme_fade "SeasonsGreetings", "pie", Style:text, N:integer, Index:integer -> fade_at(page_time, (Index + 1))
 theme_fade "SeasonsGreetings", Master:text, Style:text, N:integer, Index:integer -> fade_at(page_time, N - chart_first + 1)

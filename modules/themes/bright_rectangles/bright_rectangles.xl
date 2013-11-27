@@ -4,6 +4,7 @@
 // ****************************************************************************
 
 import Slides
+import Charts
 
 module_description
     id "3F8474A2-FB08-4463-AEF0-6D8E3A0AF92B" 
@@ -56,13 +57,27 @@ rectangle_background N:integer ->
     rectangle sw(121e-5,1.2*N), sh(133e-5,1.1*N), sw(232e-5,0.7*N), slide_height
     rectangle sw(142e-5,1.2*N), sh(127e-5,1.1*N), slide_width, sh(114e-5,0.7*N)
 
-
 theme_color "BrightRectangles",Master:text,"picture"   -> color "white"
-theme_color "BrightRectangles",Master:text,"story"     -> color "white"
+theme_color "BrightRectangles",Master:text,"story"     -> light 0, false; color "white"
+theme_color "BrightRectangles",Master:text,"line",N:integer ->
+    line_color_hsv (336.0 * N) / chart_datasets_count, 1.0, 0.7, 1.0
+theme_color "BrightRectangles","pie",Style:text,N:integer ->
+    color_hsv (336.0 * N) / (chart_count chart_first), 1.0, 0.7, 1.0
+
+theme_color "BrightRectangles", "area", Style:text, N:integer -> theme_color "BrightRectangles", "bar", Style, N
+theme_color "BrightRectangles", "line", Style:text, N:integer -> theme_color "BrightRectangles", "bar", Style, N
+theme_color "BrightRectangles","bar",Style:text,N:integer ->
+    color_hsv (336.0 * N) / chart_datasets_count, 1.0, 0.7, 1.0
 
 theme_font "BrightRectangles",Master:text,"story"      -> font "Mountains of Christmas", "Times"
-theme_boxstyle "BrightRectangles",Master:text,Style:text-> color "black", 0.6
+theme_boxstyle "BrightRectangles",Master:text,Style:text     -> color "black", 0.6
 
+// No boxes for charts components (except title)
+theme_box "BrightRectangles",Master:text,"chart_legend", X:real,Y:real,W:real,H:real -> false
+theme_box "BrightRectangles",Master:text,"area", X:real,Y:real,W:real,H:real -> false
+theme_box "BrightRectangles",Master:text,"bar", X:real,Y:real,W:real,H:real -> false
+theme_box "BrightRectangles",Master:text,"line", X:real,Y:real,W:real,H:real -> false
+theme_box "BrightRectangles",Master:text,"pie", X:real,Y:real,W:real,H:real -> false
 
 theme_box "BrightRectangles",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
@@ -82,7 +97,6 @@ theme_box "BrightRectangles",Master:text,Style:text, X:real,Y:real,W:real,H:real
 
 bright_rectangles_current -> 0.0
 bright_rectangles_target -> 0.0
-
 
 
 // ****************************************************************************

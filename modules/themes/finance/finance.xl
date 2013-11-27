@@ -28,6 +28,7 @@ import Slides
 import VLCAudioVideo
 import Animate
 import Transitions
+import Charts
 
 theme_slide_width  "Finance" -> 1920
 theme_slide_height "Finance" -> 1080
@@ -76,7 +77,9 @@ theme_color "Finance", "pie", Style:text, N:integer ->
     line_color "black"
     line_width 0.5
 
-theme_color "Finance", Master:text, Style:text, N:integer ->
+theme_color "Finance", "area", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
+theme_color "Finance", "line", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
+theme_color "Finance", "bar", Style:text, N:integer ->
     T := 0.8 / chart_datasets_count
     color_hsv 220 + N, 0.8 - T * N, 0.749
     line_color "black"

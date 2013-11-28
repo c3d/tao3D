@@ -32,6 +32,7 @@ title_slide "Third slide",
         * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
         * "This is an example text. Replace it with your own text." fr "Ceci est un texte d'exemple. Remplacez-le par votre propre texte."
     right_picture
+        color "white"
         image 0, 0, 1.1, 1.1, "http://i2.wp.com/smashfreakz.com/wp-content/uploads/2013/05/chart-psd-30.jpg"
     page_duration 3
 
@@ -54,6 +55,8 @@ picture_slide "Chart slide",
     chart_set_format "3D"
 
     light 0
+    light_attenuation 1 / scaling_factor, 0, 0
+    light_position 0, 0, 3000, 1
     material_ambient 1.0, 1.0, 1.0, 1.0
     material_diffuse 1.0, 1.0, 1.0, 1.0
 

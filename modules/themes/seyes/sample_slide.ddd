@@ -92,6 +92,8 @@ picture_slide "Chart slide",
     chart_set_format "3D"
 
     light 0
+    light_attenuation 1 / scaling_factor, 0, 0
+    light_position 0, 0, 3000, 1
     material_ambient 1.0, 1.0, 1.0, 1.0
     material_diffuse 1.0, 1.0, 1.0, 1.0
 

@@ -65,7 +65,8 @@
        snowfall \
        nodejs \
        film_strip \
-       speech
+       speech \
+       charts
 
     OTHER_MODULES =  \
         DIP          \

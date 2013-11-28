@@ -4,6 +4,7 @@
 // ****************************************************************************
 
 import Slides
+import Charts
 
 module_description
     id "1F58ECFC-7A28-4043-A62F-F73A1FE63767" 

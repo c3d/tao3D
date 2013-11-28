@@ -588,7 +588,11 @@ bool Application::checkGL()
             GLVersionAvailable = getGLText(GL_VERSION);
             GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
 
+#ifdef Q_OS_WIN32
             hasMipmap = (glGenerateMipmap != NULL);
+#else
+            hasMipmap = true;
+#endif
             IFTRACE(displaymode)
                 std::cerr << "GL mipmap support: " << hasMipmap << "\n";
         }

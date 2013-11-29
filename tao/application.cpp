@@ -205,6 +205,13 @@ void Application::deferredInit()
     // Adjust file polling frequency
     FileMonitorThread::pollInterval = xlr->options.sync_interval;
 
+    // OpenGL checks
+    if (!checkGL())
+    {
+        exit(1);
+        return;
+    }
+
     // Texture cache may only be instantiated after setOrganizationName
     // and setOrganizationDomain because it reads default values from
     // the user's preferences
@@ -226,13 +233,6 @@ void Application::deferredInit()
     QPixmap pm(":/images/tao_padlock.svg");
     padlockIcon = new QPixmap(pm.scaled(64, 64, Qt::IgnoreAspectRatio,
                                         Qt::SmoothTransformation));
-
-    // OpenGL checks
-    if (!checkGL())
-    {
-        exit(1);
-        return;
-    }
 
     QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV_);
     QString impress = QString("Tao Presentations Impress %1").arg(GITREV_);

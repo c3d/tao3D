@@ -1,0 +1,321 @@
+import Charts
+
+// ----------------------------------------------------------------------------
+//   Chart initialisation (done once)
+// ----------------------------------------------------------------------------
+chart_init -> 0
+if (chart_init = 0) then
+    chart_current "My chart"
+
+    // Reset previous chart
+    chart_reset
+
+    // Load data from a csv file
+    chart_load_csv "charts.csv"
+
+    // Change axis labels
+    chart_set_xlabel "X"
+    chart_set_ylabel "Y"
+
+    chart_init := 1
+
+// Set title
+chart_set_title "Sample chart" fr "Un exemple de diagramme"
+
+// Set default style
+chart_set_style ""
+
+// Set default format
+chart_set_format "2D"
+
+
+// ============================================================================
+//
+//                              2D Charts
+//
+// ============================================================================
+
+main_title_slide "Charts samples" fr "Exemples de diagrammes",
+// ----------------------------------------------------------------------------
+//   Intro slide
+// ----------------------------------------------------------------------------
+    title text "Charts samples" fr "Exemples de diagrammes"
+    subtitle
+        text "Utilisez les touches 'flèche gauche' et 'flèche droite' pour changer le thème." en <<Use "left" and "right" key to change theme.>>
+
+
+picture_slide "2D pie chart" fr "Diagramme 2D circulaire",
+// ----------------------------------------------------------------------------
+//   Display a classic 2D pie chart
+// ----------------------------------------------------------------------------
+    chart "My chart", 1, "pie"
+
+
+picture_slide "2D exploded pie chart" fr "Diagramme 2D circulaire éclaté",
+// ----------------------------------------------------------------------------
+//   Display a 2D exploded pie chart
+// ----------------------------------------------------------------------------
+    chart_set_style "exploded"
+    chart "My chart", 1, "pie"
+
+
+picture_slide "2D vertical bar chart" fr "Diagramme 2D à barres verticales",
+// ----------------------------------------------------------------------------
+//   Display a 2D vertical bar chart
+// ----------------------------------------------------------------------------
+    chart "My chart", "bar"
+
+
+picture_slide "2D vertical stacked bar chart" fr "Diagramme 2D à barres verticales empilées",
+// ----------------------------------------------------------------------------
+//   Display a 2D vertical-stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_style "vertical_stacked"
+    chart "My chart", "bar"
+
+
+picture_slide "2D horizontal bar chart" fr "Diagramme 2D à barres horizontales",
+// ----------------------------------------------------------------------------
+//   Display a 2D horizontal-stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_style "horizontal"
+    chart "My chart", "bar"
+
+
+picture_slide "2D horizontal stacked bar chart" fr "Diagramme 2D à barres horizontales empilées",
+// ----------------------------------------------------------------------------
+//   Display a 2D horizontal-stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_style "horizontal_stacked"
+    chart "My chart", "bar"
+
+
+picture_slide "2D point chart" fr "Diagramme 2D linéaire (points)",
+// ----------------------------------------------------------------------------
+//   Display a 2D point chart
+// ----------------------------------------------------------------------------
+    chart_set_style "point"
+    chart "My chart", "line"
+
+
+picture_slide "2D line chart" fr "Diagramme 2D linéaire (lignes)",
+// ----------------------------------------------------------------------------
+//   Display a 2D line chart
+// ----------------------------------------------------------------------------
+    chart_set_style "line"
+    chart "My chart", "line"
+
+
+picture_slide "2D line&point chart" fr "Diagramme 2D linéaire (lignes & points)",
+// ----------------------------------------------------------------------------
+//   Display a 2D line & point chart
+// ----------------------------------------------------------------------------
+    chart "My chart", "line"
+
+
+picture_slide "2D area chart" fr "Diagramme 2D à zones",
+// ----------------------------------------------------------------------------
+//   Display a 2D area chart
+// ----------------------------------------------------------------------------
+    chart "My chart", "area"
+
+
+picture_slide "2D stacked area chart" fr "Diagramme 2D à zones empilées",
+// ----------------------------------------------------------------------------
+//   Display a 2D area stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_style "stacked"
+    chart "My chart", "area"
+
+
+// ============================================================================
+//
+//                              3D Charts
+//
+// ============================================================================
+
+light 0
+material_ambient 1.0, 1.0, 1.0, 1.0
+material_diffuse 1.0, 1.0, 1.0, 1.0
+
+picture_slide "3D pie chart" fr "Diagramme 3D circulaire",
+// ----------------------------------------------------------------------------
+//   Display a classic 3D pie chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart "My chart", 1, "pie"
+
+
+picture_slide "3D exploded pie chart" fr "Diagramme 3D circulaire éclaté",
+// ----------------------------------------------------------------------------
+//   Display a 3D exploded pie chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart_set_style "exploded"
+    chart "My chart", 1, "pie"
+
+
+picture_slide "3D vertical bar chart" fr "Diagramme 3D à barres verticales",
+// ----------------------------------------------------------------------------
+//   Display a 3D vertical bar chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart "My chart", "bar"
+
+
+picture_slide "3D vertical stacked bar chart" fr "Diagramme 3D à barres verticales empilées",
+// ----------------------------------------------------------------------------
+//   Display a 3D vertical-stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_style "vertical_stacked"
+    chart "My chart", "bar"
+
+
+picture_slide "3D horizontal bar chart" fr "Diagramme 3D à barres horizontales",
+// ----------------------------------------------------------------------------
+//   Display a 3D horizontal-stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart_set_style "horizontal"
+    chart "My chart", "bar"
+
+
+picture_slide "3D horizontal stacked bar chart" fr "Diagramme 3D à barres horizontales empilées",
+// ----------------------------------------------------------------------------
+//   Display a 3D horizontal-stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart_set_style "horizontal_stacked"
+    chart "My chart", "bar"
+
+
+picture_slide "3D point chart" fr "Diagramme 3D linéaire (points)",
+// ----------------------------------------------------------------------------
+//   Display a 3D point chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart_set_style "point"
+    chart "My chart", "line"
+
+
+picture_slide "3D line chart" fr "Diagramme 3D linéaire (lignes)",
+// ----------------------------------------------------------------------------
+//   Display a 3D line chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart_set_style "line"
+    chart "My chart", "line"
+
+
+picture_slide "3D line&point chart" fr "Diagramme 3D linéaire (lignes & points)",
+// ----------------------------------------------------------------------------
+//   Display a 3D line & point chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart "My chart", "line"
+
+
+picture_slide "3D area chart" fr "Diagramme 3D à zones",
+// ----------------------------------------------------------------------------
+//   Display a 3D area chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart "My chart", "area"
+
+
+picture_slide "3D stacked area chart" fr "Diagramme 3D à zones empilées",
+// ----------------------------------------------------------------------------
+//   Display a 3D area stacked bar chart
+// ----------------------------------------------------------------------------
+    chart_set_format "3D"
+    chart_set_style "stacked"
+    chart "My chart", "area"
+
+
+display_theme ->
+// ----------------------------------------------------------------------------
+//    Show a HUD which displays theme when changing it
+// ----------------------------------------------------------------------------
+    S -> min(1920/window_width, 1080/window_height)
+    locally
+        light 0, false
+        time
+        if(theme_update <> 0) then
+            show fade_between(time, theme_update + 1.0, theme_update + 3.0)
+            color "white"
+            translate 0, -window_height * 0.46,  150
+            locally
+                line_color "black", 0.5
+                line_width 2
+                linear_gradient 0, 75, window_width, 75, window_width, 150,
+                        gradient_color 0, 0.3, 0.3, 0.3, 0.8
+                        gradient_color 1, 0.0, 0.0, 0.0, 0.2
+                rectangle window_width, (slide_height / 6.0) * contents_scale
+            text_box 0, 0, window_width, (slide_height / 6.0) * contents_scale,
+                color "white"
+                align 0.1
+                vertical_align 0.25
+                font "Ubuntu", 50 / S
+                text "Theme " fr "Thème "
+                text (themes at theme_index)
+
+            if(time > theme_update + 4.0) then
+                theme_update := 0.0
+
+display_theme
+
+
+
+
+// ****************************************************************************
+//  charts.ddd                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Template charts.
+//     This document presents charts using differents themes.
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Catherine Burvelle <cathy@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL-B license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL-B
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL-B license and that you accept its terms.
+// ****************************************************************************

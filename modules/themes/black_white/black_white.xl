@@ -19,10 +19,6 @@ module_description "fr",
     name "Thème Noir et Blanc"
     description "Une collection de thèmes simples en noir et blanc"
 
-// Let user override the theme_picture definitions
-override_priority -1
-
-
 
 // ============================================================================
 // 
@@ -46,6 +42,12 @@ theme_font       "BlackOnWhite",Master:text,"story"     -> font "TeX Gyre Advent
 theme_boxstyle   "BlackOnWhite",Master:text,"title"     -> color "black",0.2
 theme_boxstyle   "BlackOnWhite",Master:text,Style:text  -> color "black",0.1
 
+// Chart colors
+theme_color "BlackOnWhite", Master:text, "line", N:integer -> line_color_hsv 0, 0, (real N) / chart_datasets_count
+theme_color "BlackOnWhite", "pie", Style:text, N:integer -> color_hsv 0, 0, (real N) / (chart_count chart_first)
+theme_color "BlackOnWhite", "area", Style:text, N:integer -> theme_color "BlackOnWhite", "bar", Style, N
+theme_color "BlackOnWhite", "line", Style:text, N:integer -> theme_color "BlackOnWhite", "bar", Style, N
+theme_color "BlackOnWhite", "bar", Style:text, N:integer -> color_hsv 0, 0, (real N) / chart_datasets_count
 
 
 // ============================================================================
@@ -60,6 +62,12 @@ theme_font       "WhiteOnBlack",Master:text,"story"     -> font "TeX Gyre Advent
 theme_boxstyle   "WhiteOnBlack",Master:text,"title"     -> color "white",0.2
 theme_boxstyle   "WhiteOnBlack",Master:text,Style:text  -> color "white",0.1
 
+// Chart colors
+theme_color "WhiteOnBlack", Master:text, "line", N:integer -> line_color_hsv 0, 0, 1.0 - (real N) / chart_datasets_count
+theme_color "WhiteOnBlack", "pie", Style:text, N:integer -> color_hsv 0, 0, 1.0 - (real N) / (chart_count chart_first)
+theme_color "WhiteOnBlack", "area", Style:text, N:integer -> theme_color "WhiteOnBlack", "bar", Style, N
+theme_color "WhiteOnBlack", "line", Style:text, N:integer -> theme_color "WhiteOnBlack", "bar", Style, N
+theme_color "WhiteOnBlack", "bar", Style:text, N:integer -> color_hsv 0, 0, 1.0 - (real N) / chart_datasets_count
 
 
 // ============================================================================
@@ -74,6 +82,12 @@ theme_font       "BlackOnGray",Master:text,"story"     -> font "TeX Gyre Advento
 theme_boxstyle   "BlackOnGray",Master:text,"title"     -> color "white", 0.2
 theme_boxstyle   "BlackOnGray",Master:text,Style:text  -> color "white",0.1
 
+// Chart colors
+theme_color "BlackOnGray", Master:text, "line", N:integer -> theme_color "BlackOnWhite", Master:text, "line", N
+theme_color "BlackOnGray", "pie", Style:text, N:integer   -> theme_color "BlackOnWhite", "pie", Style, N
+theme_color "BlackOnGray", "area", Style:text, N:integer  -> theme_color "BlackOnWhite", "area", Style, N
+theme_color "BlackOnGray", "line", Style:text, N:integer  -> theme_color "BlackOnWhite", "line", Style, N
+theme_color "BlackOnGray", "bar", Style:text, N:integer   -> theme_color "BlackOnWhite", "bar", Style, N
 
 
 // ============================================================================
@@ -88,7 +102,12 @@ theme_font       "WhiteOnGray",Master:text,"story"     -> font "TeX Gyre Advento
 theme_boxstyle   "WhiteOnGray",Master:text,"title"     -> color "black", 0.2
 theme_boxstyle   "WhiteOnGray",Master:text,Style:text  -> color "black",0.1
 
-
+// Chart colors
+theme_color "WhiteOnGray", Master:text, "line", N:integer -> theme_color "WhiteOnBlack", Master:text, "line", N
+theme_color "WhiteOnGray", "pie", Style:text, N:integer   -> theme_color "WhiteOnBlack", "pie", Style, N
+theme_color "WhiteOnGray", "area", Style:text, N:integer  -> theme_color "WhiteOnBlack", "area", Style, N
+theme_color "WhiteOnGray", "line", Style:text, N:integer  -> theme_color "WhiteOnBlack", "line", Style, N
+theme_color "WhiteOnGray", "bar", Style:text, N:integer   -> theme_color "WhiteOnBlack", "bar", Style, N
 
 // ============================================================================
 // 
@@ -110,6 +129,12 @@ theme_font       "BlackOnPicture",Master:text,"story"     -> font "TeX Gyre Adve
 theme_boxstyle   "BlackOnPicture",Master:text,"title"     -> color "white",0.6
 theme_boxstyle   "BlackOnPicture",Master:text,Style:text  -> color "white",0.4
 
+// Chart colors
+theme_color "BlackOnPicture", Master:text, "line", N:integer -> theme_color "BlackOnWhite", Master:text, "line", N
+theme_color "BlackOnPicture", "pie", Style:text, N:integer   -> theme_color "BlackOnWhite", "pie", Style, N
+theme_color "BlackOnPicture", "area", Style:text, N:integer  -> theme_color "BlackOnWhite", "area", Style, N
+theme_color "BlackOnPicture", "line", Style:text, N:integer  -> theme_color "BlackOnWhite", "line", Style, N
+theme_color "BlackOnPicture", "bar", Style:text, N:integer   -> theme_color "BlackOnWhite", "bar", Style, N
 
 
 // ============================================================================
@@ -132,6 +157,12 @@ theme_font       "WhiteOnPicture",Master:text,"story"     -> font "TeX Gyre Adve
 theme_boxstyle   "WhiteOnPicture",Master:text,"title"     -> color "black",0.6
 theme_boxstyle   "WhiteOnPicture",Master:text,Style:text  -> color "black",0.4
 
+// Chart colors
+theme_color "WhiteOnPicture", Master:text, "line", N:integer -> theme_color "WhiteOnBlack", Master:text, "line", N
+theme_color "WhiteOnPicture", "pie", Style:text, N:integer   -> theme_color "WhiteOnBlack", "bar", Style, N
+theme_color "WhiteOnPicture", "area", Style:text, N:integer  -> theme_color "WhiteOnBlack", "bar", Style, N
+theme_color "WhiteOnPicture", "line", Style:text, N:integer  -> theme_color "WhiteOnBlack", "bar", Style, N
+theme_color "WhiteOnPicture", "bar", Style:text, N:integer   -> theme_color "WhiteOnBlack", "bar", Style, N
 
 
 // ****************************************************************************

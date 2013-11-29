@@ -4,6 +4,7 @@
 // ****************************************************************************
 
 import Slides
+import Charts
 
 module_description
     id "25A6AF1C-8683-42E1-83CC-643B8D12A4BA" 
@@ -25,6 +26,44 @@ add_search_path "Seyes:", module_dir
 // Aliases for this theme
 theme "Seyes" -> theme "seyes"
 
+
+
+// ============================================================================
+//
+//    Charts layouts
+//
+// ============================================================================
+
+theme_color "seyes", Master, "axis" ->
+    line_color "black"
+    line_width 1
+
+theme_chart_layout "seyes", "pie", Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Pie chart layout for seyes theme
+// ----------------------------------------------------------------------------
+    box "chart", 0, 0, chart_width, chart_height
+    chart 0, -35, 500, 500, Style, Format
+
+    chart_flow 0, 300, 1000, 50, "chart_title"
+    chart_flow 700, -35, 300, 400, "chart_legend"
+
+
+theme_chart_layout "seyes", Master:text, Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Default chart layout for seyes theme
+// ----------------------------------------------------------------------------
+    box "chart", 0, 0, chart_width, chart_height
+    chart -600, -300, 1000, 500, Style, Format
+
+    chart_xaxis -600, -300, 1000, 500, Style, Format
+    chart_yaxis -600, -300, 1000, 500, Style, Format
+
+    chart_flow 450, -300, 100, 50, "chart_xlabel"
+    chart_flow -600, 230, 100, 50, "chart_ylabel"
+
+    chart_flow 0, 300, 1000, 50, "chart_title"
+    chart_flow 700, -35, 300, 400, "chart_legend"
 
 
 // ============================================================================

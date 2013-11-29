@@ -406,6 +406,7 @@ public:
     Integer_p   pageSeconds(Tree_p self);
     Real_p      after(Context *context, double delay, Tree_p code);
     Real_p      every(Context *context, double delay, double duration, Tree_p code);
+    Name_p      once(Context *context, Tree_p self, Tree_p prog);
     Real_p      mouseX(Tree_p self);
     Real_p      mouseY(Tree_p self);
     Integer_p   screenMouseX(Tree_p self);

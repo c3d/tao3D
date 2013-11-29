@@ -28,6 +28,7 @@ import Slides
 import VLCAudioVideo
 import Animate
 import Transitions
+import Charts
 
 theme_slide_width  "Finance" -> 1920
 theme_slide_height "Finance" -> 1080
@@ -65,26 +66,45 @@ theme_rotate "Finance", Master:text, "chart_tick" -> false
 theme_rotate "Finance", Master:text, "chart_title" -> false
 theme_rotate "Finance", Master:text, "chart_legend" -> false
 
+// Transition
+theme_transition "Finance", Master:text, "chart_data" -> false
+theme_transition "Finance", Master:text, "chart_xlabel" -> false
+theme_transition "Finance", Master:text, "chart_ylabel" -> false
+theme_transition "Finance", Master:text, "chart_tick" -> false
+theme_transition "Finance", Master:text, "chart_title" -> false
+theme_transition "Finance", Master:text, "chart_legend" -> false
+
+
 // Chart colors
-theme_color "Finance", Master:text, "line", 1 -> line_color finance_color "blue1"
-theme_color "Finance", Master:text, "line", 2 -> line_color finance_color "blue2"
-theme_color "Finance", Master:text, "line", 3 -> line_color finance_color "blue3"
-theme_color "Finance", Master:text, "line", 4 -> line_color finance_color "blue4"
-theme_color "Finance", Master:text, Style:text, 1 -> color finance_color "blue1"
-theme_color "Finance", Master:text, Style:text, 2 -> color finance_color "blue2"
-theme_color "Finance", Master:text, Style:text, 3 -> color finance_color "blue3"
-theme_color "Finance", Master:text, Style:text, 4 -> color finance_color "blue4"
+theme_color "Finance", Master:text, "line", N:integer ->
+    T := 0.8 / chart_datasets_count
+    line_color_hsv 220 + N, 0.8 - N * T, 0.749
+
+theme_color "Finance", "pie", Style:text, N:integer ->
+    T := 0.8 / (chart_count chart_first)
+    color_hsv 220 + N, 0.8 - N * T, 0.749
+    line_color "black"
+    line_width 0.5
+
+theme_color "Finance", "area", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
+theme_color "Finance", "line", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
+theme_color "Finance", "bar", Style:text, N:integer ->
+    T := 0.8 / chart_datasets_count
+    color_hsv 220 + N, 0.8 - T * N, 0.749
+    line_color "black"
+    line_width 0.5
+
 
 theme_chart_layout "Finance", "pie", Style:text, Format:text ->
 // ----------------------------------------------------------------------------
 //    Pie chart layout for finance theme
 // ----------------------------------------------------------------------------
     box "chart", 0, 0, 1600, 500
-
-    flow 0, 200, 1000, 50, "chart_title"
-    flow 250, -25, 300, 400, "chart_legend"
-
     chart -200, -35, 400, 400, Style, Format
+
+    chart_flow 0, 200, 1000, 50, "chart_title"
+    chart_flow 300, -25, 300, 400, "chart_legend"
+
 
 
 theme_chart_layout "Finance", Master:text, Style:text, Format:text ->
@@ -92,17 +112,16 @@ theme_chart_layout "Finance", Master:text, Style:text, Format:text ->
 //    Default chart layout for finance theme
 // ----------------------------------------------------------------------------
     box "chart", 0, 0, 1600, 500
+    chart -650, -200, 1000, 350, Style, Format
 
     chart_xaxis -650, -200, 1000, 350, Style, Format
     chart_yaxis -650, -200, 1000, 350, Style, Format
 
-    flow 410, -200, 100, 50, "chart_xlabel"
-    flow -640, 180, 100, 50, "chart_ylabel"
+    chart_flow 390, -200, 100, 50, "chart_xlabel"
+    chart_flow -650, 180, 100, 50, "chart_ylabel"
 
-    flow 0, 200, 1000, 50, "chart_title"
-    flow 600, -25, 300, 400, "chart_legend"
-
-    chart -650, -200, 1000, 350, Style, Format
+    chart_flow 0, 200, 1000, 50, "chart_title"
+    chart_flow 600, -25, 300, 400, "chart_legend"
 
 
 
@@ -135,14 +154,6 @@ theme_size "Finance", Master:text, "story", 3 -> 27
 
 // Panel rotation factor
 theme_rotate "Finance", Master:text, Style:text -> rotatey 10
-
-// Transition
-theme_transition "Finance", Master:text, "chart_data" -> false
-theme_transition "Finance", Master:text, "chart_xlabel" -> false
-theme_transition "Finance", Master:text, "chart_ylabel" -> false
-theme_transition "Finance", Master:text, "chart_tick" -> false
-theme_transition "Finance", Master:text, "chart_title" -> false
-theme_transition "Finance", Master:text, "chart_legend" -> false
 
 // Color
 theme_color "Finance", Master:text, "title" -> color finance_color "blue1"; light 0, false
@@ -254,6 +265,7 @@ theme_box "Finance", Master:text, "title", X:real, Y:real, W:real, H:real ->
 //   Draw the background box for text and flows
 // ----------------------------------------------------------------------------
     contents -10,
+        light 0, false
         theme_boxstyle "Finance", "main", "title"
         rectangle X, Y, W + 10, H + 10
         color finance_color "blue1", 0.7

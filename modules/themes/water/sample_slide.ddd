@@ -8,14 +8,14 @@ key "e" -> lang "en"; time
 key "f" -> lang "fr"; time
 
 
-main_title_slide "Main title",
+main_title_slide "Main title" fr "Page de titre",
     title
         text "Water, the blue gold" fr "L'eau, l'or bleu"
     subtitle
         text "Press E or F to change the language" fr "Appuyer sur E ou F pour changer la langue"
 
 
-base_slide "On earth...",
+base_slide "On earth..." fr "Sur la Terre...",
     title
         text "On earth..." fr "Sur la terre..."
     left_column
@@ -29,7 +29,7 @@ base_slide "On earth...",
         image_px -50, 120, 700, 525, "http://www.tuxboard.com/photos/2011/03/Carte-Consommation-personnelle-eau-par-pays-640x317.jpg" fr "http://www.energiesosfutur.org/wp-content/uploads/2012/03/CARTE-EAU.jpg"
 
 
-base_slide "Problems of water management",
+base_slide "Problems of water management" fr "Gestion de l'eau",
     title
         text "Problems of water management" fr "Problèmes de gestion de l'eau"
     left_column
@@ -43,7 +43,7 @@ base_slide "Problems of water management",
         image_px -50, 120, 700, 525, "http://cdn3.chartsbin.com/chartimages/l_1455_87e40e6f6a411f85bcc5b6ba84a271da" fr "http://www.tuxboard.com/photos/2011/03/Carte-eau-prevelements-agricultures-640x439.jpg"
 
 
-base_slide "Towards a drinkable water shortage",
+base_slide "Towards a drinkable water shortage" fr "Pénurie ?",
     title
         text "Towards a drinkable water shortage" fr "Vers une pénurie d'eau potable"
     left_column
@@ -57,11 +57,36 @@ base_slide "Towards a drinkable water shortage",
         image_px -50, 120, 700, 525, "http://www.waternunc.com/assets/images/waterscarity2025.jpg" fr "http://www.tuxboard.com/photos/2011/03/Carte-eau-dans-le-monde-2020-640x404.jpg"
 
 
-base_slide "Blue Gold",
+base_slide "Blue Gold" fr "Vidéo",
     title
         text "Blue Gold" fr "L'Or Bleu"
     picture
         movie 0, 0, 2.0, 2.0, "http://www.youtube.com/watch?v=O99Qezatso4"
+
+
+picture_slide "Withdrawals" fr "Prélèvements",
+    once 
+        chart_current "water"
+        for i in 1..4 loop
+            chart_push_data 1, 20 + 5 * i
+            chart_push_data 2, 150 - 10 * i
+            chart_push_data 3, 180 + 15 * (-1) ^ i
+    chart_set_legend 1, "Public supply" fr "Réseau public"
+    chart_set_legend 2, "Irrigation"
+    chart_set_legend 3, "Thermoelectric power" fr "Production électrique"
+
+    chart_set_xticks_labels "water", { "1985", "1990", "1995", "2000" }
+
+    chart_set_title "Withdrawals" fr "Évolution des prélèvements"
+    chart_set_format "3D"
+
+    light 0
+    light_attenuation 1 / scaling_factor, 0, 0
+    light_position 0, 0, 3000, 1
+    material_ambient 1.0, 1.0, 1.0, 1.0
+    material_diffuse 1.0, 1.0, 1.0, 1.0
+
+    chart "water", "bar"
 
 
 // ****************************************************************************

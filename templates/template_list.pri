@@ -18,7 +18,8 @@ DEFAULT_TEMPLATES =   \
     opening_pane \
     rising_text \
     mobile \
-    newsfeed
+    newsfeed \
+    charts
 
 OTHER_TEMPLATES =     \
     mapping \

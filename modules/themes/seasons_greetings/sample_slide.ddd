@@ -46,22 +46,17 @@ picture_slide "YouTube Video slide",
 
 
 picture_slide "Chart slide",
-    chart_init -> 0
-    if(chart_init = 0) then
+    once 
         chart_current "My chart"
-        chart_reset
         for i in 1..4 loop
             chart_push_data 1, 200 + 50 * i
             chart_push_data 2, 150 - 20 * i
             chart_push_data 3, 165 + i * 15 * (-1) ^ i
-        chart_init := 1
-
-    chart_set_legend 1, "First set"
-    chart_set_legend 2, "Second set"
-    chart_set_legend 3, "Third set"
-
-    chart_set_title "Sample chart"
-    chart_set_format "3D"
+        chart_set_legend 1, "First set"
+        chart_set_legend 2, "Second set"
+        chart_set_legend 3, "Third set"
+        chart_set_title "Sample chart"
+        chart_set_format "3D"
 
     light 0
     light_attenuation 1 / scaling_factor, 0, 0

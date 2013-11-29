@@ -2621,6 +2621,11 @@ void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
 {
     // Save current light and set it as dirty
     uint id = light - GL_LIGHT0;
+    if (id == 0 && lights.lights.size() == 0)
+    {
+        // Create default light
+        SetLight(GL_LIGHT0, false);
+    }
     LightState &ls = lights.lights[id];
     lights.dirty |= 1ULL << id;
     SAVE(lights);

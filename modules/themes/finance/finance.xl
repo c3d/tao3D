@@ -66,6 +66,15 @@ theme_rotate "Finance", Master:text, "chart_tick" -> false
 theme_rotate "Finance", Master:text, "chart_title" -> false
 theme_rotate "Finance", Master:text, "chart_legend" -> false
 
+// Transition
+theme_transition "Finance", Master:text, "chart_data" -> false
+theme_transition "Finance", Master:text, "chart_xlabel" -> false
+theme_transition "Finance", Master:text, "chart_ylabel" -> false
+theme_transition "Finance", Master:text, "chart_tick" -> false
+theme_transition "Finance", Master:text, "chart_title" -> false
+theme_transition "Finance", Master:text, "chart_legend" -> false
+
+
 // Chart colors
 theme_color "Finance", Master:text, "line", N:integer ->
     T := 0.8 / chart_datasets_count
@@ -94,7 +103,7 @@ theme_chart_layout "Finance", "pie", Style:text, Format:text ->
     chart -200, -35, 400, 400, Style, Format
 
     chart_flow 0, 200, 1000, 50, "chart_title"
-    chart_flow 250, -25, 300, 400, "chart_legend"
+    chart_flow 300, -25, 300, 400, "chart_legend"
 
 
 
@@ -108,7 +117,7 @@ theme_chart_layout "Finance", Master:text, Style:text, Format:text ->
     chart_xaxis -650, -200, 1000, 350, Style, Format
     chart_yaxis -650, -200, 1000, 350, Style, Format
 
-    chart_flow 410, -200, 100, 50, "chart_xlabel"
+    chart_flow 390, -200, 100, 50, "chart_xlabel"
     chart_flow -650, 180, 100, 50, "chart_ylabel"
 
     chart_flow 0, 200, 1000, 50, "chart_title"
@@ -145,14 +154,6 @@ theme_size "Finance", Master:text, "story", 3 -> 27
 
 // Panel rotation factor
 theme_rotate "Finance", Master:text, Style:text -> rotatey 10
-
-// Transition
-theme_transition "Finance", Master:text, "chart_data" -> false
-theme_transition "Finance", Master:text, "chart_xlabel" -> false
-theme_transition "Finance", Master:text, "chart_ylabel" -> false
-theme_transition "Finance", Master:text, "chart_tick" -> false
-theme_transition "Finance", Master:text, "chart_title" -> false
-theme_transition "Finance", Master:text, "chart_legend" -> false
 
 // Color
 theme_color "Finance", Master:text, "title" -> color finance_color "blue1"; light 0, false

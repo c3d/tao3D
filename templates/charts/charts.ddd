@@ -28,6 +28,9 @@ chart_set_style ""
 // Set default format
 chart_set_format "2D"
 
+// Reset exploded slice
+chart_data_set_property 1, 2, "exploded_slice", 0
+
 
 // ============================================================================
 //
@@ -55,7 +58,8 @@ picture_slide "2D exploded pie chart" fr "Diagramme 2D circulaire éclaté",
 // ----------------------------------------------------------------------------
 //   Display a 2D exploded pie chart
 // ----------------------------------------------------------------------------
-    chart_set_style "exploded"
+    // Explode the thrid slice
+    chart_data_set_property 1, 2, "exploded_slice", 50
     chart "My chart", 1, "pie"
 
 
@@ -150,8 +154,9 @@ picture_slide "3D exploded pie chart" fr "Diagramme 3D circulaire éclaté",
 // ----------------------------------------------------------------------------
 //   Display a 3D exploded pie chart
 // ----------------------------------------------------------------------------
+    // Explode the thrid slice
+    chart_data_set_property 1, 2, "exploded_slice", 50
     chart_set_format "3D"
-    chart_set_style "exploded"
     chart "My chart", 1, "pie"
 
 

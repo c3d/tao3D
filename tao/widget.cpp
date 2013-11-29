@@ -3983,8 +3983,8 @@ void Widget::startRefreshTimer(bool on)
         }
 #else
         timer.stop();
-        QCoreApplication::removePostedEvents(this, QEvent::Timer);
 #endif
+        QCoreApplication::removePostedEvents(this, QEvent::Timer);
         return;
     }
 

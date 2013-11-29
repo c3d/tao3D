@@ -54,7 +54,7 @@
 // ****************************************************************************
 
 // This file is designed to be overriden by themes, etc.
-override_priority -2
+override_priority -3
 
 
 
@@ -100,6 +100,9 @@ theme_boxstyle Theme:text,Master:text,Style:text-> color "black", 0.1
 theme_slide_width  Theme:text -> 1920
 theme_slide_height Theme:text -> 1080
 
+// Drawing zone
+theme_drawing_width  Theme:text -> 1800
+theme_drawing_height Theme:text -> 750
 
 
 // ============================================================================

@@ -6356,6 +6356,27 @@ XL::Real_p Widget::every(Context *context,
 }
 
 
+
+struct ExecOnceInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Mark node for single execution
+// ----------------------------------------------------------------------------
+{};
+
+Name_p Widget::once(Context *context, Tree_p self, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Execute prog once (or after a full reload)
+// ----------------------------------------------------------------------------
+{
+    if (!self->GetInfo<ExecOnceInfo>())
+    {
+        self->SetInfo<ExecOnceInfo>(new ExecOnceInfo);
+        context->Evaluate(prog);
+    }
+    return XL::xl_false;
+}
+
+
 Real_p Widget::mouseX(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return the position of the mouse

@@ -285,6 +285,10 @@ PREFIX(Every50Pct, real, "every",
                    "The interval is specified in seconds, with a precision "
                    "of one millisecond. The specified code evaluates for "
                    "approximately 50% of the time."))
+PREFIX(Once, boolean, "once",
+      PARM(body, code, "Code to evaluate."),
+      RTAO(once(context, self, body)),
+      SYNOPSIS("Execute some code once"))
 
 PREFIX(MouseX,  real,  "mousex", , RTAO(mouseX(self)),
        GROUP(mouse)

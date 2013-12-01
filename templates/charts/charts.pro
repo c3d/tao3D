@@ -8,7 +8,7 @@ TEMPLATE = subdirs
 
 include(../templates.pri)
 
-files.path  = $$APPINST/templates/charts.ddd
+files.path  = $$APPINST/templates/charts
 files.files = template.ini charts.ddd charts.png charts.csv theme.xl
 
 INSTALLS += files

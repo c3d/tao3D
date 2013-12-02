@@ -212,7 +212,7 @@ void UpdateApplication::check(bool show)
 
 
     // The URL where to get update information from. Redirects to a .ini file.
-    QUrl url("http://www.taodyne.com/taopresentations/1.0/update");
+    QUrl url("http://www.taodyne.com/taopresentations/2.0/update");
 
     IFTRACE(update)
         debug() << "Downloading: '" << +url.toString() << "'\n";

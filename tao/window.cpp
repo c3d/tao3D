@@ -1643,7 +1643,7 @@ void Window::tutorialsPage()
 //    Open the tutorials page on the web
 // ----------------------------------------------------------------------------
 {
-    QString url(tr("http://taodyne.com/taopresentations/1.0/tutorials/"));
+    QString url(tr("http://taodyne.com/taopresentations/2.0/tutorials/"));
     QDesktopServices::openUrl(url);
 }
 
@@ -1653,7 +1653,7 @@ void Window::forumPage()
 //    Open the forum page on the web
 // ----------------------------------------------------------------------------
 {
-    QString url(tr("http://taodyne.com/taopresentations/1.0/forum/en/"));
+    QString url(tr("http://taodyne.com/taopresentations/2.0/forum/en/"));
     QDesktopServices::openUrl(url);
 }
 #endif

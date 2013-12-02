@@ -1,5 +1,5 @@
 @INCLUDE = ../../Doxyfile
 PROJECT_NAME = \"TaoQuiz module\"
-PROJECT_NUMBER = 1.002
-QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.TaoQuiz.1.002
+PROJECT_NUMBER = 1.003
+QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.TaoQuiz.1.003
 QHP_VIRTUAL_FOLDER = TaoQuiz

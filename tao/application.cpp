@@ -51,6 +51,7 @@
 #endif
 #include "nag_screen.h"
 #include "flight_recorder.h"
+#include "tao_gl.h"
 
 #include <QString>
 #include <QSettings>
@@ -97,10 +98,10 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
-      hasFBOMultisample(false), hasGLStereoBuffers(false),
+      hasFBOMultisample(false), hasGLStereoBuffers(false), hasMipmap(false),
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
-      splash(NULL), xlr(NULL), screenSaverBlocked(false),
+      splash(NULL), win(NULL), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), peer(NULL), textureCache(NULL)
 {
 #if defined(Q_OS_WIN32)
@@ -204,6 +205,13 @@ void Application::deferredInit()
     // Adjust file polling frequency
     FileMonitorThread::pollInterval = xlr->options.sync_interval;
 
+    // OpenGL checks
+    if (!checkGL())
+    {
+        exit(1);
+        return;
+    }
+
     // Texture cache may only be instantiated after setOrganizationName
     // and setOrganizationDomain because it reads default values from
     // the user's preferences
@@ -225,13 +233,6 @@ void Application::deferredInit()
     QPixmap pm(":/images/tao_padlock.svg");
     padlockIcon = new QPixmap(pm.scaled(64, 64, Qt::IgnoreAspectRatio,
                                         Qt::SmoothTransformation));
-
-    // OpenGL checks
-    if (!checkGL())
-    {
-        exit(1);
-        return;
-    }
 
     QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV_);
     QString impress = QString("Tao Presentations Impress %1").arg(GITREV_);
@@ -580,10 +581,20 @@ bool Application::checkGL()
 
         if (QGLContext::currentContext()->isValid())
         {
+            glewInit();
+
             GLVendor   = getGLText(GL_VENDOR);
             GLRenderer = getGLText(GL_RENDERER);
             GLVersionAvailable = getGLText(GL_VERSION);
             GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
+
+#ifdef Q_OS_WIN32
+            hasMipmap = (glGenerateMipmap != NULL);
+#else
+            hasMipmap = true;
+#endif
+            IFTRACE(displaymode)
+                std::cerr << "GL mipmap support: " << hasMipmap << "\n";
         }
     }
 
@@ -627,18 +638,24 @@ bool Application::checkGL()
         if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
         {
             RECORD(ALWAYS, "Checking FBO sample buffers");
-            // Check if FBOs have sample buffers
             gl.makeCurrent();
             QGLFramebufferObjectFormat format;
             format.setSamples(4);
             QGLFramebufferObject fbo(100, 100, format);
-            QGLFramebufferObjectFormat actualFormat = fbo.format();
-            int samples = actualFormat.samples();
-            hasFBOMultisample = samples > 1;
+            int samples = 0;
+            if (fbo.isValid())
+            {
+                samples = fbo.format().samples();
+                hasFBOMultisample = samples > 1;
+            }
             IFTRACE(displaymode)
-                std::cerr << "GL FBO multisample support: "
-                          << hasFBOMultisample
-                          << " (samples per pixel: " << samples << ")\n";
+            {
+                std::cerr << "GL FBO supported; multisample support: "
+                          << hasFBOMultisample;
+                if (samples)
+                    std::cerr << " (samples per pixel: " << samples <<")";
+                std::cerr << "\n";
+            }
         }
 
         // Enable font bitmap cache only if we don't have multisampling

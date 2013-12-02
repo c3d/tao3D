@@ -154,6 +154,8 @@ window_sizes_chooser ->
         window_size 1280, 720
     chooser_choice "1280 x 768 (5:3)",
         window_size 1280, 768
+    chooser_choice "1280 x 960 (4:3)",
+        window_size 1280, 960
     chooser_choice "1600 x 900 (16:9)",
         window_size 1600, 900
     chooser_choice "1600 x 1200 (4:3)",
@@ -233,6 +235,8 @@ windows_menu ->
         window_size 1280, 720
     menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768 (5:3)",
         window_size 1280, 768
+    menu_item "TAO_VIEW_MENU:windowsize > 1280 4:3", "1280 x 960 (4:3)",
+        window_size 1280, 960
     menu_item "TAO_VIEW_MENU:windowsize > 1600x900", "1600 x 900 (16:9)",
         window_size 1600, 900
     menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200 (4:3)",
@@ -1454,13 +1458,6 @@ text_box F:text, X:real, Y:real, W:real, H:real ->
 render Body:block ->
 // ----------------------------------------------------------------------------
 //    Render anything that is not a text as is
-// ----------------------------------------------------------------------------
-    do Body
-
-
-render Body:infix ->
-// ----------------------------------------------------------------------------
-//    Render closures
 // ----------------------------------------------------------------------------
     do Body
 

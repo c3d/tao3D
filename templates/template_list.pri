@@ -19,7 +19,8 @@ DEFAULT_TEMPLATES =   \
     rising_text \
     mobile \
     newsfeed \
-    water_en_fr
+    water_en_fr \
+    charts
 
 OTHER_TEMPLATES =     \
     mapping \

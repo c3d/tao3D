@@ -131,9 +131,15 @@ int main(int argc, char **argv)
 
     try
     {
+        // Note: keep this inside a block so that ~Application gets called!
         Tao::Application tao(argc, argv);
         ret = tao.exec();
-        // Note: keep this inside a block so that ~Application gets called!
+
+#if QT_VERSION >= 0x050000
+        qInstallMessageHandler(0);
+#else
+        qInstallMsgHandler(0);
+#endif
     }
     catch(...)
     {

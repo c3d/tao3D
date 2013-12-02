@@ -196,7 +196,9 @@ public:
     uint        showGlErrors();
     QFont &     currentFont();
     QPrinter *  currentPrinter() { return printer; }
-    double      printerScaling() { return printer ? printOverscaling : 1; }
+    double      printerScaling() { return (printer
+                                           ? printOverscaling
+                                           : devicePixelRatio); }
     double      scalingFactorFromCamera();
     void        legacyDraw();
     void        drawStereoIdent();
@@ -406,6 +408,7 @@ public:
     Integer_p   pageSeconds(Tree_p self);
     Real_p      after(Context *context, double delay, Tree_p code);
     Real_p      every(Context *context, double delay, double duration, Tree_p code);
+    Name_p      once(Context *context, Tree_p self, Tree_p prog);
     Real_p      mouseX(Tree_p self);
     Real_p      mouseY(Tree_p self);
     Integer_p   screenMouseX(Tree_p self);
@@ -1133,6 +1136,7 @@ public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
     static double         currentPageTimeAPI();
+    static double         DevicePixelRatioAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);

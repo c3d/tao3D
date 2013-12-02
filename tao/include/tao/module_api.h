@@ -477,6 +477,7 @@ struct ModuleApi
     // of starting the actual playback of the media (including sound).
     bool (*offlineRendering)();
     double (*currentPageTime)();
+    double (*DevicePixelRatio)();
 };
 
 }

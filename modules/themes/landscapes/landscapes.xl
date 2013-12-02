@@ -10,7 +10,7 @@ module_description
     import_name "LandscapesTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.0
+    version 1.001
 
 module_description "fr",
     name "Thème Paysages"
@@ -18,6 +18,8 @@ module_description "fr",
 
 import Slides
 import VLCAudioVideo
+import Animate
+import Charts
 
 add_search_path "Landscapes:", module_dir
 
@@ -44,6 +46,72 @@ landscape T:text ->
     landscape_index := landscape_index + 1
 landscape Other -> false
 
+
+
+// ============================================================================
+//
+//    Charts
+//
+// ============================================================================
+
+theme_color "Landscapes", Master:text, "line", N:integer ->
+    line_color_hsv ((N - 1) * 65) mod 360, 0.612, 1.0, 0.7
+
+theme_color "Landscapes", "pie", Style:text, N:integer ->
+    color_hsv (360.0 * N) / (chart_count chart_first), 0.612, 1.0, 0.7
+    line_color "black", 0.3
+
+theme_color "Landscapes", "area", Style:text, N:integer -> theme_color "Landscapes", "bar", Style, N
+theme_color "Landscapes", "line", Style:text, N:integer -> theme_color "Landscapes", "bar", Style, N
+theme_color "Landscapes", "bar", Style:text, N:integer ->
+    color_hsv ((N - 1) * 65) mod 360, 0.612, 1.0, 0.7
+    line_color "black", 0.3
+
+theme_fade "Landscapes", "pie", Style:text, N:integer, Index:integer -> fade_at(page_time, (Index + 1))
+theme_fade "Landscapes", Master:text, Style:text, N:integer, Index:integer -> fade_at(page_time, N - chart_first + 1)
+
+theme_boxstyle "Landscapes",Master:text,"chart" -> light 0, false; color "white",0.0
+theme_boxstyle "Landscapes",Master:text,"pie" -> light 0, false; color "white",0.0
+
+theme_chart "Landscapes", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
+// ----------------------------------------------------------------------------
+//   Display chart part
+// ----------------------------------------------------------------------------
+    Ratio := (chart_data_ratio (N, Index))
+    T -> 0.0
+    on "pageentry",
+        T := 0.0
+    T in [0..1]
+        time
+        T := T + 0.002
+    locally
+        show (T * 0.7)
+        theme_chart "Landscapes", Master, Style, "3D", W, H, N, Index, Ratio * T
+
+
+theme_chart "Landscapes", Master:text, Style:text, Format:text, W:real, H:real, N:integer, Index:integer ->
+// ----------------------------------------------------------------------------
+//   Display chart part
+// ----------------------------------------------------------------------------
+    Ratio := chart_data_ratio (N, Index)
+    R -> 0.0
+    on "pageentry",
+        R := 0.0
+    R in [0..1]
+        time
+        R := R + 0.002
+    locally
+        show R
+        theme_chart "Landscapes", Master, Style, Format, W, H, N, Index, Ratio * R
+
+
+
+// ============================================================================
+//
+//    Slides
+//
+// ============================================================================
+
 theme_background "Landscapes", Master:text ->
 // ----------------------------------------------------------------------------
 //   Display landscape pictures
@@ -64,7 +132,7 @@ theme_color "Landscapes",Master:text,"title"     -> color "white"; line_color "b
 
 theme_font "Landscapes",Master:text,Style:text     -> font "TeXGyreAdventor", "Yanone Kaffeesatz Regular"
 
-theme_boxstyle "Landscapes",Master:text,Style:text  -> color "white",0.4; line_color "black", 0.30
+theme_boxstyle "Landscapes",Master:text,Style:text  -> light 0, false; color "white",0.6; line_color "black", 0.30
 
 theme_align "Landscapes",Master:text,"story", N  -> margins 25+50*N, 0
 
@@ -79,3 +147,5 @@ theme_box "Landscapes",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
             gradient_color 0.5, 0.9, 0.9, 1, 0.99
             gradient_color 1.0, 0.9, 0.9, 1, 1.0
         rectangle X, Y, W + 10, H + 10
+
+

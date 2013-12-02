@@ -1317,6 +1317,16 @@ bool Widget::offlineRenderingAPI()
 }
 
 
+double Widget::DevicePixelRatioAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to device pixel ratio
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = findTaoWidget();
+    return widget->devicePixelRatio;
+}
+
+
 void Widget::makeGLContextCurrent()
 // ----------------------------------------------------------------------------
 //   Make GL context of the current Tao widget the current GL context
@@ -3983,8 +3993,8 @@ void Widget::startRefreshTimer(bool on)
         }
 #else
         timer.stop();
-        QCoreApplication::removePostedEvents(this, QEvent::Timer);
 #endif
+        QCoreApplication::removePostedEvents(this, QEvent::Timer);
         return;
     }
 
@@ -6353,6 +6363,27 @@ XL::Real_p Widget::every(Context *context,
         refreshOn(QEvent::Timer, start + delay);
     }
     return new XL::Real(elapsed);
+}
+
+
+
+struct ExecOnceInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Mark node for single execution
+// ----------------------------------------------------------------------------
+{};
+
+Name_p Widget::once(Context *context, Tree_p self, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Execute prog once (or after a full reload)
+// ----------------------------------------------------------------------------
+{
+    if (!self->GetInfo<ExecOnceInfo>())
+    {
+        self->SetInfo<ExecOnceInfo>(new ExecOnceInfo);
+        context->Evaluate(prog);
+    }
+    return XL::xl_false;
 }
 
 
@@ -13107,7 +13138,7 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
         *top = toInsert;
         toInsert->SetSymbols(xlProgram->symbols);
     }
-    else
+    else if (top)
     {
         if (Infix *statements = program->AsInfix())
         {
@@ -13121,6 +13152,10 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
         XL::Symbols *symbols = (*what)->Symbols();
         *what = new XL::Infix("\n", *what, toInsert);
         (*what)->SetSymbols(symbols);
+    }
+    else
+    {
+        xlProgram->tree = toInsert;
     }
 
     // Reload the program and mark the changes

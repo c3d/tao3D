@@ -390,6 +390,13 @@ struct PurgeGLContextSensitiveInfo : XL::Action
 };
 
 
+struct ExecOnceInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Mark node for single execution
+// ----------------------------------------------------------------------------
+{};
+
+
 Widget::Widget(Widget &o, const QGLFormat &format)
 // ----------------------------------------------------------------------------
 //   Create a copy of a widget [with a different QGLFormat]. INVALIDATES o.
@@ -654,14 +661,14 @@ void Widget::runPurgeAction(XL::Action &purge)
 }
 
 
-struct PurgeTaoInfo : XL::Action
+template <class T> struct PurgeInfo : XL::Action
 // ----------------------------------------------------------------------------
-//   Delete all TaoInfo structures in a tree
+//   Delete all XL::Info structures of type T in a tree
 // ----------------------------------------------------------------------------
 {
     virtual Tree *Do (Tree *what)
     {
-        what->Purge<Tao::Info>();
+        what->Purge<T>();
         return what;
     }
 };
@@ -672,7 +679,7 @@ void Widget::purgeTaoInfo()
 //   Delete all TaoInfo associated with the current program
 // ----------------------------------------------------------------------------
 {
-    PurgeTaoInfo purge;
+    PurgeInfo<Tao::Info> purge;
     runPurgeAction(purge);
 }
 
@@ -4542,6 +4549,9 @@ void Widget::refreshProgram()
     }
     if (needRefresh)
     {
+        PurgeInfo<ExecOnceInfo> purgeOnceInfo;
+        xlProgram->tree->Do(purgeOnceInfo);
+
         // If a file was modified, we need to refresh the screen
 
         transitionStartTime = 0;
@@ -6366,12 +6376,6 @@ XL::Real_p Widget::every(Context *context,
 }
 
 
-
-struct ExecOnceInfo : XL::Info
-// ----------------------------------------------------------------------------
-//    Mark node for single execution
-// ----------------------------------------------------------------------------
-{};
 
 Name_p Widget::once(Context *context, Tree_p self, Tree_p prog)
 // ----------------------------------------------------------------------------

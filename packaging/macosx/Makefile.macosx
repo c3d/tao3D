@@ -1,7 +1,7 @@
 # Makefile to build a MacOSX installer (.dmg)
 #
 # The application is distributed as a disk image (.dmg) which
-# contains an application bundle (Tao Presentations.app).
+# contains an application bundle (Tao Presentations*.app).
 #
 # To build the package, this Makefile goes through the following
 # steps:
@@ -14,31 +14,6 @@
 #   - if the module SDK is enabled:
 #     - create and copy the SDK directory
 #   - create the DMG from ./buid_root
-#
-# HOW TO CHANGE THE APPEARANCE OF THE DISK IMAGE IN FINDER
-#
-# The template/ folder serves (guess what?) as a template for the
-# final disk image. Its content is copied into build_root/ before
-# building the disk image (dot_DS_Store is renamed .DS_Store).
-#
-# - To change the icon of the disk image, replace
-# template/.VolumIcon.icns and follow the steps below (new
-# dot_DS_store).
-# - The appearance of the Finder window (icon position, size, window
-# size...) is controled by the file build_root/.DS_Store (copied from
-# template/dot_DS_Store).
-# Unfortunately, simply changing these settings through the Finder
-# "Show View Options" does not work. It has to be done inside a
-# mounted disk image. Therefore, here is how to change this file:
-#
-# $ make kit K=1
-# $ open tmp.dmg
-# Edit appearance through the Finder's "Show View Options", and eject
-# the disk image to flush file buffers
-# $ open tmp.dmg
-# $ cp -fp /Volumes/Tao\ Presentations/.DS_Store template/dot_DS_Store
-# Eject tmp.dmg again, then run "make clean.dmg ; make" to build the
-# final disk image.
 #
 # Usage:
 #   make kit
@@ -56,7 +31,7 @@ GIT_VERSION=1.7.12.1
 
 # Warning: GIT_DESTDIR can't contain spaces
 GIT_DESTDIR=$(shell pwd)/git_build/install
-GIT_DEST=$(shell pwd)/build_root/Tao Presentations.app/Contents/MacOS/git
+GIT_DEST=$(shell pwd)/build_root/$(APP_NAME).app/Contents/MacOS/git
 define git-makeparms
 NO_DARWIN_PORTS=1 NO_GETTEXT=1 NO_INSTALL_HARDLINKS=1 \
 NO_PERL=1 NO_PYTHON=1 NO_TCLTK=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
@@ -71,56 +46,42 @@ endif
 ifdef PACKAGE_APPEND
 APPENDSTR=$(PACKAGE_APPEND) # ends with one space - do not remove this comment!
 endif
-DMG=Tao Presentations $(APPENDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
+VOLNAME=Tao Presentations $(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
+DMG=$(VOLNAME).$(ARCH).dmg
 
 kit: .dmg_ts
 
-tao.dmg .dmg_ts: tmp.dmg
-	rm -f tao.dmg
-	hdiutil convert -format UDBZ -o tao.dmg tmp.dmg
-	[ "$(K)" ] || rm -f tmp.dmg
-	mv tao.dmg "$(DMG)"
+$(DMG) .dmg_ts: prepare
+	./create_dmg --volname "$(VOLNAME)" \
+	    --volicon VolumeIcon.icns \
+	    --background DMG_image.png \
+	    --icon-size 140 \
+	    --window-size 500 400 --icon "$(APP_NAME)" 120 200 \
+	    --app-drop-link 380 200 --no-internet-enable \
+	    "$(DMG)" build_root
 	touch .dmg_ts
 
-prepare: .tao_install_ts $(MAYBE_GIT_INSTALL) .cp_template_ts .cp_sdk_ts
-
-# Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
-tmp.dmg: prepare
-	hdiutil create tmp.dmg -fs HFSX -format UDRW -srcfolder build_root -volname "Tao Presentations"
-	hdiutil attach tmp.dmg
-	SetFile -a C "/Volumes/Tao Presentations"
-	hdiutil detach "/Volumes/Tao Presentations"
+prepare: .tao_install_ts $(MAYBE_GIT_INSTALL) .cp_sdk_ts
 
 clean: $(MAYBE_GIT_CLEAN) clean.tao clean.dmg clean.cp_sdk
 
 veryclean: clean $(MAYBE_GIT_VERYCLEAN)
 
-clean.dmg: clean.cp_template
-	rm -f tao.dmg tmp.dmg .dmg "Tao Presentations"*.dmg
-
-########
-
-.cp_template_ts:
-	ditto template build_root
-	mv build_root/dot_DS_Store build_root/.DS_Store
-	ln -s /Applications build_root
-	touch $@
-
-clean.cp_template:
-	rm -f .cp_template_ts
+clean.dmg:
+	rm -f "$(DMG)"
 
 ########
 
 .cp_sdk_ts: .tao_install_ts
 ifndef NO_SDK
-	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
+	mkdir -p "build_root/$(APP_NAME).app/Contents/MacOS"
 	$(MAKE) -C ../.. -f Makefile.sdk
-	cp -Rp ../../sdk "build_root/Tao Presentations.app/Contents/MacOS"
+	cp -Rp ../../sdk "build_root/$(APP_NAME).app/Contents/MacOS"
 	touch $@
 endif
 
 clean.cp_sdk:
-	rm -rf "build_root/Tao Presentations.app/Contents/MacOS/sdk"
+	rm -rf "build_root/$(APP_NAME).app/Contents/MacOS/sdk"
 	rm -f .cp_sdk_ts
 
 ########
@@ -133,7 +94,7 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 ########
 
 .tao_install_deps_ts: .tao_install_prog_ts
-	PACKAGE_NO_QTWEBKIT=$(PACKAGE_NO_QTWEBKIT) ./deployqt "build_root/Tao Presentations.app" "$(QMAKE_LIBDIR_QT)"
+	PACKAGE_NO_QTWEBKIT=$(PACKAGE_NO_QTWEBKIT) ./deployqt "build_root/$(APP_NAME).app" "$(QMAKE_LIBDIR_QT)"
 
 clean.tao_install_deps:
 	rm -f .tao_install_deps_ts
@@ -146,7 +107,7 @@ clean.tao_install_deps:
 	cp -Rp $(INSTROOT)/* build_root
 
 clean.tao_install_prog:
-	rm -rf "build_root/Tao Presentations".app
+	rm -rf "build_root/$(APP_NAME).app"
 	rm -f .tao_install_prog_ts
 
 ########

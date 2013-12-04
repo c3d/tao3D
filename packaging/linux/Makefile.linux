@@ -39,7 +39,7 @@ $(TAO):
 	mkdir $(TAO)
 
 $(TAO)/tao: $(TAO) install
-	cd $(TAO) ; mv Tao "$(TAOEXE)"
+	cd $(TAO) ; mv Tao "$(APP_NAME)"
 	cp tao.sh $(TAO)/tao
 	chmod +x $(TAO)/tao
 
@@ -55,15 +55,19 @@ clean: debclean
 
 # Debian package
 
+space :=
+space +=
+INSTROOT = /opt/Taodyne/$(subst $(space),,$(APP_NAME))
+ifneq (1,$(MAJOR))
+MAYBE_MAJOR=$(MAJOR)
+endif
 ifndef TAO_PLAYER
-INSTROOT = /opt/Taodyne/TaoPresentations
 PACKAGE_NAME = taopresentations
-TAOCMD = tao
+TAOCMD = tao$(MAYBE_MAJOR)
 CONTROL = control
 else
-INSTROOT = /opt/Taodyne/TaoPresentationsPlayer
 PACKAGE_NAME = taopresentationsplayer
-TAOCMD = taop
+TAOCMD = taop$(MAYBE_MAJOR)
 CONTROL = control_player
 endif
 
@@ -75,12 +79,12 @@ debian:
 	mkdir -p debian/DEBIAN debian$(INSTROOT) debian/usr/bin
 	ln -sf $(INSTROOT)/tao debian/usr/bin/$(TAOCMD)
 	mkdir -p debian/usr/share/applications
-	cp $(PACKAGE_NAME).desktop debian/usr/share/applications
-	chmod 0644 debian/usr/share/applications/$(PACKAGE_NAME).desktop
+	cp $(PACKAGE_NAME).desktop debian/usr/share/applications/$(DEBPACKAGE).desktop
+	chmod 0644 debian/usr/share/applications/$(DEBPACKAGE).desktop
 	mkdir -p debian/usr/share/icons/hicolor/scalable/apps
-	cp taopresentations.svg debian/usr/share/icons/hicolor/scalable/apps/$(PACKAGE_NAME).svg
+	cp taopresentations.svg debian/usr/share/icons/hicolor/scalable/apps/$(DEBPACKAGE).svg
 	mkdir -p debian/usr/share/mime/packages
-	cp taopresentations.xml debian/usr/share/mime/packages/$(PACKAGE_NAME).xml
+	cp taopresentations.xml debian/usr/share/mime/packages/$(DEBPACKAGE).xml
 
 prepare: debian
 	$(MAKE) -C ../../ install && cp -Rp ../../install/* $(DEBTAO)
@@ -88,7 +92,7 @@ ifndef NO_SDK
 	$(MAKE) -C ../.. -f Makefile.sdk
 	cp -Rp ../../sdk $(DEBTAO)
 endif
-	cd $(DEBTAO) ; mv Tao "$(TAOEXE)"
+	cd $(DEBTAO) ; mv Tao "$(APP_NAME)"
 	cp tao.sh $(DEBTAO)/tao
 	chmod +x $(DEBTAO)/tao
 	cp $(CONTROL) debian/DEBIAN/control

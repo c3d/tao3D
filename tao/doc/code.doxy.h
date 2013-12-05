@@ -720,6 +720,18 @@ disabled (B: block);
 
 /**
  * @~english
+ * Execute a block of code once.
+ * If the document is reloaded because it has been modified by an external
+ * process, the @c once blocks are executed again.
+ * @~french
+ * Exécute un bloc de code une seule fois.
+ * Si le document est rechargé suite à une modification due à un processus
+ * externe, les blocs @c once sont exécutés à nouveau.
+ */
+once (B: block);
+
+/**
+ * @~english
  * Returns the version identifier of Tao Presentations.
  * The version is usually un number such as <tt>1.42</tt>, but special builds may
  * contain other characters such as: <tt>1.0-beta4</tt> or <tt>1.42-22-gec22a39</tt>.

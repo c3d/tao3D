@@ -54,10 +54,11 @@ kit: .dmg_ts
 $(DMG) .dmg_ts: prepare
 	./create_dmg --volname "$(VOLNAME)" \
 	    --volicon VolumeIcon.icns \
-	    --background DMG_image.png \
+	    --background-color 35512 44800 65535 \
 	    --icon-size 140 \
-	    --window-size 500 400 --icon "$(APP_NAME)" 120 200 \
-	    --app-drop-link 380 200 --no-internet-enable \
+	    --window-pos 450 200 \
+	    --window-size 400 250 --icon "$(APP_NAME)" 100 115 \
+	    --app-drop-link 300 115 --no-internet-enable \
 	    "$(DMG)" build_root
 	touch .dmg_ts
 
@@ -68,7 +69,7 @@ clean: $(MAYBE_GIT_CLEAN) clean.tao clean.dmg clean.cp_sdk
 veryclean: clean $(MAYBE_GIT_VERYCLEAN)
 
 clean.dmg:
-	rm -f "$(DMG)"
+	rm -f "$(DMG)" .dmg_ts
 
 ########
 

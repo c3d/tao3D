@@ -5,7 +5,7 @@
 set -e;
 
 function pure_version() {
-  echo '1.0.0.2'
+  echo '1.0.0.2-t1'
 }
 
 function version() {
@@ -24,6 +24,8 @@ function usage() {
   echo "      set volume icon"
   echo "  --background pic.png"
   echo "      set folder background image (provide png, gif, jpg)"
+  echo "  --background-color R G B"
+  echo "      set folder background color (provide red, green, blue: 0-65535)"
   echo "  --window-pos x y"
   echo "      set position the folder window"
   echo "  --window-size width height"
@@ -66,6 +68,9 @@ while test "${1:0:1}" = "-"; do
       BACKGROUND_FILE_NAME="$(basename $BACKGROUND_FILE)"
       BACKGROUND_CLAUSE="set background picture of opts to file \".background:$BACKGROUND_FILE_NAME\""
       shift; shift;;
+    --background-color)
+      BACKGROUND_CLAUSE="set background color of opts to {$2, $3, $4}"
+      shift; shift; shift; shift;;
     --icon-size)
       ICON_SIZE="$2"
       shift; shift;;

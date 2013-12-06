@@ -48,6 +48,7 @@ QMAKE_DISTCLEAN += version2.h
 DEFINES += APP_NAME=\"\\\"$$APP_NAME\\\"\"
 
 macx {
+    APPNAME_NOSPC=$$replace(APPNAME,' ',)
     CFBUNDLEEXECUTABLE=$$TARGET
     XLRDIR = Contents/MacOS
     ICON = tao.icns

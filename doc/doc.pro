@@ -30,6 +30,7 @@ equals(HAS_DOXYGEN, 1) {
 
   include (../main_defs.pri)
   include (../version.pri)
+  include (../gitrev.pri)
 
   PROJECT_NUMBER = $$system(bash -c \"../tao/updaterev.sh -n\")
   macx:TAO_ICON_FOR_QHCP = ../tao/tao.icns

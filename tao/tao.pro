@@ -15,10 +15,15 @@
 
 include(../main.pri)
 include(../version.pri) # required to process Info.plist.in, tao.rc.in
+include(../gitrev.pri)
+
+VERSION = $$TAO_VERSION
+!build_pass:message(Version is $$VERSION)
 
 TEMPLATE = app
+macx:TARGET  = $$APP_NAME
 !macx:TARGET =  Tao
- macx:TARGET = "Tao Presentations"
+
 INC = . \
     include \
     include/tao \
@@ -40,6 +45,7 @@ QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
 !isEmpty(TAO_PLAYER):DEFINES *= TAO_PLAYER
 !isEmpty(NO_DOC_SIGNATURE):DEFINES *= CFG_NO_DOC_SIGNATURE
+DEFINES += APP_NAME=\"\\\"$$APP_NAME\\\"\"
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET

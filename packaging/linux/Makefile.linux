@@ -55,29 +55,23 @@ clean: debclean
 
 # Debian package
 
-space :=
-space +=
-INSTROOT = /opt/Taodyne/$(subst $(space),,$(APP_NAME))
 ifneq (1,$(MAJOR))
 MAYBE_MAJOR=$(MAJOR)
 endif
 ifndef TAO_PLAYER
 PACKAGE_NAME = taopresentations
-TAOCMD = tao$(MAYBE_MAJOR)
 CONTROL = control
 else
 PACKAGE_NAME = taopresentationsplayer
-TAOCMD = taop$(MAYBE_MAJOR)
 CONTROL = control_player
 endif
 
-DEBTAO = debian$(INSTROOT)
+DEBTAO = debian$(TARGET_ROOT)
 
 .PHONY: debian
 
 debian:
-	mkdir -p debian/DEBIAN debian$(INSTROOT) debian/usr/bin
-	ln -sf $(INSTROOT)/tao debian/usr/bin/$(TAOCMD)
+	mkdir -p debian/DEBIAN $(DEBTAO) debian/usr/bin
 	mkdir -p debian/usr/share/applications
 	cp $(PACKAGE_NAME).desktop debian/usr/share/applications/$(DEBPACKAGE).desktop
 	chmod 0644 debian/usr/share/applications/$(DEBPACKAGE).desktop
@@ -96,8 +90,8 @@ endif
 	cp tao.sh $(DEBTAO)/tao
 	chmod +x $(DEBTAO)/tao
 	cp $(CONTROL) debian/DEBIAN/control
-	cp postinst postrm debian/DEBIAN
-	chmod 0755 debian/DEBIAN/postinst debian/DEBIAN/postrm
+	cp postinst prerm postrm debian/DEBIAN
+	chmod 0755 debian/DEBIAN/postinst debian/DEBIAN/prerm debian/DEBIAN/postrm
 	size=$$(du -sk debian | cut -f1); (cd debian/DEBIAN; sed -e "s/@INSTALLED_SIZE@/$$size/" control > control.tmp && mv control.tmp control)
 
 run-dpkg-deb = fakeroot dpkg-deb --build debian $(TAO)-$(ARCH).deb

@@ -11,4 +11,4 @@ gconftool-2 --type=bool --set /desktop/gnome/url-handlers/taos/enabled true || /
 
 gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 
-update-alternatives --install /usr/bin/tao $$ALTERNATIVES_NAME $$TARGET_ROOT/tao $$ALTERNATIVES_PRIORITY
+update-alternatives --install /usr/bin/tao tao $$TARGET_ROOT/tao $$ALTERNATIVES_PRIORITY

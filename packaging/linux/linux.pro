@@ -33,11 +33,26 @@ QMAKE_EXTRA_TARGETS = kit prepare tar clean distclean
 include (../../main_defs.pri)
 include (../../version.pri)
 include (../../gitrev.pri)
-DEBPACKAGE=$$lower($$replace(APP_NAME, ' ', ))
+
+DEBPACKAGE = $$lower($$replace(APP_NAME, ' ', ))
+
+TARGET_ROOT = /opt/Taodyne/$$replace(APP_NAME, ' ',)
+
+# /usr/bin/tao is a symlink maintained by update-alternatives
+greaterThan(MAJOR, 1):M = $$MAJOR
+isEmpty(TAO_PLAYER) {
+  ALTERNATIVES_PRIORITY = $$system(expr $$MAJOR + 100)
+  ALTERNATIVES_NAME = tao$$M
+} else {
+  ALTERNATIVES_PRIORITY = $$MAJOR
+  ALTERNATIVES_NAME = taop$$M
+}
+
 # Minimal version of Qt packages (Ubuntu packaging, see control.in)
 # Note: Use show_deps.sh to maintain the list of dependencies
 QTVER="4:4.7.4"
-QMAKE_SUBSTITUTES = Makefile.config.in tao.sh.in
+
+QMAKE_SUBSTITUTES = Makefile.config.in tao.sh.in postinst.in prerm.in
 isEmpty(TAO_PLAYER) {
   QMAKE_SUBSTITUTES += control.in
 } else {

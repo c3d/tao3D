@@ -1,1 +1,1 @@
-update-alternatives --remove $$ALTERNATIVES_NAME $$TARGET_ROOT/tao
+update-alternatives --remove tao $$TARGET_ROOT/tao

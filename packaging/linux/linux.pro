@@ -41,12 +41,12 @@ TARGET_ROOT = /opt/Taodyne/$$replace(APP_NAME, ' ',)
 # /usr/bin/tao is a symlink maintained by update-alternatives
 greaterThan(MAJOR, 1):M = $$MAJOR
 isEmpty(TAO_PLAYER) {
-  ALTERNATIVES_PRIORITY = $$system(expr $$MAJOR + 100)
-  ALTERNATIVES_NAME = tao$$M
+  NOTPLAYER = 1
 } else {
-  ALTERNATIVES_PRIORITY = $$MAJOR
-  ALTERNATIVES_NAME = taop$$M
+  NOTPLAYER = 0
 }
+ALTERNATIVES_PRIORITY = $$system(echo $(($$RELEASE + $$MINOR * 100 + $$MAJOR * 10000 + $$NOTPLAYER * 1000000)))
+message(PRIO=$$ALTERNATIVES_PRIORITY)
 
 # Minimal version of Qt packages (Ubuntu packaging, see control.in)
 # Note: Use show_deps.sh to maintain the list of dependencies

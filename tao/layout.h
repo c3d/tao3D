@@ -120,9 +120,9 @@ public:
     virtual uint        ChildrenSelected();
 
     // Event interface
-    virtual bool        Refresh(QEvent *e, double now,
+    bool                Refresh(QEvent *e, double now,
                                 Layout *parent=NULL, QString dbg = "");
-    virtual void        RefreshLayouts(Layouts &layouts);
+    void                RefreshLayouts(Layouts &layouts);
     bool                RefreshChildren(QEvent *e, double now, QString debug);
     bool                NeedRefresh(QEvent *e, double when);
     void                RefreshOn(Layout *);

@@ -4,6 +4,7 @@
 // ****************************************************************************
 
 import Slides
+import Charts
 
 module_description
     id "1F58ECFC-7A28-4043-A62F-F73A1FE63767" 
@@ -12,11 +13,32 @@ module_description
     import_name "PastelTrianglesTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.001
+    version 1.002
 
 module_description "fr",
     name "Thème Triangles Pastel"
     description "Un thème avec des triangles pastels se déplaçant lentement sur le fond"
+
+
+// ============================================================================
+//
+//    Charts
+//
+// ============================================================================
+
+// Chart colors
+theme_color "PastelTriangles", Master:text, "line", N:integer -> line_color_hsv (336.0 * N) / chart_datasets_count, 0.3, 1.0, 1.0
+theme_color "PastelTriangles", "pie", Style:text, N:integer -> color_hsv (336.0 * N) / (chart_count chart_first), 0.3, 1.0, 1.0
+theme_color "PastelTriangles", "area", Style:text, N:integer -> theme_color "PastelTriangles", "bar", Style, N
+theme_color "PastelTriangles", "line", Style:text, N:integer -> theme_color "PastelTriangles", "bar", Style, N
+theme_color "PastelTriangles", "bar", Style:text, N:integer -> color_hsv (336.0 * N) / chart_datasets_count, 0.3, 1.0, 1.0
+
+// No boxes for charts components (except title)
+theme_box "PastelTriangles",Master:text,"chart_legend", X:real,Y:real,W:real,H:real -> false
+theme_box "PastelTriangles",Master:text,"area", X:real,Y:real,W:real,H:real -> false
+theme_box "PastelTriangles",Master:text,"bar", X:real,Y:real,W:real,H:real -> false
+theme_box "PastelTriangles",Master:text,"line", X:real,Y:real,W:real,H:real -> false
+theme_box "PastelTriangles",Master:text,"pie", X:real,Y:real,W:real,H:real -> false
 
 
 // ============================================================================
@@ -80,8 +102,6 @@ theme_box "PastelTriangles",Master:text,Style:text, X:real,Y:real,W:real,H:real 
 
 pastel_triangles_current -> 0.0
 pastel_triangles_target -> 0.0
-
-
 
 // ****************************************************************************
 // Copyright Taodyne SAS, 2012

@@ -1,0 +1,81 @@
+// Surcharge le raccourci qui éteint l'affichage 
+key "b" -> {}
+
+on "keydown:Control-X",
+    if page_label != "Commandes" then
+        goto_page "Commandes"
+    else
+        goto_page prev_page_label
+
+on "keydown:Control-D",
+    writeln "À bientôt!"
+    exit 0
+
+page "Rectangle",
+    text_box 0, 0, window_width, window_height,
+        color "black"
+        font "Ubuntu", 24
+        align_center
+        vertical_align_bottom
+        text "Appuyez sur "
+        if is_available mac then text "Cmd-X !" else text "Ctrl-X !"
+    color "red"
+    rectangle 0, 0, 200, 100
+
+page "Cercle",
+    color "orange"
+    circle 0, 0, 100
+
+page "Séparation",
+    goto_page page_name (page_number - 1)
+
+
+CX -> if is_available mac then "<Cmd-X> : " else "<Ctrl-X> :"
+Log -> "" 
+if Log = "" then
+    Log := "Interpréteur de commandes" & cr & " " & CX
+    Log := Log & " Retour à la page précédente" & cr
+    Log := Log & " aide:      Afficher l'aide"
+Msg -> ""
+MsgLen -> text_length Msg
+KPTime -> 0.0
+page "Commandes",
+    on "keydown:\S| |Key_Backspace|Key_Return",
+        KPTime := page_time
+        if key_name = "Key_Backspace" then
+            if MsgLen > 0 then
+                Msg := text_range Msg, 0, (MsgLen - 1)
+        else if key_name = "Key_Return" then
+            Log := Log & cr & "> " & Msg
+            if Msg = "aide" or Msg = "?" then
+                Log := Log & cr & "Commandes disponibles :" & cr & " aide, cercle, effacer, rect, retour"
+            else if Msg = "effacer" then
+                Log := " "
+            else if Msg = "cercle" then
+                goto_page "Cercle"
+            else if Msg = "rect" then
+                goto_page "Rectangle"
+            else if Msg = "retour" then
+                goto_page prev_page_label
+            else
+                Log := Log & cr & "?"
+            Msg := ""
+        else
+            Msg := Msg & key_text
+    clear_color 0.16, 0.16, 0.13, 1.0
+    locally
+        color 0.17, 0.19, 0.17, 1.0
+        rectangle 0, 12.5, window_width - 50, window_height - 75
+    font "Courier New", 25
+    color "white"
+    text_box 0, 12.5, window_width - 50, window_height - 75, 
+        vertical_align_bottom
+        align_left
+        text Log 
+    text_box 0, 25 - 0.5 * window_height, window_width - 50, 25,
+        align_left
+        text "> " & Msg & " " 
+        if (integer ((page_time - KPTime) * 1.5)) mod 2 = 0 then
+            anchor
+                color 0, 0.75, 0.15
+                rectangle -6, 8, 12, 24

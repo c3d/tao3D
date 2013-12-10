@@ -5,6 +5,7 @@
 // ****************************************************************************
 
 import Slides
+import Charts
 
 module_description
     id "C3FE1E13-F4EB-4E65-96D9-73C8FBBFC90D" 
@@ -13,7 +14,7 @@ module_description
     import_name "BlueClaireTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.001
+    version 1.002
 
 module_description "fr",
     name "Theme BleuClaire"
@@ -34,6 +35,8 @@ add_search_path "BlueClaire:", module_dir
 theme_slide_width  "BlueClaire" -> 1024
 theme_slide_height "BlueClaire" -> 768
 
+theme_drawing_width "BlueClaire" -> 880
+theme_drawing_height "BlueClaire" -> 550
 
 // ============================================================================
 // 
@@ -48,10 +51,28 @@ theme_color      "BlueClaire","section","subtitle"      -> color "#264580"
 theme_color      "BlueClaire",Master:text,"title"       -> color "#960000"
 theme_color      "BlueClaire",Master:text,"subtitle"    -> color "#264580"
 theme_color      "BlueClaire",Master:text,"story"       -> color "black"
+theme_color      "BlueClaire", Master:text, "line", N:integer ->
+    T := 0.4 / chart_datasets_count
+    line_color_hsv 212, 0.56 - T * N, 0.74 + T * N
+theme_color      "BlueClaire", "pie", Style:text, N:integer ->
+    T := 0.4 / (chart_count chart_first)
+    color_hsv 212, 0.56 - T * N, 0.74 + T * N
+theme_color      "BlueClaire", "area", Style:text, N:integer -> theme_color "BlueClaire", "bar", Style, N
+theme_color      "BlueClaire", "line", Style:text, N:integer -> theme_color "BlueClaire", "bar", Style, N
+theme_color      "BlueClaire", "bar", Style:text, N:integer ->
+    T := 0.4 / chart_datasets_count
+    color_hsv 212, 0.56 - T * N, 0.74 + T * N
+
 theme_font       "BlueClaire",Master:text,"story"       -> font "TeX Gyre Adventor", "Ubuntu", "Arial"
 theme_boxstyle   "BlueClaire",Master:text,"title"       -> color "transparent"
 theme_boxstyle   "BlueClaire",Master:text,Style:text    -> color "transparent"
 
+// Size
+theme_size "BlueClaire",Master:text,"chart_data"        -> 15
+theme_size "BlueClaire",Master:text,"chart_label"       -> 20
+theme_size "BlueClaire",Master:text,"chart_tick"        -> 15
+theme_size "BlueClaire",Master:text,"chart_title"       -> 25
+theme_size "BlueClaire",Master:text,"chart_legend"      -> 20
 theme_size "BlueClaire",Master:text,"story"             -> 32
 theme_size "BlueClaire",Master:text,"title"             -> 48
 theme_size "BlueClaire",Master:text,"subtitle"          -> 32
@@ -128,14 +149,57 @@ theme_layout "BlueClaire", Master:text ->
     flow  300, -80, 400, 580, "right"
 
 
-theme_picture Theme:text, Master:text, Body ->
+theme_picture "BlueClaire", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default picture box (keep consistent with layout below)
 // ----------------------------------------------------------------------------
     contents 0,
         translate 80, -80, 0
-        theme_color Theme, Master, "picture"
+        theme_color "BlueClaire", Master, "picture"
         Body
+
+
+
+// ============================================================================
+//
+//    Charts layouts
+//
+// ============================================================================
+
+theme_chart_layout "BlueClaire", "pie", Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Pie chart layout for Autumn theme
+// ----------------------------------------------------------------------------
+    chart 0, -35, 400, 400, Style, Format
+
+    chart_flow 0, 235, 850, 50, "chart_title"
+    chart_flow 350, -25, 250, 400, "chart_legend"
+
+    locally
+        translatex 35
+        box "chart", 0, 0, chart_width, chart_height
+
+
+theme_chart_layout "BlueClaire", Master:text, Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Default chart layout for Autumn theme
+// ----------------------------------------------------------------------------
+
+    chart_flow 0, 235, 850, 50, "chart_title"
+    chart_flow 350, -25, 250, 400, "chart_legend"
+
+    chart_flow 265, -225, 100, 50, "chart_xlabel"
+    chart_flow -325, 200, 100, 50, "chart_ylabel"
+
+    // Draw axis
+    chart_xaxis -325, -225, 550, 400, Style, Format
+    chart_yaxis -325, -225, 550, 400, Style, Format
+
+    chart -325, -225, 550, 400, Style, Format
+
+    locally
+        translatex 35
+        box "chart", 0, 0, chart_width, chart_height
 
 
 // ****************************************************************************

@@ -438,13 +438,9 @@ void Ellipse::Draw(GraphicPath &path)
 
 void EllipseArc::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
-//    Draw an arc of ellipse
+//    Draw an arc of ellipse or an ellipse sector
 // ----------------------------------------------------------------------------
 {
-    QPainterPath qt;
-    Point center = bounds.Center();
-    qt.moveTo(center.x, center.y);
-
     if (sweep > 0)
     {
         // Fix for #3101: make sure the polygon is always oriented right
@@ -452,10 +448,23 @@ void EllipseArc::Draw(GraphicPath &path)
         sweep = -sweep;
     }
 
+    QPainterPath qt;
+    if (sector)
+    {
+        Point center = bounds.Center();
+        qt.moveTo(center.x, center.y);
+    }
+    else
+    {
+        qt.arcMoveTo(bounds.lower.x, bounds.lower.y,
+                     bounds.Width(), bounds.Height(),
+                     start);
+    }
     qt.arcTo(bounds.lower.x, bounds.lower.y,
              bounds.Width(), bounds.Height(),
              start, sweep);
-    qt.closeSubpath();
+    if (sector)
+        qt.closeSubpath();
     path.addQtPath(qt);
 }
 

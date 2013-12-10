@@ -4,6 +4,7 @@
 // ****************************************************************************
 
 import Slides
+import Charts
 
 module_description
     id "78DF4E14-6E7F-4F93-AB2A-FB099BD2B25B" 
@@ -12,7 +13,7 @@ module_description
     import_name "LuckyStarsTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.002
+    version 1.003
 
 module_description "fr",
     name "Thème Lucky Stars"
@@ -71,8 +72,27 @@ lucky_star N:integer ->
 
 
 theme_color "LuckyStars",Master:text,"picture"   -> color "white"
-theme_color "LuckyStars",Master:text,"story"     -> color "lightyellow"
+theme_color "LuckyStars",Master:text,"story"     -> light 0, false; color "lightyellow"
+theme_color "LuckyStars", Master:text, "line", N:integer ->
+    line_color_hsv (360.0 * N) / chart_datasets_count, 0.3, 0.8, 1
+theme_color "LuckyStars", "pie", Style:text, N:integer ->
+    color_hsv (360.0 * N) / (chart_count chart_first), 0.3, 0.8, 1
+
+theme_color "LuckyStars", "area", Style:text, N:integer -> theme_color "LuckyStars", "bar", Style, N
+theme_color "LuckyStars", "line", Style:text, N:integer -> theme_color "LuckyStars", "bar", Style, N
+theme_color "LuckyStars", "bar", Style:text, N:integer ->
+    color_hsv (360.0 * N) / chart_datasets_count, 0.3, 0.8, 1
+
 theme_font "LuckyStars",Master:text,"story"      -> font "Luckiest Guy", "Times"
+
+// No boxes for charts components
+theme_box "LuckyStars",Master:text,"chart_title", X:real,Y:real,W:real,H:real -> false
+theme_box "LuckyStars",Master:text,"chart_legend", X:real,Y:real,W:real,H:real -> false
+theme_box "LuckyStars",Master:text,"area", X:real,Y:real,W:real,H:real -> false
+theme_box "LuckyStars",Master:text,"bar", X:real,Y:real,W:real,H:real -> false
+theme_box "LuckyStars",Master:text,"line", X:real,Y:real,W:real,H:real -> false
+theme_box "LuckyStars",Master:text,"pie", X:real,Y:real,W:real,H:real -> false
+
 
 theme_boxstyle "LuckyStars",Master:text,Style:text->
 // ----------------------------------------------------------------------------
@@ -137,9 +157,45 @@ theme_layout "LuckyStars", Master:text ->
         flow  475, -120, 850, 750, "right"
 
 
+theme_picture "LuckyStars", Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translatey -150
+        theme_color "LuckyStars", Master, "picture"
+        Body
+
+
+theme_left_column_picture "LuckyStars", Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default left column picture (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate -475, -150, 0
+        theme_color "LuckyStars", Master, "picture"
+        Body
+
+
+theme_right_column_picture "LuckyStars", Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default right column picture (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate 475, -150, 0
+        theme_color "LuckyStars", Master, "picture"
+        Body
+
+
 lucky_stars_current -> 0.0
 lucky_stars_target -> 0.0
 
+
+// ============================================================================
+//
+//    Charts Layouts
+//
+// ============================================================================
 
 
 // ****************************************************************************

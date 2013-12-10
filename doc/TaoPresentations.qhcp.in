@@ -4,8 +4,8 @@
 	<!-- Do not set title here because you cannot specify translations -->
 	<!-- We keep default title wich is correctly translated by tr() in ../assistant -->
 	<!-- <title>Tao Presentations Help</title> -->
-        <cacheDirectory>Taodyne/Tao Presentations</cacheDirectory>
-        <startPage>qthelp://com.taodyne.taopresentations.$$VERSION/TaoPresentations/index.html</startPage>
+        <cacheDirectory>Taodyne/$$APP_NAME</cacheDirectory>
+        <startPage>qthelp://com.taodyne.taopresentations.$$TAO_VERSION/TaoPresentations/index.html</startPage>
         <aboutDialog>
             <file>about_help.html</file>
             <file language=\"fr\">about_help_fr.html</file>

@@ -65,6 +65,9 @@
 #     Removes menus: File>New from Template..., Help>Themes and Help>Examples.
 #   DEFINES+=CFG_NO_QTWEBKIT
 #     Do not use QtWebKit. The url and url_texture primitives become no-ops.
+#   DEFINES+=CFG_UNLICENSED_MAX_PAGES=<N>
+#     Tao Player and Tao Design (non-Pro editions) will limit the number of
+#     pages in a document to <N>, unless the document has a valid signature.
 #
 #   modules=none
 #     Do not build any Tao module

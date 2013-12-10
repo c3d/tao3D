@@ -5,9 +5,8 @@
  * This group of primitives deals with the page attributes.
  * 
  * A document is made of one or more pages. Pages are primarily identified by a name.
- * Navigation between pages is not necessarily linear, it may be built by the document's author. A default linear navigation is automaticaly build.
- *
- * Currently the page is a A4 paper in portrait format.
+ * Navigation between pages is not necessarily linear, it may be built by the
+ * document's author. A default linear navigation is automaticaly build.
  *
 @code
 // Define a page holding an image
@@ -51,7 +50,7 @@ new_page with files "*.jpg"
  * suivante ainsi que Flèche en haut et Flèche en bas permettent par défaut de
  * parcourir les pages dans l'ordre de leur déclaration dans le document,
  * l'auteur peut choisir un ordre de parcours différent (cf. @ref page_link,
- * @ref key, @ref goto_page).
+ * @ref on "on \"key\"", @ref refKeyDetails, @ref goto_page).
  *
  * Pour l'impression, la page est par défaut au format A4 portrait.
  *
@@ -94,20 +93,22 @@ page "Images", do
  * @~english
  * Creates a new page or make page current.
  *
- * Creates a new page in the document with the given @p name, or add to the
- * content of a previously created page. The body contents will be evaluated
+ * Creates a new page in the document with the given @p name.
+ * The body contents will be evaluated
  * only when the page is being displayed. The order of pages in the document
- * is the order of page creation.
+ * is the order of page creation. If a page with the same name already
+ * an error is displayed.
  *
  * @returns The name of the previous page.
  *
  * @~french
  * Crée une nouvelle page ou complète une page existante.
  *
- * Crée une nouvelle page nommée @p name dans le document, ou ajoute du
- * contenu à la page si elle existe déjà. Le contenu de la page (@p body) n'est
+ * Crée une nouvelle page nommée @p name dans le document.
+ * Le contenu de la page (@p body) n'est
  * évalué que lorsque la page est affichée. L'ordre d'affichage des pages
- * est l'ordre de leur déclaration.
+ * est l'ordre de leur déclaration. Si une page de même nom existe déjà,
+ * une erreur est affichée.
  *
  * @returns Le nom de la page précédente.
  */
@@ -185,7 +186,7 @@ text page_link (key:text, name:text);
  * @p n est l'index de la page. La première page déclarée dans le document
  * a l'index 1. Si la page n'existe pas, une chaîne vide est renvoyée.
  */
-integer page_name (n:integer);
+text page_name (n:integer);
 
 /**
  * @~english
@@ -234,7 +235,7 @@ save_page_thumbnail(w:real, h:real, pnum:text, path:text, ptime:real);
  * @~french
  * Renvoie le nombre de pages dans le document.
  */
-page_count ();
+integer page_count ();
 
 #if 0
 /* What's the use case for page_height and page_width? */
@@ -260,8 +261,18 @@ page_width ();
  * Returns the name of the current page.
  * @~french
  * Renvoie le nom de la page courante.
+ * @~
+ * @since 1.44
  */
-page_label ();
+text page_name();
+
+/**
+ * @~english
+ * @deprecated Use @ref page_name instead.
+ * @~french
+ * @deprecated Utilisez @ref page_name.
+ */
+text page_label();
 
 /**
  * @~english
@@ -269,15 +280,26 @@ page_label ();
  * @~french
  * Renvoie le numéro (index) de la page courante.
  */
-page_number ();
+integer page_number ();
 
 /**
  * @~english
  * Returns the name of the previously displayed page.
  * @~french
  * Renvoie le nom de la page affichée précédemment.
+ * @~
+ * @since 1.44
  */
-prev_page_label ();
+text prev_page_name ();
+
+
+/**
+ * @~english
+ * @deprecated Use @ref prev_page_name instead.
+ * @~french
+ * @deprecated Utilisez @ref prev_page_name.
+ */
+text prev_page_label ();
 
 /**
  * @~english
@@ -285,7 +307,7 @@ prev_page_label ();
  * @~french
  * Renvoie le numéro (index) de la page affichée précédemment.
  */
-prev_page_number ();
+integer prev_page_number ();
 
 /**
  * @~english
@@ -482,7 +504,7 @@ real transition_duration();
  * représente le contenu de la page en cours. En cas contraire elle équivaut
  * à @c false.
  */
-tree transition_current_page();
+transition_current_page();
 
 
 /**
@@ -497,7 +519,7 @@ tree transition_current_page();
  * représente le contenu de la page qui remplacera la page en cours.
  * En cas contraire elle équivaut à @c false.
  */
-tree transition_next_page();
+transition_next_page();
 
 /**
  * @~english

@@ -52,8 +52,11 @@ public slots:
 public:
     QString      folder, fileName;
     int          x, y;
-    double       start, end;
+    double       start;      // Unix time ; -1 = current date/time
+    double       duration;   // in seconds
     double       fps;
+    int          startPage;  // 0 = current page
+    double       timeOffset; // initial value of page_time in startPage
 
 private:
     void         dismissShortly();

@@ -1,0 +1,32 @@
+# Tao Presentations error message filters
+#
+# Add one description line for each message you do not want to see reported
+# as an error by Tao Presentations.
+#
+# Each line is a regular expression that Tao will apply to each error/warning
+# message before it reaches the error window. As soon as one regular expression
+# is found to match, the message is discarded.
+# The RE syntax is the one used by QRegExp
+# (http://qt-project.org/doc/qt-4.8/qregexp.html#details).
+# Empty lines are ignored. The comment character is # in first position.
+# To write a regular expression that starts with #, simply prepend a backslash,
+# like this: \#
+# This file should be encoded as UTF-8, EOL = 0x0A.
+#
+# The default location of this file is Tao Presentation's installation
+# directory. You may add additional regular expressions by creating
+# a file called error_filters.txt in the Tao preference folder of your
+# user account:
+# - Windows: %LOCALAPPDATA%\Taodyne\Tao Presentations
+# - MacOSX:  $HOME/Library/Application Support/Taodyne/Tao Presentations
+# - Linux:   $HOME/.local/share/data/Taodyne/Tao Presentations
+# (replace 'Tao Presentations' with 'Tao Presentations Player' if you are
+# using the Player Edition).
+#
+# Debugging: tao -tfileload
+
+# Bug #3028
+shader\(s\) linked\.
+# Bug #3271
+QGLShader::link: "No errors\.
+

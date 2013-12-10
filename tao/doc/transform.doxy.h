@@ -79,14 +79,7 @@ scale (xyz:real);
 scalex (x:real);
 
 /**
- * @~english
- * Scales along the X axis.
- * Equivalent to:
- * @~french
- * Redimensionne la scène selon l'axe X.
- * Équivalent à :
- * @~
- * @code scale x, 1, 1 @endcode
+ * @copydoc scalex
  */
 scale_x (x:real);
 
@@ -103,14 +96,7 @@ scale_x (x:real);
 scaley (y:real);
 
 /**
- * @~english
- * Scales along the Y axis.
- * Equivalent to:
- * @~french
- * Redimensionne la scène selon l'axe Y.
- * Équivalent à :
- * @~
- * @code scale 1, y, 1 @endcode
+ * @copydoc scaley
  */
 scale_y (y:real);
 
@@ -127,14 +113,7 @@ scale_y (y:real);
 scalez (z:real);
 
 /**
- * @~english
- * Scales along the Z axis.
- * Equivalent to:
- * @~french
- * Redimensionne la scène selon l'axe Z.
- * Équivalent à :
- * @~
- * @code scale 1, 1, z @endcode
+ * @copydoc scalez
  */
 scale_z (z:real);
 
@@ -177,14 +156,7 @@ rotate (ra:real, rx:real, ry:real, rz:real);
 rotatex (rx:real);
 
 /**
- * @~english
- * Rotates around the X axis.
- * Equivalent to:
- * @~french
- * Rotation autour de l'axe X.
- * Équivalent à :
- * @~
- * @code rotate rx, 1, 0, 0 @endcode
+ * @copydoc rotatex
  */
 rotate_x (rx:real);
 
@@ -201,14 +173,7 @@ rotate_x (rx:real);
 rotatey (ry:real);
 
 /**
- * @~english
- * Rotates around the Y axis.
- * Equivalent to:
- * @~french
- * Rotation autour de l'axe Y.
- * Équivalent à :
- * @~
- * @code rotate ry, 0, 1, 0 @endcode
+ * @copydoc rotatey
  */
 rotate_y (ry:real);
 
@@ -225,14 +190,7 @@ rotate_y (ry:real);
 rotatez (rz:real);
 
 /**
- * @~english
- * Rotates around the Z axis.
- * Equivalent to:
- * @~french
- * Rotation autour de l'axe Z.
- * Équivalent à :
- * @~
- * @code rotate rz, 0, 0, 1 @endcode
+ * @copydoc rotatez
  */
 rotate_z (rz:real);
 
@@ -259,14 +217,7 @@ translate (x:real, y:real, z:real);
 translatex (x:real);
 
 /**
- * @~english
- * Translates along the X axis.
- * Equivalent to:
- * @~french
- * Translation le long de l'axe X.
- * Équivalent à :
- * @~
- * @code translate x, 0, 0 @endcode
+ * @copydoc translatex
  */
 translate_x (x:real);
 
@@ -283,14 +234,7 @@ translate_x (x:real);
 translatey (y:real);
 
 /**
- * @~english
- * Translates along the Y axis.
- * Equivalent to:
- * @~french
- * Translation le long de l'axe Y.
- * Équivalent à :
- * @~
- * @code translate 0, y, 0 @endcode
+ * @copydoc translatey
  */
 translate_y (y:real);
 
@@ -307,14 +251,7 @@ translate_y (y:real);
 translatez (z:real);
 
 /**
- * @~english
- * Translates along the Z axis.
- * Equivalent to:
- * @~french
- * Translation le long de l'axe Z.
- * Équivalent à :
- * @~
- * @code translate 0, 0, z @endcode
+ * @copydoc translatez
  */
 translate_z (z:real);
 
@@ -338,7 +275,7 @@ reset_transform ();
  * La valeur par défaut est la matrice identité.
  * @return 16 valeurs réelles, séparées par des virgules.
  */
-model_matrix ();
+tree model_matrix ();
 
 /**
  * @~english

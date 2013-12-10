@@ -10,11 +10,12 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
+include(version.pri)
 
 INSTROOT = $$PWD/install
 macx {
-APPINST = "$$INSTROOT/Tao Presentations.app/Contents/MacOS"
-LIBINST = "$$INSTROOT/Tao Presentations.app/Contents/Frameworks"
+APPINST = "$$INSTROOT/$${APP_NAME}.app/Contents/MacOS"
+LIBINST = "$$INSTROOT/$${APP_NAME}.app/Contents/Frameworks"
 } else {
 APPINST = $$INSTROOT
 LIBINST = $$INSTROOT

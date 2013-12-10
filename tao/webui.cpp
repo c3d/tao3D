@@ -20,6 +20,7 @@
 //  (C) 2013 Taodyne SAS
 // ****************************************************************************
 
+#include "application.h"
 #include "base.h"
 #include "process.h"
 #include "tao_utf8.h"
@@ -33,6 +34,7 @@
 #include <QStringList>
 #include <QUrl>
 #include <QtGlobal>
+#include <QUuid>
 
 namespace Tao {
 
@@ -105,10 +107,11 @@ void WebUI::startServer()
 // ----------------------------------------------------------------------------
 {
     stopServer();
-    IFTRACE(webui)
-        debug() << "Starting server (document: " << +path << ")\n";
+    token = QUuid::createUuid().toString().replace("{", "").replace("}", "");
     QStringList args;
-    args << "server.js" << path;
+    args << "server.js" << "-t" << token << path;
+    IFTRACE(webui)
+        debug() << "Starting server - args: " << +args.join(",") << "\n";
     server.start(nodePath(), args);
 }
 
@@ -143,7 +146,8 @@ void WebUI::launchBrowser()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(port);
-    QString url = QString("http://localhost:%1/").arg(port);
+    QString url = QString("http://localhost:%1/?lang=%2&token=%3").arg(port)
+                    .arg(TaoApp->lang).arg(token);
     IFTRACE(webui)
         debug() << "Launching browser at: " << +url << "\n";
     if (!QDesktopServices::openUrl(QUrl(url)))

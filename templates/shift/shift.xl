@@ -226,7 +226,7 @@ arc_sector_helper Fade:real, Start:real, Sweep:real, Hue:real, Legend:text ->
 // ----------------------------------------------------------------------------
     locally
         color_hsv Hue, 0.4, 0.9
-        ellipse_arc 0, 0, 300, 300, arc (Start*Fade), arc (Sweep*Fade)
+        ellipse_sector 0, 0, 300, 300, arc (Start*Fade), arc (Sweep*Fade)
         color "white", Fade
         locally
             translate 110 * cos(Fade*(Start+Sweep*0.5)% * 2 * pi), 110 * sin (Fade*(Start+Sweep*0.5)% * 2 * pi), 10

@@ -18,7 +18,9 @@ DEFAULT_TEMPLATES =   \
     opening_pane \
     rising_text \
     mobile \
-    newsfeed
+    newsfeed \
+    water_en_fr \
+    charts
 
 OTHER_TEMPLATES =     \
     mapping \
@@ -82,7 +84,7 @@ TEMPLATES = $$DEFAULT_TEMPLATES
 include (../modules/module_list.pri)
 !contains (MODULES, slides):TEMPLATES -= simple_slides
 !contains (MODULES, object_loader):TEMPLATES -= pigs_fly
-!contains(MODULES, tao_visuals):TEMPLATES -= pigs_fly
+!contains (MODULES, tao_visuals):TEMPLATES -= pigs_fly
 !contains (MODULES, slideshow_3d):TEMPLATES -= photo_viewer
 !contains (MODULES, lens_flare):TEMPLATES -= lens_flare
 !contains (MODULES, filters):TEMPLATES -= filters
@@ -93,3 +95,4 @@ include (../modules/module_list.pri)
 !contains (MODULES, shaders/monjori):TEMPLATES -= monjori
 !contains (MODULES, shaders/flares):TEMPLATES -= flares
 !contains (MODULES, vlc_audio_video):TEMPLATES -= YouCube
+!contains (MODULES, themes/water):TEMPLATES -= water_en_fr

@@ -708,6 +708,7 @@ PerformancesPage::PerformancesPage(QWidget *parent)
             TextureCache::instance().data(), SLOT(setCompression(bool)));
     settingsLayout->addWidget(ct, 3, 1, 1, 2);
     QCheckBox *mm = new QCheckBox(tr("Generate mipmaps for 2D textures"));
+    mm->setEnabled(TaoApp->hasMipmap);
     mm->setChecked(texture2DMipmap());
     connect(mm, SIGNAL(toggled(bool)),
             this, SLOT(setTexture2DMipmap(bool)));
@@ -1010,6 +1011,8 @@ bool PerformancesPage::texture2DMipmap()
 //   Create a mipmap when a texture is loaded from file?
 // ----------------------------------------------------------------------------
 {
+    if (!TaoApp->hasMipmap)
+        return false;
     RETURN_CACHED(texture2DMipmap_);
 }
 

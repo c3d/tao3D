@@ -60,6 +60,7 @@ protected:
     Process        server;
     QString        path;    // Path to .ddd document
     unsigned       port;    // TCP port the server is listening on
+    QString        token;   // security token shared between client and server
 };
 
 } // namespace Tao

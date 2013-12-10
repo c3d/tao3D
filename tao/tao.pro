@@ -15,10 +15,15 @@
 
 include(../main.pri)
 include(../version.pri) # required to process Info.plist.in, tao.rc.in
+include(../gitrev.pri)
+
+VERSION = $$TAO_VERSION
+!build_pass:message(Version is $$VERSION)
 
 TEMPLATE = app
+macx:TARGET  = $$APP_NAME
 !macx:TARGET =  Tao
- macx:TARGET = "Tao Presentations"
+
 INC = . \
     include \
     include/tao \
@@ -41,8 +46,10 @@ QMAKE_DISTCLEAN += version2.h
 !isEmpty(TAO_PLAYER):DEFINES *= TAO_PLAYER
 !isEmpty(NO_DOC_SIGNATURE):DEFINES *= CFG_NO_DOC_SIGNATURE
 !isEmpty(NO_WEBUI):DEFINES *= CFG_NO_WEBUI
+DEFINES += APP_NAME=\"\\\"$$APP_NAME\\\"\"
 
 macx {
+    APPNAME_NOSPC=$$replace(APPNAME,' ',)
     CFBUNDLEEXECUTABLE=$$TARGET
     XLRDIR = Contents/MacOS
     ICON = tao.icns
@@ -426,7 +433,8 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
     xl.stylesheet \
     git.stylesheet \
     nocomment.stylesheet \
-    debug.stylesheet
+    debug.stylesheet \
+    error_filters.txt
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \

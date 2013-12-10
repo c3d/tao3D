@@ -1,0 +1,38 @@
+import SeyesTheme
+import BlackAndWhiteThemes
+import PastelTrianglesTheme
+import LandscapesTheme
+import BlackAndWhiteThemes
+import SeasonsGreetingsTheme
+import WaterTheme
+import FinanceTheme
+import Charts
+import Slides
+import AutumnOnEarthTheme
+import BlueClaireTheme
+import BrightRectanglesTheme
+import LuckyStarsTheme
+import KeyboardTheme
+
+
+themes -> { "AutumnOnEarth", "BlackOnWhite", "BlueClaire", "BrightRectangles", "Finance", "keyboard", "Landscapes", "LuckyStars", "PastelTriangles", "SeasonsGreetings", "Water" }
+
+theme_index -> 1
+theme_update -> 0.0
+
+key "f" -> lang "fr"; time
+key "e" -> lang "en"; time
+
+key "Right" ->
+    if(theme_index < (size themes)) then
+        theme_update := time
+        theme_index := theme_index + 1
+
+key "Left" ->
+    if(theme_index > 1) then
+        theme_update := time
+        theme_index := theme_index - 1
+
+theme (themes at theme_index)
+
+

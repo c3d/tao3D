@@ -215,7 +215,7 @@ z_near(zn:real);
  * La valeur zNear est toujours strictement positive. La valeur par défaut
  * est 1500.0.
  */
-z_near();
+real z_near();
 
 /**
  * @~english
@@ -239,7 +239,7 @@ z_far(zf:real);
  * La valeur zFar est toujours strictement positive. La valeur par défaut
  * est 1000000.0.
  */
-z_far();
+real z_far();
 
 /**
  * @~english

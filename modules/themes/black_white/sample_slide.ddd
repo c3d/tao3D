@@ -1,48 +1,58 @@
+// Document généré par l'Éditeur Tao depuis le fichier
+// sample_slide.json le 2013-11-13T17:12:41.318Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
+
+import BlackAndWhiteThemes
 import VLCAudioVideo
-
-
+theme "BlackOnWhite"
 main_title_slide "Main title",
-    theme "BlackOnWhite"
     title
         text "Basic themes"
     subtitle
-        text "Neutral and non-intrusive themes"
-
-
+        paragraph
+            text "Neutral and non-intrusive themes"
+theme "WhiteOnBlack"
 section_slide "Section title",
-    theme "WhiteOnBlack"
     title
         text "Section title"
     subtitle
         text "Section subtitle"
-
-
+theme "WhiteOnGray"
 slide "Bullet points",
-    theme "WhiteOnGray"
     * "Bullet points"
     ** "More bullet points"
     *** "Deeper"
-    --
+    paragraph
+        text " "
     * "Again"
     ++ "Numbered text"
     ++ "Numbered"
-    -- "Additional text"
-
-
+    paragraph
+        - ""
+        text "Additional text"
+theme "BlackOnGray"
 picture_slide "Picture slide",
-    theme "BlackOnGray"
-    translatez -500
-    rotatez 3 * sin (1.2*page_time)^25 * sin(18*page_time)
-    image 0, 0, 0.9, 0.9, "http://images2.fanpop.com/image/photos/14400000/City-Lights-charlie-chaplin-14440701-1600-1213.jpg"
-    movie_only ""
-
-
+    locally
+        color "white"
+        image 0, -50, 60%, 60%, "http://images2.fanpop.com/image/photos/14400000/City-Lights-charlie-chaplin-14440701-1600-1213.jpg"
+theme "BlackOnWhite"
 picture_slide "YouTube Video slide",
-    theme "WhiteOnBlack"
-    left_picture
-        translate 100, 100, -150
-        rotatez 5
-        movie 0, 0, 1, 1, "http://www.youtube.com/watch?v=OK7pfLlsUQM&fmt=45"
+    locally
+        color "white"
+        movie -700, 0, 65%, 65%, "http://www.youtube.com/watch?v=OK7pfLlsUQM"
     right_column
-        - "Video on the left: "
-        - "The Artist (2011)"
+        vertical_align_top
+        align_left
+        paragraph
+            text " "
+        paragraph
+            - ""
+            text "Video on the left:"
+        paragraph
+            - ""
+            text "The Artist (2011)"
+    on "pageexit",
+        movie_drop "http://www.youtube.com/watch?v=OK7pfLlsUQM"

@@ -1,59 +1,61 @@
-theme "BrightRectangles"
+// Document généré par l'Éditeur Tao depuis le fichier
+// sample_slide.json le 2013-10-28T17:02:58.796Z.
+//
+// NE MODIFIEZ PAS ce fichier manuellement, sauf si vous comptez ne plus utiliser
+// l'Éditeur Tao pour faire d'autres modifications. En effet, l'éditeur n'écrase
+// jamais un fichier modifié.
+
+import BrightRectanglesTheme
 import VLCAudioVideo
-
-
+theme "BrightRectangles"
 main_title_slide "Main title",
     title
-        text "Bright rectangles"
+        text "Bright Rectangle"
     subtitle
-        text "A theme with automated geometric backgrounds"
-
-
+        paragraph
+            text "A theme with automated geometric backgrounds"
 section_slide "Section title",
     title
         text "Section title"
     subtitle
         text "Section subtitle"
-
-
 slide "Bullet points",
-    * "Bullet points"
-    ** "More bullet points"
-    *** "Deeper"
-    --
-    * "Again"
-    ++ "Numbered text"
-    ++ "Numbered"
-    -- "Additional text"
-
-
+    *
+        text_span
+            text "Bullet points"
+    **
+        text_span
+            text "More bullet points"
+    ***
+        text_span
+            text "Deeper"
+    paragraph
+        text " "
+    *
+        text_span
+            text "Again"
+    ++
+        text_span
+            text "Numbered text"
+    ++
+        text_span
+            text "Numbered"
+    paragraph
+        - ""
+        text "Additional text"
 picture_slide "Picture slide",
     locally
-        Angle -> 0.0
-        Angle := 0.5*page_time mod 360 - 350
-        translatey -10000
-        escher_image with ESCHER_IMAGES
-        escher_image E:text ->
-            if Angle >= -10 and Angle <= 10 then
-                locally
-                    rotatez Angle
-                    translatey 10000
-                    color "white", exp(-0.02*Angle^2)
-                    image 0, 0, 0.75, 0.75, "http://britton.disted.camosun.bc.ca/escher/" & E
-            Angle := Angle + 6
-    movie_only ""
-
-    ESCHER_IMAGES -> "another_world.jpg", "ascending_and_descending.jpg", "balcony.jpg", "belvedere.jpg", "bond_of_union.jpg", "bulldog.jpg", "butterfly.jpg", "butterfly2.jpg", "castle_in_the_air.jpg", "circle_limit_I.jpg", "circle_limit_III.jpg", "circle_limit_IV.jpg", "convex_and_concave.jpg", "cycle.jpg", "day_and_night.jpg", "double_planetoid.jpg", "dragon.jpg", "drawing_hands.jpg", "eight_heads.jpg", "eye.jpg", "fish.jpg", "fish_and_boats.jpg", "flying_fish.jpg", "hand_with_sphere.jpg", "high_and_low.jpg", "horsemen.jpg", "house_of_stairs.jpg", "knots.jpg", "liberation.jpg", "lizard.jpg", "lizard_square.jpg", "lizard_fish_bat.jpg", "moebius_strip_II.jpg", "pegasus.jpg", "portrait.jpg", "print_gallery.jpg", "puddle.jpg", "relativity.jpg", "reptiles.jpg", "reptiles2.jpg", "rind.jpg", "rippled_surface.jpg", "self_portrait.jpg", "shells_and_starfish.jpg", "sky_and_water.jpg", "smaller_and_smaller.jpg", "snakes.jpg", "square_limit.jpg", "stars.jpg", "still_life_and_street.jpg", "study_for_stars.jpg", "sun_and_moon.jpg", "tetrahedral_planetoid.jpg", "three_spheres_I.jpg", "three_spheres_II.jpg", "three_worlds.jpg", "tower_of_babel.jpg", "verbum.jpg", "waterfall.jpg", "winged_lion.jpg"
-
-
-// Buffer some video (this video is big)
-vlc_init "--network-caching=10000"
-
+        color "white"
+        image 0, -120, 80%, 80%, "http://britton.disted.camosun.bc.ca/escher/ascending_and_descending.jpg"
 picture_slide "YouTube Video slide",
-    background -300,
-        color "white", 0.9
-        movie_texture"http://www.youtube.com/watch?v=a-11dtG7aK4&fmt=46##input-repeat=-1"
-        rounded_rectangle 0, 0, 1.2*texture_width, 1.2*texture_height, 150
+    locally
+        color "white"
+        movie -300, 0, 150%, 150%, "http://www.youtube.com/watch?v=a-11dtG7aK4##input-repeat=-1"
     right_column
-        - "Background video:"
-        - "The Space We Live In"
+        paragraph
+            text "Background Video:"
+        paragraph
+            text "The Space We Live In"
+    on "pagechange",
+        if prev_page_label = "YouTube Video slide" then
+            movie_drop "http://www.youtube.com/watch?v=a-11dtG7aK4##input-repeat=-1"

@@ -45,10 +45,14 @@
 
 namespace Tao {
 
-class Process;
+struct Process;
 
-class Uri : public QObject, public QUrl
+struct Uri : QObject, QUrl
+// ----------------------------------------------------------------------------
+//   Storage for Tao URIs
+// ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
 public:
@@ -65,6 +69,10 @@ public:
     void                  setUrl(const QString & url, ParsingMode parsingMode);
     void                  setQueryItems(const QList<QPair<QString, QString> >
                                         & query);
+#if QT_VERSION >= 0x050000
+    bool                  hasQueryItem(const QString & key) const;
+    QString               queryItemValue(const QString & key) const;
+#endif
 
 signals:
     void                  progressMessage(QString message);

@@ -20,7 +20,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QtGui>
 #include "window.h"
 #include "widget.h"
 #include "apply_changes.h"
@@ -63,15 +62,22 @@
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
 #include "document_signature.h"
 #endif
+#include "flight_recorder.h"
 
 #include <iostream>
 #include <sstream>
 #include <string>
-
 #include <menuinfo.h>
 #include <bfs.h>
+
 #include <QList>
 #include <QRegExp>
+#include <QtGui>
+#include <QDockWidget>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QPrintDialog>
+#include <QPageSetupDialog>
 #ifndef Q_OS_MACX
 #include <QFSFileEngine>
 #endif
@@ -112,6 +118,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       onlineDocAct(NULL),
       splashScreen(NULL), aboutSplash(NULL)
 {
+    RECORD(ALWAYS, "Window constructor", "this", (intptr_t)this);
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
     src = new ToolWindow(tr("Document Source"), this, "Tao::Window::src");
@@ -164,6 +171,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Show status bar immediately avoids later resize of widget
     statusBar()->show();
 
+    // To detect when window is minimized
+    qApp->installEventFilter(this);
+
     // Set current document
     if (sourceFile.isEmpty())
     {
@@ -210,9 +220,25 @@ Window::~Window()
 //   Destroy a document window and free associated resources
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Window destructor", "this", (intptr_t)this);
     FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
     delete printer;
+}
+
+
+bool Window::eventFilter(QObject *obj, QEvent *evt)
+// ----------------------------------------------------------------------------
+//   Stop/start animations when window is minimized/restored to save CPU
+// ----------------------------------------------------------------------------
+{
+    if (obj == this && evt->type() == QEvent::WindowStateChange)
+    {
+        bool visible = !(windowState() & Qt::WindowMinimized);
+        if (visible != taoWidget->hasAnimations())
+            toggleAnimations();
+    }
+    return QMainWindow::eventFilter(obj, evt);
 }
 
 
@@ -301,20 +327,67 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
 void Window::addError(QString txt)
 // ----------------------------------------------------------------------------
-//   Append error string to error window
+//   Append error string to error window, unless it matches an error filter
 // ----------------------------------------------------------------------------
 {
-    // Ugly workaround to bug #775
-    if (txt.contains("1.ddd cannot be read"))
-        return;
-#ifdef Q_OS_WIN
-    // AMD OpenGL driver on Windows
-    // Whenever a shader program is linked succesfully, the driver generates an
-    // informational message and Qt calls qWarning().
-    // Filter those messages out.
-    if (txt.contains("shader(s) linked."))
-        return;
-#endif
+    static QList<QRegExp> filters;
+    static bool filters_initialized = false;
+    if (!filters_initialized)
+    {
+        QList<QDir> dirs;
+        dirs << QDir(Application::applicationDirPath())
+             << QDir(Application::defaultTaoPreferencesFolderPath());
+
+        QFileInfoList files;
+        foreach (QDir dir, dirs)
+        {
+            files << dir.entryInfoList(QStringList("error_filters.txt"),
+                                       QDir::Files);
+        }
+
+        foreach (QFileInfo file, files)
+        {
+            QFile f(file.absoluteFilePath());
+            if (f.open(QIODevice::ReadOnly | QIODevice::Text))
+            {
+                IFTRACE(fileload)
+                    std::cerr << "Loading error filter file: "
+                              << +file.absoluteFilePath() << "\n";
+
+                QTextStream in(&f);
+                in.setCodec("UTF-8");
+                while (!in.atEnd())
+                {
+                   QString line = in.readLine();
+                   if (line.isEmpty() || line.startsWith('#'))
+                       continue;
+                   if (line.startsWith("\\#"))
+                       line = line.mid(1);
+                   IFTRACE(fileload)
+                       std::cerr << "  Adding regexp: '" << +line << "'\n";
+                   filters << QRegExp(line);
+                }
+            }
+        }
+
+        // Ugly workaround to bug #775
+        filters << QRegExp("1\\.ddd cannot be read");
+
+        filters_initialized = true;
+    }
+
+    // Filter out message if it matches any filter
+    foreach (QRegExp re, filters)
+    {
+        if (re.indexIn(txt) != -1)
+        {
+            IFTRACE(fileload)
+                std::cerr << "Message filtered out by regexp: '"
+                          << +re.pattern() << "'\n" << +txt << "\n";
+            return;
+        }
+    }
+
     // Do not call directly errorMessages->append(txt) because callers may
     // leave in different thread than GUI one. Bug#3202
     emit appendErrorMsg(txt);
@@ -1319,6 +1392,9 @@ void Window::openUri()
     QString uri = dialog.uri;
     if (uri.isEmpty())
         return;
+    if (uri.startsWith("tao:") || uri.startsWith("taos:"))
+        if (!(uri.startsWith("tao://") || uri.startsWith("taos://")))
+            uri.replace("tao:", "tao:///").replace("taos", "taos:///");
     open(uri);
 }
 
@@ -2263,6 +2339,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Loading file");
     IFTRACE(fileload)
         std::cerr << "Opening document: " << +fileName << "\n";
 

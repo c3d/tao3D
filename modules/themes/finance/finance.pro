@@ -3,6 +3,8 @@ MODINSTDIR = finance
 
 OTHER_FILES = finance.xl
 
+PICTURES = images/*
+
 include(../themes.pri)
 
 images.path = $$APPINST/templates/finance/images

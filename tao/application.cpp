@@ -50,6 +50,8 @@
 #include "license_download.h"
 #endif
 #include "nag_screen.h"
+#include "flight_recorder.h"
+#include "tao_gl.h"
 
 #include <QString>
 #include <QSettings>
@@ -96,10 +98,10 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
-      hasFBOMultisample(false), hasGLStereoBuffers(false),
+      hasFBOMultisample(false), hasGLStereoBuffers(false), hasMipmap(false),
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
-      splash(NULL), xlr(NULL), screenSaverBlocked(false),
+      splash(NULL), win(NULL), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), peer(NULL), textureCache(NULL)
 {
 #if defined(Q_OS_WIN32)
@@ -203,6 +205,13 @@ void Application::deferredInit()
     // Adjust file polling frequency
     FileMonitorThread::pollInterval = xlr->options.sync_interval;
 
+    // OpenGL checks
+    if (!checkGL())
+    {
+        exit(1);
+        return;
+    }
+
     // Texture cache may only be instantiated after setOrganizationName
     // and setOrganizationDomain because it reads default values from
     // the user's preferences
@@ -213,6 +222,7 @@ void Application::deferredInit()
     gcThread = new GCThread;
     if (xlr->options.threaded_gc)
     {
+        RECORD(ALWAYS, "Starting GC thread");
         IFTRACE(memory)
             std::cerr << "Threaded GC is enabled\n";
         gcThread->moveToThread(gcThread);
@@ -223,13 +233,6 @@ void Application::deferredInit()
     QPixmap pm(":/images/tao_padlock.svg");
     padlockIcon = new QPixmap(pm.scaled(64, 64, Qt::IgnoreAspectRatio,
                                         Qt::SmoothTransformation));
-
-    // OpenGL checks
-    if (!checkGL())
-    {
-        exit(1);
-        return;
-    }
 
     QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV_);
     QString impress = QString("Tao Presentations Impress %1").arg(GITREV_);
@@ -283,6 +286,7 @@ void Application::deferredInit()
 #endif
 
     // Create main window
+    RECORD(ALWAYS, "Creating main window");
     win = new Window (xlr, contextFiles);
 
 #if defined (CFG_WITH_EULA)
@@ -313,6 +317,7 @@ void Application::deferredInit()
                         cmdLineArguments.contains("-h"));
     if (showSplash)
     {
+        RECORD(ALWAYS, "Creating splash screen");
         splash = new SplashScreen();
         splash->show();
         splash->raise();
@@ -322,14 +327,17 @@ void Application::deferredInit()
     install_first_exception_handler();
 
     // Application updater
+    RECORD(ALWAYS, "Creating application updater");
     updateApp = new UpdateApplication;
 
     // Initialize the graphics just below contents of basics.tbl
     Initialize();
+    RECORD(ALWAYS, "CreateScope");
     xlr->CreateScope();
 
     // Activate basic compilation
     xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
+    RECORD(ALWAYS, "SetupCompiler");
     xlr->SetupCompiler();
 
     // Load settings
@@ -363,8 +371,10 @@ void Application::deferredInit()
     // ("Save as..." box will land there)
     createDefaultProjectFolder();
 
+    RECORD(ALWAYS, "Loading settings");
     loadSettings();
 
+    RECORD(ALWAYS, "Loading fonts");
     loadFonts();
 
     // The aboutToQuit signal is the recommended way for cleaning things up
@@ -377,7 +387,7 @@ void Application::deferredInit()
     ssHeartBeatCommand = env.value("TAO_SS_HEARTBEAT_CMD");
 #endif
 
-    XL::MAIN = this->xlr = xlr;
+    XL::MAIN = xlr;
     if (XL::MAIN->options.enable_modules)
         checkModules();
 
@@ -395,6 +405,8 @@ void Application::deferredInit()
 
     // We're ready to go
     processCommandLineFile();
+
+    RECORD(ALWAYS, "End of deferred init");
 }
 
 
@@ -447,9 +459,21 @@ bool Application::fetchLicenses()
 // ----------------------------------------------------------------------------
 {
     QList<QDir> dirs;
-    dirs << QDir(QDesktopServices::storageLocation(
-                     QDesktopServices::DesktopLocation))
-         << QDir(Application::userLicenseFolderPath())
+
+#if QT_VERSION >= 0x050000
+    // Thank you Qt5 for this insanity, just in case we have several ~/Desktop
+    QStringList desktops = QStandardPaths::standardLocations(
+        QStandardPaths::DesktopLocation);
+    foreach(QString desktop, desktops)
+        dirs << QDir(desktop);
+#else
+    // Qt4 is a dummy, it only knows about one desktop folder. Stooopid Qt4.
+    QString desktop = QDesktopServices::storageLocation(
+        QDesktopServices::DesktopLocation);
+    dirs << QDir(desktop);
+#endif
+
+    dirs << QDir(Application::userLicenseFolderPath())
          << QDir(Application::appLicenseFolderPath());
 
     // Add paths given on the command line
@@ -550,20 +574,32 @@ bool Application::checkGL()
     text GLExtensionsAvailable = "?";
 
     {
+        RECORD(ALWAYS, "Reading GL info");
         // We need a valid GL context to read the information strings
         QGLWidget gl;
         gl.makeCurrent();
 
         if (QGLContext::currentContext()->isValid())
         {
+            glewInit();
+
             GLVendor   = getGLText(GL_VENDOR);
             GLRenderer = getGLText(GL_RENDERER);
             GLVersionAvailable = getGLText(GL_VERSION);
             GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
+
+#ifdef Q_OS_WIN32
+            hasMipmap = (glGenerateMipmap != NULL);
+#else
+            hasMipmap = true;
+#endif
+            IFTRACE(displaymode)
+                std::cerr << "GL mipmap support: " << hasMipmap << "\n";
         }
     }
 
     // Basic sanity tests to check if we can actually run
+    RECORD(ALWAYS, "Checking GL >= 2.0");
     if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
         QString msg = tr("This system (%1, %2, %3) doesn't support "
@@ -572,6 +608,7 @@ bool Application::checkGL()
         QMessageBox::warning(NULL, tr("OpenGL support"), msg);
         return false;
     }
+    RECORD(ALWAYS, "Checking frame buffer objects");
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
     {
         QMessageBox::warning(NULL, tr("FBO support"),
@@ -583,14 +620,16 @@ bool Application::checkGL()
     useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
-        QGLWidget gl(QGLFormat(QGL::StereoBuffers));
+        RECORD(ALWAYS, "Checking quad buffer");
+        QGLWidget gl((QGLFormat(QGL::StereoBuffers)));
         hasGLStereoBuffers = gl.format().stereo();
         IFTRACE(displaymode)
             std::cerr << "GL stereo buffers support: " << hasGLStereoBuffers
                       << "\n";
     }
     {
-        QGLWidget gl(QGLFormat(QGL::SampleBuffers));
+        RECORD(ALWAYS, "Checking sample buffers");
+        QGLWidget gl((QGLFormat(QGL::SampleBuffers)));
         int samples = gl.format().samples();
         hasGLMultisample = samples > 1;
         IFTRACE(displaymode)
@@ -598,18 +637,25 @@ bool Application::checkGL()
                       << " (samples per pixel: " << samples << ")\n";
         if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
         {
-            // Check if FBOs have sample buffers
+            RECORD(ALWAYS, "Checking FBO sample buffers");
             gl.makeCurrent();
             QGLFramebufferObjectFormat format;
             format.setSamples(4);
             QGLFramebufferObject fbo(100, 100, format);
-            QGLFramebufferObjectFormat actualFormat = fbo.format();
-            int samples = actualFormat.samples();
-            hasFBOMultisample = samples > 1;
+            int samples = 0;
+            if (fbo.isValid())
+            {
+                samples = fbo.format().samples();
+                hasFBOMultisample = samples > 1;
+            }
             IFTRACE(displaymode)
-                std::cerr << "GL FBO multisample support: "
-                          << hasFBOMultisample
-                          << " (samples per pixel: " << samples << ")\n";
+            {
+                std::cerr << "GL FBO supported; multisample support: "
+                          << hasFBOMultisample;
+                if (samples)
+                    std::cerr << " (samples per pixel: " << samples <<")";
+                std::cerr << "\n";
+            }
         }
 
         // Enable font bitmap cache only if we don't have multisampling
@@ -623,6 +669,7 @@ bool Application::checkGL()
                               "look jagged."));
     }
 
+    RECORD(ALWAYS, "End of GL checks");
     return true;
 }
 
@@ -632,6 +679,7 @@ void Application::checkModules()
 //   Initialize module manager, check module configuration
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Checking modules");
     moduleManager = ModuleManager::moduleManager();
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
@@ -640,7 +688,9 @@ void Application::checkModules()
     moduleManager->init();
     // Load and initialize only auto-load modules (the ones that do not have an
     // import_name, or have the auto_load property set)
+    RECORD(ALWAYS, "Loading auto-load modules");
     moduleManager->loadAutoLoadModules(XL::MAIN->context);
+    RECORD(ALWAYS, "Modules checked");
 }
 
 
@@ -698,6 +748,7 @@ void Application::processCommandLineFile()
 //   Handle command-line files or URIs
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "processCommandLineFile");
     Q_ASSERT(win);
 
     // Find file or URI
@@ -741,6 +792,7 @@ void Application::processCommandLineFile()
     if (st == 0)
         win->open(win->welcomePath());
     win->show();
+    RECORD(ALWAYS, "Main window shown");
 
     // Now that main window has been shown (if it had to), we can set the
     // "quit on last window closed" flag.
@@ -748,6 +800,7 @@ void Application::processCommandLineFile()
 
     if (splash)
     {
+        RECORD(ALWAYS, "Deleting splash screen");
         splash->close();
         delete splash;
     }
@@ -916,7 +969,7 @@ bool Application::checkOfflineRendering()
 
     QStringList parms = ropts.split(",");
     int nparms = parms.size();
-    if (nparms < 7 || nparms > 8)
+    if (nparms < 8 || nparms > 9)
     {
         std::cerr << +tr("-render: too few or too many parameters\n");
         return false;
@@ -924,17 +977,18 @@ bool Application::checkOfflineRendering()
 
     int idx = 0;
     int page, x, y;
-    double start, end, fps;
+    double start, duration, fps, offset;
     QString folder, disp = "";
 
     page = parms[idx++].toInt();
     x = parms[idx++].toInt();
     y = parms[idx++].toInt();
     start = parms[idx++].toDouble();
-    end = parms[idx++].toDouble();
+    duration = parms[idx++].toDouble();
+    offset = parms[idx++].toDouble();
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
-    if (nparms >= 8)
+    if (nparms >= 9)
         disp = parms[idx++];
 
     if (disp == "help")
@@ -946,15 +1000,18 @@ bool Application::checkOfflineRendering()
         return false;
     }
 
-    std::cout << "Starting offline rendering: page=" << page << " width=" << x
-              << " height=" << y << " start=" << start << " end=" << end
+    std::cout << "Starting offline rendering:"
+              << " pagenum=" << page << " width=" << x << " height=" << y
+              << " start-time=" << start << " duration=" << duration
+              << " page-time-offset=" << offset
               << " fps=" << fps << " folder=\"" << +folder << "\""
-              << " displaymode=\"" << +disp << "\"\n";
+              << " display-mode=\"" << +disp << "\"\n";
 
     Widget *widget = win->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    widget->renderFrames(x, y, start, end, folder, fps, page, disp);
+    widget->renderFrames(x, y, start, duration, folder, fps, page, offset,
+                         disp);
 
     return true;
 }
@@ -1099,7 +1156,16 @@ QString Application::defaultTaoPreferencesFolderPath()
 //    The folder proposed to find user.xl, theme.xl, etc...
 // ----------------------------------------------------------------------------
 {
+#if QT_VERSION >= 0x050000
+    // Thank you Qt5 for this insanity, just in case we have several ~/Desktop
+    QStringList data = QStandardPaths::standardLocations(
+        QStandardPaths::DataLocation);
+    if (data.size() >= 1)
+        return data[0];
+    return "";                  // WARNING?
+#else
     return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+#endif
 }
 
 
@@ -1205,15 +1271,6 @@ double Application::runTime()
 // ----------------------------------------------------------------------------
 {
     return (Widget::trueCurrentTime() - TaoApp->startTime);
-}
-
-
-void pqs(const QString &qs)
-// ----------------------------------------------------------------------------
-//   Print a QString for debug purpose
-// ----------------------------------------------------------------------------
-{
-    qDebug() << qs << "\n";
 }
 
 
@@ -1538,4 +1595,12 @@ bool Application::singleInstanceClientTalkedToServer()
     }
     return false;
 }
+}
+
+void pqs(const QString &qs)
+// ----------------------------------------------------------------------------
+//   Print a QString for debug purpose
+// ----------------------------------------------------------------------------
+{
+    std::cerr << qs.toUtf8().constData() << "\n";
 }

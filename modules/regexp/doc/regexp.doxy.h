@@ -114,10 +114,10 @@ regexp_search(text input, text pattern);
  * following code:
  *
 @code
- * pattern_match InputText,
- *     "c[ie]rcle"      -> circle 0, 0, 100
- *     "rect(angle)?"   -> rectangle 0, 0, 100, 100
- *     image 0, 0, 1, 1, "MyImage.jpg"
+pattern_match InputText,
+    "c[ie]rcle"      -> circle 0, 0, 100
+    "rect(angle)?"   -> rectangle 0, 0, 100, 100
+    image 0, 0, 1, 1, "MyImage.jpg"
 @endcode
  *
  * By default, regular expressions are "greedy". You can prefix a
@@ -127,8 +127,8 @@ regexp_search(text input, text pattern);
  *
  * For example, you can get the "bold" text as follows:
 @code
- * pattern_match InputText,
- *     - "<b>.*</b>"    -> draw_bold_text regexp_captured 1
+pattern_match InputText,
+    - "<b>.*</b>"    -> draw_bold_text regexp_captured 1
 @endcode
  * 
  * @param input The text to search
@@ -156,10 +156,10 @@ regexp_search(text input, text pattern);
  * "rectangle", et, sinon, tracer une image, vous pouvez utiliser le code suivant :
  *
 @code
- * pattern_match InputText,
- *     "c[ie]rcle"      -> circle 0, 0, 100
- *     "rect(angle)?"   -> rectangle 0, 0, 100, 100
- *     image 0, 0, 1, 1, "MyImage.jpg"
+pattern_match InputText,
+    "c[ie]rcle"      -> circle 0, 0, 100
+    "rect(angle)?"   -> rectangle 0, 0, 100, 100
+    image 0, 0, 1, 1, "MyImage.jpg"
 @endcode
  *
  * Par défaut, les expressions régulières sont "gourmandes", c'est à
@@ -170,8 +170,8 @@ regexp_search(text input, text pattern);
  *
  * Par exemple, on peut obtenir le texte "gras", on peut utiliser :
 @code
- * pattern_match InputText,
- *     - "<b>.*</b>"    -> draw_bold_text regexp_captured 1
+pattern_match InputText,
+    - "<b>.*</b>"    -> draw_bold_text regexp_captured 1
 @endcode
  * 
  * @param input Le texte à analyser
@@ -195,9 +195,9 @@ regexp_parse(text input, tree code);
  * drawn, you can use something like:
  *
 @code
- * count := 0
- * regexp_parse_last InputText,
- *     "c[ie]rcle" -> circle 0, 0, 5; translatex 10; count := count + 1
+count := 0
+regexp_parse_last InputText,
+    "c[ie]rcle" -> circle 0, 0, 5; translatex 10; count := count + 1
 @endcode
  *
  * @param input The text to search
@@ -218,9 +218,9 @@ regexp_parse(text input, tree code);
  * d'éléments tracés, vous pouvez utiliser :
  *
 @code
- * count := 0
- * regexp_parse_last InputText,
- *     "c[ie]rcle" -> circle 0, 0, 5; translatex 10; count := count + 1
+count := 0
+regexp_parse_last InputText,
+    "c[ie]rcle" -> circle 0, 0, 5; translatex 10; count := count + 1
 @endcode
  *
  * @param input Le texte à analyser
@@ -242,17 +242,17 @@ regexp_parse_last(text input, tree code);
  * occurence of a vowel, and "Consonent" for every consonent, you can use:
  *
 @code
- * InputText -> "Hello World"
- * letters ->
- *     regexp_parse_all InputText,
- *         "[aeiouy]" -> "Vowel "
- *         "[a-z]"     -> "Consonent "
- *         "."        -> "Other "
- * writeln letters
+InputText -> "Hello World"
+letters ->
+    regexp_parse_all InputText,
+        "[aeiouy]" -> "Vowel "
+        "[a-z]"     -> "Consonent "
+        "."        -> "Other "
+writeln letters
 @endcode
  * The output will be:
 @code
- * Other Vowel Consonent Consonent Vowel Other Other Vowel Consonent Consonent Consonent nil
+Other Vowel Consonent Consonent Vowel Other Other Vowel Consonent Consonent Consonent nil
 @endcode
  * @param input The text to search
  * @param code  The block of code describing the patterns
@@ -270,17 +270,17 @@ regexp_parse_last(text input, tree code);
  * chaque voyelle, et "Consonne" pour chaque consonne, on peut utiliser :
  *
 @code
- * InputText -> "Hello World"
- * letters ->
- *     regexp_parse_all InputText,
- *         "[aeiouy]" -> "Voyelle"
- *         "[a-z]"    -> "Consonne"
- *         "."        -> "Autre"
- * writeln letters
+InputText -> "Hello World"
+letters ->
+    regexp_parse_all InputText,
+        "[aeiouy]" -> "Voyelle"
+        "[a-z]"    -> "Consonne"
+        "."        -> "Autre"
+writeln letters
 @endcode
  * La sortie va donner :
 @code
- * Autre Voyelle Consonne Consonne Voyelle Autre Autre Voyelle Consonne Consonne Consonne nil
+Autre Voyelle Consonne Consonne Voyelle Autre Autre Voyelle Consonne Consonne Consonne nil
 @endcode
  * @param input Le texte à analyser
  * @param code  Le bloc de code décrivant les actions et expressions régulières
@@ -303,9 +303,9 @@ regexp_parse_all(text input, tree code);
  * XML stream, removing all the tags, you can use the following:
  *
 @code
- * regexp_parse_text InputText,
- *     - "<.*>"  -> ""
- *     - "[^<]+" -> regexp_captured 0
+regexp_parse_text InputText,
+    - "<.*>"  -> ""
+    - "[^<]+" -> regexp_captured 0
 @endcode
  *
  * @param input The text to search
@@ -324,9 +324,9 @@ regexp_parse_all(text input, tree code);
  * pouvez utiliser le code suivant :
  *
 @code
- * regexp_parse_text InputText,
- *     - "<.*>"  -> ""
- *     - "[^<]+" -> regexp_captured 0
+regexp_parse_text InputText,
+    - "<.*>"  -> ""
+    - "[^<]+" -> regexp_captured 0
 @endcode
  *
  * @param input Le texte à analyser

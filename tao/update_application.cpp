@@ -26,6 +26,7 @@
 #include "context.h"
 #include "application.h"
 #include "tao_utf8.h"
+#include "flight_recorder.h"
 #include <QDir>
 #include <QFileDialog>
 #include <QDialog>
@@ -132,7 +133,7 @@ void UpdateApplication::resetRequest()
 // ----------------------------------------------------------------------------
 {
     request = QNetworkRequest();
-    request.setRawHeader("User-Agent", userAgent().toAscii());
+    request.setRawHeader("User-Agent", userAgent().toUtf8());
 }
 
 
@@ -184,6 +185,7 @@ void UpdateApplication::check(bool show)
     // If 'show' is false, no interaction with the user occurs
     // until the algorithm detects that an update is available.
 
+    RECORD(ALWAYS, "Check for update");
     IFTRACE(update)
         debug() << "Checking for update (interactive: " << show << ")\n";
 
@@ -647,7 +649,17 @@ bool UpdateApplication::createFile()
     QString fileName = QFileInfo(url.path()).fileName();
 
     // Choose folder
+#if QT_VERSION >= 0x050000
+    // Thank you Qt5 for this insanity, just in case we have several ~/Desktop
+    QString desktop = "";
+    QStringList desktops = QStandardPaths::standardLocations(
+        QStandardPaths::DesktopLocation);
+    if (desktops.size() >= 1)
+        desktop = desktops[0];
+#else
     QString desktop = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
+#endif
+
     QString folder = QFileDialog::getExistingDirectory(NULL,
                                                        tr("Select destination folder"),
                                                        desktop);

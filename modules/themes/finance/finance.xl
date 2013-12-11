@@ -28,41 +28,160 @@ import Slides
 import VLCAudioVideo
 import Animate
 import Transitions
+import Charts
 
 theme_slide_width  "Finance" -> 1920
 theme_slide_height "Finance" -> 1080
 
-theme_boxstyle "Finance",Master:text, "title"  -> color "white", 0.8
-theme_boxstyle "Finance",Master:text,Style:text  -> color finance_color "brown", 0.8
+// Drawing zone
+theme_drawing_width  "Finance" -> 1600
+theme_drawing_height "Finance" -> 500
 
-theme_color "Finance", Master:text, "title" -> color finance_color "blue"
-theme_color "Finance",Master:text, "bullet", 1 -> color finance_color "red"; line_color finance_color "red"
-theme_color "Finance",Master:text, "bullet", 2 -> color finance_color "orange"; line_color finance_color "orange"
-theme_color "Finance",Master:text, "bullet", 3 -> color finance_color "yellow"; line_color finance_color "yellow"
-theme_color "Finance", Master:text, Style:text -> color "white"
+// ============================================================================
+//
+//    Finance style for charts
+//
+// ============================================================================
 
-theme_align "Finance", Master:text, "story" -> vertical_align 0.5
+// Chart boxes: no one
+theme_boxstyle "Finance", Master:text, "chart_data" -> color "black", 0.0
+theme_boxstyle "Finance", Master:text, "chart_xlabel" -> color "black", 0.0
+theme_boxstyle "Finance", Master:text, "chart_ylabel" -> color "black", 0.0
+theme_boxstyle "Finance", Master:text, "chart_tick" -> color "black", 0.0
+theme_boxstyle "Finance", Master:text, "chart_title" -> color "black", 0.0
+theme_boxstyle "Finance", Master:text, "chart_legend" -> color "black", 0.0
+
+// Chart alignments
+theme_align "Finance", Master:text, "chart_data" -> theme_align "", Master, "chart_data"
+theme_align "Finance", Master:text, "chart_tick" -> theme_align "", Master, "chart_tick"
+theme_align "Finance", Master:text, "chart_label" -> theme_align "", Master, "chart_label"
+theme_align "Finance", Master:text, "chart_title" -> theme_align "", Master, "chart_title"
+theme_align "Finance", Master:text, "chart_legend" -> theme_align "", Master, "chart_legend"
+
+// Chart rotations : no one
+theme_rotate "Finance", Master:text, "chart_data" -> false
+theme_rotate "Finance", Master:text, "chart_xlabel" -> false
+theme_rotate "Finance", Master:text, "chart_ylabel" -> false
+theme_rotate "Finance", Master:text, "chart_tick" -> false
+theme_rotate "Finance", Master:text, "chart_title" -> false
+theme_rotate "Finance", Master:text, "chart_legend" -> false
+
+// Transition
+theme_transition "Finance", Master:text, "chart_data" -> false
+theme_transition "Finance", Master:text, "chart_xlabel" -> false
+theme_transition "Finance", Master:text, "chart_ylabel" -> false
+theme_transition "Finance", Master:text, "chart_tick" -> false
+theme_transition "Finance", Master:text, "chart_title" -> false
+theme_transition "Finance", Master:text, "chart_legend" -> false
+
+
+// Chart colors
+theme_color "Finance", Master:text, "line", N:integer ->
+    T := 0.8 / chart_datasets_count
+    line_color_hsv 220 + N, 0.8 - N * T, 0.749
+
+theme_color "Finance", "pie", Style:text, N:integer ->
+    T := 0.8 / (chart_count chart_first)
+    color_hsv 220 + N, 0.8 - N * T, 0.749
+    line_color "black"
+    line_width 0.5
+
+theme_color "Finance", "area", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
+theme_color "Finance", "line", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
+theme_color "Finance", "bar", Style:text, N:integer ->
+    T := 0.8 / chart_datasets_count
+    color_hsv 220 + N, 0.8 - T * N, 0.749
+    line_color "black"
+    line_width 0.5
+
+
+theme_chart_layout "Finance", "pie", Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Pie chart layout for finance theme
+// ----------------------------------------------------------------------------
+    box "chart", 0, 0, 1600, 500
+    chart -200, -35, 400, 400, Style, Format
+
+    chart_flow 0, 200, 1000, 50, "chart_title"
+    chart_flow 300, -25, 300, 400, "chart_legend"
+
+
+
+theme_chart_layout "Finance", Master:text, Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Default chart layout for finance theme
+// ----------------------------------------------------------------------------
+    box "chart", 0, 0, 1600, 500
+    chart -650, -200, 1000, 350, Style, Format
+
+    chart_xaxis -650, -200, 1000, 350, Style, Format
+    chart_yaxis -650, -200, 1000, 350, Style, Format
+
+    chart_flow 390, -200, 100, 50, "chart_xlabel"
+    chart_flow -650, 180, 100, 50, "chart_ylabel"
+
+    chart_flow 0, 200, 1000, 50, "chart_title"
+    chart_flow 600, -25, 300, 400, "chart_legend"
+
+
+
+// ============================================================================
+//
+//    Finance style for slides
+//
+// ============================================================================
+
+// Do not show charts boxes
+theme_boxstyle "Finance", Master:text, "title"  -> color "white", 0.8
+theme_boxstyle "Finance", Master:text, Style:text  -> color finance_color "brown", 0.8
+
+// Alignment
+theme_align "Finance", Master:text, "story" -> vertical_align 0.5; align 0.2
 theme_align "Finance",Master:text,"story",N  ->
     margins 100+10*N, 0
     paragraph_space 30 - 20 * N, 30 - 20 * N
     paragraph_break
-
 theme_align "Finance", Master:text, Style:text -> vertical_align 0.5; align 0.2
 
+// Font
 theme_font "Finance", Master:text, Style:text -> font "Calibri"
 
+// Font size
 theme_size "Finance", Master:text, "story" -> 48
 theme_size "Finance", Master:text, "story", 1 -> 48
 theme_size "Finance", Master:text, "story", 2 -> 35
 theme_size "Finance", Master:text, "story", 3 -> 27
 
-finance_color "blue"  -> "#3366cc"
-finance_color "brown" -> "#333333"
-finance_color "red"   -> "#B72E00"
+// Panel rotation factor
+theme_rotate "Finance", Master:text, Style:text -> rotatey 10
+
+// Color
+theme_color "Finance", Master:text, "title" -> color finance_color "blue1"; light 0, false
+theme_color "Finance",Master:text, "bullet", 1 ->
+    color finance_color "red"
+    line_color finance_color "red"
+theme_color "Finance",Master:text, "bullet", 2 ->
+    color finance_color "orange"
+    line_color finance_color "orange"
+theme_color "Finance",Master:text, "bullet", 3 ->
+    color finance_color "yellow"
+    line_color finance_color "yellow"
+theme_color "Finance", Master:text, Style:text ->
+    color "white"
+    light 0, false
+
+// Finance colors
+finance_color "blue1"  -> "#3366cc"
+finance_color "blue2"  -> "#297EBF"
+finance_color "blue3"  -> "#7BB5DA"
+finance_color "blue4"  -> "#AFD2FA"
+finance_color "brown"  -> "#333333"
+finance_color "red"    -> "#B72E00"
 finance_color "orange" -> "#EFB043"
 finance_color "yellow" -> "#ebd522"
 finance_color "green"  -> "#37a122"
 finance_color "grey"   -> "#96ACC3"
+
 
 // ============================================================================
 //
@@ -76,7 +195,7 @@ theme_background "Finance", Master:text ->
 // ----------------------------------------------------------------------------
     clear_color 1,1,1,1
     background -2000,
-        color "white"
+        theme_color "Finance", Master, "background"
         image_px 0, 0, 2304, 1440, theme_background_url
 
     contents 0,
@@ -85,7 +204,7 @@ theme_background "Finance", Master:text ->
             if (file_exists (document_dir & "/images/logo.png")) then
                 translate -550, 310, 200
                 color "white", 0.8
-                rotatey 10
+                theme_rotate "Finance", Master, "background"
                 rectangle 300, 80
                 color "white"
                 image_px 0, 0, 300, 95, "logo.png"
@@ -146,9 +265,10 @@ theme_box "Finance", Master:text, "title", X:real, Y:real, W:real, H:real ->
 //   Draw the background box for text and flows
 // ----------------------------------------------------------------------------
     contents -10,
+        light 0, false
         theme_boxstyle "Finance", "main", "title"
         rectangle X, Y, W + 10, H + 10
-        color finance_color "blue", 0.7
+        color finance_color "blue1", 0.7
         rectangle -W/2+4, 200, 25, H + 10
 
 
@@ -157,11 +277,11 @@ theme_text "Finance",Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
 //   Draw a default text box
 // ----------------------------------------------------------------------------
     locally
-        rotatey 10
+        theme_rotate "Finance", Master, Style
         theme_transition "Finance", Master, Style
         theme_box "Finance", Master, Style, X, Y, W, H
         contents 0,
-            text_box X, Y, W-100, H,
+            text_box X, Y, W, H,
                 theme_style "Finance", Master, Style
                 Body
 
@@ -178,9 +298,8 @@ theme_picture "Finance", Master:text, Body ->
 // ----------------------------------------------------------------------------
     contents 0,
         translatey -200
-        rotatey 10
+        theme_rotate "Finance", Master, "picture"
         theme_transition "Finance", Master, "picture"
-        theme_color "Finance", Master, "picture"
         Body
 
 
@@ -190,9 +309,8 @@ theme_left_column_picture "Finance", Master:text, Body ->
 // ----------------------------------------------------------------------------
     contents 0,
         translate -475, -200, 0
-        rotatey 10
+        theme_rotate "Finance", Master, "picture"
         theme_transition "Finance", Master, "picture"
-        theme_color "Finance", Master, "picture"
         Body
 
 
@@ -202,9 +320,8 @@ theme_right_column_picture "Finance", Master:text, Body ->
 // ----------------------------------------------------------------------------
     contents 0,
         translate 475, -200, 0
-        rotatey 10
+        theme_rotate "Finance", Master, "picture"
         theme_transition "Finance", Master, "picture"
-        theme_color "Finance", Master, "picture"
         Body
 
 
@@ -249,8 +366,10 @@ theme_bullet_picture "Finance", Master:text, Level:integer ->
             color "white"
             line_width 2
             ellipse 0, 0, 35, 35
+        translatez 2
         line_width 0
         ellipse_arc 0, 0, 28, 28, 70 * Level * page_time, 330
+        translatez 2
         color "white"
         ellipse 0, 0, 17, 17
 
@@ -284,6 +403,7 @@ theme_transition "Finance", Master:text, "title" ->
         else
             translatex 2000 * fade_out(transition_time * 1.2, 1.0)
 
+
 theme_transition "Finance", Master:text, Style:text ->
 // ----------------------------------------------------------------------------
 //    Apply transition mechanism for classic layouts
@@ -293,4 +413,3 @@ theme_transition "Finance", Master:text, Style:text ->
             translatex 2000 - 2000 * fade_out(transition_time * 1.2, 1.0)
         else
             translatex -2000 * fade_out(transition_time * 1.2, 1.0)
-

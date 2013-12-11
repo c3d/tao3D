@@ -1,0 +1,11 @@
+N -> -1
+R -> 0
+locally
+    N := N + 1
+    on "keydown:Return",
+        R := R + 1
+    text_box 0, 0, window_width, window_height,
+        vertical_align_center
+        align_center
+        text "Keypress count: " & text N & " (Return key: " & text R & ")"
+

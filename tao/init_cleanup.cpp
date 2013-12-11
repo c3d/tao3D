@@ -36,6 +36,7 @@
 #include "frame.h"
 #include "chooser.h"
 #include "formulas.h"
+#include "flight_recorder.h"
 
 
 namespace Tao
@@ -46,6 +47,7 @@ void Initialize()
 //    Initialize application symbols
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Initializing XLR symbols");
     XL::EnterBasics();
     Tao::EnterGraphics();
     Tao::EnterAttributes();

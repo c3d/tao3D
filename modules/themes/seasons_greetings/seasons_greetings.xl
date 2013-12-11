@@ -5,6 +5,7 @@
 
 import Slides
 import Snowfall
+import Charts
 
 module_description
     id "C91502F7-2CC0-40C5-8E89-75893D886B49" 
@@ -26,6 +27,55 @@ add_search_path "SeasonsGreetings:", module_dir
 theme_slide_width  "SeasonsGreetings" -> 1920
 theme_slide_height "SeasonsGreetings" -> 1080
 
+
+// ============================================================================
+//
+//    Charts
+//
+// ============================================================================
+
+theme_color "SeasonsGreetings", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
+theme_color "SeasonsGreetings", "area", Style:text, N:integer -> theme_color "SeasonsGreetings", "bar", Style, N
+theme_color "SeasonsGreetings", "line", Style:text, N:integer -> theme_color "SeasonsGreetings", "bar", Style, N
+theme_color "SeasonsGreetings", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
+
+theme_chart "SeasonsGreetings", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
+// ----------------------------------------------------------------------------
+//   Display 3D chart part
+// ----------------------------------------------------------------------------
+    Ratio := chart_data_ratio(N, Index)
+    locally
+        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
+            gradient_color 0.0, 1, 1, 1, 0.5
+            gradient_color 0.5, 1, 1, 1, 0.75
+            gradient_color 1.0, 1, 1, 1, 1.0
+
+        theme_chart "SeasonsGreetings", Master, Style, "3D", W, H, N, Index, Ratio
+
+
+theme_chart "SeasonsGreetings", Master:text, Style:text, Format:text, W:real, H:real, N:integer, Index:integer ->
+// ----------------------------------------------------------------------------
+//   Display chart part
+// ----------------------------------------------------------------------------
+    Ratio := chart_data_ratio(N, Index)
+    locally
+        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
+            gradient_color 0.0, 1, 1, 1, 0.5
+            gradient_color 0.5, 1, 1, 1, 0.75
+            gradient_color 1.0, 1, 1, 1, 1.0
+        theme_chart "SeasonsGreetings", Master, Style, Format, W, H, N, Index, Ratio
+
+theme_box "SeasonsGreetings", "area",Style:text, X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", "bar",Style:text, X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", "line",Style:text, X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", "pie",Style:text, X:real,Y:real,W:real,H:real -> false
+
+// ============================================================================
+//
+//    Slides
+//
+// ============================================================================
+
 theme_background "SeasonsGreetings",Master:text ->
     clear_color 0, 0, 0, 1
     background -900,
@@ -43,7 +93,7 @@ theme_background "SeasonsGreetings",Master:text ->
     background -400,
         snowpack
 
-theme_color "SeasonsGreetings",Master:text,"story"     -> color "white"
+theme_color "SeasonsGreetings",Master:text,"story"     -> light 0, false; color "white"
 theme_font "SeasonsGreetings",Master:text,"story"     -> font "Dancing Script"
 theme_boxstyle "SeasonsGreetings",Master:text,Style:text  -> color "white",0.2; line_color "black", 0.15
 theme_align "SeasonsGreetings",Master:text,"story", N  -> margins 75+50*N, 0
@@ -77,3 +127,5 @@ theme_bullet_picture "SeasonsGreetings", Master:text, Level:integer ->
         color "white"
         image_px -30, 15, S*0.8, S*0.8, "Snowfall:snowflake.png"
     seasons_greetings_bullet theme_size(theme, Master, "bullet", Level)
+
+

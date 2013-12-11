@@ -66,7 +66,13 @@
 static void win_redirect_io();
 #endif
 
+#if QT_VERSION >= 0x050000
+static void taoQt5MessageHandler(QtMsgType type,
+                                 const QMessageLogContext &,
+                                 const QString &);
+#else
 static void taoQtMessageHandler(QtMsgType type, const char *msg);
+#endif
 
 namespace Tao {
     extern const char * GITREV_;
@@ -114,16 +120,26 @@ int main(int argc, char **argv)
 
     // Messages sent by the Qt implementation (for instance, with qWarning())
     // should be handled like other Tao error messages
+#if QT_VERSION >= 0x050000
+    qInstallMessageHandler(taoQt5MessageHandler);
+#else
     qInstallMsgHandler(taoQtMessageHandler);
+#endif
 
     // Initialize and run the Tao application
     int ret = 0;
 
     try
     {
+        // Note: keep this inside a block so that ~Application gets called!
         Tao::Application tao(argc, argv);
         ret = tao.exec();
-        // Note: keep this inside a block so that ~Application gets called!
+
+#if QT_VERSION >= 0x050000
+        qInstallMessageHandler(0);
+#else
+        qInstallMsgHandler(0);
+#endif
     }
     catch(...)
     {
@@ -245,6 +261,7 @@ void install_first_exception_handler(void)
 //   Install an unhandled exception handler that happens before LLVM
 // ----------------------------------------------------------------------------
 {
+    RECORD(ALWAYS, "Setting unhandled exception filter");
     // Windows-specific ugliness
     PrimaryExceptionFilter =
         SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
@@ -571,6 +588,23 @@ void tao_stack_trace(int fd)
 }
 
 
+#if QT_VERSION >= 0x050000
+static void taoQt5MessageHandler(QtMsgType type,
+                                 const QMessageLogContext &,
+                                 const QString &msg)
+// ----------------------------------------------------------------------------
+//   Handle diagnostic messages from Qt like any other Tao message
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(type);
+    if (qApp && ((Tao::Application*)qApp)->addError(msg.toUtf8()))
+        return;
+    std::cerr << msg.toUtf8().constData();
+}
+
+
+#else
+
 static void taoQtMessageHandler(QtMsgType type, const char *msg)
 // ----------------------------------------------------------------------------
 //   Handle diagnostic messages from Qt like any other Tao message
@@ -581,6 +615,7 @@ static void taoQtMessageHandler(QtMsgType type, const char *msg)
         return;
     std::cerr << msg;
 }
+#endif
 
 
 TAO_BEGIN
@@ -594,26 +629,22 @@ int Main::LoadFile(text file, bool updateContext,
                                  importSymbols);
 
 #ifndef CFG_NO_DOC_SIGNATURE
-    if (TaoApp->edition == Application::PlayerPro ||
-        TaoApp->edition == Application::DesignPro)
+    // (Re-) check file signature.
+    XL::SourceFile &sf = XL::MAIN->files[file];
+    SignatureInfo * si = sf.GetInfo<SignatureInfo>();
+    if (!si)
     {
-        // (Re-) check file signature.
-        XL::SourceFile &sf = XL::MAIN->files[file];
-        SignatureInfo * si = sf.GetInfo<SignatureInfo>();
-        if (!si)
-        {
-            si = new SignatureInfo(file);
-            sf.SetInfo<SignatureInfo>(si);
-        }
-        SignatureInfo::Status st = si->loadAndCheckSignature();
-        if (st != SignatureInfo::SI_VALID)
-        {
-            sf.Remove(si);
-            delete si;
-        }
-        // Now if SourceFile has a SignatureInfo it means it has a valid
-        // signature.
+        si = new SignatureInfo(file);
+        sf.SetInfo<SignatureInfo>(si);
     }
+    SignatureInfo::Status st = si->loadAndCheckSignature();
+    if (st != SignatureInfo::SI_VALID)
+    {
+        sf.Remove(si);
+        delete si;
+    }
+    // Now if SourceFile has a SignatureInfo it means it has a valid
+    // signature.
 #endif
 
     return ret;

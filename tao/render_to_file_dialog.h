@@ -31,7 +31,7 @@ QT_END_NAMESPACE
 
 namespace Tao {
 
-class Widget;
+struct Widget;
 
 class RenderToFileDialog : public QDialog, private Ui::RenderToFileDialog
 {
@@ -45,14 +45,18 @@ public slots:
     virtual void accept();
     virtual void reject();
     virtual void dismiss();
+    virtual void done(int x) { QDialog::done(x); }
     virtual void done();
     virtual void failed();
 
 public:
     QString      folder, fileName;
     int          x, y;
-    double       start, end;
+    double       start;      // Unix time ; -1 = current date/time
+    double       duration;   // in seconds
     double       fps;
+    int          startPage;  // 0 = current page
+    double       timeOffset; // initial value of page_time in startPage
 
 private:
     void         dismissShortly();

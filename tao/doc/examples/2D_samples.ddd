@@ -118,8 +118,8 @@ page "ellipse",
     width_and_height ellipse_x, ellipse_y, ellipse_w, ellipse_h 
 
 page "ellipse_arc", 
-    color "tao_orange" 
-    //line_color "tao_orange"
+    color "white"
+    line_color "tao_orange"
     ellipsea_x -> 0 
     ellipsea_y -> 0 
     ellipsea_w -> 200 
@@ -155,6 +155,45 @@ page "ellipse_arc",
         color "font" 
         translate -80, 73, 0 
         text "sweep angle" 
+
+page "ellipse_sector",
+    color "white"
+    color "tao_orange"
+    ellipses_x -> 0
+    ellipses_y -> 0
+    ellipses_w -> 200
+    ellipses_h -> 290
+    ellipses_start -> 20
+    ellipses_sweep -> 135
+    ellipse_sector ellipses_x, ellipses_y, ellipses_w, ellipses_h, ellipses_start, ellipses_sweep
+    axes
+    line_color "black"
+    width_and_height ellipses_x, ellipses_y, ellipses_w, ellipses_h
+
+    // Start angle
+    color "transparent"
+    path
+        move_to 61, 0
+        endpoints_style BAR, ARROWHEAD
+        quad_to 68, 17, 57, 30
+
+    locally
+        line_color "font"
+        color "font"
+        translate 70, 17, 0
+        text "start angle"
+
+    // Sweep angle
+    path
+        move_to 68, 38
+        endpoints_style BAR, ARROWHEAD
+        quad_to 4, 105, -57, 41
+
+    locally
+        line_color "font"
+        color "font"
+        translate -80, 73, 0
+        text "sweep angle"
 
 page "isocel_triangle", 
     color "tao_orange" 

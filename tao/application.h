@@ -161,7 +161,7 @@ public:
 
 public:
     bool               hasGLMultisample, hasFBOMultisample;
-    bool               hasGLStereoBuffers;
+    bool               hasGLStereoBuffers, hasMipmap;
     bool               useShaderLighting;
     QString            lang;
     GCThread *         gcThread;

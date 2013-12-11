@@ -144,19 +144,23 @@ window_sizes_chooser ->
 // ----------------------------------------------------------------------------
 //    Show common window sizes to test presentations on common projector sizes
 // ----------------------------------------------------------------------------
-    chooser_choice "800 x 600",
+    chooser_choice "800 x 600 (4:3)",
         window_size 800, 600
-    chooser_choice "960 x 540",
+    chooser_choice "960 x 540 (16:9)",
         window_size 960, 540
-    chooser_choice "1024 x 768",
+    chooser_choice "1024 x 768 (4:3)",
         window_size 1024, 768
-    chooser_choice "1280 x 720",
+    chooser_choice "1280 x 720 (16:9)",
         window_size 1280, 720
-    chooser_choice "1280 x 768",
+    chooser_choice "1280 x 768 (5:3)",
         window_size 1280, 768
-    chooser_choice "1600 x 1200",
+    chooser_choice "1280 x 960 (4:3)",
+        window_size 1280, 960
+    chooser_choice "1600 x 900 (16:9)",
+        window_size 1600, 900
+    chooser_choice "1600 x 1200 (4:3)",
         window_size 1600, 1200
-    chooser_choice "1920 x 1080",
+    chooser_choice "1920 x 1080 (16:9)",
         window_size 1920, 1080
 
 
@@ -164,27 +168,27 @@ display_mode_chooser ->
 // ----------------------------------------------------------------------------
 //   List the available display modes for the chooser
 // ----------------------------------------------------------------------------
-    if has_display_mode quadstereo then
+    if has_display_mode "quadstereo" then
         chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
-    if has_display_mode hsplitstereo then
+    if has_display_mode "hsplitstereo" then
         chooser_choice tr "Enable stereoscopy (side by side)", {enable_stereoscopy hsplit}
         chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
-    if has_display_mode vsplitstereo then
+    if has_display_mode "vsplitstereo" then
         chooser_choice tr "Enable stereoscopy (over/under)", {enable_stereoscopy vsplit}
         chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
-    if has_display_mode hintstereo then
+    if has_display_mode "hintstereo" then
         chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
-    if has_display_mode hframepacking then
+    if has_display_mode "hframepacking" then
         chooser_choice tr "Enable stereoscopy (horizontal frame packing)", {enable_stereoscopy hframepacking}
-    if has_display_mode vsplitstereo then
+    if has_display_mode "vsplitstereo" then
         chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
-    if has_display_mode alioscopy then
+    if has_display_mode "alioscopy" then
         chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
     if has_display_mode "2dplusdepth" then
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
-    if has_display_mode tridelity then
+    if has_display_mode "tridelity" then
         chooser_choice tr "Enable stereoscopy (Tridelity MV)", {enable_stereoscopy tridelity}
     if has_display_mode "anaglyph" then
         chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}
@@ -221,19 +225,23 @@ windows_menu ->
 // ----------------------------------------------------------------------------
     menu   "TAO_VIEW_MENU", ""
     submenu "TAO_VIEW_MENU:windowsize", tr "Window size"
-    menu_item "TAO_VIEW_MENU:windowsize > 800", "800 x 600",
+    menu_item "TAO_VIEW_MENU:windowsize > 800", "800 x 600 (4:3)",
         window_size 800, 600
-    menu_item "TAO_VIEW_MENU:windowsize > 960", "960 x 540",
+    menu_item "TAO_VIEW_MENU:windowsize > 960", "960 x 540 (16:9)",
         window_size 960, 540
-    menu_item "TAO_VIEW_MENU:windowsize > 1024", "1024 x 768",
+    menu_item "TAO_VIEW_MENU:windowsize > 1024", "1024 x 768 (4:3)",
         window_size 1024, 768
-    menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768",
-        window_size 1280, 768
-    menu_item "TAO_VIEW_MENU:windowsize > 720p", "1280 x 720",
+    menu_item "TAO_VIEW_MENU:windowsize > 720p", "1280 x 720 (16:9)",
         window_size 1280, 720
-    menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200",
+    menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768 (5:3)",
+        window_size 1280, 768
+    menu_item "TAO_VIEW_MENU:windowsize > 1280 4:3", "1280 x 960 (4:3)",
+        window_size 1280, 960
+    menu_item "TAO_VIEW_MENU:windowsize > 1600x900", "1600 x 900 (16:9)",
+        window_size 1600, 900
+    menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200 (4:3)",
         window_size 1600, 1200
-    menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
+    menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080 (16:9)",
         window_size 1920, 1080
 
 
@@ -1454,13 +1462,6 @@ render Body:block ->
     do Body
 
 
-render Body:infix ->
-// ----------------------------------------------------------------------------
-//    Render closures
-// ----------------------------------------------------------------------------
-    do Body
-
-
 render T:text ->
 // ----------------------------------------------------------------------------
 //    Render a text using 'text'
@@ -1639,6 +1640,15 @@ strong Body     -> bold Body
 para_span Body  -> paragraph Body
 
 
+nobreak T:text ->
+// ----------------------------------------------------------------------------
+//   Prevent word break on spaces by replacing them with a no-break space
+// ----------------------------------------------------------------------------
+    text_replace T, " ", nbsp
+
+// Shortcuts for come special characters
+nbsp -> unicode_char 160
+cr -> unicode_char 13
 
 // ============================================================================
 // 

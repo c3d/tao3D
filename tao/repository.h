@@ -43,11 +43,12 @@ namespace Tao {
 
 typedef QSharedPointer<Process> process_p;
 
-class Repository : public QObject
+struct Repository : QObject
 // ----------------------------------------------------------------------------
 //   A repository storing the history of documents
 // ----------------------------------------------------------------------------
 {
+private:
     Q_OBJECT
 
 public:
@@ -262,7 +263,7 @@ class RepositoryFactory
 //   Create and cache repository instances
 // ----------------------------------------------------------------------------
 {
-    friend class Repository;
+    friend struct Repository;
 
 public:
     enum Mode

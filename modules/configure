@@ -18,9 +18,9 @@ usage() {
   echo "the modules that come with Tao Presentations (but a user module has priority"
   echo "on an application module at runtime). See the Tao documentation for details."
   echo "make install will copy module files to:"
-  echo '  - Windows: %APPDATA%\Tao Presentations\modules'
-  echo '  - MacOSX:  $HOME/Library/Application Support/Tao Presentations/modules'
-  echo '  - Linux: $HOME/.tao/modules'
+  echo '  - Windows: %APPDATA%\Taodyne\Tao Presentations\modules'
+  echo '  - MacOSX:  $HOME/Library/Application Support/Taodyne/Tao Presentations/modules'
+  echo '  - Linux: $HOME/.local/share/data/Taodyne/Tao Presentations/modules'
   echo ""
   echo "Options:"
   echo ""

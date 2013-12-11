@@ -332,7 +332,8 @@ void OpenGLState::Sync(uint64 which)
              mmode = GL_MODELVIEW;
              matrixMode_isDirty = mmode != matrixMode;
          }
-         glLoadMatrixd(mvMatrix.Data(false)));
+         glLoadMatrixd(mvMatrix.Data(false));
+        );
     SYNC(projMatrix,
          if (matrixMode_isDirty || mmode != GL_PROJECTION)
          {
@@ -1433,7 +1434,7 @@ void OpenGLState::Clear(GLuint mask)
 //    Clear buffers to preset values
 // ----------------------------------------------------------------------------
 {
-    Sync(STATE_clearColor);     // Make sure we have right clear color
+    Sync();                     // Need right clear color, viewport, matrix
     glClear(mask);              // Immediate execution
 }
 
@@ -2620,6 +2621,11 @@ void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
 {
     // Save current light and set it as dirty
     uint id = light - GL_LIGHT0;
+    if (id == 0 && lights.lights.size() == 0)
+    {
+        // Create default light
+        SetLight(GL_LIGHT0, false);
+    }
     LightState &ls = lights.lights[id];
     lights.dirty |= 1ULL << id;
     SAVE(lights);

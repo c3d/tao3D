@@ -21,7 +21,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <QtGui>
 #include "preferences_pages.h"
 #include "main.h"
 #include "application.h"
@@ -29,6 +28,19 @@
 #include "tao_gl.h"
 #include "opengl_state.h"
 #include "texture_cache.h"
+#include <QtGui>
+#include <QGroupBox>
+#include <QCheckBox>
+#include <QLabel>
+#include <QComboBox>
+#include <QPushButton>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QLineEdit>
+#include <QStackedWidget>
+#include <QProgressBar>
+#include <QAction>
+#include <QToolButton>
 
 
 namespace Tao {
@@ -696,6 +708,7 @@ PerformancesPage::PerformancesPage(QWidget *parent)
             TextureCache::instance().data(), SLOT(setCompression(bool)));
     settingsLayout->addWidget(ct, 3, 1, 1, 2);
     QCheckBox *mm = new QCheckBox(tr("Generate mipmaps for 2D textures"));
+    mm->setEnabled(TaoApp->hasMipmap);
     mm->setChecked(texture2DMipmap());
     connect(mm, SIGNAL(toggled(bool)),
             this, SLOT(setTexture2DMipmap(bool)));
@@ -998,6 +1011,8 @@ bool PerformancesPage::texture2DMipmap()
 //   Create a mipmap when a texture is loaded from file?
 // ----------------------------------------------------------------------------
 {
+    if (!TaoApp->hasMipmap)
+        return false;
     RETURN_CACHED(texture2DMipmap_);
 }
 

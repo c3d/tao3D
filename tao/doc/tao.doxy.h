@@ -100,7 +100,8 @@
  */
 /**
  * @~english
- * @page tao_documents Tao Presentation documents
+ * @page tao_documents Tao Presentations documents
+ * An introduction to the basics of Tao Presentation documents.
  *
  * A Tao document is a text file with the <tt>.ddd</tt> extension. The
  * character encoding is <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
@@ -134,6 +135,7 @@ import "second_part.ddd"
  *
  * @~french
  * @page tao_documents Les documents Tao Presentation
+ * Une introduction aux bases des documents Tao Presentations.
  *
  * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Les
  * caractères sont encodés en 
@@ -526,8 +528,10 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * - @b system: the application folder.
  *
  * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> on Windows,
- * <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX,
+ * <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations</tt> on MacOSX,
  * and <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> on Linux.
+ * Replace <tt>Tao Presentations</tt> with <tt>Tao Presentations Player</tt>
+ * if you are using the player's edition.
  * The application folder is where Tao Presentation is installed.
  * 
  * @~french
@@ -551,18 +555,20 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *
  * Le chemin du dossier utilisateur Tao est
  * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> sous Windows,
- * <tt>$HOME/Library/Application Support/Tao Presentations</tt> sous MacOSX,
+ * <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations</tt> sous MacOSX,
  * et <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> sous Linux.
+ * Remplacez <tt>Tao Presentations</tt> par <tt>Tao Presentations Player</tt>
+ * si vous utilisez le lecteur Tao.
  */
 /**
  * @~english
  * @page xlref XLR Language Reference
- *
+ * The foundation for the Tao Presentation documents is the XLR language, described in this page.
  * @htmlinclude XLRef.html
  *
  * @~french
  * @page xlref Guide de référence du language XLR
- *
+ * Le language XLR sert de fondation aux documents Tao Presentations.
  * @htmlinclude XLRef.html
  */
 /**
@@ -848,12 +854,12 @@ import "xl:mes_définitions.xl"
  * d'ouvrir le répertoire du module.
  *  - Copiez le répertoire @c tao_visuals dans le répertoire @c modules de
  * votre compte utilisateur. Plus précisément, vous obtiendrez :
- *    - Windows: <tt>%%APPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *    - Windows: <tt>%%APPDATA%\\Taodyne\\Tao Presentations\\modules\\tao_visuals</tt>.
  *      Pour ouvrir <tt>%%APPDATA%</tt> facilement, tapez simplement
  *      <tt>%%APPDATA%</tt> dans le menu Démarrer.
- *    - MacOSX: <tt>$HOME/Library/Application Support/Tao Presentations/modules/tao_visuals</tt>.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations/modules/tao_visuals</tt>.
  *      <tt>$HOME</tt> est votre répertoire utilisateur.
- *    - <tt>$HOME/.tao/modules/tao_visuals</tt> sur Linux.
+ *    - <tt>$HOME/.local/share/data/Taodyne/Tao Presentations/modules/tao_visuals</tt> sur Linux.
  *  - Renommez le module. Vous devez renommer le dossier mais également le
  * fichier XL principal : <tt>tao_visuals/tao_visuals.xl</tt> doit devenir
  * <tt>mon_module/mon_module.xl</tt>.
@@ -898,6 +904,8 @@ import "xl:mes_définitions.xl"
 /**
  * @~english
  * @page platform_notes Platform Notes
+ * Informations about things that depend on your Operating System (Windows,
+ * Linux, MacOSX) or your computer hardware.
  *
  * @section secStdoutStderr Standard Output, Standard Error
  *
@@ -934,6 +942,8 @@ import "xl:mes_définitions.xl"
  *
  * @~french
  * @page platform_notes Notes de plateforme
+ * Des informations sur des choses qui dépendent de votre système
+ * d'exploitation (Windows, Linux, MacOSX) ou de votre matériel.
  *
  * @section secStdoutStderr Sortie standard, erreur standard
  *
@@ -969,6 +979,7 @@ import "xl:mes_définitions.xl"
 /**
  * @~english
  * @page credits Credits/Licenses
+ * Legal notices.
  *
  * Tao Presentations uses the following components:
  *
@@ -993,6 +1004,7 @@ import "xl:mes_définitions.xl"
  *   http://gitorious.org/taodyne-open-source/tao_help_viewer</a>.
  * @~french
  * @page credits Remerciements/Licences
+ * Informations légales.
  *
  * Tao Presentations utilise les composants suivants :
  *

@@ -65,6 +65,9 @@
 #     Removes menus: File>New from Template..., Help>Themes and Help>Examples.
 #   DEFINES+=CFG_NO_QTWEBKIT
 #     Do not use QtWebKit. The url and url_texture primitives become no-ops.
+#   DEFINES+=CFG_UNLICENSED_MAX_PAGES=<N>
+#     Tao Player and Tao Design (non-Pro editions) will limit the number of
+#     pages in a document to <N>, unless the document has a valid signature.
 #
 #   modules=none
 #     Do not build any Tao module
@@ -116,6 +119,9 @@
 # Note: Packaging scripts are under ./packaging/
 # --End Usage
 
+# For Qt5.1, avoid massive warningification
+greaterThan(QT_MAJOR_VERSION, 4) { cache() }
+
 # Include global definitions and rules.
 include(main.pri)
 
@@ -163,6 +169,7 @@ kit.commands = \$(MAKE) -C packaging kit
 kit.depends = FORCE
 QMAKE_EXTRA_TARGETS += kit
 
+TAO_CURRENT_PWD = $$PWD
 QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 
 # Display configuration info

@@ -280,7 +280,6 @@ void Layout::Draw(Layout *where)
     GLAllStateKeeper glSave;
     Inherit(where);
 
-
     // Display all items
     PushLayout(this);
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
@@ -498,6 +497,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         return false;
 
     Widget * widget = Widget::Tao();
+    if (widget->currentPrinter())
+        return false;
     text layoutId;
     IFTRACE(layoutevents)
     {

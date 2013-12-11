@@ -3,6 +3,8 @@ MODINSTDIR = landscapes
 
 OTHER_FILES = landscapes.xl
 
+PICTURES = landscapes/*
+
 include(../themes.pri)
 
 landscapes.path = $$APPINST/templates/landscapes/landscapes

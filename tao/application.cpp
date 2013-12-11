@@ -124,11 +124,7 @@ void Application::deferredInit()
 // ----------------------------------------------------------------------------
 {
     // Set some useful parameters for the application
-#ifdef TAO_PLAYER
-    setApplicationName ("Tao Presentations Player");
-#else
-    setApplicationName ("Tao Presentations");
-#endif
+    setApplicationName (APP_NAME);
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
 

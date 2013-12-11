@@ -13,7 +13,7 @@ module_description
     import_name "PastelTrianglesTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.001
+    version 1.002
 
 module_description "fr",
     name "Thème Triangles Pastel"

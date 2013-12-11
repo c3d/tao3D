@@ -3,11 +3,13 @@
 # take the value of $$VERSION as is
 # Windows: FILEVERSION, PRODUCTVERSION, and FileVersion are built using
 # $$MAJOR, $$MINOR and $$RELEASE
-VERSION = "1.4.3"
-!build_pass:message(Version is $$VERSION)
-MAJOR = $$replace(VERSION, "\\.[0-9]+\\.[0-9]+\$", "")
-MINOR = $$replace(VERSION, "^[0-9]+\\.", "")
+TAO_VERSION = "1.4.4"
+MAJOR = $$replace(TAO_VERSION, "\\.[0-9]+\\.[0-9]+\$", "")
+MINOR = $$replace(TAO_VERSION, "^[0-9]+\\.", "")
 MINOR = $$replace(MINOR, "\\.[0-9]+\$", "")
-RELEASE = $$replace(VERSION, "^[0-9]+\\.[0-9]+\\.", "")
+RELEASE = $$replace(TAO_VERSION, "^[0-9]+\\.[0-9]+\\.", "")
 
-GITREV = $$system(bash -c \"$$PWD/tao/updaterev.sh -n\")
+greaterThan(MAJOR, 1):MAYBE_MAJOR = " $$MAJOR"
+!isEmpty(TAO_PLAYER):MAYBE_PLAYER = " Player"
+APP_NAME="Tao Presentations$$MAYBE_PLAYER$$MAYBE_MAJOR"
+

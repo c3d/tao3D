@@ -1,12 +1,14 @@
 #!/bin/sh
 
 # Firefox needs this to be able to open tao:// and taos://
-gconftool-2 --type=string --set /desktop/gnome/url-handlers/tao/command "/opt/Taodyne/TaoPresentations/Tao\ Presentations --one-instance %s" || /bin/true
+gconftool-2 --type=string --set /desktop/gnome/url-handlers/tao/command \"/opt/Taodyne/TaoPresentations/Tao\\ Presentations --one-instance %s\" || /bin/true
 gconftool-2 --type=bool --set /desktop/gnome/url-handlers/tao/need-terminal false || /bin/true
 gconftool-2 --type=bool --set /desktop/gnome/url-handlers/tao/enabled true || /bin/true
 
-gconftool-2 --type=string --set /desktop/gnome/url-handlers/taos/command "/opt/Taodyne/TaoPresentations/Tao\ Presentations --one-instance %s" || /bin/true
+gconftool-2 --type=string --set /desktop/gnome/url-handlers/taos/command \"/opt/Taodyne/TaoPresentations/Tao\\ Presentations --one-instance %s\" || /bin/true
 gconftool-2 --type=bool --set /desktop/gnome/url-handlers/taos/need-terminal false || /bin/true
 gconftool-2 --type=bool --set /desktop/gnome/url-handlers/taos/enabled true || /bin/true
 
 gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
+
+update-alternatives --install /usr/bin/tao tao $$TARGET_ROOT/tao $$ALTERNATIVES_PRIORITY

@@ -1,5 +1,41 @@
 Change log for Tao Presentations
 
+1.44 (01-Dec-2013)
+
+#3312 Linux: crash on exit if clipboard has data
+#3311 Crash when light_* is called with no current light
+#3309 Add primitive: once
+#3305 WaterSurface: shaders should not access textures from vertex shader if not supported
+#3304 WaterSurface: Remove requirement of GL_EXT_gpu_shader4 extension
+#3302 malloc error and abort in FrameInfo::purge when switching to quad buffer
+#3301 Windows: crash on startup when Qt tries to output qWarning from QPixmap
+#3298 Tao Presentations won't start on Windows laptop with Mobile Intel 4 Series Express Chipset
+#3291 has_display_mode usually returns the wrong result when passed a variable or function parameter
+#3289 Crash when passing an unknown id to texture <id>
+#3287 Finance theme fails to load background if not present in document directory
+#3286 Landscapes theme: divide by zero error if document directory has no picture
+#3283 Evaluation (non-pro) editions: limit the number of pages per document to 5
+#3278 Rename page_label and prev_page_label to page_name and prev_page_label
+#3274 Primitive ellipse_arc draws a closed sector, cannot draw an open arc
+#3273 Add aspect ratio to window resolutions
+#3272 Add 1600x900 (HD+) to the Window size menu
+#3271 Windows: spurious error message: QGLShader::link: "No errors.
+#3268 Render to files dialog should have Start date and Duration instead of Start time and End time
+#3267 Too much code generated for calls that could be eliminated statically
+#3266 Render to files dialog: add page_time offset parameter for first page
+#3265 Render to files may generate identical images when 'First frame' is not 1
+#3262 Add Start page parameter to Render to files dialog
+#3261 Error when rendering to files: QImage: out of memory, returning null image
+#3259 Printing transparent contents gets completely bogus results
+#3258 Stereoscopic modes handle transparent backgrounds inconsistently
+#3255 Add on "key", on "keydown", on "keyup", key_name, key_text, key_event, key_pressed
+#3253 MacOSX, Linux: stop animations when application is minimized to save CPU
+#3248 Accept shortcuts for tao: URIs
+#3237 Materials should obey texture transforms
+#3235 Materials: cone, sphere and torus require much larger scaling factor than cube
+#3228 Add on "pageentry" and on "pageexit"
+#3207 Create Charts module
+
 1.43 (21-Oct-2013)
 
 #3244 MacOSX build of Tao Presentations won't start unless Qt is installed

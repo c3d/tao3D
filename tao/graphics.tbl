@@ -556,6 +556,14 @@ PREFIX(UserEvent, tree, "user_event",
        DESCRIPTION("Returns an available user event type. "
                    "The value returned for a given number is always the same. "
                    "It can be passed to post_event or refresh_on."))
+PREFIX(AddLayoutName, boolean, "layout",
+       PARM(name, text, "An identifier for the current layout"),
+       RTAO(addLayoutName(name)),
+       SYNOPSIS("Give a name to the current layout."))
+PREFIX(RefreshAlso, boolean, "refresh_also",
+       PARM(name, text, "The identifier of the target layout"),
+       RTAO(refreshAlso(name)),
+       SYNOPSIS("Declare that the specified layout should be refreshed when the current layout is."))
 #ifndef CFG_NOSRCEDIT
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),

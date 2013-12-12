@@ -85,6 +85,7 @@ public:
 
 
 typedef std::vector<Layout *> Layouts;
+typedef std::set<text>        LayoutNames;
 
 struct Layout : Drawing, LayoutState
 // ----------------------------------------------------------------------------
@@ -122,14 +123,19 @@ public:
     // Event interface
     bool                Refresh(QEvent *e, double now,
                                 Layout *parent=NULL, QString dbg = "");
-    void                RefreshLayouts(Layouts &layouts);
+    void                ChildLayouts(Layouts &layouts, bool recurse = false);
     bool                RefreshChildren(QEvent *e, double now, QString debug);
     bool                NeedRefresh(QEvent *e, double when);
-    void                RefreshOn(Layout *);
-    void                RefreshOn(int type, double when = DBL_MAX);
+    bool                RefreshOn(Layout *);
+    bool                RefreshOnUp(Layout *);
+    bool                RefreshOn(int type, double when = DBL_MAX);
     void                NoRefreshOn(int type);
     qevent_ids          RefreshEvents();
+    qevent_ids          RefreshEventsUp();
     double              NextRefresh();
+    void                AddName(text name);
+    void                AddDep(text name);
+    void                CheckRefreshDeps();
 
     LayoutState &       operator=(const LayoutState &o);
     virtual void        Inherit(Layout *other);
@@ -150,6 +156,7 @@ public:
     uint                charId;
 
 protected:
+    Layout *            parent;
     // List of drawing elements
     Drawings            items;
     Widget *            display;
@@ -157,6 +164,9 @@ protected:
     int                 idx;
     Drawings            caches;  // Drawings that may reference us
     friend struct TextFlow;
+    // Refresh dependencies
+    LayoutNames         names; // Name(s) of this layout
+    LayoutNames         deps;  // Layout(s) to refresh with this one
 
 public:
     qevent_ids          refreshEvents;

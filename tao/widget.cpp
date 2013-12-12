@@ -1229,6 +1229,12 @@ bool Widget::refreshNow(QEvent *event)
         stats.end(Statistics::EXEC);
     }
 
+    if (changed)
+    {
+        // Process explicit layout dependencies
+        space->CheckRefreshDeps();
+    }
+
     if (!inOfflineRendering)
     {
         // Redraw all
@@ -7153,6 +7159,26 @@ Integer_p Widget::registerUserEvent(text name)
                       << " for user_event '" << name << "'\n";
     }
     return new Integer(user_events[name]);
+}
+
+
+Name_p Widget::addLayoutName(text name)
+// ----------------------------------------------------------------------------
+//   Give a name to current layout
+// ----------------------------------------------------------------------------
+{
+    layout->AddName(name);
+    return XL::xl_true;
+}
+
+
+Name_p Widget::refreshAlso(text name)
+// ----------------------------------------------------------------------------
+//   Layout 'name' shall be refreshed when current layout is refreshed
+// ----------------------------------------------------------------------------
+{
+    layout->AddDep(name);
+    return XL::xl_true;
 }
 
 

@@ -73,11 +73,11 @@ theme_fade "Landscapes", Master:text, Style:text, N:integer, Index:integer -> fa
 theme_boxstyle "Landscapes",Master:text,"chart" -> light 0, false; color "white",0.0
 theme_boxstyle "Landscapes",Master:text,"pie" -> light 0, false; color "white",0.0
 
-theme_chart "Landscapes", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
+theme_chart "Landscapes", Master:text, Style:text, "3D", W:real, H:real, N:integer, Set:integer, Index:integer ->
 // ----------------------------------------------------------------------------
 //   Display chart part
 // ----------------------------------------------------------------------------
-    Ratio := (chart_data_ratio (N, Index))
+    Ratio := (chart_data_ratio (Set, Index))
     T -> 0.0
     on "pageentry",
         T := 0.0
@@ -86,14 +86,14 @@ theme_chart "Landscapes", Master:text, Style:text, "3D", W:real, H:real, N:integ
         T := T + 0.002
     locally
         show (T * 0.7)
-        theme_chart "Landscapes", Master, Style, "3D", W, H, N, Index, Ratio * T
+        theme_chart "Landscapes", Master, Style, "3D", W, H, N, Set, Index, Ratio * T
 
 
-theme_chart "Landscapes", Master:text, Style:text, Format:text, W:real, H:real, N:integer, Index:integer ->
+theme_chart "Landscapes", Master:text, Style:text, Format:text, W:real, H:real, N:integer, Set:integer, Index:integer ->
 // ----------------------------------------------------------------------------
 //   Display chart part
 // ----------------------------------------------------------------------------
-    Ratio := chart_data_ratio (N, Index)
+    Ratio := chart_data_ratio (Set, Index)
     R -> 0.0
     on "pageentry",
         R := 0.0
@@ -102,7 +102,7 @@ theme_chart "Landscapes", Master:text, Style:text, Format:text, W:real, H:real, 
         R := R + 0.002
     locally
         show R
-        theme_chart "Landscapes", Master, Style, Format, W, H, N, Index, Ratio * R
+        theme_chart "Landscapes", Master, Style, Format, W, H, N, Set, Index, Ratio * R
 
 
 

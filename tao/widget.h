@@ -242,6 +242,7 @@ public:
     void        loadContextFiles(XL::source_names &files);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
+    void        checkEditorInstructionsFile();
     void        preloadSelectionCode();
     void        updateProgramSource(bool notWhenHidden = true);
     bool        markChange(text reason);

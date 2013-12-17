@@ -4607,7 +4607,7 @@ void Widget::checkEditorInstructionsFile()
             {
                 gotoPageName = pageNames[pnum];
                 std::cerr << "Got page name " << gotoPageName << "\n";
-                refreshNow();
+                refresh(0);
             }
             else
             {

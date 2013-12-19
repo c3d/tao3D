@@ -21,11 +21,14 @@
  * Associate the specified code @p t and the action named @p n. This code is
  * executed when the action occurs on the current @c shape or @c active_widget.
  * Currently known event names are:
+ * @addindex click (on -)
  * - @c click
+ * @addindex mouseover (on -)
  * - @c mouseover
  *
  * In addition, the following event names are available which are not related
  * to a shape:
+ * @addindex pagechange (on -)
  * - @c pagechange (since 1.18)@n
  * The code @c t associated with this event is executed when a page change
  * has just occurred and @ref page_name or @ref page_number point to the new
@@ -33,6 +36,7 @@
  * get information about the page that was displayed previously).
  * If the previous page has a @ref transition, the code is excuted
  * after the transition is done.
+ * @addindex key (on -)
  * - @c key, @c key:\<regexp\> (since 1.44) @n
  * The code is executed when the event that caused the current evaluation of
  * the program is a keyboard event (key press or key release).
@@ -40,15 +44,19 @@
  * @ref key_event, @ref key_name or @ref key_text matches the given regular
  * expression. The syntax is the one used by
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
+ * @addindex keydown (on -)
  * - @c keydown, @c keydown:\<regexp\> (since 1.44) @n
  * Similar to @c key or @c key:\<regexp\>, but only applies to key press
  * events.
+ * @addindex keyup (on -)
  * - @c keyup, @c keyup:\<regexp\> (since 1.44) @n
  * Similar to @c key or @c key:\<regexp\>, but only applies to key release
  * events.
+ * @addindex pageentry (on -)
  * - @c pageentry (since 1.44) @n
  * The code is executed if the page is being evaluated for the first time,
  * or is being evaluated again after another page has been shown.
+ * @addindex pageexit (on -)
  * - @c pageexit (since 1.44) @n
  * The code is executed immediately before a page change.
  * @~french
@@ -58,11 +66,14 @@
  * quand l'événement se produit sur le @a layout englobant cet appel (il doit
  * s'agir d'un bloc @c shape ou @c active_widget).
  * Les noms valides sont :
+ * @addindex click (on -)
  * - @c click : clic de souris
+ * @addindex mouseover (on -)
  * - @c mouseover : passage du pointeur de souris (sans clic)
  *
  * D'autre part, les noms d'évènement suivants, indépendant de @c shape ou
  * @c active_widget, peuvent être utilisés :
+ * @addindex pagechange (on -)
  * - @c pagechange  (depuis 1.18)@n
  * Cet événement correspond à un changement de page. Lors le code @c t
  * s'exécute, le changement de page vient de se produire (et par conséquent,
@@ -71,21 +82,26 @@
  * d'obtenir des informations sur la page affichée précédemment).
  * Si une transition (cf. @ref transition) est associée à la page précédente,
  * le code @c t est exécuté lorsque la transition s'est terminée.
+ * @addindex key (on -)
  * - @c key, @c key:\<regexp\> (depuis 1.44) @n
  * Le code est exécuté si l'évènement qui a provoqué l'évaluation du programme
  * est un évènement clavier. Si @em :\<regexp\> est précisée, le code n'est
  * exécuté que si la valeur de @ref key_event, @ref key_name ou @ref key_text
  * correspond à l'expression régulière donnée. La syntaxe est celle de
  * <a href="http://qt-project.org/doc/qt-4.8/qregexp.html#details">QRegExp</a>.
+ * @addindex keydown (on -)
  * - @c keydown, @c keydown:\<regexp\> (depuis 1.44) @n
  * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant à l'appui sur une touche.
+ * @addindex keyup (on -)
  * - @c keyup, @c keyup:\<regexp\> (depuis 1.44) @n
  * Similaire à @c key ou @c key:\<regexp\>, mais ne prend en compte que les
  * évènement correspondant au relâchement d'une touche.
+ * @addindex pageentry (on -)
  * - @c pageentry (depuis 1.44) @n
  * Le code est exécuté si la page est évaluée pour la première fois, ou est
  * évaluée de nouveau après qu'un autre page a été affichée.
+ * @addindex pageexit (on -)
  * - @c pageexit (depuis 1.44) @n
  * Le code est exécuté immédiatement avant un changement de page.
  * @~

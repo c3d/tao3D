@@ -736,7 +736,7 @@ no_line_color ();
  *
  * The default color is transparent black, so that no line is drawn by default.
  * @note @c color @c "font" and @c line_color @c "font" are not the same color,
- * but relevent colors for the line of a glyph and the fill of a glyph.
+ * but relevant colors for the line of a glyph and the fill of a glyph.
  *
  * @param colorname is the name of the color
  * @param alpha is the transparency factor. 0.0 is transparent and 1.0 is opaque.

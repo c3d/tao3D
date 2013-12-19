@@ -344,6 +344,7 @@ theme_numbered_item Theme:text, Master:text, Level:integer, Body ->
         Body
         default_item_number[default_item_level] := 1 + default_item_number[default_item_level]
         default_item_number[default_item_level+1] := 1
+        refresh_also "ThemeReset"
 
 
 theme_reset Theme:text ->

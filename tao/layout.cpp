@@ -142,7 +142,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(),
       LayoutState(widget->layout ? *widget->layout : LayoutState()),
-      id(0), charId(0),
+      id(0), charId(0), parent(NULL),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
 {
@@ -157,7 +157,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o), id(0), charId(0),
+    : Drawing(o), LayoutState(o), id(0), charId(0), parent(NULL),
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(o.lastRefresh)
 {
@@ -188,7 +188,8 @@ Layout *Layout::AddChild(uint childId,
 // ----------------------------------------------------------------------------
 {
     IFTRACE(layoutevents)
-        std::cerr << "Adding child id " << childId << " to " << id << "\n";
+        std::cerr << "Adding child id " << childId << " to " << id
+                  << " with body: " << body << "\n";
 
     Layout *result = child ? child : NewChild();
     Add(result);
@@ -407,6 +408,9 @@ void Layout::Add(Drawing *d)
                   << demangle(typeid(*d).name()) << std::endl;
 
     items.push_back(d);
+    Layout * child = dynamic_cast<Layout *>(d);
+    if (child)
+        child->parent = this;
     d->Evaluate(this);
 }
 
@@ -554,9 +558,16 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     else
     {
         IFTRACE(layoutevents)
+        {
             std::cerr << "Layout " << layoutId << " does not need updating"
-                      << " at t=" << now
-                      << " expires at " << nextRefresh << "\n";
+                      << " now=" << now
+                      << " expires at ";
+            if (nextRefresh == DBL_MAX)
+                std::cerr << "(never)";
+            else
+                std::cerr << nextRefresh;
+            std::cerr << "\n";
+        }
 
         // Forward event to all child layouts
         changed |= RefreshChildren(e, now, dbg);
@@ -568,14 +579,20 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 }
 
 
-void Layout::RefreshLayouts(Layouts &out)
+void Layout::ChildLayouts(Layouts &out, bool recurse)
 // ----------------------------------------------------------------------------
 //   Copy all items that are layouts in the children
 // ----------------------------------------------------------------------------
 {
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+    {
         if (Layout *layout = dynamic_cast<Layout *> (*i))
+        {
             out.push_back(layout);
+            if (recurse)
+                layout->ChildLayouts(out, true);
+        }
+    }
 }
 
 
@@ -586,7 +603,7 @@ bool Layout::RefreshChildren(QEvent *e, double now, QString dbg)
 {
     bool result = false;
     Layouts lyo;
-    RefreshLayouts(lyo);
+    ChildLayouts(lyo);
     for (Layouts::iterator i = lyo.begin(); i != lyo.end(); i++)
         result |= (*i)->Refresh(e, now, this, dbg);
     return result;
@@ -600,7 +617,7 @@ LayoutState::qevent_ids Layout::RefreshEvents()
 {
     LayoutState::qevent_ids events = refreshEvents;
     Layouts lyo;
-    RefreshLayouts(lyo);
+    ChildLayouts(lyo);
     for (Layouts::iterator i = lyo.begin(); i != lyo.end(); i++)
     {
         LayoutState::qevent_ids evt = (*i)->RefreshEvents();
@@ -617,7 +634,7 @@ double Layout::NextRefresh()
 {
     double next = nextRefresh;
     Layouts lyo;
-    RefreshLayouts(lyo);
+    ChildLayouts(lyo);
     for (Layouts::iterator i = lyo.begin(); i != lyo.end(); i++)
         next = qMin(next, (*i)->NextRefresh());
     return next;
@@ -644,32 +661,70 @@ bool Layout::NeedRefresh(QEvent *e, double when)
 }
 
 
-void Layout::RefreshOn(Layout *layout)
+bool Layout::RefreshOn(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Refresh whenever other layout would refresh
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(layoutevents)
-        std::cerr << "Copying layout events from " << (void*)layout << " to "
-                  << (void*)this << "\n";
+    bool changed = false;
+
+    qevent_ids::size_type prev = refreshEvents.size();
     refreshEvents.insert(layout->refreshEvents.begin(),
                          layout->refreshEvents.end());
+    if (refreshEvents.size() != prev)
+        changed = true;
+
     if (layout->nextRefresh < nextRefresh)
+    {
         nextRefresh = layout->nextRefresh;
+        changed = true;
+    }
+
+    IFTRACE(layoutevents)
+    {
+        if (changed)
+            std::cerr << "Refresh events copied from " << (void*)layout
+                      << " to " << (void*)this << "\n";
+    }
+
+    return changed;
 }
 
 
-void Layout::RefreshOn(int type, double when)
+bool Layout::RefreshOnUp(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Refresh whenever other layout would refresh (even due to a parent refresh)
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+    for (Layout * lyo = layout; lyo; lyo = lyo->parent)
+        if (RefreshOn(lyo))
+            changed = true;
+    return changed;
+}
+
+
+bool Layout::RefreshOn(int type, double when)
 // ----------------------------------------------------------------------------
 //   Ask for refresh on specified event (and time if event is QEvent::Timer)
 // ----------------------------------------------------------------------------
 {
-    if (refreshEvents.count(type) == 0)
-        refreshEvents.insert(type);
+    bool changed = false;
 
-    if (type == QEvent::Timer)
-        if (when < nextRefresh)
-            nextRefresh = when;
+    if (refreshEvents.count(type) == 0)
+    {
+        refreshEvents.insert(type);
+        changed = true;
+    }
+
+    if (type == QEvent::Timer &&
+        when < nextRefresh)
+    {
+        nextRefresh = when;
+        changed = true;
+    }
+
+    return changed;
 }
 
 
@@ -684,6 +739,93 @@ void Layout::NoRefreshOn(int type)
         if (type == QEvent::Timer)
             nextRefresh = DBL_MAX;
     }
+}
+
+
+void Layout::AddName(text name)
+// ----------------------------------------------------------------------------
+//   Give a name to this layout
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(layoutevents)
+        std::cerr << "Name " << name << " is layout " << PrettyId() << "\n";
+    names.insert(name);
+}
+
+
+void Layout::AddDep(text name)
+// ----------------------------------------------------------------------------
+//   Layout 'name' shall be refreshed when this one is refreshed
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(layoutevents)
+        std::cerr << "Layout " << PrettyId() << " shall refresh "
+                  << name << " \n";
+    deps.insert(name);
+}
+
+
+void Layout::CheckRefreshDeps()
+// ----------------------------------------------------------------------------
+//   Copy refresh info of children to named dependent layouts (refresh_also)
+// ----------------------------------------------------------------------------
+{
+    // All named layouts.
+    // One name can be shared by multiple layout, and one layout can
+    // have several names.
+    std::map<text, Layouts> byName;
+    // All layouts that declared a dependency
+    Layouts withDeps;
+
+    Layouts lyo;
+    lyo.push_back(this);
+    ChildLayouts(lyo, true);
+    for (Layouts::iterator i = lyo.begin(); i != lyo.end(); i++)
+    {
+        if ((*i)->deps.size())
+            withDeps.push_back((*i));
+        LayoutNames &nam = (*i)->names;
+        for (LayoutNames::iterator j = nam.begin(); j != nam.end(); j++)
+            byName[(*j)].push_back(*i);
+    }
+
+    bool changed;
+    int pass = 0;
+    do
+    {
+        // Loop until nothing changes to handle indirect dependencies
+        changed = false;
+        for (Layouts::iterator i = withDeps.begin(); i != withDeps.end(); i++)
+        {
+            Layout *from = (*i);
+            LayoutNames &dep = from->deps;
+            for (LayoutNames::iterator j = dep.begin(); j != dep.end(); j++)
+            {
+                if (byName.count((*j)))
+                {
+                    Layouts &targets = byName[(*j)];
+                    for (Layouts::iterator k = targets.begin();
+                         k != targets.end(); k++)
+                    {
+                        Layout *to = (*k);
+                        IFTRACE(layoutevents)
+                            std::cerr << "Refresh dependency: from {"
+                                      << from->PrettyId()
+                                      << "} to {" << to->PrettyId()
+                                      << " name " << (*j) << "}\n";
+                        if (to->RefreshOnUp(from))
+                            changed = true;
+                    }
+                }
+            }
+        }
+        pass++;
+    } while (changed);
+
+    IFTRACE(layoutevents)
+        std::cerr << "Refresh dependencies resolved in " << pass
+                  << " pass" << ((pass > 1) ? "es" : "") << " of "
+                  << withDeps.size() << "/" << lyo.size() << "\n";
 }
 
 

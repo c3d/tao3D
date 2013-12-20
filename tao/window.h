@@ -74,6 +74,7 @@ public:
            QString sourceFile = "", bool ro = false);
     ~Window();
 
+    void addSeparator(QString txt);
     void addError(QString txt);
 #ifndef CFG_NOGIT
     bool openProject(QString path, QString filename, bool confirm = true);
@@ -121,6 +122,7 @@ public slots:
     void toggleAnimations();
     bool toggleSlideShow();
     void toggleStereoIdent();
+    void clearErrors();
 #ifndef CFG_NOSRCEDIT
     void sourceViewBecameVisible(bool visible);
 #endif
@@ -133,7 +135,6 @@ public slots:
     void print();
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
-    void clearErrors();
     void renderToFile();
     void adjustToScreenResolution(int screen);
     void updateDisplayModeCheckMark(QString mode);
@@ -149,6 +150,7 @@ signals:
     void projectChanged(Repository *repo);
     void openFinished(bool success);
     void appendErrorMsg(QString msg);
+    void setErrorColor(const QColor &color);
     void showErrorWindow();
 
 protected:
@@ -333,6 +335,7 @@ private:
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif
+    QAction          *clearErrorsAct;
     QAction          *viewAnimationsAct;
     QAction          *stereoIdentAct;
     QUndoView        *undoView;

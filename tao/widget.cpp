@@ -1225,7 +1225,7 @@ bool Widget::refreshNow(QEvent *event)
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
         if (changed)
-            checkErrors(false);
+            checkErrors();
         stats.end(Statistics::EXEC);
     }
 
@@ -1268,7 +1268,6 @@ void Widget::refreshOn(int type, double nextRefresh)
     if (!layout)
         return;
 
-    inError = false;
     if (type == QEvent::Timer)
     {
         double currentTime = CurrentTime();
@@ -1421,7 +1420,7 @@ void Widget::runProgramOnce()
     stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)
-    checkErrors(true);
+    checkErrors();
 
     // Clean the end of the old menu list, unless in a transition.
     if (!runningTransitionCode)
@@ -4535,6 +4534,9 @@ void Widget::refreshProgram()
         else
             std::cerr << "Surgical replacement worked\n";
     }
+    
+    // Clear errors and indicate a reload
+    clearErrors();
 
     // If we were not successful with simple changes, reload everything...
     if (needBigHammer)
@@ -4550,7 +4552,6 @@ void Widget::refreshProgram()
             XL::MAIN->LoadFile(sf.name);
         }
         updateProgramSource();
-        clearErrors();
         needRefresh = true;
     }
     if (needRefresh)
@@ -4566,9 +4567,6 @@ void Widget::refreshProgram()
         TaoSave saveCurrent(current, this);
         refreshNow();
     }
-    if (!inError)
-        taoWindow()->clearErrors();
-
     toReload.clear();
 
 #if !defined(CFG_NO_DOC_SIGNATURE)
@@ -8839,8 +8837,14 @@ Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
         // Add new shader
         bool ok = prog->addShaderFromSourceCode(shaderType, +source);
         currentShaderProgram->shaderSource[shaderType] = source;
+        currentShaderProgram->inError = !ok;
+        if (!ok)
+            inError = true;
         return ok ? XL::xl_true : XL::xl_false;
     }
+    if (currentShaderProgram->inError)
+        inError = true;
+
     return XL::xl_true;
 }
 
@@ -12613,11 +12617,11 @@ void Widget::clearErrors()
 {
     inError = false;
     XL::MAIN->errors->Clear();
-    taoWindow()->clearErrors();
+    taoWindow()->addSeparator("Reloaded program");
 }
 
 
-void Widget::checkErrors(bool clear)
+void Widget::checkErrors()
 // ----------------------------------------------------------------------------
 //   Check if there were errors during evaluation, and display them if any
 // ----------------------------------------------------------------------------
@@ -12628,8 +12632,6 @@ void Widget::checkErrors(bool clear)
         std::vector<XL::Error>::iterator ei;
         Window *window = taoWindow();
         XL::MAIN->errors->Clear();
-        if (clear)
-            window->clearErrors();
         for (ei = errors.begin(); ei != errors.end(); ei++)
         {
             text pos = (*ei).Position();

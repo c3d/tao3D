@@ -316,6 +316,81 @@ post_event (type:integer);
 
 /**
  * @~english
+ * Give a name to the current layout.
+ * The supplied name may then be used with @ref refresh_also. @n
+ * A layout can be given multiple names, and the same name can be
+ * used for multiple layouts.
+ * @~french
+ * Donne un nom au layout courant.
+ * Cela permet de faire référence à ce layout lors de l'appel à
+ * @ref refresh_also. @n
+ * Un layout peut avoir plusieurs noms, et le même nom peut être
+ * associé à plusieurs layouts.
+ * @~
+ * @see refresh_also
+ */
+layout (Name:text);
+
+/**
+ * @~english
+ * Link re-evaluation of the current layout to another one.
+ *
+ * This primitive requests that the layout called @p Name (see
+ * @ref layout) be also part of the evaluation list the next time the
+ * current layout is about to be evaluated. @n
+ * For instance, in the following example the @c color_hsv line
+ * calls @c page_time, which results in the @c text_box code being
+ * executed whenever a timer event occurs. Because @c NumberedItem calls
+ * @c refresh_also, the @c locally block is also marked for re-evaluation
+ * on timer events. Therefore, the counter is properly reset on each
+ * evaluation of the program, and items are numbered '1', '2' and '3' as
+ * expected. @n
+ * Without @c refresh_also, the counter would keep increasing
+ * since @c NumberedItem would be called repeatedly but the reset code
+ * would not be run.
+ *
+ * @~french
+ * Associe l'évaluation du layout courant avec un autre.
+ *
+ * Cette primitive demande à ce que le layout appelé @p Name (cf.
+ * @ref layout) soit ajouté à la liste d'évaluation la prochaine fois
+ * qu'un événement causera l'évaluation du layout courant.
+ *
+ * Dans l'exemple ci-dessous, la ligne @c color_hsv appelle @c page_time,
+ * ce qui provoque la ré-évaluation automatique du contenu de @c text_box
+ * à chaque événement Timer. Puisque @c NumberedItem appelle @c refresh_also,
+ * le bloc @c locally est aussi marqué comme devant être ré-évalué lors du
+ * prochain événement Timer. La conséquence est que le compteur de ligne
+ * est correctement réinitialisee à chaque évaluation, et les lignes sont
+ * bien numérotées "1", "2" et "3" comme attendu. @n
+ * Sans l'appel à @c refresh_also, le compteur s'incrémenterait sans
+ * cesse car @c NumberedItem serait appelé de façon répétée mais le compteur
+ * ne serait jamais réinitialisé.
+ * @~
+@code
+page "Test",
+    locally
+        layout "ResetCounter"
+        Count -> 1
+        Count := 1
+    text_box 0, 0, 0.8*window_width, 0.8*window_height,
+        color_hsv (10 * page_time) mod 360, 1, 1, 1
+        NumberedItem "A"
+        NumberedItem "B"
+        NumberedItem "C"
+
+NumberedItem T:text ->
+    text Count & ". " & T & cr
+    Count := Count + 1
+    refresh_also "ResetCounter"
+@endcode
+ *
+ * @see layout
+ */
+refresh_also (Name:text);
+
+/**
+ * @~english
  * Exits the Tao application.
  *
  * @p n is the exit status of the process.

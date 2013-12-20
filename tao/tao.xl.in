@@ -1478,21 +1478,21 @@ render I:integer ->
 
 render R:real ->
 // ----------------------------------------------------------------------------
-//   Render an integer by showing its value
+//   Render a real by showing its value
 // ----------------------------------------------------------------------------
     text text R
 
 
 render true ->
 // ----------------------------------------------------------------------------
-//   Render an integer by showing its value
+//   Render a boolean (true) by showing its value
 // ----------------------------------------------------------------------------
     text "true"
 
 
 render false ->
 // ----------------------------------------------------------------------------
-//   Render an integer by showing its value
+//   Render a boolean (false) by showing its value
 // ----------------------------------------------------------------------------
     text "false"
 

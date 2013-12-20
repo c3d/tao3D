@@ -67,8 +67,8 @@ picture_slide "YouTube Video slide",
 
 
 picture_slide "Chart slide",
-    once 
-        chart_current "My chart"
+    chart_current "My chart"
+    once
         for i in 1..4 loop
             chart_push_data 1, 200 + 50 * i
             chart_push_data 2, 150 - 20 * i
@@ -78,6 +78,7 @@ picture_slide "Chart slide",
         chart_set_legend 3, "Third set"
         chart_set_title "Sample chart"
         chart_set_format "3D"
+        chart_set_type "bar"
 
     light 0
     light_attenuation 1 / scaling_factor, 0, 0
@@ -85,4 +86,4 @@ picture_slide "Chart slide",
     material_ambient 1.0, 1.0, 1.0, 1.0
     material_diffuse 1.0, 1.0, 1.0, 1.0
 
-    chart "My chart", "bar"
+    chart 1..3

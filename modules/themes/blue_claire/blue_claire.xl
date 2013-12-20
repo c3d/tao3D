@@ -52,7 +52,7 @@ theme_color      "BlueClaire",Master:text,"title"       -> color "#960000"
 theme_color      "BlueClaire",Master:text,"subtitle"    -> color "#264580"
 theme_color      "BlueClaire",Master:text,"story"       -> color "black"
 theme_color      "BlueClaire", Master:text, "line", N:integer ->
-    T := 0.4 / chart_datasets_count
+    T := 0.4 / (chart_datasets_count - 1)
     line_color_hsv 212, 0.56 - T * N, 0.74 + T * N
 theme_color      "BlueClaire", "pie", Style:text, N:integer ->
     T := 0.4 / (chart_count chart_first)
@@ -60,7 +60,7 @@ theme_color      "BlueClaire", "pie", Style:text, N:integer ->
 theme_color      "BlueClaire", "area", Style:text, N:integer -> theme_color "BlueClaire", "bar", Style, N
 theme_color      "BlueClaire", "line", Style:text, N:integer -> theme_color "BlueClaire", "bar", Style, N
 theme_color      "BlueClaire", "bar", Style:text, N:integer ->
-    T := 0.4 / chart_datasets_count
+    T := 0.4 / (chart_datasets_count - 1)
     color_hsv 212, 0.56 - T * N, 0.74 + T * N
 
 theme_font       "BlueClaire",Master:text,"story"       -> font "TeX Gyre Adventor", "Ubuntu", "Arial"
@@ -170,7 +170,7 @@ theme_chart_layout "BlueClaire", "pie", Style:text, Format:text ->
 // ----------------------------------------------------------------------------
 //    Pie chart layout for Autumn theme
 // ----------------------------------------------------------------------------
-    chart 0, -35, 400, 400, Style, Format
+    chart_series 0, -35, 400, 400, "pie", Style, Format
 
     chart_flow 0, 235, 850, 50, "chart_title"
     chart_flow 350, -25, 250, 400, "chart_legend"
@@ -195,7 +195,7 @@ theme_chart_layout "BlueClaire", Master:text, Style:text, Format:text ->
     chart_xaxis -325, -225, 550, 400, Style, Format
     chart_yaxis -325, -225, 550, 400, Style, Format
 
-    chart -325, -225, 550, 400, Style, Format
+    chart_series -325, -225, 550, 400, Master, Style, Format
 
     locally
         translatex 35

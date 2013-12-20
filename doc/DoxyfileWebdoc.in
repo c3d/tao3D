@@ -968,7 +968,7 @@ QCH_FILE               = ../qch/TaoPresentations.qch
 # Qt Help Project output. For more information please see
 # http://doc.trolltech.com/qthelpproject.html#namespace
 
-QHP_NAMESPACE          = com.taodyne.TaoPresentations.$$VERSION 
+QHP_NAMESPACE          = com.taodyne.TaoPresentations.$$TAO_VERSION 
 
 # The QHP_VIRTUAL_FOLDER tag specifies the namespace to use when generating
 # Qt Help Project output. For more information please see

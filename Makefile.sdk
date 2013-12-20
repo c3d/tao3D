@@ -55,6 +55,7 @@ FILES_COMMON = \
 	translations.pri \
 	tools \
 	tools/preprocessor.pl \
+        version.pri \
 	modules \
 	modules/.gitignore \
 	modules/configure \

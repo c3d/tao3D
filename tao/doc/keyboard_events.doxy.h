@@ -69,6 +69,11 @@ key "Space"                             -> next_page
 @code
 key "b" -> {}
 @endcode
+ *
+ * @addindex key (on -)
+ * @addindex keydown (on -)
+ * @addindex keyup (on -)
+ *
  * @section refOnKeyDetails on "key" / "keydown" / "keyup"
  * The @ref on "on \"key\"/\"keydown\"/\"keyup\"" family of functions is meant
  * to execute some code when a specific keyboard event occurs.
@@ -174,6 +179,11 @@ key "Space"                             -> next_page
 @code
 key "b" -> {}
 @endcode
+ *
+ * @addindex key (on -)
+ * @addindex keydown (on -)
+ * @addindex keyup (on -)
+ *
  * @section refOnKeyDetails on "key" / on "keydown" / on "keyup"
  * Les fonctions @ref on "on \"key\"/\"keydown\"/\"keyup\"" permettent
  * d'exécuter du code

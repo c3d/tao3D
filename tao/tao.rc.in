@@ -24,11 +24,11 @@ VS_VERSION_INFO VERSIONINFO
                         BLOCK \"040904B0\"
                         BEGIN
                                 VALUE \"CompanyName\", \"Taodyne SAS\\0\"
-                                VALUE \"FileDescription\", \"Tao Presentations\\0\"
+                                VALUE \"FileDescription\", \"$${APP_NAME}\\0\"
                                 VALUE \"FileVersion\", \"$${VERSION}.0\\0\"
                                 VALUE \"LegalCopyright\", \"\\0\"
                                 VALUE \"OriginalFilename\", \"Tao.exe\\0\"
-                                VALUE \"ProductName\", \"Tao Presentations\\0\"
+                                VALUE \"ProductName\", \"$${APP_NAME}\\0\"
                         END
                 END
         END

@@ -242,6 +242,7 @@ public:
     void        loadContextFiles(XL::source_names &files);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
+    void        checkEditorInstructionsFile();
     void        preloadSelectionCode();
     void        updateProgramSource(bool notWhenHidden = true);
     bool        markChange(text reason);
@@ -458,6 +459,8 @@ public:
     Real_p      refreshTime(Tree_p self);
     Tree_p      postEvent(int eventType, bool once = false);
     Integer_p   registerUserEvent(text name);
+    Name_p      addLayoutName(text name);
+    Name_p      refreshAlso(text name);
     Integer_p   seconds(Tree_p self, double t);
     Integer_p   minutes(Tree_p self, double t);
     Integer_p   hours(Tree_p self, double t);

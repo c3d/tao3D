@@ -3,6 +3,8 @@
 /*.tar.bz2
 /control
 /control_player
+/postinst
+/prerm
 /debian
 /*.deb
 /tao.sh

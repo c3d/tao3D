@@ -33,7 +33,7 @@ slide "Bullet points",
     ***
         text "Deeper"
     paragraph
-        text " "
+        text " "
     *
         text "Again"
     +
@@ -65,3 +65,4 @@ picture_slide "YouTube Video slide",
 on "pagechange",
     if prev_page_label = "YouTube Video slide" then
         movie_drop "http://www.youtube.com/watch?v=rn1n-YYHs4g&fmt=43"
+

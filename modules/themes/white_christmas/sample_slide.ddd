@@ -1,0 +1,68 @@
+import VLCAudioVideo
+import WhiteChristmasTheme
+
+theme "WhiteChristmas"
+
+main_title_slide "Main title",
+    title
+        text "Seasons Greetings theme"
+    subtitle
+        text "A theme for the Holidays"
+
+
+section_slide "Section title",
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+
+
+slide "Bullet points",
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    --
+    * "Again"
+    ++ "Numbered text"
+    ++ "Numbered"
+    -- "Additional text"
+
+
+picture_slide "Picture slide",
+    translatez -700
+    rotatez 2
+    image 0, 0, 1.3, 1.3, "http://2.bp.blogspot.com/-twQlIiXDPW8/UMRhQNQ5gpI/AAAAAAAATN0/yUHexBBkS8I/s1600/santa-claus-arrived.jpg"
+    movie_only ""
+
+
+picture_slide "YouTube Video slide",
+    left_picture
+        translate 0, 100, -150
+        rotatez 5
+        rotatey 180 * sin (0.2*time) ^ 19
+        movie 0, 0, 3.2, 3.2, "http://www.youtube.com/watch?v=i0HvkYD5Ec4&fmt=43"
+    right_column
+        - "Video on the left:"
+        - "Douce Nuit played by Les Petits Chanteurs à La Croix"
+
+
+picture_slide "Chart slide",
+    once 
+        chart_current "My chart"
+        for i in 1..4 loop
+            chart_push_data 1, 200 + 50 * i
+            chart_push_data 2, 150 - 20 * i
+            chart_push_data 3, 165 + i * 15 * (-1) ^ i
+        chart_set_legend 1, "First set"
+        chart_set_legend 2, "Second set"
+        chart_set_legend 3, "Third set"
+        chart_set_title "Sample chart"
+        chart_set_format "3D"
+
+    light 0
+    light_attenuation 1 / scaling_factor, 0, 0
+    light_position 0, 0, 3000, 1
+    material_ambient 1.0, 1.0, 1.0, 1.0
+    material_diffuse 1.0, 1.0, 1.0, 1.0
+
+    chart "My chart", "bar"

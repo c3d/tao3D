@@ -197,7 +197,7 @@ public:
         Save() {}
         virtual void        Draw(Layout *where);
         virtual Box3        Bounds(Layout *)    { return Box3(); }
-        virtual Box3        Space(Layout *)     { return Box3(); }
+        virtual Box3        Space(Layout *where);
         GraphicSave* save;
     };
     struct Restore : Attribute
@@ -206,7 +206,7 @@ public:
         ~Restore()                              { delete saved; }
         virtual void        Draw(Layout *where);
         virtual Box3        Bounds(Layout *)    { return Box3(); }
-        virtual Box3        Space(Layout *)     { return Box3(); }
+        virtual Box3        Space(Layout *where);
         Save *saved;
     };
 

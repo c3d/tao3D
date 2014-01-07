@@ -28,6 +28,9 @@ add_search_path "WhiteChristmas:", module_dir
 theme_slide_width  "WhiteChristmas" -> 1920
 theme_slide_height "WhiteChristmas" -> 1080
 
+theme_drawing_width  "WhiteChristmas" -> 1200
+theme_drawing_height "WhiteChristmas" -> 750
+
 theme_position "WhiteChristmas",Master:text,"left"     -> translate -330, 0, 0
 theme_position "WhiteChristmas",Master:text,"right"    -> translate  250, 0, 0
 theme_position "WhiteChristmas",Master:text,Style:text -> translate    0, 0, 0
@@ -40,10 +43,11 @@ theme_position "WhiteChristmas",Master:text,Style:text -> translate    0, 0, 0
 //
 // ============================================================================
 
-theme_color "WhiteChristmas", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
+theme_color "WhiteChristmas", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
+theme_color "WhiteChristmas", "pie", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
 theme_color "WhiteChristmas", "area", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
 theme_color "WhiteChristmas", "line", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
-theme_color "WhiteChristmas", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
+theme_color "WhiteChristmas", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
 
 theme_chart "WhiteChristmas", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
 // ----------------------------------------------------------------------------
@@ -232,17 +236,32 @@ white_christmas_initialize_danglers ->
         white_christmas_init_dangling 7, 0.8, 6, "WhiteChristmas:star2.png"
 
 
-theme_size "WhiteChristmas",Master:text,"title" -> 65
+theme_size "WhiteChristmas",Master:text,"title"         -> 80
+theme_size "WhiteChristmas",Master:text,"subtitle"      -> 95
+theme_size "WhiteChristmas",Master:text,"story"         -> 42
+theme_size "WhiteChristmas",Master:text,"story",1       -> 42
+theme_size "WhiteChristmas",Master:text,"story",2       -> 38
+theme_size "WhiteChristmas",Master:text,"story",3       -> 32
+theme_size "WhiteChristmas",Master:text,"story",4       -> 30
+
 theme_color "WhiteChristmas",Master:text,"title" ->
     color "#333"
 theme_color "WhiteChristmas",Master:text,"story" ->
     color "#777"
 theme_font "WhiteChristmas",Master:text,"title" ->
     font "Alex Brush"
+theme_font "WhiteChristmas",Master:text,"subtitle" ->
+    font "Alex Brush"
 theme_font "WhiteChristmas",Master:text,"story" ->
     font "Open Sans"
+theme_align "WhiteChristmas",Master:text,"story" ->
+    align 0.0
+    vertical_align 0.8
 theme_align "WhiteChristmas",Master:text,"story", N  ->
-    margins 75+50*N, 0
+    margins 5+50*N, 0
+theme_align "WhiteChristmas",Master:text,"subtitle"  ->
+    align 0.2
+    rotate_z 4
 theme_boxstyle "WhiteChristmas",Master:text,Style:text  ->
     linear_gradient 0, 0, 0, 128, 128, 128,
         gradient_color 0.0, 0.8, 0.8, 0.8, 1.0
@@ -256,7 +275,7 @@ theme_box "WhiteChristmas",Master:text,"title", X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
 //   The title is put in a big circle
 // ----------------------------------------------------------------------------
-    contents -10,
+    contents 50,
         color "white", 0.95
         locally
             shadow_blur 12.0
@@ -288,6 +307,46 @@ white_christmas_ellipse X:real, Y:real, W:real, H:real, LW:real ->
     line_width LW
     ellipse X, Y, W, H
 
+
+theme_box "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//    The subtitle is draw as is
+// ----------------------------------------------------------------------------
+    false
+
+
+theme_text "WhiteChristmas",Master:text,"title",X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    theme_box "WhiteChristmas", Master, "title", X, Y, W, H
+    contents 80,
+        text_box X, Y, W, H,
+            theme_style "WhiteChristmas", Master, "title"
+            Body
+
+
+theme_text "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    theme_box "WhiteChristmas", Master, "subtitle", X, Y, W, H
+    contents 80,
+        shadow_blur 5.0
+        shadow_angle 220
+        locally
+            shadow_scaled_texture W+120, H+120, 4,
+                color "white", 0.5
+                text_box 0, 0, W, H,
+                    theme_style "WhiteChristmas", Master, "title"
+                    Body
+            translate -45, -45, -50
+            color "#C8D6E0"
+            rectangle X, Y, W+120, H+120
+        text_box X, Y, W, H,
+            theme_style "WhiteChristmas", Master, "title"
+            Body
+        
 
 
 theme_box "WhiteChristmas",Master,Style, X:real,Y:real,W:real,H:real ->
@@ -329,15 +388,24 @@ theme_bullet_picture "WhiteChristmas", Master:text, Level:integer ->
     white_christmas_bullet theme_size(theme, Master, "bullet", Level)
 
 
+theme_layout "WhiteChristmas", "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow -700, 300, 400, 400, "title"
+    flow 0, 100, 1000, 800, "subtitle"
+
+
 theme_layout "WhiteChristmas", Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
     flow -50, 0, 1100, 950, "story"
-    flow 0, 0, 1250, 950, "picture"
+    flow 0, 0, 1250, 850, "picture"
     flow -330, 0, 550, 950, "left"
     flow  250, 0, 550, 950, "right"
-    flows -700, 300, 400, 400, "title", "subtitle"
+    flow -700, 300, 400, 400, "title"
+    flow 0, 400, 1000, 200, "subtitle"
 
 
 

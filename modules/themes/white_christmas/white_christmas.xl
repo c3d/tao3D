@@ -294,7 +294,7 @@ theme_box "WhiteChristmas",Master,Style, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
 //   Other boxes are in a white rounded-rectangle box
 // ----------------------------------------------------------------------------
-    contents -10,
+    contents -200,
         color "white", 0.95
         locally
             shadow_blur 12.0
@@ -333,7 +333,7 @@ theme_layout "WhiteChristmas", Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
-    flow 0, 0, 1050, 950, "story"
+    flow -50, 0, 1100, 950, "story"
     flow 0, 0, 1250, 950, "picture"
     flow -330, 0, 550, 950, "left"
     flow  250, 0, 550, 950, "right"
@@ -347,19 +347,27 @@ theme_layout "WhiteChristmas", Master:text ->
 // 
 // ============================================================================
 
-white_christmas_title_picture P:text ->
+white_christmas_title_picture P:text, Transform ->
 // ----------------------------------------------------------------------------
-//   Draw a picture in the title circle
+//    Draw a picture in the title circle with an arbitrary transform
 // ----------------------------------------------------------------------------
     contents 10,
         texture P
         color "white"
+        Transform
+        ellipse -700, 300, 410, 410
+    
+
+white_christmas_title_picture P:text ->
+// ----------------------------------------------------------------------------
+//   Draw a picture in the title circle
+// ----------------------------------------------------------------------------
+    white_christmas_title_picture P,
         texture_transform
             if texture_width > texture_height then
                 scale_x texture_width/texture_height
             else if texture_width < texture_height then
                 scale_y texture_height/texture_width
-        ellipse -700, 300, 410, 410
 
 
 white_christmas_random R:real,S:real -> sin(R*white_christmas_current+S)

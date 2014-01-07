@@ -1,0 +1,444 @@
+// ****************************************************************************
+//   White Christmas - A theme specially designed for the Christmas period
+//   Copyright 2012 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+import Slides
+import Charts
+import Filters
+import Animate
+
+module_description
+    id "5AA89E50-7DB0-412F-AA77-53E28447A302"
+    name "White Christmas theme"
+    description "A white theme, specially designed for Christmas greetings"
+    import_name "WhiteChristmasTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+
+module_description "fr",
+    name "Noel Blanc"
+    description "Un thème en blanc, spécialement réalisé pour la période des fêtes de Noël"
+
+add_search_path "WhiteChristmas:", module_dir
+
+
+theme_slide_width  "WhiteChristmas" -> 1920
+theme_slide_height "WhiteChristmas" -> 1080
+
+theme_drawing_width  "WhiteChristmas" -> 1200
+theme_drawing_height "WhiteChristmas" -> 750
+
+theme_position "WhiteChristmas",Master:text,"left"     -> translate -330, 0, 0
+theme_position "WhiteChristmas",Master:text,"right"    -> translate  250, 0, 0
+theme_position "WhiteChristmas",Master:text,Style:text -> translate    0, 0, 0
+
+
+
+// ============================================================================
+//
+//    Charts
+//
+// ============================================================================
+
+theme_color "WhiteChristmas", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
+theme_color "WhiteChristmas", "pie", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
+theme_color "WhiteChristmas", "area", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
+theme_color "WhiteChristmas", "line", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
+theme_color "WhiteChristmas", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
+
+theme_chart "WhiteChristmas", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
+// ----------------------------------------------------------------------------
+//   Display 3D chart part
+// ----------------------------------------------------------------------------
+    Ratio := chart_data_ratio(N, Index)
+    locally
+        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
+            gradient_color 0.0, 1, 1, 1, 0.5
+            gradient_color 0.5, 1, 1, 1, 0.75
+            gradient_color 1.0, 1, 1, 1, 1.0
+
+        theme_chart "WhiteChristmas", Master, Style, "3D", W, H, N, Index, Ratio
+
+
+theme_chart "WhiteChristmas", Master:text, Style:text, Format:text, W:real, H:real, N:integer, Index:integer ->
+// ----------------------------------------------------------------------------
+//   Display chart part
+// ----------------------------------------------------------------------------
+    Ratio := chart_data_ratio(N, Index)
+    locally
+        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
+            gradient_color 0.0, 1, 1, 1, 0.5
+            gradient_color 0.5, 1, 1, 1, 0.75
+            gradient_color 1.0, 1, 1, 1, 1.0
+        theme_chart "WhiteChristmas", Master, Style, Format, W, H, N, Index, Ratio
+
+theme_box "WhiteChristmas", "area",Style:text, X:real,Y:real,W:real,H:real -> false
+theme_box "WhiteChristmas", "bar",Style:text, X:real,Y:real,W:real,H:real -> false
+theme_box "WhiteChristmas", "line",Style:text, X:real,Y:real,W:real,H:real -> false
+theme_box "WhiteChristmas", "pie",Style:text, X:real,Y:real,W:real,H:real -> false
+
+// ============================================================================
+//
+//    Slides
+//
+// ============================================================================
+
+white_christmas_current -> 0.0
+white_christmas_target  -> 0.0
+
+theme_background "WhiteChristmas",Master:text ->
+// ----------------------------------------------------------------------------
+//   Background shows a number of stars, circles and "sprinkles"
+// ----------------------------------------------------------------------------
+    clear_color 0, 0, 0, 1
+    background -900,
+        radial_gradient 480, 270, 400, 960, 540,
+            gradient_color 0, 1,1,1,1
+            gradient_color 0.4, 0.95,0.95,0.95,1
+            gradient_color 1, 0.9, 0.9, 0.9, 1
+        color "#C8D6E0"
+        rectangle slide_width, slide_height
+
+    background -800,
+        white_christmas_target := hours*60+minutes + 111 * page_number
+        if abs(white_christmas_current - white_christmas_target) > 1000 then
+            white_christmas_current := white_christmas_target
+        white_christmas_current := 0.9 * white_christmas_current + 0.1 * white_christmas_target
+        if abs(white_christmas_current - white_christmas_target) > 0.2 then
+            time
+
+        shadow_blur 12.0
+        color "white"
+        white_christmas_star with 1..5
+        white_christmas_circle with 1..3
+        white_christmas_sprinkle with 1..8
+
+    white_christmas_star N ->
+        locally
+            translate_x -700 + 150*white_christmas_random(833e-5, 1.1*N)
+            translate_y 300 - 150 * N + 20 * white_christmas_random(951e-5, 2.3*N)
+            white_christmas_star_scaled "WhiteChristmas:star" & N & ".png", 0.5 + 0.3 * white_christmas_random(1043e-5,4.7*N), -180 + 360 * white_christmas_random(177e-5, 1.03*N)
+    white_christmas_star_scaled T:text, S:real, A:real ->
+        locally
+            shadow_scaled_texture 400, 400, 6,
+                rotate_z A
+                scale S
+                texture T
+                color "white", 0.7
+                rectangle texture_width, texture_height
+            translate -45 * S, -45 * S, -50 * S
+            color "#C8D6E0"
+            rectangle 400, 400
+        locally
+            rotate_z A
+            scale S
+            texture T
+            rectangle texture_width, texture_height
+    white_christmas_circle N ->
+        locally
+            translate_x -700 + 120 * white_christmas_random(543e-5, 1.13*N)
+            translate_y 300 - 90 * N + 80 * white_christmas_random(673e-5, 2.71*N)
+            translate_z 300 + 100 * N + 50*white_christmas_random(833e-5, 1.13*N)
+            color "white", 0.2 + 0.1 * white_christmas_random(21e-5, 4.41*N)
+            circle 0, 0, 20 + 10 * white_christmas_random(701e-5, 3.41*N)
+
+    white_christmas_sprinkle N ->
+        locally
+            translate_x 0.45*slide_width * white_christmas_random(543e-5, 1.13*N)
+            translate_y 0.45*slide_height * white_christmas_random(673e-5, 2.71*N)
+            translate_z 800 + 200*white_christmas_random(833e-5, 1.13*N)
+            color "white", 0.4 + 0.2 * white_christmas_random(21e-5, 4.41*N)
+            path
+                line_to 20*white_christmas_random(421e-5, 3.37*N), 20*white_christmas_random(662e-5, 1.37*N)
+                line_to 20*white_christmas_random(797e-5, 2.01*N), 20*white_christmas_random(255e-5, 3.101*N)
+                line_to 20*white_christmas_random(444e-5, 4.44*N), 20*white_christmas_random(991e-5, 4.8*N)
+                close_path
+
+
+theme_foreground "WhiteChristmas",Master:text ->
+// ----------------------------------------------------------------------------
+//   Foreground draws the dangling items on the right
+// ----------------------------------------------------------------------------
+    background 50,
+        shadow_blur 12.0
+        shadow_scaled_texture 150, slide_height, 5,
+            color "white", 0.2
+            ellipse 0, 0, 100, 0.85*slide_height
+        rectangle 500, 0, 100, slide_height
+        linear_gradient 0, 0, 0, 128, 128, 128,
+            gradient_color 0.0, 0.85, 0.89, 0.91, 1.0
+            gradient_color 0.4, 0.94, 0.94, 0.94, 1.0
+            gradient_color 0.6, 0.94, 0.94, 0.94, 1.0
+            gradient_color 1.0, 0.85, 0.89, 0.91, 1.0
+        color "white"
+        rectangle 750, 0, 500, slide_height * 1.1
+
+        white_christmas_initialize_danglers
+        white_christmas_dangling N, X, Y ->
+            locally
+                translate X + 750, Y + 480, 10
+                translate_y 200
+                rotate_z 3 * sin((0.57 + 0.016 * N) * time)
+                translate_y -200
+                texture white_christmas_dangling_texture N
+                color "white"
+                rectangle 512, 512
+
+        white_christmas_dangling 1, 100, 50
+        white_christmas_dangling 2, 40, 20
+        white_christmas_dangling 3, -50, -120
+        white_christmas_dangling 4, -20, -200
+        white_christmas_dangling 5, 70, -110
+        white_christmas_dangling 6, -180, 140
+        white_christmas_dangling 7, -100, 30
+
+white_christmas_dangling_texture 1 -> 0
+white_christmas_dangling_texture 2 -> 0
+white_christmas_dangling_texture 3 -> 0
+white_christmas_dangling_texture 4 -> 0
+white_christmas_dangling_texture 5 -> 0
+white_christmas_dangling_texture 6 -> 0
+white_christmas_dangling_texture 7 -> 0
+
+white_christmas_initialize_danglers ->
+// ----------------------------------------------------------------------------
+//   Initialize textures for the dangling items on the right
+// ----------------------------------------------------------------------------
+//   This is done solely to accelerate drawing, as rendering the shadows
+//   is a relativey expensive process
+    locally
+        shadow_blur 13
+        shadow_angle 220
+        shadow_offset 15
+        shadow_opacity 75%
+        shadow_color "#036"
+
+        white_christmas_init_dangling N, S, W, F ->
+            frame_texture 512, 512,
+                shadow 0, 0, 512, 512,
+                    texture F
+                    rectangle 0, -250 + S*texture_height/2, S*texture_width, S*texture_height
+                    translate_y -250 + S*texture_height
+                    texture ""
+                    rectangle 0, 300, W, 630
+            white_christmas_texture_set (white_christmas_dangling_texture N)
+            white_christmas_texture_set N:integer -> N := texture
+
+        white_christmas_init_dangling 1, 0.9, 6, "WhiteChristmas:star1.png"
+        white_christmas_init_dangling 2, 1.0, 7, "WhiteChristmas:ring1.png"
+        white_christmas_init_dangling 3, 0.5, 5, "WhiteChristmas:ring2.png"
+        white_christmas_init_dangling 4, 0.4, 4, "WhiteChristmas:star3.png"
+        white_christmas_init_dangling 5, 0.4, 6, "WhiteChristmas:star4.png"
+        white_christmas_init_dangling 6, 0.3, 3, "WhiteChristmas:star5.png"
+        white_christmas_init_dangling 7, 0.8, 6, "WhiteChristmas:star2.png"
+
+
+theme_size "WhiteChristmas",Master:text,"title"         -> 80
+theme_size "WhiteChristmas",Master:text,"subtitle"      -> 95
+theme_size "WhiteChristmas",Master:text,"story"         -> 42
+theme_size "WhiteChristmas",Master:text,"story",1       -> 42
+theme_size "WhiteChristmas",Master:text,"story",2       -> 38
+theme_size "WhiteChristmas",Master:text,"story",3       -> 32
+theme_size "WhiteChristmas",Master:text,"story",4       -> 30
+
+theme_color "WhiteChristmas",Master:text,"title" ->
+    color "#333"
+theme_color "WhiteChristmas",Master:text,"story" ->
+    color "#777"
+theme_font "WhiteChristmas",Master:text,"title" ->
+    font "Alex Brush"
+theme_font "WhiteChristmas",Master:text,"subtitle" ->
+    font "Alex Brush"
+theme_font "WhiteChristmas",Master:text,"story" ->
+    font "Open Sans"
+theme_align "WhiteChristmas",Master:text,"story" ->
+    align 0.0
+    vertical_align 0.8
+theme_align "WhiteChristmas",Master:text,"story", N  ->
+    margins 5+50*N, 0
+theme_align "WhiteChristmas",Master:text,"subtitle"  ->
+    align 0.2
+    rotate_z 4
+theme_boxstyle "WhiteChristmas",Master:text,Style:text  ->
+    linear_gradient 0, 0, 0, 128, 128, 128,
+        gradient_color 0.0, 0.8, 0.8, 0.8, 1.0
+        gradient_color 0.5, 0.9, 0.9, 0.9, 1.0
+        gradient_color 1.0, 0.8, 0.8, 0.8, 1.0
+    color "white"
+    line_color "white"
+
+
+theme_box "WhiteChristmas",Master:text,"title", X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   The title is put in a big circle
+// ----------------------------------------------------------------------------
+    contents 50,
+        color "white", 0.95
+        locally
+            shadow_blur 12.0
+            shadow_angle 220
+            shadow_scaled_texture W+120, H+120, 10,
+                color "white", 0.5
+                ellipse 0, 0, W+30, H+30
+            translate -45, -45, -50
+            color "#C8D6E0"
+            rectangle X, Y, W+120, H+120
+        white_christmas_ellipse X, Y, W+30, H+30, 6
+
+
+white_christmas_ellipse X:real, Y:real, W:real, H:real, LW:real ->
+// ----------------------------------------------------------------------------
+//    Draw a White-Christmas themed ellipse
+// ----------------------------------------------------------------------------
+    linear_gradient 0, 0, 0, 128, 128, 128,
+        gradient_color 0.0, 0.9, 0.9, 0.9, 1.0
+        gradient_color 0.4, 1.0, 1.0, 1.0, 1.0
+        gradient_color 0.6, 1.0, 1.0, 1.0, 1.0
+        gradient_color 1.0, 0.9, 0.9, 0.9, 1.0
+    ellipse X, Y, W, H
+    linear_gradient 0, 0, 0, 128, 128, 128,
+        gradient_color 0.0, 1.0, 1.0, 1.0, 1.0
+        gradient_color 1.0, 0.8, 0.8, 0.8, 1.0
+    color "transparent"
+    line_color "white"
+    line_width LW
+    ellipse X, Y, W, H
+
+
+theme_box "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//    The subtitle is draw as is
+// ----------------------------------------------------------------------------
+    false
+
+
+theme_text "WhiteChristmas",Master:text,"title",X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    theme_box "WhiteChristmas", Master, "title", X, Y, W, H
+    contents 80,
+        text_box X, Y, W, H,
+            theme_style "WhiteChristmas", Master, "title"
+            Body
+
+
+theme_text "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    theme_box "WhiteChristmas", Master, "subtitle", X, Y, W, H
+    contents 80,
+        shadow_blur 5.0
+        shadow_angle 220
+        locally
+            shadow_scaled_texture W+120, H+120, 4,
+                color "white", 0.5
+                text_box 0, 0, W, H,
+                    theme_style "WhiteChristmas", Master, "title"
+                    Body
+            translate -45, -45, -50
+            color "#C8D6E0"
+            rectangle X, Y, W+120, H+120
+        text_box X, Y, W, H,
+            theme_style "WhiteChristmas", Master, "title"
+            Body
+        
+
+
+theme_box "WhiteChristmas",Master,Style, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Other boxes are in a white rounded-rectangle box
+// ----------------------------------------------------------------------------
+    contents -200,
+        color "white", 0.95
+        locally
+            shadow_blur 12.0
+            shadow_angle 220
+            shadow_scaled_texture W+120, H+120, 10,
+                color "white", 0.5
+                rounded_rectangle 0, 0, W+30, H+30, 20
+            translate -45, -45, -50
+            color "#C8D6E0"
+            rectangle X, Y, W+120, H+120
+        linear_gradient 0, 0, 0, 128, 128, 128,
+            gradient_color 0.0, 0.8, 0.8, 0.8, 1.0
+            gradient_color 0.4, 1.0, 1.0, 1.0, 1.0
+            gradient_color 0.6, 1.0, 1.0, 1.0, 1.0
+            gradient_color 1.0, 0.8, 0.8, 0.8, 1.0
+        rounded_rectangle X, Y, W + 10, H + 10, 20
+        linear_gradient 0, 0, 0, 128, 128, 128,
+            gradient_color 0.0, 1.0, 1.0, 1.0, 1.0
+            gradient_color 1.0, 0.8, 0.8, 0.8, 1.0
+        color "transparent"
+        line_color "white"
+        line_width 6
+        rounded_rectangle X, Y, W + 10, H + 10, 20
+
+
+theme_bullet_picture "WhiteChristmas", Master:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    The bullet is a simple circle
+// ----------------------------------------------------------------------------
+    white_christmas_bullet S:real ->
+        white_christmas_ellipse -20, 18, 12, 12, 4
+    white_christmas_bullet theme_size(theme, Master, "bullet", Level)
+
+
+theme_layout "WhiteChristmas", "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow -700, 300, 400, 400, "title"
+    flow 0, 100, 1000, 800, "subtitle"
+
+
+theme_layout "WhiteChristmas", Master:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow -50, 0, 1100, 950, "story"
+    flow 0, 0, 1250, 850, "picture"
+    flow -330, 0, 550, 950, "left"
+    flow  250, 0, 550, 950, "right"
+    flow -700, 300, 400, 400, "title"
+    flow 0, 400, 1000, 200, "subtitle"
+
+
+
+// ============================================================================
+// 
+//   Theme specific functions
+// 
+// ============================================================================
+
+white_christmas_title_picture P:text, Transform ->
+// ----------------------------------------------------------------------------
+//    Draw a picture in the title circle with an arbitrary transform
+// ----------------------------------------------------------------------------
+    contents 10,
+        texture P
+        color "white"
+        Transform
+        ellipse -700, 300, 410, 410
+    
+
+white_christmas_title_picture P:text ->
+// ----------------------------------------------------------------------------
+//   Draw a picture in the title circle
+// ----------------------------------------------------------------------------
+    white_christmas_title_picture P,
+        texture_transform
+            if texture_width > texture_height then
+                scale_x texture_width/texture_height
+            else if texture_width < texture_height then
+                scale_y texture_height/texture_width
+
+
+white_christmas_random R:real,S:real -> sin(R*white_christmas_current+S)
+// ----------------------------------------------------------------------------
+//   A simple pseudo-random function
+// ----------------------------------------------------------------------------

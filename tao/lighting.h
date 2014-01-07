@@ -47,14 +47,17 @@ struct ShaderProgramInfo : XL::Info, InfoTrashCan
 //   Hold info associated to a tree
 // ----------------------------------------------------------------------------
 {
-    ShaderProgramInfo(QGLShaderProgram *program): program(program) {}
+    ShaderProgramInfo(QGLShaderProgram *program)
+        : program(program), inError(false) {}
     ~ShaderProgramInfo() { delete program; }
     virtual void Delete() { trash.push_back(this); }
     typedef QGLShaderProgram *data_t;
     operator data_t() { return program; }
     enum { SHADER_TYPES = 3 };
+
     QGLShaderProgram *program;
-    text shaderSource[SHADER_TYPES];
+    text              shaderSource[SHADER_TYPES];
+    bool              inError;
 };
 
 

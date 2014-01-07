@@ -179,6 +179,7 @@ slide_master Theme:text, Master:text, Title:text, Body ->
            theme_reset theme
            Body
        theme_layout Theme, Master
+       theme_foreground Theme, Master
        // User changed theme from within slide : refresh whole slide
        if theme <> old_theme then refresh 0
 

@@ -1,7 +1,7 @@
 include(../modules.pri)
 
 !contains(templates, none) {
-  exists(theme.xl):MAYBE_THEME_XL=theme.xl
+  exists($$_PRO_FILE_PWD_/theme.xl):MAYBE_THEME_XL=theme.xl
 
   thismod_template.path = $$APPINST/templates/$$MODINSTDIR
   thismod_template.files = template.ini thumbnail.png $$MAYBE_THEME_XL sample_slide.ddd sample_slide.json sample_slide_images.json

@@ -21,25 +21,25 @@ base_slide "On Earth...",
     left_column
         vertical_align_top
         paragraph
-            text " "
+            text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
                 text "70% water, but only 0.3% is accessible and drinkable"
         paragraph
-            text " "
+            text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
                 text "9 countries have 60% of the world reserves"
         paragraph
-            text " "
+            text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
                 text "1.5 billion people have no access to drinkable water"
         paragraph
-            text " "
+            text " "
     right_picture
         color "white"
         image -10, 0, 150%, 150%, "http://www.tuxboard.com/photos/2011/03/Carte-Consommation-personnelle-eau-par-pays-640x317.jpg"
@@ -51,19 +51,19 @@ base_slide "Problems of water management",
         paragraph
             text_span
                 theme_font_size theme, slide_master, "story", 26.599999999999998/14.0
-                text " "
+                text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
                 text "A european uses 8 times more water today than before"
         paragraph
-            text " "
+            text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
                 text "Farming accounts for 70% of water used in the world, with approximately 50% lost"
         paragraph
-            text " "
+            text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
@@ -81,13 +81,13 @@ base_slide "Towards a drinkable water shortage",
                 theme_font_size theme, slide_master, "story", 18/14.0
                 text "Water consumption increases twice as fast as the demographic growth rate"
         paragraph
-            text " "
+            text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
                 text "Before 2025, the quantity of available fresh water will be reduced by one third"
         paragraph
-            text " "
+            text " "
         *
             text_span
                 theme_font_size theme, slide_master, "story", 18/14.0
@@ -102,3 +102,60 @@ picture_slide "Blue Gold video",
     on "pagechange",
         if prev_page_label = "Blue Gold video" then
             movie_drop "http://www.youtube.com/watch?v=O99Qezatso4"
+
+
+// ****************************************************************************
+//  blue_gold                                                       Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     The Water template.
+//     The up arrow key move forward the presentation.
+//     Use the down arrow to go back.
+//     Press E or F to change language.
+//     Ctrl-G (Cmd-G on Mac) shows a page selector.
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Baptiste Soulisse  <soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jerome Forissier <jerome@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL-B license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL-B
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL-B license and that you accept its terms.
+// ****************************************************************************
+>>>>>>> master

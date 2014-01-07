@@ -25,7 +25,7 @@ slide "Bullet points",
     ** "More bullet points"
     *** "Deeper"
     paragraph
-        text " "
+        text " "
     * "Again"
     ++ "Numbered text"
     ++ "Numbered"
@@ -50,7 +50,7 @@ picture_slide "YouTube Video slide",
     right_column
         vertical_align_top
         paragraph
-            text " "
+            text " "
         paragraph
             - ""
             text "Video on the left:"

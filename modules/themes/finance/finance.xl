@@ -77,7 +77,7 @@ theme_transition "Finance", Master:text, "chart_legend" -> false
 
 // Chart colors
 theme_color "Finance", Master:text, "line", N:integer ->
-    T := 0.8 / chart_datasets_count
+    T := 0.8 / (chart_datasets_count - 1)
     line_color_hsv 220 + N, 0.8 - N * T, 0.749
 
 theme_color "Finance", "pie", Style:text, N:integer ->
@@ -89,7 +89,7 @@ theme_color "Finance", "pie", Style:text, N:integer ->
 theme_color "Finance", "area", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
 theme_color "Finance", "line", Style:text, N:integer -> theme_color "Finance", "bar", Style, N
 theme_color "Finance", "bar", Style:text, N:integer ->
-    T := 0.8 / chart_datasets_count
+    T := 0.8 / (chart_datasets_count - 1)
     color_hsv 220 + N, 0.8 - T * N, 0.749
     line_color "black"
     line_width 0.5
@@ -100,7 +100,7 @@ theme_chart_layout "Finance", "pie", Style:text, Format:text ->
 //    Pie chart layout for finance theme
 // ----------------------------------------------------------------------------
     box "chart", 0, 0, 1600, 500
-    chart -200, -35, 400, 400, Style, Format
+    chart_series -200, -35, 400, 400, "pie", Style, Format
 
     chart_flow 0, 200, 1000, 50, "chart_title"
     chart_flow 300, -25, 300, 400, "chart_legend"
@@ -112,7 +112,7 @@ theme_chart_layout "Finance", Master:text, Style:text, Format:text ->
 //    Default chart layout for finance theme
 // ----------------------------------------------------------------------------
     box "chart", 0, 0, 1600, 500
-    chart -650, -200, 1000, 350, Style, Format
+    chart_series -650, -200, 1000, 350, Master, Style, Format
 
     chart_xaxis -650, -200, 1000, 350, Style, Format
     chart_yaxis -650, -200, 1000, 350, Style, Format

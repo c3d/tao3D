@@ -48,11 +48,11 @@ base_slide "Base slide",
         vertical_align_top
         align_left
         paragraph
-            text " "
+            text " "
         paragraph
             text "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do."
         paragraph
-            text " "
+            text " "
         paragraph
             text "Eiusmod tempor incididunt ut labore et dolore."
     right_column
@@ -60,9 +60,9 @@ base_slide "Base slide",
         align_left
         paragraph
             text_span
-                text " "
+                text " "
         paragraph
-            text "Excepteur sint occaecat cupidatat non proident, sunt in culpa "
+            text "Excepteur sint occaecat cupidatat non proident, sunt in culpa "
             text_span
                 text "qui officia deserunt mollit anim id est laborum."
     picture

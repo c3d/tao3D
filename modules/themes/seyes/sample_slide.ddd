@@ -29,7 +29,7 @@ slide "Bullet points",
     ***
         text "Deeper"
     paragraph
-        text " "
+        text " "
     *
         text "Again"
     ++

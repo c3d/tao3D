@@ -30,7 +30,7 @@ slide "Enjoy beautiful landscapes",
     paragraph
         - ""
         text_span
-            text " "
+            text " "
     *
         text_span
             text "Easily add new landscape pictures"
@@ -51,7 +51,7 @@ base_slide "Complex slides",
         vertical_align_top
         align_left
         paragraph
-            text " "
+            text " "
         * "Description is a simple text file"
         paragraph
             - ""
@@ -61,7 +61,7 @@ base_slide "Complex slides",
             text "Use any text editor"
         paragraph
             - ""
-            text " "
+            text " "
         * "Add any type of objects"
         paragraph
             - ""

@@ -30,7 +30,7 @@ slide "Bullet points",
         text_span
             text "Deeper"
     paragraph
-        text " "
+        text " "
     *
         text_span
             text "Again"

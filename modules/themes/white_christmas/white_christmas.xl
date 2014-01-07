@@ -28,6 +28,14 @@ add_search_path "WhiteChristmas:", module_dir
 theme_slide_width  "WhiteChristmas" -> 1920
 theme_slide_height "WhiteChristmas" -> 1080
 
+theme_drawing_width  "WhiteChristmas" -> 1200
+theme_drawing_height "WhiteChristmas" -> 750
+
+theme_position "WhiteChristmas",Master:text,"left"     -> translate -330, 0, 0
+theme_position "WhiteChristmas",Master:text,"right"    -> translate  250, 0, 0
+theme_position "WhiteChristmas",Master:text,Style:text -> translate    0, 0, 0
+
+
 
 // ============================================================================
 //
@@ -35,10 +43,11 @@ theme_slide_height "WhiteChristmas" -> 1080
 //
 // ============================================================================
 
-theme_color "WhiteChristmas", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
+theme_color "WhiteChristmas", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
+theme_color "WhiteChristmas", "pie", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
 theme_color "WhiteChristmas", "area", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
 theme_color "WhiteChristmas", "line", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
-theme_color "WhiteChristmas", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
+theme_color "WhiteChristmas", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
 
 theme_chart "WhiteChristmas", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
 // ----------------------------------------------------------------------------
@@ -81,6 +90,9 @@ white_christmas_current -> 0.0
 white_christmas_target  -> 0.0
 
 theme_background "WhiteChristmas",Master:text ->
+// ----------------------------------------------------------------------------
+//   Background shows a number of stars, circles and "sprinkles"
+// ----------------------------------------------------------------------------
     clear_color 0, 0, 0, 1
     background -900,
         radial_gradient 480, 270, 400, 960, 540,
@@ -146,10 +158,10 @@ theme_background "WhiteChristmas",Master:text ->
                 close_path
 
 
-white_christmas_random R:real,S:real -> sin(R*white_christmas_current+S)
-
-
 theme_foreground "WhiteChristmas",Master:text ->
+// ----------------------------------------------------------------------------
+//   Foreground draws the dangling items on the right
+// ----------------------------------------------------------------------------
     background 50,
         shadow_blur 12.0
         shadow_scaled_texture 150, slide_height, 5,
@@ -192,6 +204,11 @@ white_christmas_dangling_texture 6 -> 0
 white_christmas_dangling_texture 7 -> 0
 
 white_christmas_initialize_danglers ->
+// ----------------------------------------------------------------------------
+//   Initialize textures for the dangling items on the right
+// ----------------------------------------------------------------------------
+//   This is done solely to accelerate drawing, as rendering the shadows
+//   is a relativey expensive process
     locally
         shadow_blur 13
         shadow_angle 220
@@ -218,15 +235,33 @@ white_christmas_initialize_danglers ->
         white_christmas_init_dangling 6, 0.3, 3, "WhiteChristmas:star5.png"
         white_christmas_init_dangling 7, 0.8, 6, "WhiteChristmas:star2.png"
 
-theme_size "WhiteChristmas",Master:text,"title" -> 65
+
+theme_size "WhiteChristmas",Master:text,"title"         -> 80
+theme_size "WhiteChristmas",Master:text,"subtitle"      -> 95
+theme_size "WhiteChristmas",Master:text,"story"         -> 42
+theme_size "WhiteChristmas",Master:text,"story",1       -> 42
+theme_size "WhiteChristmas",Master:text,"story",2       -> 38
+theme_size "WhiteChristmas",Master:text,"story",3       -> 32
+theme_size "WhiteChristmas",Master:text,"story",4       -> 30
+
 theme_color "WhiteChristmas",Master:text,"title" ->
     color "#333"
 theme_color "WhiteChristmas",Master:text,"story" ->
-    color "#AAA"
+    color "#777"
 theme_font "WhiteChristmas",Master:text,"title" ->
+    font "Alex Brush"
+theme_font "WhiteChristmas",Master:text,"subtitle" ->
     font "Alex Brush"
 theme_font "WhiteChristmas",Master:text,"story" ->
     font "Open Sans"
+theme_align "WhiteChristmas",Master:text,"story" ->
+    align 0.0
+    vertical_align 0.8
+theme_align "WhiteChristmas",Master:text,"story", N  ->
+    margins 5+50*N, 0
+theme_align "WhiteChristmas",Master:text,"subtitle"  ->
+    align 0.2
+    rotate_z 4
 theme_boxstyle "WhiteChristmas",Master:text,Style:text  ->
     linear_gradient 0, 0, 0, 128, 128, 128,
         gradient_color 0.0, 0.8, 0.8, 0.8, 1.0
@@ -234,14 +269,13 @@ theme_boxstyle "WhiteChristmas",Master:text,Style:text  ->
         gradient_color 1.0, 0.8, 0.8, 0.8, 1.0
     color "white"
     line_color "white"
-theme_align "WhiteChristmas",Master:text,"story", N  ->
-    margins 75+50*N, 0
+
 
 theme_box "WhiteChristmas",Master:text,"title", X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
-//   Draw the background box for text and flows
+//   The title is put in a big circle
 // ----------------------------------------------------------------------------
-    contents -10,
+    contents 50,
         color "white", 0.95
         locally
             shadow_blur 12.0
@@ -252,27 +286,74 @@ theme_box "WhiteChristmas",Master:text,"title", X:real,Y:real,W:real,H:real ->
             translate -45, -45, -50
             color "#C8D6E0"
             rectangle X, Y, W+120, H+120
-        linear_gradient 0, 0, 0, 128, 128, 128,
-            gradient_color 0.0, 0.9, 0.9, 0.9, 1.0
-            gradient_color 0.4, 1.0, 1.0, 1.0, 1.0
-            gradient_color 0.6, 1.0, 1.0, 1.0, 1.0
-            gradient_color 1.0, 0.9, 0.9, 0.9, 1.0
-        ellipse X, Y, W + 30, H + 30
-        linear_gradient 0, 0, 0, 128, 128, 128,
-            gradient_color 0.0, 1.0, 1.0, 1.0, 1.0
-            gradient_color 1.0, 0.8, 0.8, 0.8, 1.0
-        color "transparent"
-        line_color "white"
-        line_width 6
-        ellipse X, Y, W + 30, H + 30
+        white_christmas_ellipse X, Y, W+30, H+30, 6
 
+
+white_christmas_ellipse X:real, Y:real, W:real, H:real, LW:real ->
+// ----------------------------------------------------------------------------
+//    Draw a White-Christmas themed ellipse
+// ----------------------------------------------------------------------------
+    linear_gradient 0, 0, 0, 128, 128, 128,
+        gradient_color 0.0, 0.9, 0.9, 0.9, 1.0
+        gradient_color 0.4, 1.0, 1.0, 1.0, 1.0
+        gradient_color 0.6, 1.0, 1.0, 1.0, 1.0
+        gradient_color 1.0, 0.9, 0.9, 0.9, 1.0
+    ellipse X, Y, W, H
+    linear_gradient 0, 0, 0, 128, 128, 128,
+        gradient_color 0.0, 1.0, 1.0, 1.0, 1.0
+        gradient_color 1.0, 0.8, 0.8, 0.8, 1.0
+    color "transparent"
+    line_color "white"
+    line_width LW
+    ellipse X, Y, W, H
+
+
+theme_box "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//    The subtitle is draw as is
+// ----------------------------------------------------------------------------
+    false
+
+
+theme_text "WhiteChristmas",Master:text,"title",X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    theme_box "WhiteChristmas", Master, "title", X, Y, W, H
+    contents 80,
+        text_box X, Y, W, H,
+            theme_style "WhiteChristmas", Master, "title"
+            Body
+
+
+theme_text "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    theme_box "WhiteChristmas", Master, "subtitle", X, Y, W, H
+    contents 80,
+        shadow_blur 5.0
+        shadow_angle 220
+        locally
+            shadow_scaled_texture W+120, H+120, 4,
+                color "white", 0.5
+                text_box 0, 0, W, H,
+                    theme_style "WhiteChristmas", Master, "title"
+                    Body
+            translate -45, -45, -50
+            color "#C8D6E0"
+            rectangle X, Y, W+120, H+120
+        text_box X, Y, W, H,
+            theme_style "WhiteChristmas", Master, "title"
+            Body
+        
 
 
 theme_box "WhiteChristmas",Master,Style, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
-//   Draw the background box for text and flows
+//   Other boxes are in a white rounded-rectangle box
 // ----------------------------------------------------------------------------
-    contents -10,
+    contents -200,
         color "white", 0.95
         locally
             shadow_blur 12.0
@@ -300,20 +381,64 @@ theme_box "WhiteChristmas",Master,Style, X:real,Y:real,W:real,H:real ->
 
 theme_bullet_picture "WhiteChristmas", Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//    Draw a snowflake for the theme bullets
+//    The bullet is a simple circle
 // ----------------------------------------------------------------------------
     white_christmas_bullet S:real ->
-        color "#888", 0.5
-        circle -30, 20, 7
+        white_christmas_ellipse -20, 18, 12, 12, 4
     white_christmas_bullet theme_size(theme, Master, "bullet", Level)
+
+
+theme_layout "WhiteChristmas", "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow -700, 300, 400, 400, "title"
+    flow 0, 100, 1000, 800, "subtitle"
 
 
 theme_layout "WhiteChristmas", Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
-    flow 0, 0, 1050, 950, "story"
-    flow 0, 0, 1250, 950, "picture"
-    flow -475, 0, 850, 750, "left"
-    flow  475, 0, 850, 750, "right"
-    flows -700, 300, 400, 400, "title", "subtitle"
+    flow -50, 0, 1100, 950, "story"
+    flow 0, 0, 1250, 850, "picture"
+    flow -330, 0, 550, 950, "left"
+    flow  250, 0, 550, 950, "right"
+    flow -700, 300, 400, 400, "title"
+    flow 0, 400, 1000, 200, "subtitle"
+
+
+
+// ============================================================================
+// 
+//   Theme specific functions
+// 
+// ============================================================================
+
+white_christmas_title_picture P:text, Transform ->
+// ----------------------------------------------------------------------------
+//    Draw a picture in the title circle with an arbitrary transform
+// ----------------------------------------------------------------------------
+    contents 10,
+        texture P
+        color "white"
+        Transform
+        ellipse -700, 300, 410, 410
+    
+
+white_christmas_title_picture P:text ->
+// ----------------------------------------------------------------------------
+//   Draw a picture in the title circle
+// ----------------------------------------------------------------------------
+    white_christmas_title_picture P,
+        texture_transform
+            if texture_width > texture_height then
+                scale_x texture_width/texture_height
+            else if texture_width < texture_height then
+                scale_y texture_height/texture_width
+
+
+white_christmas_random R:real,S:real -> sin(R*white_christmas_current+S)
+// ----------------------------------------------------------------------------
+//   A simple pseudo-random function
+// ----------------------------------------------------------------------------

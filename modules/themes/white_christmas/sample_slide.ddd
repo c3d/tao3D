@@ -5,9 +5,9 @@ theme "WhiteChristmas"
 
 main_title_slide "Main title",
     title
-        text "Seasons Greetings theme"
+        text "White Christmas theme"
     subtitle
-        text "A theme for the Holidays"
+        text "A white winter theme"
 
 
 section_slide "Section title",
@@ -29,21 +29,24 @@ slide "Bullet points",
 
 
 picture_slide "Picture slide",
-    translatez -700
     rotatez 2
-    image 0, 0, 1.3, 1.3, "http://2.bp.blogspot.com/-twQlIiXDPW8/UMRhQNQ5gpI/AAAAAAAATN0/yUHexBBkS8I/s1600/santa-claus-arrived.jpg"
+    image 0, 0, 0.5, 0.5, "http://jags-webdesign.com/wp-content/uploads/2013/12/white-christmas-wallpaperwhite-christmas-hd-wallpapers-inn-u459ifwx.jpg"
     movie_only ""
 
 
 picture_slide "YouTube Video slide",
     left_picture
-        translate 0, 100, -150
+        translate 0, 0, -150
         rotatez 5
-        rotatey 180 * sin (0.2*time) ^ 19
-        movie 0, 0, 3.2, 3.2, "http://www.youtube.com/watch?v=i0HvkYD5Ec4&fmt=43"
+        movie_texture "http://www.youtube.com/watch?v=igaOTqgXbnA"
+        star 0, 0, 1.6 * texture_width, 2.0 * texture_height, 25, 85%
+        star -180, 300, 0.8 * texture_width, 0.8 * texture_height, 5, 40%
+        rotate_z -5
+        star 150, 250, 0.6 * texture_width, 0.6 * texture_height, 7, 60%
+        star 50, -290, 0.7 * texture_width, 0.8 * texture_height, 5, 40%
     right_column
         - "Video on the left:"
-        - "Douce Nuit played by Les Petits Chanteurs à La Croix"
+        -- { italic """White Christmas"""; text " by Bing Crosby and Frank Sinatra" }
 
 
 picture_slide "Chart slide",
@@ -65,4 +68,8 @@ picture_slide "Chart slide",
     material_ambient 1.0, 1.0, 1.0, 1.0
     material_diffuse 1.0, 1.0, 1.0, 1.0
 
-    chart "My chart", "bar"
+    chart "My chart", my_chart_kind (seconds/3 mod 4)
+    my_chart_kind 0 -> "bar"
+    my_chart_kind 1 -> "pie"
+    my_chart_kind 2 -> "line"
+    my_chart_kind 3 -> "area"

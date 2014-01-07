@@ -43,11 +43,11 @@ theme_boxstyle   "BlackOnWhite",Master:text,"title"     -> color "black",0.2
 theme_boxstyle   "BlackOnWhite",Master:text,Style:text  -> color "black",0.1
 
 // Chart colors
-theme_color "BlackOnWhite", Master:text, "line", N:integer -> line_color_hsv 0, 0, (real N) / chart_datasets_count
+theme_color "BlackOnWhite", Master:text, "line", N:integer -> line_color_hsv 0, 0, (real N) / (chart_datasets_count - 1)
 theme_color "BlackOnWhite", "pie", Style:text, N:integer -> color_hsv 0, 0, (real N) / (chart_count chart_first)
 theme_color "BlackOnWhite", "area", Style:text, N:integer -> theme_color "BlackOnWhite", "bar", Style, N
 theme_color "BlackOnWhite", "line", Style:text, N:integer -> theme_color "BlackOnWhite", "bar", Style, N
-theme_color "BlackOnWhite", "bar", Style:text, N:integer -> color_hsv 0, 0, (real N) / chart_datasets_count
+theme_color "BlackOnWhite", "bar", Style:text, N:integer -> color_hsv 0, 0, (real N) / (chart_datasets_count - 1)
 
 
 // ============================================================================
@@ -63,11 +63,11 @@ theme_boxstyle   "WhiteOnBlack",Master:text,"title"     -> color "white",0.2
 theme_boxstyle   "WhiteOnBlack",Master:text,Style:text  -> color "white",0.1
 
 // Chart colors
-theme_color "WhiteOnBlack", Master:text, "line", N:integer -> line_color_hsv 0, 0, 1.0 - (real N) / chart_datasets_count
+theme_color "WhiteOnBlack", Master:text, "line", N:integer -> line_color_hsv 0, 0, 1.0 - (real N) / (chart_datasets_count - 1)
 theme_color "WhiteOnBlack", "pie", Style:text, N:integer -> color_hsv 0, 0, 1.0 - (real N) / (chart_count chart_first)
 theme_color "WhiteOnBlack", "area", Style:text, N:integer -> theme_color "WhiteOnBlack", "bar", Style, N
 theme_color "WhiteOnBlack", "line", Style:text, N:integer -> theme_color "WhiteOnBlack", "bar", Style, N
-theme_color "WhiteOnBlack", "bar", Style:text, N:integer -> color_hsv 0, 0, 1.0 - (real N) / chart_datasets_count
+theme_color "WhiteOnBlack", "bar", Style:text, N:integer -> color_hsv 0, 0, 1.0 - (real N) / (chart_datasets_count - 1)
 
 
 // ============================================================================

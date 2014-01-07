@@ -37,19 +37,20 @@ title_slide "Third slide",
     page_duration 3
 
 picture_slide "Chart slide",
-    once 
-        chart_current "My chart"
+    chart_current "My chart"
+    once
         for i in 1..4 loop
             chart_push_data 1, 200 + 50 * i
             chart_push_data 2, 150 - 20 * i
             chart_push_data 3, 165 + i * 15 * (-1) ^ i
+        chart_set_format "3D"
+        chart_set_type "bar"
 
     chart_set_legend 1, "First set" fr "Série 1"
     chart_set_legend 2, "Second set" fr "Série 2"
     chart_set_legend 3, "Third set" fr "Série 3"
 
     chart_set_title "Sample chart" fr "Diagramme d'exemple"
-    chart_set_format "3D"
 
     light 0
     light_attenuation 1 / scaling_factor, 0, 0
@@ -57,4 +58,4 @@ picture_slide "Chart slide",
     material_ambient 1.0, 1.0, 1.0, 1.0
     material_diffuse 1.0, 1.0, 1.0, 1.0
 
-    chart "My chart", "bar"
+    chart 1..3

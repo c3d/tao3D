@@ -39,31 +39,31 @@ theme_color "SeasonsGreetings", "area", Style:text, N:integer -> theme_color "Se
 theme_color "SeasonsGreetings", "line", Style:text, N:integer -> theme_color "SeasonsGreetings", "bar", Style, N
 theme_color "SeasonsGreetings", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 1, 0.8, 0.8
 
-theme_chart "SeasonsGreetings", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
+theme_chart "SeasonsGreetings", Master:text, Style:text, "3D", W:real, H:real, N:integer, Set:integer, Index:integer ->
 // ----------------------------------------------------------------------------
 //   Display 3D chart part
 // ----------------------------------------------------------------------------
-    Ratio := chart_data_ratio(N, Index)
+    Ratio := chart_data_ratio(Set, Index)
     locally
         radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
             gradient_color 0.0, 1, 1, 1, 0.5
             gradient_color 0.5, 1, 1, 1, 0.75
             gradient_color 1.0, 1, 1, 1, 1.0
 
-        theme_chart "SeasonsGreetings", Master, Style, "3D", W, H, N, Index, Ratio
+        theme_chart "SeasonsGreetings", Master, Style, "3D", W, H, N, Set, Index, Ratio
 
 
-theme_chart "SeasonsGreetings", Master:text, Style:text, Format:text, W:real, H:real, N:integer, Index:integer ->
+theme_chart "SeasonsGreetings", Master:text, Style:text, Format:text, W:real, H:real, N:integer, Set:integer, Index:integer ->
 // ----------------------------------------------------------------------------
 //   Display chart part
 // ----------------------------------------------------------------------------
-    Ratio := chart_data_ratio(N, Index)
+    Ratio := chart_data_ratio(Set, Index)
     locally
         radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
             gradient_color 0.0, 1, 1, 1, 0.5
             gradient_color 0.5, 1, 1, 1, 0.75
             gradient_color 1.0, 1, 1, 1, 1.0
-        theme_chart "SeasonsGreetings", Master, Style, Format, W, H, N, Index, Ratio
+        theme_chart "SeasonsGreetings", Master, Style, Format, W, H, N, Set, Index, Ratio
 
 theme_box "SeasonsGreetings", "area",Style:text, X:real,Y:real,W:real,H:real -> false
 theme_box "SeasonsGreetings", "bar",Style:text, X:real,Y:real,W:real,H:real -> false

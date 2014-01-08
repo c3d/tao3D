@@ -30,11 +30,15 @@ slide "Bullet points",
 
 picture_slide "Picture slide",
     rotatez 2
-    image 0, 0, 0.5, 0.5, "http://jags-webdesign.com/wp-content/uploads/2013/12/white-christmas-wallpaperwhite-christmas-hd-wallpapers-inn-u459ifwx.jpg"
+    color "white"
+    texture "http://jags-webdesign.com/wp-content/uploads/2013/12/white-christmas-wallpaperwhite-christmas-hd-wallpapers-inn-u459ifwx.jpg"
+    fuzzy_border 0.1
+    // circle_fuzzy_border 0, 0, 100%, 10%
+    rounded_rectangle 0, 0, 0.5*texture_width, 0.5*texture_height, 40
     movie_only ""
 
 
-picture_slide "YouTube Video slide",
+title_slide "YouTube Video slide",
     left_picture
         translate 0, 0, -150
         rotatez 5
@@ -50,26 +54,28 @@ picture_slide "YouTube Video slide",
 
 
 picture_slide "Chart slide",
-    once 
+    movie_only ""
+    once
+        chart_drop "My chart"
         chart_current "My chart"
-        for i in 1..4 loop
-            chart_push_data 1, 200 + 50 * i
-            chart_push_data 2, 150 - 20 * i
-            chart_push_data 3, 165 + i * 15 * (-1) ^ i
-        chart_set_legend 1, "First set"
-        chart_set_legend 2, "Second set"
-        chart_set_legend 3, "Third set"
+        for i in 1..7 loop
+            chart_push_data 1, 200 + 50 * sin(132.3*i)
+            chart_push_data 2, 150 - 20 * exp(0.33*i) * sin(27*i)
+            chart_push_data 3, 165 + i * 15 * (-1.05) ^ i
+        chart_set_legend 1, "Astronauts"
+        chart_set_legend 2, "Martians"
+        chart_set_legend 3, "Art"
+        chart_set_legend 4, "Zero"
+        chart_set_legend 5, "Infinity"
+        chart_set_legend 6, "Numbers"
+        chart_set_legend 7, "Gravity"
         chart_set_title "Sample chart"
         chart_set_format "3D"
+        chart_set_type "bar"
 
-    light 0
-    light_attenuation 1 / scaling_factor, 0, 0
-    light_position 0, 0, 3000, 1
-    material_ambient 1.0, 1.0, 1.0, 1.0
-    material_diffuse 1.0, 1.0, 1.0, 1.0
-
-    chart "My chart", my_chart_kind (seconds/3 mod 4)
-    my_chart_kind 0 -> "bar"
-    my_chart_kind 1 -> "pie"
-    my_chart_kind 2 -> "line"
-    my_chart_kind 3 -> "area"
+    chart_set_type my_type (seconds / 4 mod 4)
+    my_type 0 -> "bar"
+    my_type 1 -> "line"
+    my_type 2 -> "pie"
+    my_type 3 -> "area"
+    chart 1..3

@@ -1,5 +1,5 @@
 // ****************************************************************************
-//   White Christmas - A theme specially designed for the Christmas period
+//   White hristmas - A theme specially designed for the Christmas period
 //   Copyright 2012 Taodyne SAS - See licence at end of file
 // ****************************************************************************
 
@@ -28,12 +28,8 @@ add_search_path "WhiteChristmas:", module_dir
 theme_slide_width  "WhiteChristmas" -> 1920
 theme_slide_height "WhiteChristmas" -> 1080
 
-theme_drawing_width  "WhiteChristmas" -> 1200
-theme_drawing_height "WhiteChristmas" -> 750
-
-theme_position "WhiteChristmas",Master:text,"left"     -> translate -330, 0, 0
-theme_position "WhiteChristmas",Master:text,"right"    -> translate  250, 0, 0
-theme_position "WhiteChristmas",Master:text,Style:text -> translate    0, 0, 0
+theme_drawing_width  "WhiteChristmas" -> 1000
+theme_drawing_height "WhiteChristmas" -> 850
 
 
 
@@ -43,11 +39,21 @@ theme_position "WhiteChristmas",Master:text,Style:text -> translate    0, 0, 0
 //
 // ============================================================================
 
-theme_color "WhiteChristmas", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
+theme_color "WhiteChristmas", Master:text, "line", N -> line_color_hsv 20 + 157.5 * N, 0.5, 0.9, 0.9
 theme_color "WhiteChristmas", "pie", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
 theme_color "WhiteChristmas", "area", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
 theme_color "WhiteChristmas", "line", Style:text, N:integer -> theme_color "WhiteChristmas", "bar", Style, N
-theme_color "WhiteChristmas", "bar", Style:text, N -> color_hsv 20 + 157.5 * N, 0.1, 0.9, 0.7
+theme_color "WhiteChristmas", "bar", Style:text, N ->
+    color_hsv 20 + 157.5 * N, 0.3, 0.9, 0.7
+    line_color_hsv 20 + 157.5 * N, 0.5, 0.6, 0.7
+
+theme_box "WhiteChristmas", Master:text, "area", X:real,Y:real,W:real,H:real -> false
+theme_box "WhiteChristmas", Master:text, "bar", X:real,Y:real,W:real,H:real -> false
+theme_box "WhiteChristmas", Master:text, "line", X:real,Y:real,W:real,H:real -> false
+theme_box "WhiteChristmas", Master:text, "pie", X:real,Y:real,W:real,H:real -> false
+theme_box "WhiteChristmas",Master:text,"chart_title",X:real,Y:real,W:real,H:real -> false
+
+
 
 theme_chart "WhiteChristmas", Master:text, Style:text, "3D", W:real, H:real, N:integer, Index:integer ->
 // ----------------------------------------------------------------------------
@@ -59,7 +65,6 @@ theme_chart "WhiteChristmas", Master:text, Style:text, "3D", W:real, H:real, N:i
             gradient_color 0.0, 1, 1, 1, 0.5
             gradient_color 0.5, 1, 1, 1, 0.75
             gradient_color 1.0, 1, 1, 1, 1.0
-
         theme_chart "WhiteChristmas", Master, Style, "3D", W, H, N, Index, Ratio
 
 
@@ -75,10 +80,42 @@ theme_chart "WhiteChristmas", Master:text, Style:text, Format:text, W:real, H:re
             gradient_color 1.0, 1, 1, 1, 1.0
         theme_chart "WhiteChristmas", Master, Style, Format, W, H, N, Index, Ratio
 
-theme_box "WhiteChristmas", "area",Style:text, X:real,Y:real,W:real,H:real -> false
-theme_box "WhiteChristmas", "bar",Style:text, X:real,Y:real,W:real,H:real -> false
-theme_box "WhiteChristmas", "line",Style:text, X:real,Y:real,W:real,H:real -> false
-theme_box "WhiteChristmas", "pie",Style:text, X:real,Y:real,W:real,H:real -> false
+
+theme_chart_layout "WhiteChristmas", "pie", Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Default pie chart layout
+// ----------------------------------------------------------------------------
+
+    // Draw components
+    chart_flow -300, 525, 800, 50, "chart_title"
+    chart_flow 525, -30, 300, 600, "chart_legend"
+
+    // Draw chart
+    box "pie", 0, -30, 600, 600
+    chart_series -300, -25, 900, 900, "pie", Style, Format
+
+
+theme_chart_layout "WhiteChristmas", Master:text, Style:text, Format:text ->
+// ----------------------------------------------------------------------------
+//    Chart layout for White Christmas
+// ----------------------------------------------------------------------------
+    // Draw main box
+    // box "chart", 0, 0, chart_width, chart_height
+
+    // Draw axis
+    chart_xaxis -450, -475, 1100, 900, Style, Format
+    chart_yaxis -450, -475, 1100, 900, Style, Format
+
+    chart_flow 100, 525, 800, 50, "chart_title"
+    chart_flow 435, -275, 100, 50, "chart_xlabel"
+    chart_flow -400, 250, 100, 50, "chart_ylabel"
+    chart_flow -725, -30, 300, 600, "chart_legend"
+
+    // Draw chart
+    // box Master, -175, -30, 1400, 600
+    chart_series -450, -475, 1100, 900, Master, Style, Format
+
+
 
 // ============================================================================
 //
@@ -315,9 +352,9 @@ theme_box "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real ->
     false
 
 
-theme_text "WhiteChristmas",Master:text,"title",X:real,Y:real,W:real,H:real,Body ->
+theme_flow "WhiteChristmas",Master:text,"title",X:real,Y:real,W:real,H:real,Body ->
 // ----------------------------------------------------------------------------
-//   Draw a default text box
+//   Draw a title text box
 // ----------------------------------------------------------------------------
     theme_box "WhiteChristmas", Master, "title", X, Y, W, H
     contents 80,
@@ -326,9 +363,9 @@ theme_text "WhiteChristmas",Master:text,"title",X:real,Y:real,W:real,H:real,Body
             Body
 
 
-theme_text "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real,Body ->
+theme_flow "WhiteChristmas",Master:text,"subtitle",X:real,Y:real,W:real,H:real,Body ->
 // ----------------------------------------------------------------------------
-//   Draw a default text box
+//   Draw a subtitle text box
 // ----------------------------------------------------------------------------
     theme_box "WhiteChristmas", Master, "subtitle", X, Y, W, H
     contents 80,
@@ -404,6 +441,8 @@ theme_layout "WhiteChristmas", Master:text ->
     flow 0, 0, 1250, 850, "picture"
     flow -330, 0, 550, 950, "left"
     flow  250, 0, 550, 950, "right"
+    flow -330, 0, 550, 800, "leftpic"
+    flow  250, 0, 550, 800, "rightpic"
     flow -700, 300, 400, 400, "title"
     flow 0, 400, 1000, 200, "subtitle"
 

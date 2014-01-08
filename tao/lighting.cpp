@@ -79,6 +79,12 @@ PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
                 pgm->link();
             }
         }
+        else
+        {
+            std::cerr << "Per-pixel lighting disabled due to "
+                         "missing extension: GL_EXT_gpu_shader4\n";
+            failed = true;
+        }
     }
 
 }

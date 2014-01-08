@@ -68,7 +68,8 @@ picture_slide "Chart slide",
     material_ambient 1.0, 1.0, 1.0, 1.0
     material_diffuse 1.0, 1.0, 1.0, 1.0
 
-    chart "My chart", my_chart_kind (seconds/3 mod 4)
+    chart_set_type my_chart_kind (seconds/3 mod 4)
+    chart
     my_chart_kind 0 -> "bar"
     my_chart_kind 1 -> "pie"
     my_chart_kind 2 -> "line"

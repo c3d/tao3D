@@ -8886,12 +8886,19 @@ static inline GLenum getTypeOfActiveUniform(GLuint progId, kstring name,
     GLsizei length = 0;
     GLenum type = 0;
     char uniformName[80];
+    // If uniform variable is an array, we want the type of its elements.
+    // glActiveUniform will return 'varname[0]' so we'll just test if this
+    // name begins with 'varname['.
+    char nameArr[80];
+    snprintf(nameArr, sizeof(nameArr), "%s[", name);
     for (int i = hint; i < hint + uniforms; i++)
     {
         uint index = i % uniforms;
         GL.GetActiveUniform(progId, index, sizeof(uniformName) - 1, &length,
                             &size, &type, uniformName);
-        if (!strcmp(uniformName, name))
+
+        if (!strcmp(uniformName, name) ||
+            !strncmp(uniformName, nameArr, strlen(nameArr)))
             break;
         else
             type = 0;

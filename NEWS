@@ -1,6 +1,6 @@
 Change log for Tao Presentations
 
-1.45
+1.45 (09-Jan-2014)
 
 #3342 Crash when trying to use per-pixel lighting without GL_EXT_gpu_shader4
 #3341 GL error 1282 (Invalid operation) when shader_set is used on an array of non-float type

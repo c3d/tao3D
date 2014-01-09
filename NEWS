@@ -1,5 +1,27 @@
 Change log for Tao Presentations
 
+1.45
+
+#3342 Crash when trying to use per-pixel lighting without GL_EXT_gpu_shader4
+#3341 GL error 1282 (Invalid operation) when shader_set is used on an array of non-float type
+#3338 Add white christmas theme
+#3337 Filters: add filtering amount
+#3336 Filters: Add drop shadow filter
+#3335 Filters: render_to_texture does not correctly deal with transparent textures
+#3334 Add two-pass gaussian blur to the Filters module
+#3333 VLC: Incorrect generation of texture ID leads to flicker when movie texture is filtered
+#3332 Crash in charts example
+#3331 If there is no XL error but there is an error in GLSL, window message is closed
+#3330 Charts: Simplify syntax of some primitives
+#3329 Add boolean to text conversion
+#3328 RadioHead demo crashes
+#3327 Cartoons demo crashes
+#3326 Charts: Handle correctly negative values
+#3325 Charts: Add a primitive to draw a list of datasets
+#3320 Slides: value of numbered item increments unexpectedly as page gets re-evaluated
+#3315 'once' is not executed again but variables are reset when source file is modified
+#2738 VLCAudioVideo: use pre-installed VLC if present and not packaged (MacOSX, Windows)
+
 1.44 (01-Dec-2013)
 
 #3312 Linux: crash on exit if clipboard has data

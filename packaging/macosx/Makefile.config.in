@@ -25,3 +25,4 @@ ifneq (,$$NO_HELP_VIEWER)
 PACKAGE_NO_QTWEBKIT=1
 endif
 endif
+APP_NAME=$$APP_NAME

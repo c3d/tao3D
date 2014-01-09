@@ -360,14 +360,14 @@ box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_text theme, slide_master, "story", X, Y, W, H, Body
+    theme_flow theme, slide_master, "story", X, Y, W, H, Body
 
 
 box Style:text, X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_text theme, slide_master, Style, X, Y, W, H, Body
+    theme_flow theme, slide_master, Style, X, Y, W, H, Body
 
 
 box Style:text, X:real, Y:real, W:real, H:real ->
@@ -391,7 +391,7 @@ flow X:real, Y:real, W:real, H:real, Flow:text ->
     flow_name -> ""
     flow_name := Flow
     if slide_flow[flow_name] then
-        theme_text theme, slide_master, flow_name, X, Y, W, H,
+        theme_flow theme, slide_master, flow_name, X, Y, W, H,
             text_flow Flow
         slide_flow[flow_name] := false
 
@@ -405,13 +405,13 @@ flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
     flow_name1 := Flow1
     flow_name2 := Flow2
     if slide_flow[flow_name1] then
-        theme_text theme, slide_master, flow_name1, X, Y, W, H,
+        theme_flow theme, slide_master, flow_name1, X, Y, W, H,
             text_flow Flow1
             if slide_flow[flow_name2] then
                 paragraph_break
                 text_flow Flow2
     else if slide_flow[flow_name2] then
-        theme_text theme, slide_master, flow_name1, X, Y, W, H,
+        theme_flow theme, slide_master, flow_name1, X, Y, W, H,
             text_flow Flow2
 
     slide_flow[flow_name1] := false

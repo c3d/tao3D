@@ -65,10 +65,12 @@ theme_chart "SeasonsGreetings", Master:text, Style:text, Format:text, W:real, H:
             gradient_color 1.0, 1, 1, 1, 1.0
         theme_chart "SeasonsGreetings", Master, Style, Format, W, H, N, Set, Index, Ratio
 
-theme_box "SeasonsGreetings", "area",Style:text, X:real,Y:real,W:real,H:real -> false
-theme_box "SeasonsGreetings", "bar",Style:text, X:real,Y:real,W:real,H:real -> false
-theme_box "SeasonsGreetings", "line",Style:text, X:real,Y:real,W:real,H:real -> false
-theme_box "SeasonsGreetings", "pie",Style:text, X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "area", X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "bar", X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "line", X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "pie", X:real,Y:real,W:real,H:real -> false
+
+
 
 // ============================================================================
 //
@@ -93,10 +95,21 @@ theme_background "SeasonsGreetings",Master:text ->
     background -400,
         snowpack
 
+
+theme_picture "WhiteChristmas", "blank", Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_color Theme, "blank", "picture"
+        Body
+
+
 theme_color "SeasonsGreetings",Master:text,"story"     -> light 0, false; color "white"
 theme_font "SeasonsGreetings",Master:text,"story"     -> font "Dancing Script"
 theme_boxstyle "SeasonsGreetings",Master:text,Style:text  -> color "white",0.2; line_color "black", 0.15
 theme_align "SeasonsGreetings",Master:text,"story", N  -> margins 75+50*N, 0
+
 
 theme_box "SeasonsGreetings",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------

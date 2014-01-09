@@ -61,7 +61,7 @@ module_description
     import_name "Slides"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.041
+    version 1.051
 
 module_description "fr",
     name "Diapositives"

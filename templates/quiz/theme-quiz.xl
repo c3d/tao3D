@@ -70,7 +70,7 @@ theme_background "theme_quiz", "main" ->
         common_background
     contents -6000,
         color "white"
-        image slide_width/4,slide_height/4,1,1,"taoquiz.png"
+        image slide_width/4,slide_height/4,1,1,"logo_taoquiz.png"
 
 
 theme_background "theme_quiz", Kind ->
@@ -81,5 +81,5 @@ theme_background "theme_quiz", Kind ->
         common_background
     contents -6000,
         color "white"
-        image slide_width/2 - 240, -slide_height/2 + 40,0.3,0.3,"taoquiz.png"
+        image slide_width/2 - 240, -slide_height/2 + 40,0.3,0.3,"logo_taoquiz.png"
 

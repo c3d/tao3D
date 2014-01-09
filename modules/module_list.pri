@@ -74,9 +74,9 @@
         hello_world  \
         tao_synchro  \
         tao_tester   \
-        tao_quiz     \
+        quiz         \
         database     \
-        web_remote \
+        web_remote   \
         prez_at
 
 } else {

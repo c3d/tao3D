@@ -564,7 +564,7 @@ INSTALLS += blank
 
 isEmpty(NO_FONTS) {
   fonts.path  = $$APPINST/fonts
-  fonts.files = fonts/*.ttf fonts/README
+  fonts.files = fonts/*.ttf fonts/*.otf fonts/README
   !contains(DEFINES, CFG_NOSRCEDIT):fonts.files += fonts/unifont/unifont-5.1.20080907.ttf
   INSTALLS += fonts
 } else {

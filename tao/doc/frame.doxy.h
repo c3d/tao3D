@@ -52,6 +52,14 @@ integer window_width ();
 
 /**
  * @~english
+ * Sets the dimensions of the display window in pixels. 
+ * @~french
+ * Définit les dimensions de la fenêtre d'affichage en pixels.
+ */
+window_size(w:integer, h:integer);
+
+/**
+ * @~english
  * Create a frame.
  * Draw a frame with the described content in @p body. This frame as no displayed border.
  * It makes a texture of size (@p w, @p h) using @ref frame_texture, and map it on a rectangle

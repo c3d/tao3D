@@ -1,54 +1,55 @@
 import "theme-quiz.xl"
-import TaoQuiz
-import "quizz-config.xl"
+import Quiz
+import "quiz-config.xl"
 
 
-main_title_slide quizz_title,
+main_title_slide quiz_title,
     title
-        text quizz_title
+        text quiz_title
     subtitle
         text "A quiz powered by Taodyne" fr "Un quiz fourni par Taodyne"
 
 
 slide "Technical information" fr "Informations techniques",
     * "Quiz name: "fr "Nom du quiz : "
-    text quizz_name
+    text quiz_name
     * "Quiz start date: "fr "Date de début du quiz : "
-    text quizz_start_date
+    text quiz_start_date
     * "Quiz duration in days: "fr "Durée du quiz en jours : "
-    text text quizz_duration
-    * "Quiz URL: "fr "URL du quizz : "
+    text text quiz_duration
+    * "Quiz URL: "fr "URL du quiz : "
     text_span
         bold
-        text quizz_public_url
+        text quiz_public_url
     * "Maximum number of question: "fr "Nombre maximum de questions : "
-    text text quizz_max_question
+    text text quiz_max_question
     * "Maximum number of users: "fr "Nombre maximum d'utilisateurs : "
-    text text quizz_max_user
-    if quizz_is_anonymous then
-        * "Quizz is anonymous." fr "Le quiz est anonyme."
+    text text quiz_max_user
+    if quiz_is_anonymous then
+        * "Quiz is anonymous." fr "Le quiz est anonyme."
     else
         * "User name is requiered" fr "Le nom de l'utilisateur est requis."
-    if quizz_requier_user_code then
+    if quiz_requier_user_code then
         * "User code is requiered: "fr "Le code utilisateur est requis : "
         text_span
             bold
-            text quizz_user_code
+            text quiz_user_code
 
 base_slide "Question 1",
-  MCQ_quizz "Tao Presentations enables..." fr "Tao presentation permet de...", "http://www.taodyne.com/shop/img/logo.jpg",
+  quiz "Tao Presentations enables..." fr "Tao presentation permet de...", "http://www.taodyne.com/shop/img/logo.jpg",
     piegraph
     answer "dynamic presentations" fr "faire des présentations dynamiques"
-    answer "interactive quizzes" fr "faire des quiz interactifs"
+    answer "interactive quizes" fr "faire des quiz interactifs"
     answer "3D presentations" fr "faire des présentations en 3D "
     answer "auto-stereoscopic movies" fr "montrer des films 3D en auto-stéréoscopie"
     answer "all of the above" fr "faire tout ce qui précède"
+    open_answer "other..." fr "autre..."
     total_answer_graph
 
 
 base_slide "Question 2",
-  MCQ_quizz "CNN means" fr "LCI veut dire",
-    quizz_set_last
+  quiz "CNN means" fr "LCI veut dire",
+    quiz_set_last
     piegraph
     french
         answer "La Chaine Info", 2
@@ -62,7 +63,7 @@ base_slide "Question 2",
 
 
 base_slide "Question 3",
-  MCQ_quizz "Which one is Taodyne's logo ?" fr "Quel est le logo de Taodyne ?",
+  quiz "Which one is Taodyne's logo ?" fr "Quel est le logo de Taodyne ?",
     bargraph
     answer "","http://www.taodyne.com/shop/img/logo.jpg", 2
     answer "","http://img1.focus-numerique.com/focus/articles/1527/1231105-logo-apple.jpeg"
@@ -71,14 +72,14 @@ base_slide "Question 3",
 
 
 base_slide "Nom du chien",
-  OTQ_quizz "What is your dog's name ?" fr "Quel est le nom de votre chien ?",
-    quizz_show_text_answers
+  quiz "What is your dog's name?" fr "Quel est le nom de votre chien ?",
+    open_answer
 
 
 base_slide "Zone de dessin",
-  Mouse_quizz "Zone de dessin",
-    quizz_set_mouse_pad "tc", "Hello", "" //"http://visualparadox.com/images/no_linking_allowed_/640/helloworld640.jpg"
-    quizz_draw_mouse
+  mouse_quiz "Zone de dessin",
+    quiz_set_mouse_pad "tc", "Hello", "" //"http://visualparadox.com/images/no_linking_allowed_/640/helloworld640.jpg"
+    quiz_draw_mouse
 
 // ============================================================================
 //
@@ -92,8 +93,8 @@ key "Return" -> AutoScroll := "on" ; skip_to 0
 key "e" -> lang "en" 
 key "f" -> lang "fr" 
 key "/" -> 
-    if quizz_phase = "question" then 
-        quizz_phase := "answer" 
+    if quiz_phase = "question" then 
+        quiz_phase := "answer" 
     else 
-        quizz_phase := "question" 
+        quiz_phase := "question" 
     time

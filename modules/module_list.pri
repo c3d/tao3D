@@ -48,6 +48,7 @@
        themes/lucky_stars \
        themes/landscapes \
        themes/seasons_greetings \
+       themes/white_christmas \
        themes/water \
        slideshow_3d \
        vlc_audio_video \
@@ -73,9 +74,9 @@
         hello_world  \
         tao_synchro  \
         tao_tester   \
-        tao_quiz     \
+        quiz         \
         database     \
-        web_remote \
+        web_remote   \
         prez_at
 
 } else {

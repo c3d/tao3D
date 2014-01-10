@@ -13,7 +13,7 @@ module_description
     import_name "BrightRectanglesTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.002
+    version 1.003
 
 
 module_description "fr",
@@ -60,14 +60,14 @@ rectangle_background N:integer ->
 theme_color "BrightRectangles",Master:text,"picture"   -> color "white"
 theme_color "BrightRectangles",Master:text,"story"     -> light 0, false; color "white"
 theme_color "BrightRectangles",Master:text,"line",N:integer ->
-    line_color_hsv (336.0 * N) / chart_datasets_count, 1.0, 0.7, 1.0
+    line_color_hsv (336.0 * N) / (chart_datasets_count - 1), 1.0, 0.7, 1.0
 theme_color "BrightRectangles","pie",Style:text,N:integer ->
     color_hsv (336.0 * N) / (chart_count chart_first), 1.0, 0.7, 1.0
 
 theme_color "BrightRectangles", "area", Style:text, N:integer -> theme_color "BrightRectangles", "bar", Style, N
 theme_color "BrightRectangles", "line", Style:text, N:integer -> theme_color "BrightRectangles", "bar", Style, N
 theme_color "BrightRectangles","bar",Style:text,N:integer ->
-    color_hsv (336.0 * N) / chart_datasets_count, 1.0, 0.7, 1.0
+    color_hsv (336.0 * N) / (chart_datasets_count - 1), 1.0, 0.7, 1.0
 
 theme_font "BrightRectangles",Master:text,"story"      -> font "Mountains of Christmas", "Times"
 theme_boxstyle "BrightRectangles",Master:text,Style:text     -> color "black", 0.6

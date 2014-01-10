@@ -13,7 +13,7 @@ module_description
     import_name "PastelTrianglesTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.002
+    version 1.003
 
 module_description "fr",
     name "Thème Triangles Pastel"
@@ -27,11 +27,11 @@ module_description "fr",
 // ============================================================================
 
 // Chart colors
-theme_color "PastelTriangles", Master:text, "line", N:integer -> line_color_hsv (336.0 * N) / chart_datasets_count, 0.3, 1.0, 1.0
+theme_color "PastelTriangles", Master:text, "line", N:integer -> line_color_hsv (336.0 * N) / (chart_datasets_count - 1), 0.3, 1.0, 1.0
 theme_color "PastelTriangles", "pie", Style:text, N:integer -> color_hsv (336.0 * N) / (chart_count chart_first), 0.3, 1.0, 1.0
 theme_color "PastelTriangles", "area", Style:text, N:integer -> theme_color "PastelTriangles", "bar", Style, N
 theme_color "PastelTriangles", "line", Style:text, N:integer -> theme_color "PastelTriangles", "bar", Style, N
-theme_color "PastelTriangles", "bar", Style:text, N:integer -> color_hsv (336.0 * N) / chart_datasets_count, 0.3, 1.0, 1.0
+theme_color "PastelTriangles", "bar", Style:text, N:integer -> color_hsv (336.0 * N) / (chart_datasets_count - 1), 0.3, 1.0, 1.0
 
 // No boxes for charts components (except title)
 theme_box "PastelTriangles",Master:text,"chart_legend", X:real,Y:real,W:real,H:real -> false

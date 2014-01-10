@@ -15,7 +15,7 @@ module_description
     import_name "AutumnOnEarthTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.002
+    version 1.003
 
 
 module_description "fr",
@@ -51,7 +51,7 @@ theme_chart_layout "AutumnOnEarth", "pie", Style:text, Format:text ->
 // ----------------------------------------------------------------------------
 //    Pie chart layout for Autumn theme
 // ----------------------------------------------------------------------------
-    chart 0, 0, 400, 400, Style, Format
+    chart_series 0, 0, 400, 400, "pie", Style, Format
 
     chart_flow 0, 260, 850, 50, "chart_title"
     chart_flow 425, 0, 300, 400, "chart_legend"
@@ -71,7 +71,7 @@ theme_chart_layout "AutumnOnEarth", Master:text, Style:text, Format:text ->
     chart_xaxis -475, -200, 700, 400, Style, Format
     chart_yaxis -475, -200, 700, 400, Style, Format
 
-    chart -475, -200, 700, 400, Style, Format
+    chart_series -475, -200, 700, 400, Master, Style, Format
 
 // Size
 theme_size "AutumnOnEarth", Master:text, "chart_data" -> 20
@@ -99,7 +99,7 @@ theme_align "AutumnOnEarth", Master:text, "chart_legend" ->
 
 // Colors
 theme_color "AutumnOnEarth", Master:text, "line", N:integer ->
-    T := 0.55 / chart_datasets_count
+    T := 0.55 / (chart_datasets_count - 1)
     line_color_hsv 9, 0.65 - T * N, 0.4 + T * N
 theme_color "AutumnOnEarth", "pie", Style:text, N:integer ->
     T := 0.55 / (chart_count chart_first)
@@ -108,7 +108,7 @@ theme_color "AutumnOnEarth", "pie", Style:text, N:integer ->
 theme_color "AutumnOnEarth", "area", Style:text, N:integer -> theme_color "AutumnOnEarth", "bar", Style, N
 theme_color "AutumnOnEarth", "line", Style:text, N:integer -> theme_color "AutumnOnEarth", "bar", Style, N
 theme_color "AutumnOnEarth", "bar", Style:text, N:integer ->
-    T := 0.55 / chart_datasets_count
+    T := 0.55 / (chart_datasets_count - 1)
     color_hsv 9, 0.65 - T * N, 0.4 + T * N
 
 // ============================================================================

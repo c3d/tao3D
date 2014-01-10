@@ -155,9 +155,10 @@ bool Shape::setShader(Layout *where)
     // In order to improve performance of large and complex 3D models,
     // we use a shader based ligting (Feature #1508), which needs some
     // uniform values to have an efficient behaviour.
-    if(where->perPixelLighting && !where->programId && GL.LightsMask())
+    GLuint programId = PerPixelLighting::PerPixelLightingShader();
+    if (where->perPixelLighting && !where->programId && GL.LightsMask() &&
+        programId)
     {
-        GLuint programId = PerPixelLighting::PerPixelLightingShader();
         GL.UseProgram(programId);
 
         GLint lights = GL.GetUniformLocation(programId, "lights");

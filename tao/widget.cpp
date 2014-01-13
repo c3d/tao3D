@@ -4556,8 +4556,11 @@ void Widget::refreshProgram()
     }
     if (needRefresh)
     {
-        PurgeInfo<ExecOnceInfo> purgeOnceInfo;
-        xlProgram->tree->Do(purgeOnceInfo);
+        if (xlProgram->tree)
+        {
+            PurgeInfo<ExecOnceInfo> purgeOnceInfo;
+            xlProgram->tree->Do(purgeOnceInfo);
+        }
 
         // If a file was modified, we need to refresh the screen
 

@@ -97,6 +97,9 @@ theme_align Theme:text,Master:text,Style:text   -> theme_align Theme,Master, "st
 theme_align Theme:text,Master:text,"story",N    -> margins 40+10*N, 0
 theme_align Theme:text,Master:text,Style:text,N -> theme_align Theme,Master,"story",N
 
+theme_boxstyle Theme:text,Master:text,"picture" -> color "black", 0.0
+theme_boxstyle Theme:text,Master:text,"leftpic" -> color "black", 0.0
+theme_boxstyle Theme:text,Master:text,"rightpic"-> color "black", 0.0
 theme_boxstyle Theme:text,Master:text,Style:text-> color "black", 0.1
 
 
@@ -219,7 +222,7 @@ theme_right_column_picture Theme:text, Master:text, Body ->
 //    Default right column picture (keep consistent with layout below)
 // ----------------------------------------------------------------------------
     text_flow "rightpic",
-        theme_style Theme, Master, "leftpic"
+        theme_style Theme, Master, "rightpic"
         Body
 
 
@@ -236,6 +239,12 @@ theme_layout Theme:text, "main" ->
 // ----------------------------------------------------------------------------
     flow 0, 50, 1800, 400, "title"
     flow 0, -300, 1800, 200, "subtitle"
+    flow 0, -300, 1800, 200, "story"
+    flow -475, -300, 850, 200, "left"
+    flow 475, -300, 850, 200, "right"
+    flow 0, -300, 1800, 400, "picture"
+    flow -475, -300, 850, 200, "leftpic"
+    flow 475, -300, 850, 200, "rightpic"
 
 
 theme_layout Theme:text, "section" ->
@@ -244,26 +253,39 @@ theme_layout Theme:text, "section" ->
 // ----------------------------------------------------------------------------
     flow 0, 50, 1800, 250, "title"
     flow 0, -300, 1800, 150, "subtitle"
+    flow 0, -300, 1800, 750, "story"
+    flow -475, -300, 850, 750, "left"
+    flow 475, -300, 850, 750, "right"
+    flow 0, -300, 1800, 750, "picture"
+    flow -475, -300, 850, 750, "leftpic"
+    flow 475, -300, 850, 750, "rightpic"
 
 
 theme_layout Theme:text, "blank" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
+    flow 0, 50, 1800, 250, "title"
+    flow 0, -300, 1800, 150, "subtitle"
     flow 0, 0, 1800, 750, "story"
+    flow -475, 0, 850, 750, "left"
+    flow 475, 0, 850, 750, "right"
+    flow 0, 0, 1800, 750, "picture"
+    flow -475, 0, 850, 750, "leftpic"
+    flow 475, 0, 850, 750, "rightpic"
 
 
 theme_layout Theme:text, Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
-    flows 0, 400, 1800, 220, "title", "subtitle"
-    flow 0, -120, 1800, 750, "story"
-    flow -475, -120, 850, 750, "left"
-    flow  475, -120, 850, 750, "right"
     flow 0, -120, 1800, 750, "picture"
     flow -475, -120, 850, 750, "leftpic"
     flow  475, -120, 850, 750, "rightpic"
+    flow 0, -120, 1800, 750, "story"
+    flow -475, -120, 850, 750, "left"
+    flow  475, -120, 850, 750, "right"
+    flows 0, 400, 1800, 220, "title", "subtitle"
 
 
 
@@ -272,6 +294,14 @@ theme_layout Theme:text, Master:text ->
 //   Text boxes
 // 
 // ============================================================================
+
+theme_box Theme:text,Master:text,"picture", X:real,Y:real,W:real,H:real -> nil
+theme_box Theme:text,Master:text,"leftpic", X:real,Y:real,W:real,H:real -> nil
+theme_box Theme:text,Master:text,"rightpic", X:real,Y:real,W:real,H:real -> nil
+// ----------------------------------------------------------------------------
+//  Pictures have no background box by default
+// ----------------------------------------------------------------------------
+
 
 theme_box Theme:text,Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
@@ -284,7 +314,7 @@ theme_box Theme:text,Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 
 theme_flow Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
 // ----------------------------------------------------------------------------
-//   Other flows are by default put inside a text box
+//   Flows are by default put inside a box
 // ----------------------------------------------------------------------------
     theme_box Theme, Master, Style, X, Y, W, H
     contents 0,

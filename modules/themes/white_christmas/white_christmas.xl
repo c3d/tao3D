@@ -458,7 +458,7 @@ white_christmas_title_picture P:text, Transform ->
 // ----------------------------------------------------------------------------
 //    Draw a picture in the title circle with an arbitrary transform
 // ----------------------------------------------------------------------------
-    contents 10,
+    contents 100,
         texture P
         color "white"
         Transform

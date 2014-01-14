@@ -70,6 +70,10 @@ theme_box "SeasonsGreetings", Master:text, "bar", X:real,Y:real,W:real,H:real ->
 theme_box "SeasonsGreetings", Master:text, "line", X:real,Y:real,W:real,H:real -> false
 theme_box "SeasonsGreetings", Master:text, "pie", X:real,Y:real,W:real,H:real -> false
 
+theme_box "SeasonsGreetings", Master:text, "picture", X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "leftpic", X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "rightpic", X:real,Y:real,W:real,H:real -> false
+
 
 
 // ============================================================================

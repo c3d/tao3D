@@ -176,6 +176,7 @@ slide_master Theme:text, Master:text, Title:text, Body ->
        locally
            layout "ThemeReset"
            slide_master := Master
+           slide_reset theme
            theme_reset theme
            Body
        theme_layout Theme, Master
@@ -347,6 +348,18 @@ right_picture Body ->
     slide_flow["rightpic"] := true
     theme_right_column_picture theme, slide_master, Body
 
+
+slide_reset Theme ->
+// ----------------------------------------------------------------------------
+//   Reset all flow variables
+// ----------------------------------------------------------------------------
+    slide_flow["title"] := false
+    slide_flow["subtitle"] := false
+    slide_flow["story"] := false
+    slide_flow["left"] := false
+    slide_flow["right"] := false
+    slide_flow["leftpic"] := false
+    slide_flow["rightpic"] := false
 
 
 

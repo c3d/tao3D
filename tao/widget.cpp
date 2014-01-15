@@ -9347,6 +9347,51 @@ Tree_p Widget::endpointsStyle(Tree_p self, symbol_r s, symbol_r e)
     return XL::xl_true;
 }
 
+static Qt::PenStyle lineStyle(text name)
+// ----------------------------------------------------------------------------
+//   Translates name into line style enum
+// ----------------------------------------------------------------------------
+{
+    if (name == "Solid")
+    {
+        return Qt::SolidLine;
+    }
+    else if (name == "Dash")
+    {
+        return Qt::DashLine;
+    }
+    else if (name == "Dot")
+    {
+        return Qt::DotLine;
+    }
+    else if (name == "DashDot")
+    {
+        return Qt::DashDotLine;
+    }
+    else if (name == "DashDotDot")
+    {
+        return Qt::DashDotDotLine;
+    }
+    else
+    {
+        // Others...
+        return Qt::SolidLine;
+    }
+}
+
+Tree_p Widget::lineStipple(Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Specify the style of the path endpoints
+// ----------------------------------------------------------------------------
+{
+    if (!path)
+        return Ooops("No path for '$1'", self);
+
+    path->lineStyle = lineStyle(name);
+
+    return XL::xl_true;
+}
+
 
 // ============================================================================
 //

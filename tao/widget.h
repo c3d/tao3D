@@ -535,6 +535,7 @@ public:
     Tree_p      visibility(Tree_p self, double lw);
     Tree_p      lineWidth(Tree_p self, double lw);
     Tree_p      lineStipple(Tree_p self, uint16 pattern, uint16 scale);
+    Tree_p      lineStipple(Tree_p self, text nae);
     Tree_p      fillColorName(Tree_p self, text name, double a);
     Tree_p      fillColorRgb(Tree_p self,
                              double r, double g, double b, double a);

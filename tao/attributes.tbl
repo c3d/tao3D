@@ -92,12 +92,18 @@ PREFIX(LineWidth,  tree,  "line_width",
        SYNOPSIS("Select the line width for OpenGL")
        DESCRIPTION("Set the line width for OpenGL"))
 PREFIX(LineStipple,  tree,  "line_stipple",
-       PARM(p, integer, "pattern [TODO: which value to which pattern ?]")
+       PARM(p, integer, "pattern")
        PARM(s, integer, "scale"),
        RTAO(lineStipple(self, p, s)),
        GROUP(graph:attribute)
-       SYNOPSIS("line stipple pattern")
-       DESCRIPTION("Select the line stipple pattern for OpenGL"))
+       SYNOPSIS("line stipple pattern (3D)")
+       DESCRIPTION("Select the line stipple pattern for OpenGL lines (3D paths only)"))
+PREFIX(LineStippleName,  tree,  "line_stipple",
+       PARM(n, text, "Name of the pattern (see Qt::PenStyle)"),
+       RTAO(lineStipple(self, n)),
+       GROUP(graph:attribute)
+       SYNOPSIS("line stipple pattern (2D)")
+       DESCRIPTION("Select the line stipple pattern for 2D shapes"))
 PREFIX(FillColorName,  tree,  "color",
        PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
        PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),

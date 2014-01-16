@@ -79,6 +79,12 @@ PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
                 pgm->link();
             }
         }
+        else
+        {
+            std::cerr << "Per-pixel lighting disabled due to "
+                         "missing extension: GL_EXT_gpu_shader4\n";
+            failed = true;
+        }
     }
 
 }
@@ -211,7 +217,20 @@ void ShaderValue::Draw(Layout *where)
 #ifdef GL_SAMPLER_2D_RECT
         case GL_SAMPLER_2D_RECT:
 #endif
-            GL.Uniform(id, (int) values[0]);
+            if (sz == 1)
+            {
+                GL.Uniform(id, (int) values[0]);
+            }
+            else
+            {
+                std::vector<GLint> ivalues;
+                for (int i = 0; i < sz; i++)
+                    ivalues.push_back((int) values[i]);
+                GL.Uniform1iv(id, sz, &ivalues[0]);
+            }
+            break;
+        case GL_FLOAT:
+            GL.Uniform1fv(id, sz, &values[0]);
             break;
         case GL_FLOAT_VEC2:
             GL.Uniform2fv(id, sz/2, &values[0]);
@@ -232,7 +251,7 @@ void ShaderValue::Draw(Layout *where)
             GL.UniformMatrix4fv(id, sz/16, 0, &values[0]);
             break;
         default:
-            GL.Uniform1fv(id, sz, &values[0]);
+            std::cerr << "Unsupported uniform type: " << type << "\n";
             break;
         }
     }

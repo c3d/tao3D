@@ -48,7 +48,8 @@ GraphicPath::GraphicPath()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : Shape(), startStyle(NONE), endStyle(NONE), invert(false)
+    : Shape(), startStyle(NONE), endStyle(NONE), lineStyle(Qt::SolidLine),
+      invert(false)
 {}
 
 
@@ -889,7 +890,7 @@ void GraphicPath::DrawOutline(Layout *where)
         stroker.setWidth(where->lineWidth);
         stroker.setCapStyle(Qt::FlatCap);
         stroker.setJoinStyle(Qt::RoundJoin);
-        stroker.setDashPattern(Qt::SolidLine);
+        stroker.setDashPattern(lineStyle);
         QPainterPath stroke = stroker.createStroke(path);
         outline.clear();
         outline.addQtPath(stroke);

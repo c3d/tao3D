@@ -42,7 +42,7 @@ picture_slide "YouTube Video slide",
     left_picture
         translate 100, 100, -150
         rotatez 5
-        movie 0, 0, 1, 1, "http://www.youtube.com/watch?v=OK7pfLlsUQM##start-time=5.0"
+        movie 0, 0, 2, 2, "http://www.youtube.com/watch?v=OK7pfLlsUQM&fmt=43"
     right_column
         - "Video on the left: "
         - "The Artist (2011)"

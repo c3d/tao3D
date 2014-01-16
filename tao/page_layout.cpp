@@ -1147,6 +1147,17 @@ void TextSpan::Save::Draw(Layout *where)
 }
 
 
+Box3 TextSpan::Save::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save the attributes state except GL state and return no dimension
+// ----------------------------------------------------------------------------
+{
+    InheritState(where);
+
+    return Box3();
+}
+
+
 void TextSpan::Restore::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Restore the attributes state
@@ -1158,6 +1169,19 @@ void TextSpan::Restore::Draw(Layout *where)
 
     // Restore GL state
     GL.Restore(saved->save);
+}
+
+
+Box3 TextSpan::Restore::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Restore the attributes state except GL state and return no dimension
+// ----------------------------------------------------------------------------
+{
+    Vector3 offset = where->offset;
+    where->InheritState(saved);
+    where->offset = offset;
+
+    return Box3();
 }
 
 

@@ -51,10 +51,10 @@ picture_slide "YouTube Video slide",
         translate 50, 40, -150
         rotatez 5
         scale3 80%
-        MOVIE -> "http://www.youtube.com/watch?v=I0pLmcx7aH4"
+        MOVIE -> "http://www.youtube.com/watch?v=I0pLmcx7aH4&fmt=43"
         color "white", fade_in(page_time, 100)
         movie_texture MOVIE
-        rectangle texture_width, texture_height
+        rectangle 1.8*texture_width, 1.8*texture_height
         texture ""
         color "white", 0.5
         translatey -0.4 * texture_height

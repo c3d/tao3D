@@ -188,17 +188,28 @@ shape (t:tree);
  * @~english
  * Makes the widget clickable.
  *
- *  Create a context for active widgets (like buttons) or drawing (circle, etc...).
- *  Make the shape sensive to mouse events.
- *  It enables click action (@ref on), but does not enables handles for mouse handling.
+ * This primitive creates a context for active widgets (like buttons)
+ * or drawings (circle, etc.). It makes the shapes sensitive to mouse events.
+ * It enables click action (@ref on), but does not enable handles for mouse handling.
+ *
+ * Any drawing made in an @c active_widget will receive mouse events,
+ * unless hiden by another drawing.
+ *
+ * See @ref on_click and @ref open_url for coding examples.
  *
  * @~french
- * Rend une forme géométrique cliquable.
+ * Rend une forme géométrique sensible à la souris.
  *
  * Crée un contexte pour les widgets actifs (par exemple, les boutons) ou plus
  * généralement les formes géométriques (cercle, etc.) ce qui permet d'utiliser
  * @ref on pour déclencher une action. Contrairement à @ref shape,
  * active_widget ne permet pas de déplacer ou modifier la forme.
+ *
+ * Toute forme géométrique dessinée dans un contexte @c active_widget
+ * peut recevoir des événements souris, sauf si elle est
+ * cachée par une autre forme géométrique.
+ *
+ * Voir @ref on_click et @ref open_url pour des exemples de code.
  */
 active_widget (t:tree);
 
@@ -229,7 +240,7 @@ line_width (lw:real);
 
 /**
  * @~english
- * Specify the line stipple pattern.
+ * Specify the line stipple pattern for 3D paths.
  *
  * @param pattern
  * Specifies a 16-bit integer whose bit pattern determines
@@ -243,9 +254,10 @@ line_width (lw:real);
  * factor is clamped to the range [1, 256] and defaults to 1.
  *
  * @see OpenGL <a href="http://www.opengl.org/sdk/docs/man/xhtml/glLineStipple.xml">documentation</a>
+ * @see line_stipple(Style:text)
  *
  * @~french
- * Définit le type de pointillé pour le tracé des formes.
+ * Définit le type de pointillé pour le tracé des chemins 3D.
  *
  * @param pattern
  * Un entier 16 bits dont les bits (0 ou 1) définit quelles portions de la
@@ -259,6 +271,7 @@ line_width (lw:real);
  * factor est limité à l'intervalle [1, 256].
  *
  * @see Fonction OpenGL <a href="http://www.opengl.org/sdk/docs/man/xhtml/glLineStipple.xml">glLineStipple</a>
+ * @see line_stipple(Style:text)
  */
 line_stipple(pattern:integer, factor:integer);
 
@@ -1850,6 +1863,41 @@ close_path ();
  *
  */
 endpoints_style (s:symbol, e:symbol);
+
+/**
+ * @~english
+ * Selects the line style of 2D graphic paths
+ *
+ * To set the line style of other 2D shapes such as @ref rectangle or @ref circle,
+ * just insert these shapes in a @ref path as shown below.
+ * @param Style may be one of the following values:
+ * @~french
+ * Définit le style de ligne utilisé pour tracer les chemins graphiques 2D (@ref path)
+ *
+ * Pour changer le style de ligne d'autres formes 2D telles que @ref rectangle
+ * ou @ref circle, insérez-les dans un bloc @ref path comme cela est montré
+ * ci-dessous.
+ * @param Style peut être l'une des valeurs suivantes:
+ *
+ * @~
+ * @addindex Solid (line_stipple -)
+ * - Solid
+ * @addindex Dash (line_stipple -)
+ * - Dash
+ * @addindex Dot (line_stipple -)
+ * - Dot
+ * @addindex DashDot (line_stipple -)
+ * - DashDot
+ * @addindex DashDotDot (line_stipple -)
+ * - DashDotDot
+ *
+ * @include line_stipple_2d.ddd
+ *
+ * @image html line_stipple_2d.png
+ *
+ * @since 1.46
+ */
+line_stipple (Style:text);
 
 /**
  * @~english

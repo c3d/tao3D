@@ -40,6 +40,11 @@ theme_box "PastelTriangles",Master:text,"bar", X:real,Y:real,W:real,H:real -> fa
 theme_box "PastelTriangles",Master:text,"line", X:real,Y:real,W:real,H:real -> false
 theme_box "PastelTriangles",Master:text,"pie", X:real,Y:real,W:real,H:real -> false
 
+// No boxes for pictures either
+theme_box "PastelTriangles",Master:text,"picture", X:real,Y:real,W:real,H:real -> false
+theme_box "PastelTriangles",Master:text,"leftpic", X:real,Y:real,W:real,H:real -> false
+theme_box "PastelTriangles",Master:text,"rightpic", X:real,Y:real,W:real,H:real -> false
+
 
 // ============================================================================
 // 

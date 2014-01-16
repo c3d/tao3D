@@ -90,6 +90,11 @@ theme_font "Water",Master:text,Style:text     -> font "Yanone Kaffeesatz", "Yano
 theme_boxstyle "Water",Master:text,Style:text  -> color "white",0.2; line_color "lightblue", 0.50
 
 theme_align "Water",Master:text,"story", N  -> margins 25+50*N, 0
+
+theme_box "Water",Master:text,"picture", X:real,Y:real,W:real,H:real -> nil
+theme_box "Water",Master:text,"leftpic", X:real,Y:real,W:real,H:real -> nil
+theme_box "Water",Master:text,"rightpic", X:real,Y:real,W:real,H:real -> nil
+
 theme_box "Water",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
 //   Draw the background box for text and flows

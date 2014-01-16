@@ -224,16 +224,10 @@ theme_layout "AutumnOnEarth", Master:text ->
     flow 0, -70, 950, 540, "story"
     flow -250, -70, 480, 540, "left"
     flow  250, -70, 480, 540, "right"
+    flow 0, -70, 950, 540, "picture"
+    flow -250, -70, 480, 540, "leftpic"
+    flow  250, -70, 480, 540, "rightpic"
 
-
-theme_picture "AutumnOnEarth", Master:text, Body ->
-// ----------------------------------------------------------------------------
-//    Default picture box (keep consistent with layout below)
-// ----------------------------------------------------------------------------
-    contents 0,
-        translate 0, -70, 0
-        theme_color "AutumnOnEarth", Master, "picture"
-        Body
 
 
 

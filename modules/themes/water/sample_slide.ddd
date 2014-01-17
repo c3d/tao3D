@@ -67,6 +67,7 @@ base_slide "Blue Gold" fr "Vidéo",
 picture_slide "Withdrawals" fr "Prélèvements",
     chart_current "water"
     once
+        chart_reset
         for i in 1..4 loop
             chart_push_data 1, 20 + 5 * i
             chart_push_data 2, 150 - 10 * i

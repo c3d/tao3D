@@ -52,6 +52,7 @@ picture_slide "Chart slide",
     theme "BlackOnWhite"
     chart_current "My chart"
     once
+        chart_reset
         for i in 1..4 loop
             chart_push_data 1, 200 + 50 * i
             chart_push_data 2, 150 - 20 * i

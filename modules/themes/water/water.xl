@@ -42,7 +42,7 @@ theme_size "Water", Master:text, "chart_title" -> 50
 
 // Chart colors
 theme_color "Water", Master:text, "line", N:integer ->
-    T := 0.8 / (chart_datasets_count - 1)
+    T := 0.8 / chart_datasets_count
     line_color_hsv 210 + (N - 1), 0.8 - (N - 1) * T, 1.0, 0.8
 theme_color "Water", "pie", Style:text, N:integer ->
     T := 0.8 / ((chart_count chart_first) - 1)
@@ -53,7 +53,7 @@ theme_color "Water", "pie", Style:text, N:integer ->
 theme_color "Water", "area", Style:text, N:integer -> theme_color "Water", "bar", Style, N
 theme_color "Water", "line", Style:text, N:integer -> theme_color "Water", "bar", Style, N
 theme_color "Water", "bar", Style:text, N:integer ->
-    T := 0.8 / (chart_datasets_count - 1)
+    T := 0.8 / chart_datasets_count
     color_hsv 210 + (N - 1), 0.8 - T * (N - 1), 1.0, 0.8
     line_color "black"
     line_width 0.3

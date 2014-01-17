@@ -99,7 +99,7 @@ theme_align "AutumnOnEarth", Master:text, "chart_legend" ->
 
 // Colors
 theme_color "AutumnOnEarth", Master:text, "line", N:integer ->
-    T := 0.55 / (chart_datasets_count - 1)
+    T := 0.55 / chart_datasets_count
     line_color_hsv 9, 0.65 - T * N, 0.4 + T * N
 theme_color "AutumnOnEarth", "pie", Style:text, N:integer ->
     T := 0.55 / (chart_count chart_first)
@@ -108,7 +108,7 @@ theme_color "AutumnOnEarth", "pie", Style:text, N:integer ->
 theme_color "AutumnOnEarth", "area", Style:text, N:integer -> theme_color "AutumnOnEarth", "bar", Style, N
 theme_color "AutumnOnEarth", "line", Style:text, N:integer -> theme_color "AutumnOnEarth", "bar", Style, N
 theme_color "AutumnOnEarth", "bar", Style:text, N:integer ->
-    T := 0.55 / (chart_datasets_count - 1)
+    T := 0.55 / chart_datasets_count
     color_hsv 9, 0.65 - T * N, 0.4 + T * N
 
 // ============================================================================

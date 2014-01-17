@@ -145,6 +145,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
     connect(this, SIGNAL(appendErrorMsg(QString)),
             errorMessages, SLOT(append(QString)));
+    connect(this, SIGNAL(setErrorColor(const QColor &)),
+            errorMessages, SLOT(setTextColor(const QColor &)));
     connect(this, SIGNAL(showErrorWindow()), errorDock, SLOT(show()));
 
     // Create the main widget for displaying Tao stuff
@@ -326,6 +328,23 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 }
 
 #endif
+
+
+void Window::addSeparator(QString txt)
+// ----------------------------------------------------------------------------
+//   Append message to the error window only if it is already shown
+// ----------------------------------------------------------------------------
+{
+    if (errorDock->isVisible())
+    {
+        QColor darkGrey("darkgrey");
+        QColor black("black");
+        emit setErrorColor(darkGrey);
+        addError("-----" + QDateTime::currentDateTime().toString() + ": "
+                 + txt + "-----");
+        emit setErrorColor(black);
+    }
+}
 
 
 void Window::addError(QString txt)
@@ -1938,6 +1957,12 @@ void Window::createActions()
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
 #endif
 
+    clearErrorsAct = new QAction(tr("&Clear errors"), this);
+    clearErrorsAct->setObjectName("clearErrors");
+    clearErrorsAct->setShortcut(Qt::Key_K | Qt::CTRL);
+    connect(clearErrorsAct, SIGNAL(triggered()),
+            this, SLOT(clearErrors()));
+
     viewAnimationsAct = new QAction(tr("Animations"), this);
     viewAnimationsAct->setCheckable(true);
     viewAnimationsAct->setChecked(taoWidget->hasAnimations());
@@ -2080,6 +2105,7 @@ void Window::createMenus()
     viewMenu->addAction(src->toggleViewAction());
 #endif
     viewMenu->addAction(errorDock->toggleViewAction());
+    viewMenu->addAction(clearErrorsAct);
 #ifndef CFG_NOFULLSCREEN
     viewMenu->addAction(slideShowAct);
 #endif
@@ -2186,6 +2212,7 @@ void Window::createToolBars()
     viewToolBar->addAction(zoomInAct);
     viewToolBar->addAction(zoomOutAct);
     viewToolBar->addAction(resetViewAct);
+    viewToolBar->addAction(clearErrorsAct);
     viewToolBar->hide();
     if (view)
         view->addAction(viewToolBar->toggleViewAction());

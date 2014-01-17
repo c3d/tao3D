@@ -188,17 +188,28 @@ shape (t:tree);
  * @~english
  * Makes the widget clickable.
  *
- *  Create a context for active widgets (like buttons) or drawing (circle, etc...).
- *  Make the shape sensive to mouse events.
- *  It enables click action (@ref on), but does not enables handles for mouse handling.
+ * This primitive creates a context for active widgets (like buttons)
+ * or drawings (circle, etc.). It makes the shapes sensitive to mouse events.
+ * It enables click action (@ref on), but does not enable handles for mouse handling.
+ *
+ * Any drawing made in an @c active_widget will receive mouse events,
+ * unless hiden by another drawing.
+ *
+ * See @ref on_click and @ref open_url for coding examples.
  *
  * @~french
- * Rend une forme géométrique cliquable.
+ * Rend une forme géométrique sensible à la souris.
  *
  * Crée un contexte pour les widgets actifs (par exemple, les boutons) ou plus
  * généralement les formes géométriques (cercle, etc.) ce qui permet d'utiliser
  * @ref on pour déclencher une action. Contrairement à @ref shape,
  * active_widget ne permet pas de déplacer ou modifier la forme.
+ *
+ * Toute forme géométrique dessinée dans un contexte @c active_widget
+ * peut recevoir des événements souris, sauf si elle est
+ * cachée par une autre forme géométrique.
+ *
+ * Voir @ref on_click et @ref open_url pour des exemples de code.
  */
 active_widget (t:tree);
 

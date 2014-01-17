@@ -1,0 +1,100 @@
+import "theme-quiz.xl"
+import Quiz
+import "quiz-config.xl"
+
+
+main_title_slide quiz_title,
+    title
+        text quiz_title
+    subtitle
+        text "A quiz powered by Taodyne" fr "Un quiz fourni par Taodyne"
+
+
+slide "Technical information" fr "Informations techniques",
+    * "Quiz name: "fr "Nom du quiz : "
+    text quiz_name
+    * "Quiz start date: "fr "Date de début du quiz : "
+    text quiz_start_date
+    * "Quiz duration in days: "fr "Durée du quiz en jours : "
+    text text quiz_duration
+    * "Quiz URL: "fr "URL du quiz : "
+    text_span
+        bold
+        text quiz_public_url
+    * "Maximum number of question: "fr "Nombre maximum de questions : "
+    text text quiz_max_question
+    * "Maximum number of users: "fr "Nombre maximum d'utilisateurs : "
+    text text quiz_max_user
+    if quiz_is_anonymous then
+        * "Quiz is anonymous." fr "Le quiz est anonyme."
+    else
+        * "User name is requiered" fr "Le nom de l'utilisateur est requis."
+    if quiz_requier_user_code then
+        * "User code is requiered: "fr "Le code utilisateur est requis : "
+        text_span
+            bold
+            text quiz_user_code
+
+base_slide "Question 1",
+  quiz "Tao Presentations enables..." fr "Tao presentation permet de...", "http://www.taodyne.com/shop/img/logo.jpg",
+    piegraph
+    answer "dynamic presentations" fr "faire des présentations dynamiques"
+    answer "interactive quizes" fr "faire des quiz interactifs"
+    answer "3D presentations" fr "faire des présentations en 3D "
+    answer "auto-stereoscopic movies" fr "montrer des films 3D en auto-stéréoscopie"
+    answer "all of the above" fr "faire tout ce qui précède"
+    open_answer "other..." fr "autre..."
+    total_answer_graph
+
+
+base_slide "Question 2",
+  quiz "CNN means" fr "LCI veut dire",
+    quiz_set_last
+    piegraph
+    french
+        answer "La Chaine Info", 2
+        answer "Léon, Clotilde et Igor"
+        answer "Les Choix Idiots"
+        answer "Rien du tout, c'est juste des lettres au hasard"
+    english
+        answer "Cindy, Nicolas, Nemo"
+        answer "Cable News Network", 2
+        answer "Nothing at all, it is just some letters picked up."
+
+
+base_slide "Question 3",
+  quiz "Which one is Taodyne's logo ?" fr "Quel est le logo de Taodyne ?",
+    bargraph
+    answer "","http://www.taodyne.com/shop/img/logo.jpg", 2
+    answer "","http://img1.focus-numerique.com/focus/articles/1527/1231105-logo-apple.jpeg"
+    answer "","http://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/HP_logo_2012.svg/200px-HP_logo_2012.svg.png"
+    total_answer_graph
+
+
+base_slide "Nom du chien",
+  quiz "What is your dog's name?" fr "Quel est le nom de votre chien ?",
+    open_answer
+
+
+base_slide "Zone de dessin",
+  mouse_quiz "Zone de dessin",
+    quiz_set_mouse_pad "tc", "Hello", "" //"http://visualparadox.com/images/no_linking_allowed_/640/helloworld640.jpg"
+    quiz_draw_mouse
+
+// ============================================================================
+//
+//   Key management for open text answers
+//
+// ============================================================================
+key "Right" -> AutoScroll := "off" ; skip 1 
+key "Left" -> AutoScroll := "off" ; skip -1 
+key "Return" -> AutoScroll := "on" ; skip_to 0 
+
+key "e" -> lang "en" 
+key "f" -> lang "fr" 
+key "/" -> 
+    if quiz_phase = "question" then 
+        quiz_phase := "answer" 
+    else 
+        quiz_phase := "question" 
+    time

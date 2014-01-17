@@ -137,6 +137,9 @@ void WebUI::readServerOut(QByteArray newOut)
         port = re.cap(1).toInt();
         launchBrowser();
     }
+
+    IFTRACE(webui)
+            std::cout << "[Server] " << newOut.data() << "\n";
 }
 
 

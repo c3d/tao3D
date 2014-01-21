@@ -65,11 +65,8 @@ override_priority -3
 // ============================================================================
 
 theme_background Theme:text,Master:text         -> clear_color 1, 1, 1, 1
-theme_foreground Theme:text,Master:text         -> false
 
 theme_color Theme:text,Master:text,"picture"    -> color "white"
-theme_color Theme:text,Master:text,"leftpic"    -> color "white"
-theme_color Theme:text,Master:text,"rightpic"    -> color "white"
 theme_color Theme:text,Master:text,"story"      -> color "black"
 theme_color Theme:text,Master:text,"story",N    -> false
 theme_color Theme:text,Master:text,Style:text   -> theme_color Theme,Master,"story"
@@ -97,9 +94,6 @@ theme_align Theme:text,Master:text,Style:text   -> theme_align Theme,Master, "st
 theme_align Theme:text,Master:text,"story",N    -> margins 40+10*N, 0
 theme_align Theme:text,Master:text,Style:text,N -> theme_align Theme,Master,"story",N
 
-theme_boxstyle Theme:text,Master:text,"picture" -> color "black", 0.0
-theme_boxstyle Theme:text,Master:text,"leftpic" -> color "black", 0.0
-theme_boxstyle Theme:text,Master:text,"rightpic"-> color "black", 0.0
 theme_boxstyle Theme:text,Master:text,Style:text-> color "black", 0.1
 
 
@@ -109,7 +103,6 @@ theme_slide_height Theme:text -> 1080
 // Drawing zone
 theme_drawing_width  Theme:text -> 1800
 theme_drawing_height Theme:text -> 750
-
 
 
 // ============================================================================
@@ -199,12 +192,22 @@ theme_right_column Theme:text, Master:text, Body ->
         Body
 
 
+theme_picture Theme:text, "blank", Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_color Theme, "blank", "picture"
+        Body
+
+
 theme_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default picture box (keep consistent with layout below)
 // ----------------------------------------------------------------------------
-    text_flow "picture",
-        theme_style Theme, Master, "picture"
+    contents 0,
+        translatey -120
+        theme_color Theme, Master, "picture"
         Body
 
 
@@ -212,8 +215,9 @@ theme_left_column_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column picture (keep consistent with layout below)
 // ----------------------------------------------------------------------------
-    text_flow "leftpic",
-        theme_style Theme, Master, "leftpic"
+    contents 0,
+        translate -475, -120, 0
+        theme_color Theme, Master, "picture"
         Body
 
 
@@ -221,8 +225,9 @@ theme_right_column_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column picture (keep consistent with layout below)
 // ----------------------------------------------------------------------------
-    text_flow "rightpic",
-        theme_style Theme, Master, "rightpic"
+    contents 0,
+        translate 475, -120, 0
+        theme_color Theme, Master, "picture"
         Body
 
 
@@ -239,12 +244,6 @@ theme_layout Theme:text, "main" ->
 // ----------------------------------------------------------------------------
     flow 0, 50, 1800, 400, "title"
     flow 0, -300, 1800, 200, "subtitle"
-    flow 0, -300, 1800, 200, "story"
-    flow -475, -300, 850, 200, "left"
-    flow 475, -300, 850, 200, "right"
-    flow 0, -300, 1800, 400, "picture"
-    flow -475, -300, 850, 200, "leftpic"
-    flow 475, -300, 850, 200, "rightpic"
 
 
 theme_layout Theme:text, "section" ->
@@ -253,39 +252,23 @@ theme_layout Theme:text, "section" ->
 // ----------------------------------------------------------------------------
     flow 0, 50, 1800, 250, "title"
     flow 0, -300, 1800, 150, "subtitle"
-    flow 0, -300, 1800, 750, "story"
-    flow -475, -300, 850, 750, "left"
-    flow 475, -300, 850, 750, "right"
-    flow 0, -300, 1800, 750, "picture"
-    flow -475, -300, 850, 750, "leftpic"
-    flow 475, -300, 850, 750, "rightpic"
 
 
 theme_layout Theme:text, "blank" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
-    flow 0, 50, 1800, 250, "title"
-    flow 0, -300, 1800, 150, "subtitle"
     flow 0, 0, 1800, 750, "story"
-    flow -475, 0, 850, 750, "left"
-    flow 475, 0, 850, 750, "right"
-    flow 0, 0, 1800, 750, "picture"
-    flow -475, 0, 850, 750, "leftpic"
-    flow 475, 0, 850, 750, "rightpic"
 
 
 theme_layout Theme:text, Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
-    flow 0, -120, 1800, 750, "picture"
-    flow -475, -120, 850, 750, "leftpic"
-    flow  475, -120, 850, 750, "rightpic"
+    flows 0, 400, 1800, 220, "title", "subtitle"
     flow 0, -120, 1800, 750, "story"
     flow -475, -120, 850, 750, "left"
     flow  475, -120, 850, 750, "right"
-    flows 0, 400, 1800, 220, "title", "subtitle"
 
 
 
@@ -294,14 +277,6 @@ theme_layout Theme:text, Master:text ->
 //   Text boxes
 // 
 // ============================================================================
-
-theme_box Theme:text,Master:text,"picture", X:real,Y:real,W:real,H:real -> nil
-theme_box Theme:text,Master:text,"leftpic", X:real,Y:real,W:real,H:real -> nil
-theme_box Theme:text,Master:text,"rightpic", X:real,Y:real,W:real,H:real -> nil
-// ----------------------------------------------------------------------------
-//  Pictures have no background box by default
-// ----------------------------------------------------------------------------
-
 
 theme_box Theme:text,Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
@@ -312,46 +287,15 @@ theme_box Theme:text,Master:text,Style:text, X:real,Y:real,W:real,H:real ->
         rectangle X, Y, W + 10, H + 10
 
 
-theme_flow Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
+theme_text Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
 // ----------------------------------------------------------------------------
-//   Flows are by default put inside a box
+//   Draw a default text box
 // ----------------------------------------------------------------------------
     theme_box Theme, Master, Style, X, Y, W, H
     contents 0,
-        theme_body Theme, Master, Style, X, Y, W, H,
+        text_box X, Y, W, H,
             theme_style Theme, Master, Style
             Body
-
-
-theme_body Theme:text,Master:text,"picture",X:real,Y:real,W:real,H:real,Body ->
-// ----------------------------------------------------------------------------
-//   Position a picture
-// ----------------------------------------------------------------------------
-    translate X, Y, 0
-    Body
-
-
-theme_body Theme:text,Master:text,"leftpic",X:real,Y:real,W:real,H:real,Body ->
-// ----------------------------------------------------------------------------
-//   Position a left picture
-// ----------------------------------------------------------------------------
-    translate X, Y, 0
-    Body
-
-
-theme_body Theme:text,Master:text,"rightpic",X:real,Y:real,W:real,H:real,Body ->
-// ----------------------------------------------------------------------------
-//   Position a right picture
-// ----------------------------------------------------------------------------
-    translate X, Y, 0
-    Body
-
-
-theme_body Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
-// ----------------------------------------------------------------------------
-//   Render a body by default in a text box
-// ----------------------------------------------------------------------------
-    text_box X, Y, W, H, Body
 
 
 

@@ -61,7 +61,7 @@ module_description
     import_name "Slides"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.051
+    version 1.042
 
 module_description "fr",
     name "Diapositives"
@@ -176,11 +176,9 @@ slide_master Theme:text, Master:text, Title:text, Body ->
        locally
            layout "ThemeReset"
            slide_master := Master
-           slide_reset theme
            theme_reset theme
            Body
        theme_layout Theme, Master
-       theme_foreground Theme, Master
        // User changed theme from within slide : refresh whole slide
        if theme <> old_theme then refresh 0
 
@@ -349,18 +347,6 @@ right_picture Body ->
     theme_right_column_picture theme, slide_master, Body
 
 
-slide_reset Theme ->
-// ----------------------------------------------------------------------------
-//   Reset all flow variables
-// ----------------------------------------------------------------------------
-    slide_flow["title"] := false
-    slide_flow["subtitle"] := false
-    slide_flow["story"] := false
-    slide_flow["left"] := false
-    slide_flow["right"] := false
-    slide_flow["leftpic"] := false
-    slide_flow["rightpic"] := false
-
 
 
 // ============================================================================
@@ -373,14 +359,14 @@ box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_flow theme, slide_master, "story", X, Y, W, H, Body
+    theme_text theme, slide_master, "story", X, Y, W, H, Body
 
 
 box Style:text, X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_flow theme, slide_master, Style, X, Y, W, H, Body
+    theme_text theme, slide_master, Style, X, Y, W, H, Body
 
 
 box Style:text, X:real, Y:real, W:real, H:real ->
@@ -404,7 +390,7 @@ flow X:real, Y:real, W:real, H:real, Flow:text ->
     flow_name -> ""
     flow_name := Flow
     if slide_flow[flow_name] then
-        theme_flow theme, slide_master, flow_name, X, Y, W, H,
+        theme_text theme, slide_master, flow_name, X, Y, W, H,
             text_flow Flow
         slide_flow[flow_name] := false
 
@@ -418,13 +404,13 @@ flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
     flow_name1 := Flow1
     flow_name2 := Flow2
     if slide_flow[flow_name1] then
-        theme_flow theme, slide_master, flow_name1, X, Y, W, H,
+        theme_text theme, slide_master, flow_name1, X, Y, W, H,
             text_flow Flow1
             if slide_flow[flow_name2] then
                 paragraph_break
                 text_flow Flow2
     else if slide_flow[flow_name2] then
-        theme_flow theme, slide_master, flow_name1, X, Y, W, H,
+        theme_text theme, slide_master, flow_name1, X, Y, W, H,
             text_flow Flow2
 
     slide_flow[flow_name1] := false

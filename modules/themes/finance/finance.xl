@@ -272,7 +272,7 @@ theme_box "Finance", Master:text, "title", X:real, Y:real, W:real, H:real ->
         rectangle -W/2+4, 200, 25, H + 10
 
 
-theme_flow "Finance",Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
+theme_text "Finance",Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
 // ----------------------------------------------------------------------------
 //   Draw a default text box
 // ----------------------------------------------------------------------------

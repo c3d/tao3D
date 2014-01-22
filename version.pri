@@ -3,7 +3,7 @@
 # take the value of $$VERSION as is
 # Windows: FILEVERSION, PRODUCTVERSION, and FileVersion are built using
 # $$MAJOR, $$MINOR and $$RELEASE
-TAO_VERSION = "1.4.5"
+TAO_VERSION = "1.4.6"
 MAJOR = $$replace(TAO_VERSION, "\\.[0-9]+\\.[0-9]+\$", "")
 MINOR = $$replace(TAO_VERSION, "^[0-9]+\\.", "")
 MINOR = $$replace(MINOR, "\\.[0-9]+\$", "")

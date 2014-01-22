@@ -40,9 +40,10 @@ picture_slide "Picture slide",
 
 picture_slide "YouTube Video slide",
     left_picture
+        translate 200, 160, 0
         rotatey 180 * sin (0.2*time) ^ 19
         rotatez 5
-        movie 0, 0, 1.2, 1.2, "http://www.youtube.com/watch?v=rn1n-YYHs4g&fmt=43"
+        movie 0, 0, 1.1, 1.1, "http://www.youtube.com/watch?v=rn1n-YYHs4g&fmt=43"
     right_column
         - "Video on the left:"
         - "Global Warming Documentary by National Geographic"

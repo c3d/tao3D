@@ -44,9 +44,9 @@ picture_slide "Picture slide",
 
 picture_slide "YouTube Video slide",
     locally
-        translate -200, 50, -150
-        rotatez 5
+        translate -250, 50, -150
         rotatey mouse_x * 0.02 * page_time
+        rotatez 5
         movie 0, 0, 1.1, 1.1, "http://www.youtube.com/watch?v=oCsRBnUJmxk&fmt=43"
     right_column
         - "Video on the left:"

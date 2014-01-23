@@ -14,7 +14,7 @@ module_description
     import_name "WaterTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.003
+    version 1.004
 
 
 module_description "fr",
@@ -42,7 +42,7 @@ theme_size "Water", Master:text, "chart_title" -> 50
 
 // Chart colors
 theme_color "Water", Master:text, "line", N:integer ->
-    T := 0.8 / (chart_datasets_count - 1)
+    T := 0.8 / chart_datasets_count
     line_color_hsv 210 + (N - 1), 0.8 - (N - 1) * T, 1.0, 0.8
 theme_color "Water", "pie", Style:text, N:integer ->
     T := 0.8 / ((chart_count chart_first) - 1)
@@ -53,7 +53,7 @@ theme_color "Water", "pie", Style:text, N:integer ->
 theme_color "Water", "area", Style:text, N:integer -> theme_color "Water", "bar", Style, N
 theme_color "Water", "line", Style:text, N:integer -> theme_color "Water", "bar", Style, N
 theme_color "Water", "bar", Style:text, N:integer ->
-    T := 0.8 / (chart_datasets_count - 1)
+    T := 0.8 / chart_datasets_count
     color_hsv 210 + (N - 1), 0.8 - T * (N - 1), 1.0, 0.8
     line_color "black"
     line_width 0.3
@@ -90,6 +90,11 @@ theme_font "Water",Master:text,Style:text     -> font "Yanone Kaffeesatz", "Yano
 theme_boxstyle "Water",Master:text,Style:text  -> color "white",0.2; line_color "lightblue", 0.50
 
 theme_align "Water",Master:text,"story", N  -> margins 25+50*N, 0
+
+theme_box "Water",Master:text,"picture", X:real,Y:real,W:real,H:real -> nil
+theme_box "Water",Master:text,"leftpic", X:real,Y:real,W:real,H:real -> nil
+theme_box "Water",Master:text,"rightpic", X:real,Y:real,W:real,H:real -> nil
+
 theme_box "Water",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
 //   Draw the background box for text and flows

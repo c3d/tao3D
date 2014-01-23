@@ -13,7 +13,7 @@ module_description
     import_name "LuckyStarsTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.004
+    version 1.005
 
 module_description "fr",
     name "Thème Lucky Stars"
@@ -74,14 +74,14 @@ lucky_star N:integer ->
 theme_color "LuckyStars",Master:text,"picture"   -> color "white"
 theme_color "LuckyStars",Master:text,"story"     -> light 0, false; color "lightyellow"
 theme_color "LuckyStars", Master:text, "line", N:integer ->
-    line_color_hsv (312.0 * N) / (chart_datasets_count - 1), 0.3, 0.8, 1
+    line_color_hsv (312.0 * N) / chart_datasets_count, 0.3, 0.8, 1
 theme_color "LuckyStars", "pie", Style:text, N:integer ->
     color_hsv (312.0 * N) / (chart_count chart_first), 0.3, 0.8, 1
 
 theme_color "LuckyStars", "area", Style:text, N:integer -> theme_color "LuckyStars", "bar", Style, N
 theme_color "LuckyStars", "line", Style:text, N:integer -> theme_color "LuckyStars", "bar", Style, N
 theme_color "LuckyStars", "bar", Style:text, N:integer ->
-    color_hsv (312.0 * N) / (chart_datasets_count - 1), 0.3, 0.8, 1
+    color_hsv (312.0 * N) / chart_datasets_count, 0.3, 0.8, 1
 
 theme_font "LuckyStars",Master:text,"story"      -> font "Luckiest Guy", "Times"
 

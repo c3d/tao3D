@@ -1,5 +1,13 @@
 Change log for Tao Presentations
 
+1.46 (22-Jan-2014)
+
+#3349 Filters: Document fuzzy_border and circle_fuzzy_border
+#3348 Add line_stipple Style:text for 2D paths
+#3346 Picture slides no longer displaying correctly
+#3345 Crash when using: text UnknownName
+#3344 Crash when document becomes empty
+
 1.45 (09-Jan-2014)
 
 #3342 Crash when trying to use per-pixel lighting without GL_EXT_gpu_shader4

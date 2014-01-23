@@ -56,8 +56,8 @@ title_slide "YouTube Video slide",
 picture_slide "Chart slide",
     movie_only ""
     once
-        chart_drop "My chart"
         chart_current "My chart"
+        chart_reset
         for i in 1..7 loop
             chart_push_data 1, 200 + 50 * sin(132.3*i)
             chart_push_data 2, 150 - 20 * exp(0.33*i) * sin(27*i)

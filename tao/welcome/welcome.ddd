@@ -1,9 +1,9 @@
 // ****************************************************************************
 //
-//                    Default Taodyne welcome screen for 2013
+//                    Default Taodyne welcome screen
 //
 //
-//                                                  (C) 2010-2013 Taodyne SAS
+//                                                  (C) 2010-2014 Taodyne SAS
 // ****************************************************************************
 
 import KeyboardTheme
@@ -62,7 +62,7 @@ base_slide "Tao Presentations",
         theme_style theme, slide_master, "story"
         align 50%
         font_size 30
-        text "© Copyright 2010-2013 Taodyne SAS"
+        text "© Copyright 2010-2014 Taodyne SAS"
         line_break
         font_size 20
         text "Version " & tao_version

@@ -46,7 +46,6 @@ isEmpty(TAO_PLAYER) {
   NOTPLAYER = 0
 }
 ALTERNATIVES_PRIORITY = $$system(echo $(($$RELEASE + $$MINOR * 100 + $$MAJOR * 10000 + $$NOTPLAYER * 1000000)))
-message(PRIO=$$ALTERNATIVES_PRIORITY)
 
 # Minimal version of Qt packages (Ubuntu packaging, see control.in)
 # Note: Use show_deps.sh to maintain the list of dependencies

@@ -67,6 +67,7 @@ override_priority -3
 theme_background Theme:text,Master:text         -> clear_color 1, 1, 1, 1
 
 theme_color Theme:text,Master:text,"picture"    -> color "white"
+theme_color Theme:text,Master:text,"highlight"  -> color "yellow"
 theme_color Theme:text,Master:text,"story"      -> color "black"
 theme_color Theme:text,Master:text,"story",N    -> false
 theme_color Theme:text,Master:text,Style:text   -> theme_color Theme,Master,"story"

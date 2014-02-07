@@ -68,6 +68,34 @@ base_slide "Blue Gold",
         movie 0, 0, 2.0, 2.0, "http://www.youtube.com/watch?v=O99Qezatso4"
 
 
+picture_slide "Withdrawals" fr "Prélèvements",
+    chart_current "water"
+    once
+        chart_reset
+        for i in 1..4 loop
+            chart_push_data 1, 20 + 5 * i
+            chart_push_data 2, 150 - 10 * i
+            chart_push_data 3, 180 + 15 * (-1) ^ i
+        chart_set_format "3D"
+        chart_set_type "bar"
+
+    chart_set_legend 1, "Public supply" fr "Réseau public"
+    chart_set_legend 2, "Irrigation"
+    chart_set_legend 3, "Thermoelectric power" fr "Production électrique"
+
+    chart_set_xticks_labels "water", { "1985", "1990", "1995", "2000" }
+
+    chart_set_title "Withdrawals" fr "Évolution des prélèvements"
+
+    light 0
+    light_attenuation 1 / scaling_factor, 0, 0
+    light_position 0, 0, 3000, 1
+    material_ambient 1.0, 1.0, 1.0, 1.0
+    material_diffuse 1.0, 1.0, 1.0, 1.0
+
+    chart 1..3
+
+
 // ****************************************************************************
 //  blue_gold                                                       Tao project
 // ****************************************************************************

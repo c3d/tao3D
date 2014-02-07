@@ -15,7 +15,7 @@ module_description
     import_name "WhiteChristmasTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.0
+    version 1.001
 
 
 module_description "fr",
@@ -458,7 +458,7 @@ white_christmas_title_picture P:text, Transform ->
 // ----------------------------------------------------------------------------
 //    Draw a picture in the title circle with an arbitrary transform
 // ----------------------------------------------------------------------------
-    contents 10,
+    contents 100,
         texture P
         color "white"
         Transform
@@ -481,3 +481,172 @@ white_christmas_random R:real,S:real -> sin(R*white_christmas_current+S)
 // ----------------------------------------------------------------------------
 //   A simple pseudo-random function
 // ----------------------------------------------------------------------------
+
+
+
+// ============================================================================
+//
+//   Temporary fix for #3346
+//
+// ============================================================================
+
+theme_foreground Theme:text,Master:text         -> false
+
+theme_color Theme:text,Master:text,"leftpic"    -> color "white"
+theme_color Theme:text,Master:text,"rightpic"    -> color "white"
+
+theme_color "WhiteChristmas",Master:text,"leftpic"    -> color "white"
+theme_color "WhiteChristmas",Master:text,"rightpic"   -> color "white"
+
+theme_boxstyle Theme:text,Master:text,"picture" -> color "black", 0.0
+theme_boxstyle Theme:text,Master:text,"leftpic" -> color "black", 0.0
+theme_boxstyle Theme:text,Master:text,"rightpic"-> color "black", 0.0
+
+theme_picture Theme:text, Master:text, Body ->
+    text_flow "picture",
+        theme_style Theme, Master, "picture"
+        Body
+
+theme_left_column_picture Theme:text, Master:text, Body ->
+    text_flow "leftpic",
+        theme_style Theme, Master, "leftpic"
+        Body
+
+theme_right_column_picture Theme:text, Master:text, Body ->
+    text_flow "rightpic",
+        theme_style Theme, Master, "rightpic"
+        Body
+
+theme_layout Theme:text, "main" ->
+    flow 0, 50, 1800, 400, "title"
+    flow 0, -300, 1800, 200, "subtitle"
+    flow 0, -300, 1800, 200, "story"
+    flow -475, -300, 850, 200, "left"
+    flow 475, -300, 850, 200, "right"
+    flow 0, -300, 1800, 400, "picture"
+    flow -475, -300, 850, 200, "leftpic"
+    flow 475, -300, 850, 200, "rightpic"
+
+theme_layout Theme:text, "section" ->
+    flow 0, 50, 1800, 250, "title"
+    flow 0, -300, 1800, 150, "subtitle"
+    flow 0, -300, 1800, 750, "story"
+    flow -475, -300, 850, 750, "left"
+    flow 475, -300, 850, 750, "right"
+    flow 0, -300, 1800, 750, "picture"
+    flow -475, -300, 850, 750, "leftpic"
+    flow 475, -300, 850, 750, "rightpic"
+
+theme_layout Theme:text, "blank" ->
+    flow 0, 50, 1800, 250, "title"
+    flow 0, -300, 1800, 150, "subtitle"
+    flow 0, 0, 1800, 750, "story"
+    flow -475, 0, 850, 750, "left"
+    flow 475, 0, 850, 750, "right"
+    flow 0, 0, 1800, 750, "picture"
+    flow -475, 0, 850, 750, "leftpic"
+    flow 475, 0, 850, 750, "rightpic"
+
+theme_layout Theme:text, Master:text ->
+    flow 0, -120, 1800, 750, "picture"
+    flow -475, -120, 850, 750, "leftpic"
+    flow  475, -120, 850, 750, "rightpic"
+    flow 0, -120, 1800, 750, "story"
+    flow -475, -120, 850, 750, "left"
+    flow  475, -120, 850, 750, "right"
+    flows 0, 400, 1800, 220, "title", "subtitle"
+
+
+theme_box Theme:text,Master:text,"picture", X:real,Y:real,W:real,H:real -> nil
+theme_box Theme:text,Master:text,"leftpic", X:real,Y:real,W:real,H:real -> nil
+theme_box Theme:text,Master:text,"rightpic", X:real,Y:real,W:real,H:real -> nil
+
+theme_flow Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
+    theme_box Theme, Master, Style, X, Y, W, H
+    contents 0,
+        theme_body Theme, Master, Style, X, Y, W, H,
+            theme_style Theme, Master, Style
+            Body
+
+theme_body Theme:text,Master:text,"picture",X:real,Y:real,W:real,H:real,Body ->
+    translate X, Y, 0
+    Body
+
+theme_body Theme:text,Master:text,"leftpic",X:real,Y:real,W:real,H:real,Body ->
+    translate X, Y, 0
+    Body
+
+theme_body Theme:text,Master:text,"rightpic",X:real,Y:real,W:real,H:real,Body ->
+    translate X, Y, 0
+    Body
+
+theme_body Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
+    text_box X, Y, W, H, Body
+
+
+
+slide_master Theme:text, Master:text, Title:text, Body ->
+   page Title,
+       old_theme -> ""
+       old_theme := Theme
+       theme_background Theme, Master
+       locally
+           layout "ThemeReset"
+           slide_master := Master
+           slide_reset theme
+           theme_reset theme
+           Body
+       theme_layout Theme, Master
+       theme_foreground Theme, Master
+       // User changed theme from within slide : refresh whole slide
+       if theme <> old_theme then refresh 0
+
+
+slide_reset Theme ->
+    slide_flow["title"] := false
+    slide_flow["subtitle"] := false
+    slide_flow["story"] := false
+    slide_flow["left"] := false
+    slide_flow["right"] := false
+    slide_flow["leftpic"] := false
+    slide_flow["rightpic"] := false
+
+
+box X:real, Y:real, W:real, H:real, Body ->
+    theme_flow theme, slide_master, "story", X, Y, W, H, Body
+
+box Style:text, X:real, Y:real, W:real, H:real, Body ->
+    theme_flow theme, slide_master, Style, X, Y, W, H, Body
+
+flow X:real, Y:real, W:real, H:real, Flow:text ->
+    flow_name -> ""
+    flow_name := Flow
+    if slide_flow[flow_name] then
+        theme_flow theme, slide_master, flow_name, X, Y, W, H,
+            text_flow Flow
+        slide_flow[flow_name] := false
+
+flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
+    flow_name1 -> ""
+    flow_name2 -> ""
+    flow_name1 := Flow1
+    flow_name2 := Flow2
+    if slide_flow[flow_name1] then
+        theme_flow theme, slide_master, flow_name1, X, Y, W, H,
+            text_flow Flow1
+            if slide_flow[flow_name2] then
+                paragraph_break
+                text_flow Flow2
+    else if slide_flow[flow_name2] then
+        theme_flow theme, slide_master, flow_name1, X, Y, W, H,
+            text_flow Flow2
+
+    slide_flow[flow_name1] := false
+    slide_flow[flow_name2] := false
+
+// ============================================================================
+//
+//   End of temporary fix for #3346
+//
+// ============================================================================
+

@@ -10,7 +10,7 @@ module_description
     import_name "LandscapesTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.002
+    version 1.003
 
 module_description "fr",
     name "Thème Paysages"

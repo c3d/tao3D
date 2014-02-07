@@ -14,7 +14,7 @@ module_description
     import_name "BlueClaireTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.003
+    version 1.004
 
 module_description "fr",
     name "Theme BleuClaire"
@@ -52,7 +52,7 @@ theme_color      "BlueClaire",Master:text,"title"       -> color "#960000"
 theme_color      "BlueClaire",Master:text,"subtitle"    -> color "#264580"
 theme_color      "BlueClaire",Master:text,"story"       -> color "black"
 theme_color      "BlueClaire", Master:text, "line", N:integer ->
-    T := 0.4 / (chart_datasets_count - 1)
+    T := 0.4 / chart_datasets_count
     line_color_hsv 212, 0.56 - T * N, 0.74 + T * N
 theme_color      "BlueClaire", "pie", Style:text, N:integer ->
     T := 0.4 / (chart_count chart_first)
@@ -60,7 +60,7 @@ theme_color      "BlueClaire", "pie", Style:text, N:integer ->
 theme_color      "BlueClaire", "area", Style:text, N:integer -> theme_color "BlueClaire", "bar", Style, N
 theme_color      "BlueClaire", "line", Style:text, N:integer -> theme_color "BlueClaire", "bar", Style, N
 theme_color      "BlueClaire", "bar", Style:text, N:integer ->
-    T := 0.4 / (chart_datasets_count - 1)
+    T := 0.4 / chart_datasets_count
     color_hsv 212, 0.56 - T * N, 0.74 + T * N
 
 theme_font       "BlueClaire",Master:text,"story"       -> font "TeX Gyre Adventor", "Ubuntu", "Arial"

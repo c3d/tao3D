@@ -13,7 +13,7 @@ module_description
     import_name "KeyboardTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.003
+    version 1.004
 
 module_description "fr",
     name "Thème Clavier"
@@ -55,6 +55,9 @@ theme_color "keyboard", Master:text, "subtitle" -> color "#777"
 theme_font "keyboard", Master:text, "story" -> font "Ubuntu", "Arial"
 theme_boxstyle "keyboard",Master:text,Style:text-> color "white", 0.5
 
+theme_box "keyboard",Master:text,"picture", X:real,Y:real,W:real,H:real -> nil
+theme_box "keyboard",Master:text,"leftpic", X:real,Y:real,W:real,H:real -> nil
+theme_box "keyboard",Master:text,"rightpic", X:real,Y:real,W:real,H:real -> nil
 
 theme_box "keyboard",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------

@@ -121,6 +121,7 @@ public:
     Point3              start, position;
     Box3                bounds;
     EndpointStyle       startStyle, endStyle;
+    Qt::PenStyle        lineStyle;
     bool                invert;
     static scale        default_steps;
 };

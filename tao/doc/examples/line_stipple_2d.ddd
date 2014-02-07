@@ -1,0 +1,21 @@
+locally
+    line_width 3
+    line_color "black"
+    translatey 90
+    DrawLine with "Solid", "Dash", "Dot", "DashDot", "DashDotDot"
+
+locally
+    line_width 1
+    line_color "black"
+    color "transparent"
+    path
+        line_stipple "Dash"
+        rectangle 251, 181
+
+DrawLine Style:text ->
+    translatey -30
+    path
+        line_stipple Style
+        move_to -105, 0
+        line_to  105, 0
+

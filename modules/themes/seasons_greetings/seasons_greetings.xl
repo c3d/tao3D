@@ -14,7 +14,7 @@ module_description
     import_name "SeasonsGreetingsTheme"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.003
+    version 1.004
 
 
 module_description "fr",
@@ -69,6 +69,10 @@ theme_box "SeasonsGreetings", Master:text, "area", X:real,Y:real,W:real,H:real -
 theme_box "SeasonsGreetings", Master:text, "bar", X:real,Y:real,W:real,H:real -> false
 theme_box "SeasonsGreetings", Master:text, "line", X:real,Y:real,W:real,H:real -> false
 theme_box "SeasonsGreetings", Master:text, "pie", X:real,Y:real,W:real,H:real -> false
+
+theme_box "SeasonsGreetings", Master:text, "picture", X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "leftpic", X:real,Y:real,W:real,H:real -> false
+theme_box "SeasonsGreetings", Master:text, "rightpic", X:real,Y:real,W:real,H:real -> false
 
 
 

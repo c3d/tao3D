@@ -5,6 +5,7 @@ Here are the steps to create a new (official) release of Tao Presentations
 Once:
 
 - Make sure the code is up-to-date (git pull, git submodule update, git status).
+- Update NEWS.
 - Update version.pri if needed.
 - See if the version of some modules needs updating. To get the list of modules
   that have changed since the last public release (for example, 1.01):
@@ -30,11 +31,15 @@ Once:
   translations to tao_fr.xl, and commit.
 - There is no easy way to make sure other translations (e.g., module/template
   descriptions) are up-to-date :(
+- Create a temporary tag (will be visible on splash screen), for instance:
+  $ git tag 1.0-beta5
+  $ git tag 1.46
 
 On all platforms:
 
-- Create a temporary tag (visible on splash screen), for instance:
-  $ git tag 1.0-beta5
+- Pull and make sure the tag is known locally by running:
+  $ tao/updaterev.sh -n
+  (otherwise '$ git fetch --tags' or create a local tag).
 - Build Tao and make packages:
   $ ./build_all.sh
 - If some modules that are not packaged with Tao have been modified since the

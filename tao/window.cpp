@@ -1868,6 +1868,7 @@ void Window::createActions()
     launchWebUIAct = new QAction(tr("Launch Document Editor"), this);
     launchWebUIAct->setObjectName("launchWebUI");
     launchWebUIAct->setEnabled(false);
+    launchWebUIAct->setShortcut(Qt::Key_E | Qt::CTRL);
     connect(launchWebUIAct, SIGNAL(triggered()), this, SLOT(launchWebUI()));
 #endif
 

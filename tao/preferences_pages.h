@@ -50,10 +50,19 @@ public:
     GeneralPage(QWidget *parent = 0);
 
     static bool    checkForUpdateOnStartup();
+    static bool    webUISecurityTokenEnabled();
     static QString taoUriScheme();
+
+#ifndef CFG_NO_WEBUI
+signals:
+    void           webUISecurityChanged();
+#endif
 
 protected:
     static bool    checkForUpdateOnStartupDefault();
+#ifndef CFG_NO_WEBUI
+    static bool    webUISecurityTokenEnabledDefault();
+#endif
     static QString taoUriSchemeDefault();
 
 private:
@@ -62,6 +71,9 @@ private:
 private slots:
     void         setLanguage(int index);
     void         setCheckForUpdateOnStartup(bool on);
+#ifndef CFG_NO_WEBUI
+    void         setWebUISecurityTokenEnabled(bool on);
+#endif
     void         setTaoUriScheme(int index);
 
 private:

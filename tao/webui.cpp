@@ -22,6 +22,7 @@
 
 #include "application.h"
 #include "base.h"
+#include "preferences_pages.h"
 #include "process.h"
 #include "tao_utf8.h"
 #include "webui.h"
@@ -42,7 +43,7 @@ WebUI::WebUI(QObject *parent)
 // ----------------------------------------------------------------------------
 //   Constructor: make server ready to start
 // ----------------------------------------------------------------------------
-    : QObject(parent), server(this), port(0)
+    : QObject(parent), server(this), port(0), startBrowser(false)
 {
     connect(&server, SIGNAL(error(QProcess::ProcessError)),
             this, SLOT(serverStartError()));
@@ -101,15 +102,24 @@ void WebUI::stopServer()
 }
 
 
-void WebUI::startServer()
+void WebUI::startServer(bool andBrowser)
 // ----------------------------------------------------------------------------
 //   (Re)start server
 // ----------------------------------------------------------------------------
 {
+    startBrowser = andBrowser;
     stopServer();
-    token = QUuid::createUuid().toString().replace("{", "").replace("}", "");
-    QStringList args;
-    args << "server.js" << "-t" << token << path;
+    QStringList args("server.js");
+    if (GeneralPage::webUISecurityTokenEnabled())
+    {
+        token = QUuid::createUuid().toString().replace("{", "").replace("}", "");
+        args << "-t" << token;
+    }
+    else
+    {
+        token = "";
+    }
+    args << path;
     IFTRACE(webui)
         debug() << "Starting server - args: " << +args.join(",") << "\n";
     server.start(nodePath(), args);
@@ -132,7 +142,7 @@ void WebUI::readServerOut(QByteArray newOut)
 // ----------------------------------------------------------------------------
 {
     QRegExp re("Server listening on port ([0-9]+)");
-    if (QString::fromUtf8(newOut.data()).contains(re))
+    if (startBrowser && QString::fromUtf8(newOut.data()).contains(re))
     {
         port = re.cap(1).toInt();
         launchBrowser();
@@ -143,14 +153,27 @@ void WebUI::readServerOut(QByteArray newOut)
 }
 
 
+void WebUI::securitySettingChanged()
+// ----------------------------------------------------------------------------
+//   If server is running, restart it because user enabled/disabled security
+// ----------------------------------------------------------------------------
+{
+    if (server.state() != QProcess::NotRunning)
+        startServer(false);
+}
+
+
 void WebUI::launchBrowser()
 // ----------------------------------------------------------------------------
 //   Open a web browser window, connected to the Node.js server
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(port);
-    QString url = QString("http://localhost:%1/?lang=%2&token=%3").arg(port)
-                    .arg(TaoApp->lang).arg(token);
+    QString url = QString("http://localhost:%1/?lang=%2").arg(port)
+                    .arg(TaoApp->lang);
+    if (!token.isEmpty())
+        url += "&token=" + token;
+
     IFTRACE(webui)
         debug() << "Launching browser at: " << +url << "\n";
     if (!QDesktopServices::openUrl(QUrl(url)))

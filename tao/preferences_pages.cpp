@@ -28,6 +28,9 @@
 #include "tao_gl.h"
 #include "opengl_state.h"
 #include "texture_cache.h"
+#ifndef CFG_NO_WEBUI
+#include "window.h"
+#endif
 #include <QtGui>
 #include <QGroupBox>
 #include <QCheckBox>
@@ -114,6 +117,19 @@ GeneralPage::GeneralPage(QWidget *parent)
                             "</span>");
     grid->addWidget(fw, 4, 1, 1, 2);
 
+#ifndef CFG_NO_WEBUI
+    // WebUI authentication
+    QCheckBox *secure = new QCheckBox(tr("Reject unauthenticated connections "
+                                         "to document editor"));
+    secure->setChecked(webUISecurityTokenEnabled());
+    connect(secure, SIGNAL(toggled(bool)),
+            this, SLOT(setWebUISecurityTokenEnabled(bool)));
+    // Changing the setting will restart the WebUI server (if running)
+    connect(this, SIGNAL(webUISecurityChanged()),
+            &TaoApp->window()->webui, SLOT(securitySettingChanged()));
+    grid->addWidget(secure, 5, 1);
+#endif
+
     group->setLayout(grid);
 
     message = new QLabel;
@@ -197,6 +213,41 @@ bool GeneralPage::checkForUpdateOnStartupDefault()
     return false;
 #endif
 }
+
+
+#ifndef CFG_NO_WEBUI
+void GeneralPage::setWebUISecurityTokenEnabled(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting about security token for WebUI
+// ----------------------------------------------------------------------------
+{
+   QSettings settings;
+   if (on == webUISecurityTokenEnabledDefault())
+       settings.remove("WebUISecurity");
+   else
+       settings.setValue("WebUISecurity", QVariant(on));
+   emit webUISecurityChanged();
+}
+
+
+bool GeneralPage::webUISecurityTokenEnabled()
+// ----------------------------------------------------------------------------
+//   Read setting about security token for WebUI
+// ----------------------------------------------------------------------------
+{
+    bool dflt = webUISecurityTokenEnabledDefault();
+    return QSettings().value("WebUISecurity", QVariant(dflt)).toBool();
+}
+
+
+bool GeneralPage::webUISecurityTokenEnabledDefault()
+// ----------------------------------------------------------------------------
+//   Default value for "security token for WebUI"
+// ----------------------------------------------------------------------------
+{
+    return true;
+}
+#endif // CFG_NO_WEBUI
 
 
 void GeneralPage::setTaoUriScheme(int index)

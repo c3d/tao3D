@@ -85,7 +85,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
                                   .arg(tr("News")), this);
     connect(label, SIGNAL(linkActivated(QString)),
             this,  SLOT(openUrl(QString)));
-    label->move(270, 280);
+    label->move(205, 280);
 }
 
 
@@ -156,7 +156,7 @@ void SplashScreen::drawContents(QPainter *painter)
     QSplashScreen::drawContents(painter);
     QRect clip;
 
-    int x = 270, y = 220, w = 500, h = 225;
+    int x = 205, y = 220, w = 500, h = 225;
     if (!licensedTo.isEmpty())
     {
         clip.setRect(0, 0, w, h);

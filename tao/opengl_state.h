@@ -310,7 +310,7 @@ struct ClientTextureUnitState
 };
 
 
-#define MAX_TEXTURE_COORDS 8
+#define MAX_TEXTURE_COORDS 64
 
 struct ClientTextureUnitsState
 // ----------------------------------------------------------------------------

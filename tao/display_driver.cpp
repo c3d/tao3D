@@ -119,9 +119,11 @@ bool DisplayDriver::setDisplayFunction(QString name)
             useInProgress = true;
             current.obj = current.use();
             useInProgress = false;
+            if (!current.obj)
+                current.obj = (void *) ~0UL;
         }
 
-        if (!current.obj || current.obj == (void*)(~0L))
+        if (current.obj == (void*)(~0L))
         {
             IFTRACE(displaymode)
                 debug() << "Display function initialization error, "

@@ -1,4 +1,4 @@
-#ifndef NEW_DOCUMEMT_WIZARD_H
+#ifndef NEW_DOCUMENT_WIZARD_H
 #define NEW_DOCUMENT_WIZARD_H
 // ****************************************************************************
 //  new_wizard.h                                                   Tao project

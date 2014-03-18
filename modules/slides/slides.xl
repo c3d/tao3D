@@ -98,6 +98,10 @@ lang L:text ->
 // ----------------------------------------------------------------------------
     lang := L
 
+// ----------------------------------------------------------------------------
+//   Initialize slides language to the language of the Tao user interface
+// ----------------------------------------------------------------------------
+once { lang tao_language }
 
 // Select one language among many
 Other:text en En:text -> if lang = "en" then En else Other

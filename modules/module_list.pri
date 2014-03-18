@@ -31,6 +31,7 @@
        display_checkerboard \
        display_2dplusdepth \
        display_tridelity \
+       display_united_entertain \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \
@@ -67,17 +68,17 @@
        nodejs \
        film_strip \
        speech \
-       charts
+       charts \
+       tao_synchro \
+       quiz \
+       web_remote \
+       prez_at
 
     OTHER_MODULES =  \
         DIP          \
         hello_world  \
-        tao_synchro  \
         tao_tester   \
-        quiz         \
-        database     \
-        web_remote   \
-        prez_at
+        database
 
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

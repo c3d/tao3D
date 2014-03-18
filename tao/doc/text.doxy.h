@@ -147,12 +147,14 @@ font "Allerta/Stencil"
  *     <tr><td>Cherry Cream Soda</td><td>Regular</td></tr>
  *     <tr><td>Droid Sans</td><td>Regular, Bold</td></tr>
  *     <tr><td>Droid Sans Mono</td><td>Regular</td></tr>
+ *     <tr><td>Open Sans</td><td>Light, Regular, Bold</td></tr>
  *     <tr><td>Ubuntu</td><td>Regular, Italic, Bold, Bold Italic</td></tr>
  *     <tr><td>Yanone Kaffeesatz</td><td>Thin, Light, Regular, Bold</td></tr>
  *  <tr>
  *   <th colspan="2"><b>Handwriting fonts</b></th></td>
  *  </tr>
  *     <tr><th>Family</th><th>Styles</th></tr>
+ *     <tr><td>Alex Brush</td><td>Regular</td></tr>
  *     <tr><td>Calligraffiti</td><td>Regular</td></tr>
  *     <tr><td>Coming Soon</td><td>Regular</td></tr>
  *     <tr><td>Dancing Script</td><td>Regular</td></tr>
@@ -188,7 +190,7 @@ font "Allerta/Stencil"
  *
  * Another way of using a specific font without installing it on the computer
  * is to copy the font file (TrueType or OpenType font, usually with one of the
- * following extnsions: .ttf, .otf, .ttc) into the @c font sub-folder in the
+ * following extensions: .ttf, .otf, .ttc) into the @c font sub-folder in the
  * document folder.
  *
  * @par Text layout

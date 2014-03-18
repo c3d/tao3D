@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  quiz-config.xl                                                Tao project 
+//  quizz-config.xl                                                       Tao project 
 // ****************************************************************************
 // 
 //   File Description:
 // 
-//     Handle quiz setup and communication with the server
+//     Handle quizz setup and communication with the server
 // 
 // 
 // 
@@ -20,17 +20,18 @@
 quiz_server -> "http://quiz.taodyne.com"
 quiz_public_url -> quiz_url & quiz_name
 quiz_name -> "testquiz"
-quiz_presenter_code -> "658C4F83"
-quiz_user_code -> "7C82"
+quiz_presenter_code -> "D3B01161"
+quiz_user_code -> "82D5"
 quiz_reset_url -> quiz_url & "reset.php?c=" & quiz_name
-quiz_title -> "Testing quiz"
-quiz_max_user -> 20
-quiz_max_question -> 50
-quiz_start_date -> "2013-01-01"
+quiz_title -> "Test Quiz"
+quiz_max_user -> 50
+quiz_max_question -> 100
+quiz_start_date -> "01-01-2014"
 quiz_duration -> 1000
-quiz_is_anonymous -> false
+quiz_is_anonymous -> true
 quiz_requier_user_code -> true
 // =============================================================================
 //   Server setting
 // =============================================================================
 quiz_url ->  quiz_server & "/"
+

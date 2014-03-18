@@ -45,11 +45,14 @@ public:
     void           launch(QString path);
     void           stopServer();
 
+public slots:
+    void           securitySettingChanged();
+
 protected:
     std::ostream & debug();
     QString        nodePath();
     QString        serverDir();
-    void           startServer();
+    void           startServer(bool andBrowser = true);
     void           launchBrowser();
 
 protected slots:
@@ -60,7 +63,8 @@ protected:
     Process        server;
     QString        path;    // Path to .ddd document
     unsigned       port;    // TCP port the server is listening on
-    QString        token;   // security token shared between client and server
+    QString        token;   // Security token shared between client and server
+    bool           startBrowser; // Start browser when server is ready?
 };
 
 } // namespace Tao

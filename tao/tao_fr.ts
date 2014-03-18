@@ -787,22 +787,22 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DebugPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="250"/>
+        <location filename="preferences_pages.cpp" line="301"/>
         <source>Debug traces</source>
         <translation>Traces de debug</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="267"/>
+        <location filename="preferences_pages.cpp" line="318"/>
         <source>Select all</source>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="270"/>
+        <location filename="preferences_pages.cpp" line="321"/>
         <source>Deselect all</source>
         <translation>Tout déselectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="274"/>
+        <location filename="preferences_pages.cpp" line="325"/>
         <source>Save for next run</source>
         <translation>Enregistrer</translation>
     </message>
@@ -954,47 +954,52 @@ Code : %1
 <context>
     <name>Tao::GeneralPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="60"/>
+        <location filename="preferences_pages.cpp" line="63"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="62"/>
+        <location filename="preferences_pages.cpp" line="65"/>
         <source>User interface language:</source>
         <translation>Langue de l&apos;interface utilisateur :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="66"/>
+        <location filename="preferences_pages.cpp" line="69"/>
         <source>(System Language)</source>
         <translation>(Langue du système)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="91"/>
+        <location filename="preferences_pages.cpp" line="94"/>
         <source>Check for update at the launch of the application</source>
         <translation>Vérifier la présence de mises à jour au démarrage de l&apos;application</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="98"/>
+        <location filename="preferences_pages.cpp" line="101"/>
         <source>Connect to tao:// addresses using:</source>
         <translation>Se connecter aux adresses tao:// en utilisant :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="101"/>
+        <location filename="preferences_pages.cpp" line="104"/>
         <source>git:// on port 9418 (default)</source>
         <translation>git:// sur le port 9418 (défaut)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="102"/>
+        <location filename="preferences_pages.cpp" line="105"/>
         <source>http://</source>
         <translation>http://</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="111"/>
+        <location filename="preferences_pages.cpp" line="114"/>
         <source>If you are behind a corporate firewall, or have problems with tao:// links, select http:// in the above list.</source>
         <translation>Si vous êtes derrière un pare-feu d&apos;entreprise, ou avez des problèmes pour ouvrir les liens tao://, sélectionnez http:// dans la liste ci-dessus.</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="154"/>
+        <location filename="preferences_pages.cpp" line="122"/>
+        <source>Reject unauthenticated connections to document editor</source>
+        <translation>Refuser les connexions non authentifiées à l'éditeur de document</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="170"/>
         <source>The language change will take effect after a restart of the application.</source>
         <translation>Le changement de langue prendra effet après redémarrage de l&apos;application.</translation>
     </message>
@@ -1477,62 +1482,62 @@ Seul le second module sera chargé. Vous devriez sans doute changer l&apos;UUID 
 <context>
     <name>Tao::ModulesPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="384"/>
+        <location filename="preferences_pages.cpp" line="435"/>
         <source>Modules are disabled</source>
         <translation>Les modules sont désactivés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="391"/>
+        <location filename="preferences_pages.cpp" line="442"/>
         <source>Installed modules</source>
         <translation>Modules installés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="399"/>
+        <location filename="preferences_pages.cpp" line="450"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="400"/>
+        <location filename="preferences_pages.cpp" line="451"/>
         <source>Version</source>
         <translation>Version</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="402"/>
+        <location filename="preferences_pages.cpp" line="453"/>
         <source>Status</source>
         <translation>État</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="412"/>
+        <location filename="preferences_pages.cpp" line="463"/>
         <source>Search</source>
         <translation>Recherche</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="422"/>
+        <location filename="preferences_pages.cpp" line="473"/>
         <source>Check for updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="532"/>
+        <location filename="preferences_pages.cpp" line="583"/>
         <source>Enabled</source>
         <translation>Activé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="532"/>
+        <location filename="preferences_pages.cpp" line="583"/>
         <source>Disabled</source>
         <translation>Désactivé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="567"/>
+        <location filename="preferences_pages.cpp" line="618"/>
         <source>Updates are available.</source>
         <translation>Des mises à jour sont disponibles.</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="569"/>
+        <location filename="preferences_pages.cpp" line="620"/>
         <source>All modules are up-to-date.</source>
         <translation>Tous les modules sont à jour.</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="609"/>
+        <location filename="preferences_pages.cpp" line="660"/>
         <source>Updates are ready to install on restart.</source>
         <translation>Les mises à jour seront installées au redémarrage.</translation>
     </message>
@@ -1621,120 +1626,120 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 <context>
     <name>Tao::PerformancesPage</name>
     <message utf8="true">
-        <location filename="preferences_pages.cpp" line="681"/>
+        <location filename="preferences_pages.cpp" line="732"/>
         <source>OpenGL® information</source>
         <translation>Informations OpenGL®</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="683"/>
+        <location filename="preferences_pages.cpp" line="734"/>
         <source>Vendor:</source>
         <translation>Vendeur :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="685"/>
+        <location filename="preferences_pages.cpp" line="736"/>
         <source>Renderer:</source>
         <translation>Renderer :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="687"/>
+        <location filename="preferences_pages.cpp" line="738"/>
         <source>Version:</source>
         <translation>Version :</translation>
     </message>
     <message utf8="true">
-        <location filename="preferences_pages.cpp" line="691"/>
+        <location filename="preferences_pages.cpp" line="742"/>
         <source>OpenGL® settings</source>
         <translation>Réglages OpenGL®</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="693"/>
+        <location filename="preferences_pages.cpp" line="744"/>
         <source>Enable per-pixel lighting</source>
         <translation>Activer l&apos;éclairage par pixel</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="698"/>
+        <location filename="preferences_pages.cpp" line="749"/>
         <source>Enable VSync</source>
         <translation>Activer VSync</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="703"/>
+        <location filename="preferences_pages.cpp" line="754"/>
         <source>Compress 2D textures</source>
         <translation>Compresser les textures 2D</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="710"/>
+        <location filename="preferences_pages.cpp" line="761"/>
         <source>Generate mipmaps for 2D textures</source>
         <translation>Générer des mipmaps pour les textures 2D</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="718"/>
+        <location filename="preferences_pages.cpp" line="769"/>
         <source>2D texture magnification:</source>
         <translation>Grossissement des textures :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="720"/>
-        <location filename="preferences_pages.cpp" line="731"/>
+        <location filename="preferences_pages.cpp" line="771"/>
+        <location filename="preferences_pages.cpp" line="782"/>
         <source>Pixellated</source>
         <translation>Pixellisé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="721"/>
-        <location filename="preferences_pages.cpp" line="732"/>
+        <location filename="preferences_pages.cpp" line="772"/>
+        <location filename="preferences_pages.cpp" line="783"/>
         <source>Smooth</source>
         <translation>Lissé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="729"/>
+        <location filename="preferences_pages.cpp" line="780"/>
         <source>2D texture reduction:</source>
         <oldsource>2D texture minifying:</oldsource>
         <translation>Réduction des textures :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="733"/>
+        <location filename="preferences_pages.cpp" line="784"/>
         <source>Resized, pixellated</source>
         <translation>Réduit, pixellisé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="735"/>
+        <location filename="preferences_pages.cpp" line="786"/>
         <source>Resized, smoothed</source>
         <translation>Réduit, lissé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="737"/>
+        <location filename="preferences_pages.cpp" line="788"/>
         <source>Interpolated, pixellated</source>
         <translation>Interpolé, pixellisé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="739"/>
+        <location filename="preferences_pages.cpp" line="790"/>
         <source>Interpolated, smoothed</source>
         <translation>Interpolé, lissé</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="748"/>
+        <location filename="preferences_pages.cpp" line="799"/>
         <source>Texture cache max. memory:</source>
         <translation>Mémoire max. pour les textures :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="750"/>
+        <location filename="preferences_pages.cpp" line="801"/>
         <source>0 (default)</source>
         <translation>0 (défaut)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="751"/>
+        <location filename="preferences_pages.cpp" line="802"/>
         <source>Unlimited</source>
         <translation>Illimitée</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="759"/>
+        <location filename="preferences_pages.cpp" line="810"/>
         <source>Texture cache max. GL memory:</source>
         <translation>Mémoire GL max. pour les textures :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="761"/>
+        <location filename="preferences_pages.cpp" line="812"/>
         <source>64 MiB</source>
         <translation>64 MiB</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="762"/>
+        <location filename="preferences_pages.cpp" line="813"/>
         <source>Unlimited (default)</source>
         <translation>Illimitée (défaut)</translation>
     </message>
@@ -2277,18 +2282,18 @@ Code : %1
 <context>
     <name>Tao::WebUI</name>
     <message>
-        <location filename="webui.cpp" line="124"/>
-        <location filename="webui.cpp" line="154"/>
+        <location filename="webui.cpp" line="134"/>
+        <location filename="webui.cpp" line="180"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="webui.cpp" line="125"/>
+        <location filename="webui.cpp" line="135"/>
         <source>Could not start document editor (server)</source>
         <translation>Impossible de lancer l&apos;éditeur de document (serveur)</translation>
     </message>
     <message>
-        <location filename="webui.cpp" line="155"/>
+        <location filename="webui.cpp" line="181"/>
         <source>Could not launch web browser</source>
         <translation>Impossible de lancer le navigateur web</translation>
     </message>
@@ -2326,22 +2331,22 @@ Code : %1
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="5760"/>
+        <location filename="widget.cpp" line="5763"/>
         <source>&lt;p&gt;This unlicensed version of Tao Presentations has a limit of 5 pages per document.&lt;/p&gt;&lt;p&gt;You may suppress this limitation by purchasing a Pro license.&lt;/p&gt;&lt;p&gt;Thank you.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Cette version d&apos;évaluation de Tao Presentations est limitée à 5 pages par document.&lt;/p&gt;&lt;p&gt;Vous pouvez supprimer cette limitation en achetant une licence Pro.&lt;/p&gt;&lt;p&gt;Merci.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="5765"/>
+        <location filename="widget.cpp" line="5768"/>
         <source>&lt;h3&gt;Warning&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Avertissement&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="13180"/>
+        <location filename="widget.cpp" line="13228"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="13181"/>
+        <location filename="widget.cpp" line="13229"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

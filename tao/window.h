@@ -374,11 +374,11 @@ private:
           visibleTools.clear();
       }
     }                 savedState;
+
+public:
 #ifndef CFG_NO_WEBUI
     WebUI             webui;
 #endif
-
-public:
     QPrinter         *printer;
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     QMenu            *shareMenu;

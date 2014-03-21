@@ -312,6 +312,56 @@ text_box(x:real, y:real, w:real, h:real, contents:tree);
 
 /**
  * @~english
+ * Draws a text box in a texture.
+ *
+ * Generate a texture containing a text box with width @p w and height
+ * @p h pixels. @p contents is a block of code in which you describe
+ * the content of the box.
+ *
+ * @~french
+ * Dessine une boîte de texte dans une texture.
+ *
+ * Génère une texture de largeur @p w et de hauteur @p h. @p contents
+ * est un bloc de code dans lequel vous décrivez le contenu de la
+ * boîte.
+ */
+text_frame_texture(w:real, h:real, contents:tree);
+
+
+/**
+ * @~english
+ * Draws a text box using a texture to accelerate rendering.
+ *
+ * Draw a text using an intermediate texture to accelerate rendering.
+ * The rendering is done once in a texture, and not redrawn until it changes.
+ * This accelerates rendering for flat text, in particular in stereoscopic
+ * or auto-stereoscopic environments.
+ *
+ * This function behaves mostly like @ref text_box. There may be minor
+ * rendering differences due to aliasing. Since rendering is done in a
+ * texture, 3D text using @ref extrude_depth will also render
+ * differently.
+ *
+ * @~french
+ * Dessine une boîte de texte en utilisant une texture pour accélérer le rendu.
+ *
+ * Dessine une boîte de texte en utilisant une texture intermédiaire
+ * pour accélerer le rendu. Le rendu du texte n'est fait qu'une seule
+ * foit, et n'est pas refait tant que le text ne change pas. Cela
+ * permet d'accélérer le rendu de texte plat, en particulier dans un
+ * contexte d'affichage stéréoscopique ou auto-stéréoscopique.
+ *
+ * Cette fonction se comporte essentiellement comme @ref text_box. Il
+ * peut y avoir quelques différences de détail en particulier à cause
+ * de l'anti-aliasing. Comme le rendu est fait dans une texture, le
+ * texte en relief utilisant @ref extrude_depth s'affichera aussi de
+ * façon différente.
+ */
+text_frame(x:real, y:real, w:real, h:real, contents:tree);
+
+
+/**
+ * @~english
  * Isolate text modifications.
  *
  * Color, font and other text related modification done in this container

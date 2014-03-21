@@ -1446,6 +1446,24 @@ image Img:text ->
     image constant 0, constant 0, constant 1, constant 1, Img
 
 
+text_frame_texture W, H, Body ->
+// ----------------------------------------------------------------------------
+//    Draw a text box in a texture
+// ----------------------------------------------------------------------------
+    frame_texture W, H,
+        text_box 0, 0, W, H, Body
+
+
+text_frame X, Y, W, H, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a rectangle with a texture from a text box
+// ----------------------------------------------------------------------------
+    locally
+        text_frame_texture W, H, Body
+        color "white"
+        rectangle X, Y, W, H
+
+
 
 // ============================================================================
 // 

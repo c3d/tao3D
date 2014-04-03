@@ -54,17 +54,15 @@
 #include <signal.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #ifndef CONFIG_MINGW
 #include <execinfo.h>
 #include <dlfcn.h>
-#endif
-
-#ifdef CONFIG_MINGW
+#else // CONFIG_MINGW
 #include <windows.h>
 #include <imagehlp.h>
-static void win_redirect_io();
-#endif
+#endif // MINGW
 
 #if QT_VERSION >= 0x050000
 static void taoQt5MessageHandler(QtMsgType type,
@@ -79,6 +77,8 @@ namespace Tao {
     extern const char * GITSHA1_;
 }
 
+static void redirect_console();
+
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 //    Main entry point of the graphical front-end
@@ -86,10 +86,8 @@ int main(int argc, char **argv)
 {
     using namespace Tao;
 
-#ifdef CONFIG_MINGW
     // Do our best to send stdout/stderr output somewhere
-    win_redirect_io();
-#endif
+    redirect_console();
 
     // Process --version before graphic initialization so that this option may
     // be used without a valid X11 display on Linux
@@ -211,51 +209,6 @@ static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
 }
 
 
-void win_redirect_io()
-// ----------------------------------------------------------------------------
-//   No console: log to file. Un-redirected console: log to parent console.
-// ----------------------------------------------------------------------------
-{
-    // Note: must be done before AttachConsole()
-    DWORD outType, errType;
-    outType = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
-    errType = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
-
-    if (AttachConsole(ATTACH_PARENT_PROCESS))
-    {
-        // Parent has a console.
-        // Tested with cmd.exe and MinGW shell (bash):
-        //  1/ With no redirection, type is FILE_TYPE_UNKNOWN and output
-        //     goes nowhere (at least not to the console).
-        //  2/ When redirecting to a file (tao.exe -tfps >tao.log) type is
-        //     FILE_TYPE_DISK and output goes to the file.
-        //  3/ When sending to a pipe (tao.exe -tfps | grep Time) type is
-        //     FILE_TYPE_PIPE and output goes to the pipe.
-        // So only case (1) has to be handled specifically.
-        if (outType == FILE_TYPE_UNKNOWN)
-            freopen("CON", "a", stdout);
-        if (errType == FILE_TYPE_UNKNOWN)
-            freopen("CON", "a", stderr);
-    }
-    else
-    {
-        // Parent has no console, log to a file
-        QDir dir(Tao::Application::defaultProjectFolderPath());
-        dir.mkpath(dir.absolutePath());
-        QString path = dir.absoluteFilePath("tao.log");
-
-        const char *f = path.toStdString().c_str();
-        FILE *fp = fopen(f, "w");
-        if (fp)
-        {
-            fclose(fp);
-            freopen(f, "a", stdout);
-            freopen(f, "a", stderr);
-        }
-    }
-}
-
-
 void install_first_exception_handler(void)
 // ----------------------------------------------------------------------------
 //   Install an unhandled exception handler that happens before LLVM
@@ -278,6 +231,82 @@ void install_first_exception_handler(void)
 }
 
 #endif // CONFIG_MINGW
+
+
+void redirect_console()
+// ----------------------------------------------------------------------------
+//   No console: log to file. Un-redirected console: log to parent console.
+// ----------------------------------------------------------------------------
+{
+    bool redirectToTaoLog = true;
+#ifdef CONFIG_MINGW
+    // Note: must be done before AttachConsole()
+    DWORD outType, errType;
+    outType = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
+    errType = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
+
+    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    {
+        // Parent has a console.
+        // Tested with cmd.exe and MinGW shell (bash):
+        //  1/ With no redirection, type is FILE_TYPE_UNKNOWN and output
+        //     goes nowhere (at least not to the console).
+        //  2/ When redirecting to a file (tao.exe -tfps >tao.log) type is
+        //     FILE_TYPE_DISK and output goes to the file.
+        //  3/ When sending to a pipe (tao.exe -tfps | grep Time) type is
+        //     FILE_TYPE_PIPE and output goes to the pipe.
+        // So only case (1) has to be handled specifically.
+        if (outType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stdout);
+        if (errType == FILE_TYPE_UNKNOWN)
+            freopen("CON", "a", stderr);
+        redirectToTaoLog = false;
+    }
+#else // Non Windows, normal systems
+
+    // Check if we have a shell or if stdout is a terminal. Redirect otherwise.
+    if (!getenv("TAO_LOG"))
+    {
+        // Linux: If the output is a TTY. Not sure if it works on MacOSX...
+        if (isatty(1))
+            redirectToTaoLog = false;
+
+        // MacOSX 10.9
+        if (getenv("TERM_PROGRAM"))
+            redirectToTaoLog = false;
+    }
+#endif
+
+    if (redirectToTaoLog)
+    {
+        // Parent has no console, log to a file
+        kstring log = getenv("TAO_LOG");
+        if (!log)
+            log = "tao.log";
+
+        QDir dir(Tao::Application::defaultProjectFolderPath());
+        dir.mkpath(dir.absolutePath());
+        QString path = dir.absoluteFilePath(log);
+        log = path.toStdString().c_str();
+
+        int fd = open(log, O_RDWR | O_CREAT | O_TRUNC, 0644);
+        if (fd != -1)
+        {
+            dup2(fd, 1);
+            dup2(fd, 2);
+        }
+        else
+        {
+            fprintf(stderr, "Unable to redirect to %s: %s\n=",
+                    log, strerror(errno));
+        }
+    }
+
+    // Defaults for our logging
+    std::cout.setf(std::ios::fixed, std::ios::floatfield);
+    std::cout.setf(std::ios::showpoint);
+    std::cout.precision(3);
+}
 
 
 static char sig_handler_log[512];

@@ -13,9 +13,6 @@
 [submodule "modules/speech/qt-speech"]
 	path = modules/speech/qt-speech
 	url = git://gitorious.org/taodyne-open-source/tao_qt_speech.git
-[submodule "webui"]
-	path = webui
-	url = io.taodyne.com:~jerome/Work/tao-editor-proto.git
 [submodule "webui/webui"]
 	path = webui/webui
-	url = io.taodyne.com:~jerome/Work/tao-editor-proto.git
+	url = io.taodyne.com:~ddd/Work/tao-editor-proto.git

@@ -318,23 +318,6 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
            printOverscaling * 72 < XL::MAIN->options.printResolution)
         printOverscaling <<= 1;
 
-    // Trace time with ms precision
-    IFTRACE(layoutevents)
-    {
-        std::cerr.setf(std::ios::fixed, std::ios::floatfield);
-        std::cerr.setf(std::ios::showpoint);
-        std::cerr.precision(3);
-    }
-
-    // Initialize statistics logging (-tfps)
-    IFTRACE(fps)
-    {
-        stats.enable(true, Statistics::TO_CONSOLE);
-        std::cout.setf(std::ios::fixed, std::ios::floatfield);
-        std::cout.setf(std::ios::showpoint);
-        std::cout.precision(3);
-    }
-
     // Initialize start time
     resetTimes();
 
@@ -743,6 +726,12 @@ void Widget::dawdle()
     // Check if it's time to reload
     refreshProgram();
 #endif
+
+    // Check if statistics status changed from the dialog box
+    if (stats.isEnabled(Statistics::TO_CONSOLE) != XLTRACE(fps))
+        stats.enable(XLTRACE(fps), Statistics::TO_CONSOLE);
+
+
 }
 
 

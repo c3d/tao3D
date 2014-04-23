@@ -55,6 +55,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
 
 #ifndef CONFIG_MINGW
 #include <execinfo.h>

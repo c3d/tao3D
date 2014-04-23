@@ -32,7 +32,7 @@ INC = . \
     ../keygen
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp -ldl -lX11
 QT += network \
     opengl \
     svg

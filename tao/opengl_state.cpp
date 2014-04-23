@@ -2762,8 +2762,11 @@ void LightState::Sync(const LightState &ls, bool force)
         id = ls.id;
 
     GLenum light    = GL_LIGHT0 + id;
-    GLfloat pos[4]  = {ls.position.x, ls.position.y, ls.position.z, ls.position.w};
-    GLfloat spot[3] = {ls.spotDirection.x, ls.spotDirection.y, ls.spotDirection.z};
+    GLfloat pos[4]  = { (GLfloat) ls.position.x, (GLfloat) ls.position.y,
+                        (GLfloat) ls.position.z, (GLfloat) ls.position.w };
+    GLfloat spot[3] = { (GLfloat) ls.spotDirection.x,
+                        (GLfloat) ls.spotDirection.y,
+                        (GLfloat) ls.spotDirection.z };
 
     // Synchronise lighting parameters
     SYNC_LIGHT(active,

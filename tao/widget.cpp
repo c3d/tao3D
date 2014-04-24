@@ -12702,7 +12702,7 @@ void Widget::clearErrors()
 {
     inError = false;
     XL::MAIN->errors->Clear();
-    taoWindow()->addSeparator("Reloaded program");
+    taoWindow()->addSeparator("Reloaded");
 }
 
 

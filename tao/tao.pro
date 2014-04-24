@@ -32,7 +32,7 @@ INC = . \
     ../keygen
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp -ldl -lX11
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 QT += network \
     opengl \
     svg
@@ -67,7 +67,7 @@ win32 {
     LIBS += -limagehlp -lws2_32 # ws2_32 for ntohs()
 }
 linux-g++* {
-    LIBS += -lXss -lGLU
+    LIBS += -lXss -lGLU -ldl -lX11
 }
 
 # Input

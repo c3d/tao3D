@@ -245,6 +245,11 @@ void redirect_console()
     outType = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
     errType = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
 
+    fprintf(stderr, "Initializing\n");
+    std::cerr << "Initializing C++\n";
+    printf("Hello world\n");
+    std::cout << "Hello world C++\n";
+
     if (AttachConsole(ATTACH_PARENT_PROCESS))
     {
         // Parent has a console.
@@ -289,11 +294,17 @@ void redirect_console()
         QString path = dir.absoluteFilePath(log);
         log = path.toStdString().c_str();
 
+#ifdef CONFIG_MINGW
+        freopen(log, "a", stdout);
+        freopen(log, "a", stderr);
+#endif
+
         int fd = open(log, O_RDWR | O_CREAT | O_TRUNC, 0644);
         if (fd != -1)
         {
             dup2(fd, 1);
             dup2(fd, 2);
+            fprintf(stderr, "Redirected to tao.log\n");
         }
         else
         {

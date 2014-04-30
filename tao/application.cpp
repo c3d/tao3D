@@ -948,12 +948,36 @@ void Application::simulateUserActivity()
 
 #endif
 
+static void displayAvailableModes()
+// ----------------------------------------------------------------------------
+//   List the available modes on the console
+// ----------------------------------------------------------------------------
+{
+    std::cout << "Available rendering modes are:\n";
+    QStringList names = DisplayDriver::allDisplayFunctions();
+    foreach (QString name, names)
+        std::cout << "  " << +name << "\n";
+}
+
+
 bool Application::checkOfflineRendering()
 // ----------------------------------------------------------------------------
 //   Start offline rendering if command line switch present and we have 1 doc
 // ----------------------------------------------------------------------------
 {
-    QString ropts = +XL::MAIN->options.rendering_options;
+    XL::Options &opts    = XL::MAIN->options;
+    Widget      *widget  = win->taoWidget;
+    QString      display = +opts.display_mode;
+
+    if (display != "")
+    {
+        if (display == "help")
+            displayAvailableModes();
+        else
+            widget->setDisplayMode(XL::xl_false, opts.display_mode);
+    }
+
+    QString ropts = +opts.rendering_options;
     if (ropts == "-")
         return false;
 
@@ -974,7 +998,7 @@ bool Application::checkOfflineRendering()
     int idx = 0;
     int page, x, y;
     double start, duration, fps, offset;
-    QString folder, disp = "";
+    QString folder = "";
 
     page = parms[idx++].toInt();
     x = parms[idx++].toInt();
@@ -985,14 +1009,11 @@ bool Application::checkOfflineRendering()
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
     if (nparms >= 9)
-        disp = parms[idx++];
+        display = parms[idx++];
 
-    if (disp == "help")
+    if (display == "help")
     {
-        std::cout << "Available rendering modes are:\n";
-        QStringList names = DisplayDriver::allDisplayFunctions();
-        foreach (QString name, names)
-            std::cout << "  " << +name << "\n";
+        displayAvailableModes();
         return false;
     }
 
@@ -1001,13 +1022,12 @@ bool Application::checkOfflineRendering()
               << " start-time=" << start << " duration=" << duration
               << " page-time-offset=" << offset
               << " fps=" << fps << " folder=\"" << +folder << "\""
-              << " display-mode=\"" << +disp << "\"\n";
+              << " display-mode=\"" << +display << "\"\n";
 
-    Widget *widget = win->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
     widget->renderFrames(x, y, start, duration, folder, fps, page, offset,
-                         disp);
+                         display);
 
     return true;
 }

@@ -37,10 +37,19 @@ OPTION(print_resolution, "Set printer resolution in DPI",
        printResolution = INTEGER(72, 3600))
 
 OPTVAR(rendering_options, text, "-")
-OPTION(render, "Offline rendering: -render pagenum,width,height,start-time,duration,page-time-offset,fps,folder[,display-mode]. "
-               "Render frames and exit. Single document only. Set 'display-mode' to 'help' "
-               "for a list of all available modes.",
+OPTION(render,
+       "Offline rendering: -render pagenum,width,height,start-time,"
+       "duration,page-time-offset,fps,folder[,display-mode]. "
+       "Render frames and exit. Single document only."
+       "Set 'display-mode' to 'help' "
+       "for a list of all available modes.",
        rendering_options = STRING)
+OPTVAR(display_mode, text, "")
+OPTION(display ,
+       "Select display mode, e.g hsplit_stereo."
+       "Set 'display-mode' to 'help' "
+       "for a list of all available modes.",
+       display_mode = STRING)
 
 #ifdef CFG_NOGIT
 OPTION(norepo, "Not used", ;)

@@ -35,7 +35,6 @@ bool enableVSyncX11(QWidget *widget, bool enable)
 {
     static bool resolved = false;
     typedef int (*setSwapIntervalFunc)(int interval);
-    typedef int (*getSwapIntervalFunc)(int interval);
     static setSwapIntervalFunc set_fn = NULL;
     if (!resolved)
     {

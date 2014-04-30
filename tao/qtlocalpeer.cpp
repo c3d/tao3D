@@ -75,6 +75,9 @@ static PProcessIdToSessionId pProcessIdToSessionId = 0;
 #include <time.h>
 #endif
 
+#include <unistd.h>
+#include <sys/types.h>
+
 const char* QtLocalPeer::ack = "ack";
 
 QtLocalPeer::QtLocalPeer(QObject* parent, const QString &appId)

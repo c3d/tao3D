@@ -48,7 +48,7 @@ git diff-index --quiet HEAD -- || die "Error: Git work area is dirty."
 
 set_mflags
 
-LOG=$PWD/taobuild-$(date +%H:%M:%S-%Y/%m/%d).log
+LOG=$PWD/taobuild-$(date +%H:%M:%S-%Y.%m.%d).log
 echo Log file: $LOG >&2
 
 exec 4>&2

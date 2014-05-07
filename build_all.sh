@@ -18,13 +18,13 @@ doo() {
 cp_kit() {
   case `uname` in
     Darwin)
-      doo cp "packaging/macosx/*.dmg" ..
+      doo mv "packaging/macosx/*.dmg" builds/
       ;;
     MINGW*)
-      doo cp "packaging/win/*.exe" ..
+      doo mv "packaging/win/*.exe" builds/
       ;;
     Linux)
-      doo cp packaging/linux/*.deb packaging/linux/*.tar.bz2 ..
+      doo mv packaging/linux/*.deb packaging/linux/*.tar.bz2 builds/
       ;;
   esac
 }
@@ -44,11 +44,12 @@ set_mflags() {
 
 }
 
+mkdir -p builds/
 git diff-index --quiet HEAD -- || die "Error: Git work area is dirty."
 
 set_mflags
 
-LOG=$PWD/taobuild-$(date +%H:%M:%S-%Y.%m.%d).log
+LOG=$PWD/builds/taobuild-$(date +%H:%M:%S-%Y.%m.%d).log
 echo Log file: $LOG >&2
 
 exec 4>&2

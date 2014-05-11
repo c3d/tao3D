@@ -99,6 +99,11 @@ while [ $# -ne 0 ] ; do
     -h|--help)
       usage
       ;;
+    -release)
+    --release)
+    --with-none)
+      ;;
+    -debug)
     --debug)
       FLAGS="$FLAGS CONFIG-=release"
       shift

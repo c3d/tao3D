@@ -61,6 +61,6 @@ win32 {
   SIGN_CMD = export PATH=\\\"\\\$$PATH:$$HERE/../libxlr/\\\"\$(DESTDIR); \\\"$$HERE/\\\"\$(DESTDIR_TARGET) \\\"\\\$$@\\\"
 }
 QMAKE_CLEAN += tao_sign.sh
-QMAKE_POST_LINK = $$MAYBE_STRIP_CMD echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
+QMAKE_POST_LINK = $$MAYBE_STRIP_CMD echo \'$$SIGN_CMD\' > tao_sign.sh && chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
 
 include(../make_install_kludge.pri)

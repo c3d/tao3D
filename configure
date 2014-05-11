@@ -101,7 +101,9 @@ while [ $# -ne 0 ] ; do
       ;;
     -release)
     --release)
-    --with-none)
+      FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
+      FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
+      shift
       ;;
     -debug)
     --debug)

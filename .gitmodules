@@ -15,4 +15,4 @@
 	url = git://gitorious.org/taodyne-open-source/tao_qt_speech.git
 [submodule "webui/webui"]
 	path = webui/webui
-	url = ssh://ddd@io.taodyne.com/~ddd/Work/tao-editor-proto.git
+	url = ssh://io.taodyne.com/~/RedmineProjects/tao-editor-proto.git

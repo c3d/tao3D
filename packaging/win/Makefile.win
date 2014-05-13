@@ -32,7 +32,7 @@ rn: $(BITMAPS) version.nsh
 prepare tao_install:
 	[ -d build_root ] || mkdir -p build_root
 	cd ../.. && $(MAKE) install
-	(cd $(INSTROOT) && tar cf - *) | (cd build_root && tar xf -)
+	cp -Rp $(INSTROOT)/* build_root
 	rm -f build_root/modules/vlc_audio_video/lib/plugins/plugins.dat # See #1555
 	PACKAGE_NOGIT=$(PACKAGE_NOGIT) RELEASE=$(RELEASE) ./copy_deps "$(QMAKE_LIBDIR_QT_SANE)"
 ifndef NO_SDK

@@ -71,13 +71,13 @@
        tao_synchro \
        quiz \
        web_remote \
-       prez_at
+       prez_at \
+       tao_tester   \
+       database
 
     OTHER_MODULES =  \
         DIP          \
-        hello_world  \
-        tao_tester   \
-        database
+        hello_world
 
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

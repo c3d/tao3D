@@ -166,6 +166,7 @@ while [ $# -ne 0 ] ; do
     internal)
       EDITION=Internal
       with_modlic=1
+      FLAGS="$FLAGS modules=all"
       shift ; done=1
       ;;
     *)

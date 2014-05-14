@@ -53,7 +53,7 @@ include Makefile.config
 
 ifndef PACKAGE_NOGIT
 
-GIT_VERSION=1.7.12.1
+GIT_VERSION=1.9.0
 
 # Warning: GIT_DESTDIR can't contain spaces
 GIT_DESTDIR=$(shell pwd)/git_build/install

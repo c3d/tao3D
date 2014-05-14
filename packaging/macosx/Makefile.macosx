@@ -52,7 +52,7 @@ DMG=$(VOLNAME).$(ARCH).dmg
 kit: .dmg_ts
 
 $(DMG) .dmg_ts: prepare
-        rm -f tao.dmg "Tao Presentations"*.dmg
+	rm -f tao.dmg "Tao Presentations"*.dmg
 	./create_dmg --volname "$(VOLNAME)" \
 	    --volicon VolumeIcon.icns \
 	    --background-color 35512 44800 65535 \

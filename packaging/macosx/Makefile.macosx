@@ -27,7 +27,7 @@ include Makefile.config
 
 ifndef PACKAGE_NOGIT
 
-GIT_VERSION=1.7.12.1
+GIT_VERSION=1.9.0
 
 # Warning: GIT_DESTDIR can't contain spaces
 GIT_DESTDIR=$(shell pwd)/git_build/install
@@ -52,6 +52,7 @@ DMG=$(VOLNAME).$(ARCH).dmg
 kit: .dmg_ts
 
 $(DMG) .dmg_ts: prepare
+        rm -f tao.dmg "Tao Presentations"*.dmg
 	./create_dmg --volname "$(VOLNAME)" \
 	    --volicon VolumeIcon.icns \
 	    --background-color 35512 44800 65535 \

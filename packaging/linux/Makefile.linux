@@ -23,6 +23,7 @@ ARCH=$(OS).$(shell uname -m)
 ########
 
 kit:
+	rm -f Tao_Presentations*.deb Tao_Presentations*.tar.bz2
 	$(MAKE) -f Makefile.linux deb
 	$(MAKE) -f Makefile.linux tar
 

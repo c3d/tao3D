@@ -160,7 +160,7 @@ clean.tao: clean.tao_install
 ifndef PACKAGE_NOGIT
 
 .git_install_ts: .git_build_ts
-	ln -s $(GIT_DEST) $(GIT_DESTDIR)
+	ln -sf $(GIT_DEST) $(GIT_DESTDIR)
 	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
 	touch $@
 

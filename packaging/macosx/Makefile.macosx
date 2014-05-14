@@ -77,7 +77,7 @@ DMG=Tao Presentations $(APPENDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 kit: .dmg_ts
 
 tao.dmg .dmg_ts: tmp.dmg
-	rm -f tao.dmg
+	rm -f tao.dmg "Tao Presentations"*.dmg
 	hdiutil convert -format UDBZ -o tao.dmg tmp.dmg
 	[ "$(K)" ] || rm -f tmp.dmg
 	mv tao.dmg "$(DMG)"
@@ -88,9 +88,9 @@ prepare: .tao_install_ts $(MAYBE_GIT_INSTALL) .cp_template_ts .cp_sdk_ts
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
 tmp.dmg: prepare
 	hdiutil create tmp.dmg -fs HFSX -format UDRW -srcfolder build_root -volname "$(APP_NAME)"
-	hdiutil attach tmp.dmg
-	SetFile -a C "/Volumes/$(APP_NAME)"
-	hdiutil detach "/Volumes/$(APP_NAME)"
+	hdiutil attach tmp.dmg -mountroot .
+	SetFile -a C "$(APP_NAME)"
+	hdiutil detach "$(APP_NAME)"
 
 clean: $(MAYBE_GIT_CLEAN) clean.tao clean.dmg clean.cp_sdk
 

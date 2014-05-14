@@ -122,9 +122,8 @@ clean.tao: clean.tao_install
 ifndef PACKAGE_NOGIT
 
 .git_install_ts: .git_build_ts
+	ln -s $(GIT_DEST) $(GIT_DESTDIR)
 	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
-	rm -rf $(GIT_DEST) ; mkdir -p "$(GIT_DEST)"
-	mv $(GIT_DESTDIR)/usr/local/* "$(GIT_DEST)"
 	touch $@
 
 clean.git_install:

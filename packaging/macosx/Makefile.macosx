@@ -87,6 +87,7 @@ prepare: .tao_install_ts $(MAYBE_GIT_INSTALL) .cp_template_ts .cp_sdk_ts
 
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
 tmp.dmg: prepare
+	rm -f tmp.dmg
 	hdiutil create tmp.dmg -fs HFSX -format UDRW -srcfolder build_root -volname "$(APP_NAME)"
 	hdiutil attach tmp.dmg -mountroot .
 	SetFile -a C "$(APP_NAME)"

@@ -49,8 +49,10 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   31
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_CURRENT   32
+#define TAO_MODULE_API_AGE       1
+
+
 
 // ========================================================================
 //

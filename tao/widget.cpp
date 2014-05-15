@@ -1328,6 +1328,16 @@ double Widget::DevicePixelRatioAPI()
 }
 
 
+bool Widget::RenderingTransparencyAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to checking if we are rendering with transparency
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = findTaoWidget();
+    return widget->space->transparency;
+}
+
+
 void Widget::makeGLContextCurrent()
 // ----------------------------------------------------------------------------
 //   Make GL context of the current Tao widget the current GL context
@@ -2526,7 +2536,7 @@ void Widget::resetView()
     zNear = 1500.0;
     zFar  = 1e6;
     zoom  = 1.0;
-    eyeDistance    = 20.0;
+    eyeDistance    = 90.0;
     cameraPosition = defaultCameraPosition;
     cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
@@ -9421,6 +9431,7 @@ Tree_p Widget::lineStipple(Tree_p self, text name)
 
     return XL::xl_true;
 }
+
 
 
 // ============================================================================

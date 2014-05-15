@@ -1141,6 +1141,7 @@ public:
     static double         currentTimeAPI();
     static double         currentPageTimeAPI();
     static double         DevicePixelRatioAPI();
+    static bool           RenderingTransparencyAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);

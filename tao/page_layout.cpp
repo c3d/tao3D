@@ -276,7 +276,7 @@ void PageLayout::Draw(Layout *where)
 
     // Display all items
     GLAllStateKeeper glSave;
-    PushLayout(this);
+    PushLayout();
     PageJustifier::Places &all = page.places;
     for (PageJustifier::PlacesIterator p = all.begin(); p != all.end(); p++)
     {
@@ -292,7 +292,7 @@ void PageLayout::Draw(Layout *where)
         XL::Save<coord> saveY(offset.y, offset.y+place.position);
         child->Draw(this);
     }
-    PopLayout(this);
+    PopLayout();
 
     IFTRACE(justify)
         std::cerr << "<-PageLayout::Draw ["<< this << "] offset = "
@@ -336,7 +336,7 @@ void PageLayout::DrawSelection(Layout *where)
 
     // Display all items
     GLAllStateKeeper glSave;
-    PushLayout(this);
+    PushLayout();
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -351,7 +351,7 @@ void PageLayout::DrawSelection(Layout *where)
             // No text selection, just draw children directly
             child->DrawSelection(this);
     }
-    PopLayout(this);
+    PopLayout();
 
     // Save color and font as necessary for color selectors
     if (widget->selected(this))
@@ -369,7 +369,7 @@ void PageLayout::Identify(Layout *where)
 
     // Display all items
     GLAllStateKeeper glSave;
-    PushLayout(this);
+    PushLayout();
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
     for (p = places.begin(); p != places.end(); p++)
@@ -379,7 +379,7 @@ void PageLayout::Identify(Layout *where)
         XL::Save<coord> saveY(offset.y, offset.y+place.position);
         child->Identify(this);
     }
-    PopLayout(this);
+    PopLayout();
 
     coord x = space.Left(),  y = space.Bottom();
     coord w = space.Width(), h = space.Height();

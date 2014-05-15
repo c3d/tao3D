@@ -49,8 +49,10 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   31
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_CURRENT   32
+#define TAO_MODULE_API_AGE       1
+
+
 
 // ========================================================================
 //
@@ -469,6 +471,10 @@ struct ModuleApi
     // Delete a file monitor object
     void (*deleteFileMonitor)(void *fileMonitor);
 
+    // ------------------------------------------------------------------------
+    //   Render attributes
+    // ------------------------------------------------------------------------
+
     // Return true if Tao is not currently rendering in real time, such as
     // when the "Render to files..." mode is active, or when saving a
     // snapshot of a page with save_thumbnail_file.
@@ -478,6 +484,7 @@ struct ModuleApi
     bool (*offlineRendering)();
     double (*currentPageTime)();
     double (*DevicePixelRatio)();
+    bool (*RenderingTransparency)();
 };
 
 }

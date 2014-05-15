@@ -81,6 +81,8 @@ public:
     // Transformations
     Matrix4             model;
     bool                groupDrag       : 1;
+    bool                transparency    : 1;
+    bool                blendOrShade    : 1;
 };
 
 
@@ -139,8 +141,8 @@ public:
 
     LayoutState &       operator=(const LayoutState &o);
     virtual void        Inherit(Layout *other);
-    void                PushLayout(Layout *where);
-    void                PopLayout(Layout *where);
+    void                PushLayout();
+    void                PopLayout();
     uint                CharacterId();
     double              PrinterScaling();
     text                PrettyId();

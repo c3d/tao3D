@@ -21,6 +21,9 @@
   </head>
   <body>
     <p>
+      
+    </p>
+    <p>
       <table class="title-block">
         <tr>
           <td><p>
@@ -3055,14 +3058,14 @@ Z1:complex+Z2:complex -&gt; (Z1.re+Z2.re, Z1.im+Z2.im)</pre></td>
       </tr></tbody>
     </table>
     <p>
-      Parameters<a id="auto-364"></a> of types such as <tt class="verbatim">complex</tt> are
-      contexts with declarations for the individual variables of the pattern
-      of the type. For example, a <tt class="verbatim">complex</tt> like <tt class="verbatim">Z1</tt>
-      in Figure <a href="#using-complex">42</a> contains a rewrite for <tt class="verbatim">re</tt> and
-      a rewrite for <tt class="verbatim">im</tt>. Figure <a href="#binding-for-complex-parameter">43</a> possible
-      bindings<a id="auto-365"></a> when using the complex addition operator defined in
-      Figure <a href="#using-complex">42</a>. The standard index notation<a id="auto-366"></a> described
-      in Section <a href="#index-operators">3.1.7</a> applies, e.g. in <tt class="verbatim">Z1.re</tt>,
+      Parameters<a id="auto-364"></a> of types such as <tt class="verbatim">complex</tt> are bound
+      to contexts with declarations for the individual variables of the
+      pattern of the type. For example, a <tt class="verbatim">complex</tt> like <tt
+      class="verbatim">Z1</tt> in Figure <a href="#using-complex">42</a> contains a rewrite for <tt
+      class="verbatim">re</tt> and a rewrite for <tt class="verbatim">im</tt>. Figure <a href="#binding-for-complex-parameter">43</a>
+      possible bindings<a id="auto-365"></a> when using the complex addition operator
+      defined in Figure <a href="#using-complex">42</a>. The standard index notation<a id="auto-366"></a>
+      described in Section <a href="#index-operators">3.1.7</a> applies, e.g. in <tt class="verbatim">Z1.re</tt>,
       and these bindings can be assigned to.
     </p>
     <table align="center" id="binding-for-complex-parameter">
@@ -4739,44 +4742,65 @@ module_description
     <h2 id="auto-528">5<span style="margin-left: 1em"></span>Example code</h2>
     <h3 id="auto-529">5.1<span style="margin-left: 1em"></span>Minimum and maximum</h3>
     <p>
-      
+      The minumum and maximum can be defined as follows:
     </p>
-    <h3 id="auto-530">5.2<span style="margin-left: 1em"></span>Complex numbers</h3>
+    <table align="center">
+      <tbody><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
+min x, y -&gt; m:tree := min y; if m &lt; x then m else x
+min x    -&gt; x
+max x, y -&gt; m:tree := max y; if m &gt; x then m else x
+max x    -&gt; x</pre></td>
+      </tr><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em; height: 0.5em"></td>
+      </tr><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
+          <font size="-1"><p>
+            <b>Figure 75. </b><a id="auto-530"></a>Computing a minimum and a maximum
+          </p></font>
+        </p></td>
+      </tr></tbody>
+    </table>
+    <p>
+      The functions as defined will work with any number of arguments, as well
+      as with lists of items.
+    </p>
+    <h3 id="auto-531">5.2<span style="margin-left: 1em"></span>Complex numbers</h3>
     <p>
       
     </p>
-    <h3 id="auto-531">5.3<span style="margin-left: 1em"></span>Vector and Matrix computations</h3>
-    <h3 id="auto-532">5.4<span style="margin-left: 1em"></span>Linked lists with dynamic allocation</h3>
+    <h3 id="auto-532">5.3<span style="margin-left: 1em"></span>Vector and Matrix computations</h3>
+    <h3 id="auto-533">5.4<span style="margin-left: 1em"></span>Linked lists with dynamic allocation</h3>
     <p>
       
     </p>
-    <h3 id="auto-533">5.5<span style="margin-left: 1em"></span>Input / Output</h3>
+    <h3 id="auto-534">5.5<span style="margin-left: 1em"></span>Input / Output</h3>
     <p>
       
     </p>
-    <h3 id="auto-534"><a id="object-oriented-programming"></a>5.6<span style="margin-left: 1em"></span>Object-Oriented Programming</h3>
-    <h4 id="auto-535">5.6.1<span style="margin-left: 1em"></span>Classes</h4>
-    <h4 id="auto-536">5.6.2<span style="margin-left: 1em"></span>Methods</h4>
-    <h4 id="auto-537">5.6.3<span style="margin-left: 1em"></span>Dynamic dispatch</h4>
-    <h4 id="auto-538">5.6.4<span style="margin-left: 1em"></span>Polymorphism</h4>
-    <h4 id="auto-539">5.6.5<span style="margin-left: 1em"></span>Inheritance</h4>
-    <h4 id="auto-540">5.6.6<span style="margin-left: 1em"></span>Multi-methods</h4>
-    <h4 id="auto-541">5.6.7<span style="margin-left: 1em"></span>Object prototypes</h4>
-    <h3 id="auto-542">5.7<span style="margin-left: 1em"></span>Functional-Programming</h3>
-    <h4 id="auto-543">5.7.1<span style="margin-left: 1em"></span>Map</h4>
-    <h4 id="auto-544">5.7.2<span style="margin-left: 1em"></span>Reduce</h4>
-    <h4 id="auto-545">5.7.3<span style="margin-left: 1em"></span>Filter</h4>
-    <h4 id="auto-546">5.7.4<span style="margin-left: 1em"></span>Functions as first-class objects</h4>
-    <h4 id="auto-547">5.7.5<span style="margin-left: 1em"></span>Anonymous functions (Lambda)</h4>
+    <h3 id="auto-535"><a id="object-oriented-programming"></a>5.6<span style="margin-left: 1em"></span>Object-Oriented Programming</h3>
+    <h4 id="auto-536">5.6.1<span style="margin-left: 1em"></span>Classes</h4>
+    <h4 id="auto-537">5.6.2<span style="margin-left: 1em"></span>Methods</h4>
+    <h4 id="auto-538">5.6.3<span style="margin-left: 1em"></span>Dynamic dispatch</h4>
+    <h4 id="auto-539">5.6.4<span style="margin-left: 1em"></span>Polymorphism</h4>
+    <h4 id="auto-540">5.6.5<span style="margin-left: 1em"></span>Inheritance</h4>
+    <h4 id="auto-541">5.6.6<span style="margin-left: 1em"></span>Multi-methods</h4>
+    <h4 id="auto-542">5.6.7<span style="margin-left: 1em"></span>Object prototypes</h4>
+    <h3 id="auto-543">5.7<span style="margin-left: 1em"></span>Functional-Programming</h3>
+    <h4 id="auto-544">5.7.1<span style="margin-left: 1em"></span>Map</h4>
+    <h4 id="auto-545">5.7.2<span style="margin-left: 1em"></span>Reduce</h4>
+    <h4 id="auto-546">5.7.3<span style="margin-left: 1em"></span>Filter</h4>
+    <h4 id="auto-547">5.7.4<span style="margin-left: 1em"></span>Functions as first-class objects</h4>
+    <h4 id="auto-548">5.7.5<span style="margin-left: 1em"></span>Anonymous functions (Lambda)</h4>
     <p>
-      <b><h4 id="auto-548">5.7.6<span style="margin-left: 1em"></span>Y-Combinator</h4></b>
+      <b><h4 id="auto-549">5.7.6<span style="margin-left: 1em"></span>Y-Combinator</h4></b>
     </p>
-    <h4 id="auto-549"><a id="infinite-data-structures"></a>5.7.7<span style="margin-left: 1em"></span>Infinite data structures</h4>
+    <h4 id="auto-550"><a id="infinite-data-structures"></a>5.7.7<span style="margin-left: 1em"></span>Infinite data structures</h4>
     <p>
       Since arguments are evaluated lazily, the evaluation of one fragment of
       the form does not imply the evaluation of any other. This makes it
       possible to correctly evaluate infinite data structures, as illustrated
-      in Figure <a href="#infinite-list">75</a>.
+      in Figure <a href="#infinite-list">76</a>.
     </p>
     <table align="center" id="infinite-list">
       <tbody><tr>
@@ -4792,19 +4816,19 @@ head tail tail tail integers_above 4</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 75. </b><a id="auto-550"></a>Lazy evaluation of an infinite list
+            <b>Figure 76. </b><a id="auto-551"></a>Lazy evaluation of an infinite list
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
-    <h2 id="auto-551"><a id="implementation-notes"></a>6<span style="margin-left: 1em"></span>Implementation notes</h2>
+    <h2 id="auto-552"><a id="implementation-notes"></a>6<span style="margin-left: 1em"></span>Implementation notes</h2>
     <p>
       This section describes the implementation as published at <tt class="verbatim">http://xlr.sourceforge.net</tt>.
     </p>
-    <h3 id="auto-552">6.1<span style="margin-left: 1em"></span>Lazy evaluation</h3>
-    <h3 id="auto-553">6.2<span style="margin-left: 1em"></span>Type inference</h3>
-    <h3 id="auto-554">6.3<span style="margin-left: 1em"></span>Built-in operations</h3>
-    <h3 id="auto-555">6.4<span style="margin-left: 1em"></span>Controlled compilation</h3>
+    <h3 id="auto-553">6.1<span style="margin-left: 1em"></span>Lazy evaluation</h3>
+    <h3 id="auto-554">6.2<span style="margin-left: 1em"></span>Type inference</h3>
+    <h3 id="auto-555">6.3<span style="margin-left: 1em"></span>Built-in operations</h3>
+    <h3 id="auto-556">6.4<span style="margin-left: 1em"></span>Controlled compilation</h3>
     <p>
       A special form, <tt class="verbatim">compile</tt>, is used to tell the compiler
       how to compile its argument. This makes it possible to implement special
@@ -4820,7 +4844,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 76. </b><a id="auto-556"></a>Controlled compilation
+            <b>Figure 77. </b><a id="auto-557"></a>Controlled compilation
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4897,7 +4921,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Table 12. </b><a id="auto-557"></a>LLVM operations
+            <b>Table 12. </b><a id="auto-558"></a>LLVM operations
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4905,7 +4929,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
     <p>
       
     </p>
-    <h3 id="auto-558">6.5<span style="margin-left: 1em"></span>Tree representation</h3>
+    <h3 id="auto-559">6.5<span style="margin-left: 1em"></span>Tree representation</h3>
     <p>
       The tree representation is performed by the <tt class="verbatim">Tree</tt> class,
       with one subclass per node type: <tt class="verbatim">Integer</tt>, <tt class="verbatim">Real</tt>,
@@ -4937,7 +4961,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         entries.
       </li>
     </ul>
-    <h3 id="auto-559">6.6<span style="margin-left: 1em"></span>Evaluation of trees</h3>
+    <h3 id="auto-560">6.6<span style="margin-left: 1em"></span>Evaluation of trees</h3>
     <p>
       Trees are evaluated in a given <em>context</em>, representing the
       evaluation environment. The context contains a lexical (static) and
@@ -4959,7 +4983,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       A context is represented by a tree holding the declarations, along with
       associated code.
     </p>
-    <h3 id="auto-560">6.7<span style="margin-left: 1em"></span>Tree position</h3>
+    <h3 id="auto-561">6.7<span style="margin-left: 1em"></span>Tree position</h3>
     <p>
       The position held in the <tt class="verbatim">tag</tt> field is character-precise.
       To save space, it counts the number of characters since the begining of
@@ -4971,14 +4995,14 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       process is relatively slow, but this is acceptable when emitting error
       messages.
     </p>
-    <h3 id="auto-561">6.8<span style="margin-left: 1em"></span>Actions on trees</h3>
+    <h3 id="auto-562">6.8<span style="margin-left: 1em"></span>Actions on trees</h3>
     <p>
       Recursive operations on tree are performed by the <tt class="verbatim">Action</tt>
       class. This class implements virtual functions for each tree type called
       <tt class="verbatim">DoInteger</tt>, <tt class="verbatim">DoReal</tt>, <tt class="verbatim">DoText</tt>
       and so on.
     </p>
-    <h3 id="auto-562">6.9<span style="margin-left: 1em"></span>Symbols</h3>
+    <h3 id="auto-563">6.9<span style="margin-left: 1em"></span>Symbols</h3>
     <p>
       The XL runtime environment maintains symbol tables which form a
       hierarchy. Each symbol table has a (possibly <tt class="verbatim">NULL</tt>)
@@ -4995,7 +5019,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         X,Y</tt>.
       </li>
     </ul>
-    <h3 id="auto-563">6.10<span style="margin-left: 1em"></span>Evaluating trees</h3>
+    <h3 id="auto-564">6.10<span style="margin-left: 1em"></span>Evaluating trees</h3>
     <p>
       A tree is evaluated as follows:
     </p>
@@ -5020,10 +5044,10 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       The signature for <tt class="verbatim">code</tt> is a function taking a <tt class="verbatim">Tree</tt>
       pointer and returning a <tt class="verbatim">Tree</tt> pointer.
     </p>
-    <h3 id="auto-564">6.11<span style="margin-left: 1em"></span>Code generation for trees</h3>
+    <h3 id="auto-565">6.11<span style="margin-left: 1em"></span>Code generation for trees</h3>
     <p>
       Evaluation functions are functions with the signature shown in Figure <a
-      href="#rewrite-code">77</a>:
+      href="#rewrite-code">78</a>:
     </p>
     <table align="center" id="rewrite-code">
       <tbody><tr>
@@ -5034,14 +5058,14 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 77. </b><a id="auto-565"></a>Signature for rewrite code with two
+            <b>Figure 78. </b><a id="auto-566"></a>Signature for rewrite code with two
             variables.
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      Unfortunately, the signature in Figure <a href="#rewrite-code">77</a> is not valid in C
+      Unfortunately, the signature in Figure <a href="#rewrite-code">78</a> is not valid in C
       or C++, so we need a lot of casting to achieve the desired effect.
     </p>
     <p>
@@ -5054,7 +5078,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
     <p>
       However, there are a few important exceptions to this rule:
     </p>
-    <h4 id="auto-566">6.11.1<span style="margin-left: 1em"></span>Right side of a rewrite</h4>
+    <h4 id="auto-567">6.11.1<span style="margin-left: 1em"></span>Right side of a rewrite</h4>
     <p>
       If the tree is on the right of a rewrite (i.e. the right of an infix <tt
       class="verbatim">-&gt;</tt> operator), then <tt class="verbatim">code</tt> will take
@@ -5066,7 +5090,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       For example, if a rewrite is <tt class="verbatim">X+Y-&gt;foo X,Y</tt>, then the
       <tt class="verbatim">code</tt> field for <tt class="verbatim">foo X,Y</tt> will have <tt
       class="verbatim">X</tt> as its second argument and <tt class="verbatim">Y</tt> as its third
-      argument, as shown in Figure <a href="#rewrite-code">77</a>.
+      argument, as shown in Figure <a href="#rewrite-code">78</a>.
     </p>
     <p>
       
@@ -5078,7 +5102,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       In that case, the input tree for the actual expression being rewritten
       remains passed as the first argument, generally denoted as <tt class="verbatim">self</tt>.
     </p>
-    <h4 id="auto-567">6.11.2<span style="margin-left: 1em"></span>Closures</h4>
+    <h4 id="auto-568">6.11.2<span style="margin-left: 1em"></span>Closures</h4>
     <p>
       If a tree is passed as a <tt class="verbatim">tree</tt> argument to a function,
       then it is encapsulated in a <em>closure</em>. The intent is to capture
@@ -5086,7 +5110,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       associated <tt class="verbatim">code</tt> will take additional arguments
       representing all the captured values. For instance, a closure for <tt
       class="verbatim">write X,Y</tt> that captures variables <tt class="verbatim">X</tt> and <tt
-      class="verbatim">Y</tt> will have the signature shown in Figure <a href="#closure-code">78</a>:
+      class="verbatim">Y</tt> will have the signature shown in Figure <a href="#closure-code">79</a>:
     </p>
     <table align="center" id="closure-code">
       <tbody><tr>
@@ -5097,7 +5121,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 78. </b><a id="auto-568"></a>Signature for rewrite code with two
+            <b>Figure 79. </b><a id="auto-569"></a>Signature for rewrite code with two
             variables.
           </p></font>
         </p></td>
@@ -5130,10 +5154,10 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
     <p>
       
     </p>
-    <h3 id="auto-569"><a id="tail-recursion"></a>6.12<span style="margin-left: 1em"></span>Tail recursion</h3>
-    <h3 id="auto-570">6.13<span style="margin-left: 1em"></span>Partial recompilation</h3>
-    <h3 id="auto-571"><a id="machine-interface"></a>6.14<span style="margin-left: 1em"></span>Machine Interface</h3>
-    <h3 id="auto-572"><a id="machine-types"></a>6.15<span style="margin-left: 1em"></span>Machine Types and Normal
+    <h3 id="auto-570"><a id="tail-recursion"></a>6.12<span style="margin-left: 1em"></span>Tail recursion</h3>
+    <h3 id="auto-571">6.13<span style="margin-left: 1em"></span>Partial recompilation</h3>
+    <h3 id="auto-572"><a id="machine-interface"></a>6.14<span style="margin-left: 1em"></span>Machine Interface</h3>
+    <h3 id="auto-573"><a id="machine-types"></a>6.15<span style="margin-left: 1em"></span>Machine Types and Normal
     Types</h3>
     <p>
       

@@ -108,13 +108,13 @@ while [ $# -ne 0 ] ; do
       ;;
     -debug|--debug)
       FLAGS="$FLAGS CONFIG-=release"
-      VERSION="_Debug"
+      VERSION="-debug"
       shift
       ;;
     -O*)
       EXTRA="$EXTRA QMAKE_CFLAGS+=$1 QMAKE_CXXFLAGS+=$1 QMAKE_LDFLAGS+=$1"
       FLAGS="$FLAGS CONFIG-=release"
-      VERSION="_$1"
+      VERSION="$1"
       shift;;
     --with-modlic*)
       with_modlic=1

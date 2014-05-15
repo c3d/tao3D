@@ -82,6 +82,18 @@ void NewDocumentWizard::openWebPage()
 }
 
 
+static void Rename(QDir &dir, QString oldName, QString newName, QString ext)
+// ----------------------------------------------------------------------------
+//   Rename the file with the given extension
+// ---------------------------------------------------------------------------
+{
+    newName += ext;
+    oldName += ext;
+    dir.remove(newName);
+    dir.rename(oldName, newName);
+}
+
+
 void NewDocumentWizard::accept()
 // ----------------------------------------------------------------------------
 //   Copy template into user's document folder
@@ -119,25 +131,18 @@ void NewDocumentWizard::accept()
     docPath = dstPath;
     if (t.mainFile != "")
     {
-        QString oldPath = dstPath + "/" + t.mainFile;
-        QString newPath = dstPath + "/" + docName + ".ddd";
-        if (oldPath != newPath)
+        QString oldName = t.mainFile.replace(QRegExp("\\.ddd$"), "");
+        QString newName = docName;
+        if (oldName != newName)
         {
             // Rename template main file to doc name.
-            // Don't use QDir::rename nor QFile::rename because these
-            // methods assume that the destination file does not exist.
-            // We want to overwrite any existing file.
-            QFile src(oldPath);
-            QFile dst(newPath);
-            src.open(QIODevice::ReadOnly);
-            dst.open(QIODevice::ReadWrite | QIODevice::Truncate);
-            QByteArray data = src.readAll();
-            dst.write(data);
-            dst.close();
-            src.close();
-            QDir(dstPath).remove(t.mainFile);
+            // We need to remove the destination file if it is there
+            QDir dstDir = QDir(dstPath);
+            Rename(dstDir, oldName, newName, ".ddd");
+            Rename(dstDir, oldName, newName, ".ddd.sig");
+            Rename(dstDir, oldName, newName, ".json");
+            docPath = dstDir.filePath(newName + ".ddd");
         }
-        docPath = newPath;
     }
 
 #if !defined(CFG_NOGIT)
@@ -324,7 +329,7 @@ void DocumentNameAndLocationPage::initializePage()
         if (t.mainFile != "")
         {
             name = t.mainFile;
-            name.replace(".ddd", "");
+            name.replace(QRegExp("\\.ddd$"), "");
         }
         if (name != "")
         {

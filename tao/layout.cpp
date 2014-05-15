@@ -59,7 +59,8 @@ LayoutState::LayoutState()
       perPixelLighting(TaoApp->useShaderLighting),
       programId(0),
       groupDrag(false),
-      transparency(false)
+      transparency(false),
+      blendOrShade(false)
 {}
 
 
@@ -81,7 +82,10 @@ LayoutState::LayoutState(const LayoutState &o)
       lightId(o.lightId),
       perPixelLighting(o.perPixelLighting),
       programId(o.programId),
-      model(o.model), groupDrag(false), transparency(o.transparency)
+      model(o.model),
+      groupDrag(false),
+      transparency(o.transparency),
+      blendOrShade(o.blendOrShade)
 {}
 
 
@@ -277,19 +281,22 @@ void Layout::Draw(Layout *where)
 //   Draw the elements in the layout
 // ----------------------------------------------------------------------------
 {
-    // Inherit offset from our parent layout if there is one
-    XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave;
-    Inherit(where);
-
-    // Display all items
-    PushLayout();
-    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+    if (true)
     {
-        Drawing *child = *i;
-        child->Draw(this);
+        // Inherit offset from our parent layout if there is one
+        XL::Save<Point3> save(offset, offset);
+        GLAllStateKeeper glSave;
+        Inherit(where);
+        
+        // Display all items
+        PushLayout();
+        for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+        {
+            Drawing *child = *i;
+            child->Draw(this);
+        }
+        PopLayout();
     }
-    PopLayout();
 
     // Two passes for transparency, see #2199
     if (!where && !transparency)
@@ -897,6 +904,7 @@ void LayoutState::InheritState(LayoutState *where)
 
     groupDrag        = where->groupDrag;
     transparency     = where->transparency;
+    blendOrShade     = where->blendOrShade;
 }
 
 

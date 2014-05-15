@@ -1328,6 +1328,16 @@ double Widget::DevicePixelRatioAPI()
 }
 
 
+bool Widget::RenderingTransparencyAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to checking if we are rendering with transparency
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = findTaoWidget();
+    return widget->space->transparency;
+}
+
+
 void Widget::makeGLContextCurrent()
 // ----------------------------------------------------------------------------
 //   Make GL context of the current Tao widget the current GL context
@@ -9380,6 +9390,7 @@ Tree_p Widget::lineStipple(Tree_p self, text name)
 
     return XL::xl_true;
 }
+
 
 
 // ============================================================================

@@ -58,7 +58,8 @@ LayoutState::LayoutState()
       lightId(GL_LIGHT0),
       perPixelLighting(TaoApp->useShaderLighting),
       programId(0),
-      groupDrag(false)
+      groupDrag(false),
+      transparency(false)
 {}
 
 
@@ -66,21 +67,21 @@ LayoutState::LayoutState(const LayoutState &o)
 // ----------------------------------------------------------------------------
 //   Copy state (may be used between layouts)
 // ----------------------------------------------------------------------------
-      : offset(o.offset),
-        font(o.font),
-        alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
-        left(o.left), right(o.right), top(o.top), bottom(o.bottom),
-        visibility(o.visibility),
-        extrudeDepth(o.extrudeDepth),
-        extrudeRadius(o.extrudeRadius),
-        extrudeCount(o.extrudeCount),
-        lineWidth(o.lineWidth),
-        lineColor(o.lineColor),
-        fillColor(o.fillColor),
-        lightId(o.lightId),
-        perPixelLighting(o.perPixelLighting),
-        programId(o.programId),
-        model(o.model), groupDrag(false)
+    : offset(o.offset),
+      font(o.font),
+      alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
+      left(o.left), right(o.right), top(o.top), bottom(o.bottom),
+      visibility(o.visibility),
+      extrudeDepth(o.extrudeDepth),
+      extrudeRadius(o.extrudeRadius),
+      extrudeCount(o.extrudeCount),
+      lineWidth(o.lineWidth),
+      lineColor(o.lineColor),
+      fillColor(o.fillColor),
+      lightId(o.lightId),
+      perPixelLighting(o.perPixelLighting),
+      programId(o.programId),
+      model(o.model), groupDrag(false), transparency(o.transparency)
 {}
 
 
@@ -282,13 +283,23 @@ void Layout::Draw(Layout *where)
     Inherit(where);
 
     // Display all items
-    PushLayout(this);
+    PushLayout();
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->Draw(this);
     }
-    PopLayout(this);
+    PopLayout();
+
+    // Two passes for transparency, see #2199
+    if (!where && !transparency)
+    {
+        GL.DepthMask(GL_FALSE);
+        transparency = true;
+        Draw(NULL);
+        GL.DepthMask(GL_TRUE);
+        transparency = false;
+    }
 }
 
 
@@ -302,13 +313,13 @@ void Layout::DrawSelection(Layout *where)
     GLAllStateKeeper glSave;
     Inherit(where);
 
-    PushLayout(this);
+    PushLayout();
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->DrawSelection(this);
     }
-    PopLayout(this);
+    PopLayout();
 }
 
 
@@ -326,13 +337,13 @@ void Layout::Identify(Layout *where)
     Inherit(where);
 
 
-    PushLayout(this);
+    PushLayout();
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->Identify(this);
     }
-    PopLayout(this);
+    PopLayout();
 }
 
 
@@ -885,6 +896,7 @@ void LayoutState::InheritState(LayoutState *where)
     model            = where->model;
 
     groupDrag        = where->groupDrag;
+    transparency     = where->transparency;
 }
 
 
@@ -911,7 +923,7 @@ void LayoutState::toDebugString(std::ostream &out) const
 }
 
 
-void Layout::PushLayout(Layout *where)
+void Layout::PushLayout()
 // ----------------------------------------------------------------------------
 //   Save away information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
@@ -920,7 +932,7 @@ void Layout::PushLayout(Layout *where)
     if (id & Widget::SELECTION_MASK)
     {
         uint groupId = id;
-        Widget *widget = where->Display();
+        Widget *widget = Display();
         widget->selectionContainerPush();
         
         uint open = widget->selected(id);
@@ -932,14 +944,14 @@ void Layout::PushLayout(Layout *where)
 }
 
 
-void Layout::PopLayout(Layout *where)
+void Layout::PopLayout()
 // ----------------------------------------------------------------------------
 //   Restore information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
     if (id & Widget::SELECTION_MASK)
     {
-        Widget *widget = where->Display();
+        Widget *widget = Display();
         widget->selectionContainerPop();
         GL.PopName();
     }

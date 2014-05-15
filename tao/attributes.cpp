@@ -366,15 +366,18 @@ void VerticalMarginChange::Draw(Layout *where)
 }
 
 
-void DepthTest::Draw(Layout *)
+void DepthTest::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enable or disable the depth test
 // ----------------------------------------------------------------------------
 {
-    if (enable)
-        GL.Enable(GL_DEPTH_TEST);
-    else
-        GL.Disable(GL_DEPTH_TEST);
+    if (!where->transparency)
+    {
+        if (enable)
+            GL.Enable(GL_DEPTH_TEST);
+        else
+            GL.Disable(GL_DEPTH_TEST);
+    }
 }
 
 

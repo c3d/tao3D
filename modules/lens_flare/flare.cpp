@@ -150,7 +150,7 @@ void LensFlare::Draw()
             Vector3 pos = source + lens_flare[i].loc * lens_dir;
             DrawFlare(lens_flare[i], pos);
         }
-        else if(! occluded)
+        else if(!occluded && !tao->RenderingTransparency())
         {
             // Disable current depth_test to avoid
             // display problem with flares

@@ -10,7 +10,7 @@ on run (volumeName)
 			
 			set theBottomRightX to (theXOrigin + theWidth)
 			set theBottomRightY to (theYOrigin + theHeight)
-			set dsStore to "\"" & "/Volumes/" & volumeName & "/" & ".DS_Store\""
+			set dsStore to "\"" & "./" & volumeName & "/" & ".DS_Store\""
 			
 			tell container window
 				set current view to icon view

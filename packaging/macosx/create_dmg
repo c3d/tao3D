@@ -154,7 +154,7 @@ DEV_NAME=$(hdiutil info | egrep '^/dev/' | sed 1q | awk '{print $1}')
 test -d "${MOUNT_DIR}" && (echo "Unmounting disk image..." ; hdiutil detach "${DEV_NAME}")
 
 echo "Mount directory: $MOUNT_DIR"
-DEV_NAME=$(hdiutil attach -readwrite -noverify -noautoopen "${DMG_TEMP_NAME}" | egrep '^/dev/' | sed 1q | awk '{print $1}')
+DEV_NAME=$(hdiutil attach -readwrite -noverify -noautoopen "${DMG_TEMP_NAME}" -mountroot . | egrep '^/dev/' | sed 1q | awk '{print $1}')
 echo "Device name:     $DEV_NAME"
 
 if ! test -z "$BACKGROUND_FILE"; then

@@ -22,8 +22,7 @@ ARCH=$(OS).$(shell uname -m)
 
 ########
 
-kit:
-	rm -rf Tao_Presentations*
+kit: clean_old
 	$(MAKE) -f Makefile.linux deb
 	$(MAKE) -f Makefile.linux tar
 
@@ -31,7 +30,11 @@ kit:
 
 BZ2=$(TAO).Linux.$(shell uname -m).tar.bz2
 
-tar: $(BZ2)
+# Remove old builds from package to avoid accumulated cruft in automated builds
+clean_old:
+	rm -rf Tao_Presentations*
+
+tar: clean_old $(BZ2)
 
 $(BZ2): $(TAO) $(TAO)/tao
 	tar cvfj $@ $(TAO)
@@ -97,7 +100,7 @@ endif
 
 run-dpkg-deb = fakeroot dpkg-deb --build debian $(TAO)-$(ARCH).deb
 
-deb: prepare
+deb: clean_old prepare
 	$(run-dpkg-deb)
 
 rdeb: debian

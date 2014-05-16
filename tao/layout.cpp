@@ -84,8 +84,8 @@ LayoutState::LayoutState(const LayoutState &o)
       programId(o.programId),
       model(o.model),
       groupDrag(false),
-      transparency(o.transparency),
-      blendOrShade(o.blendOrShade)
+      transparency(false),
+      blendOrShade(false)
 {}
 
 

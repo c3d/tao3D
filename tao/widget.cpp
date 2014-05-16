@@ -2536,7 +2536,7 @@ void Widget::resetView()
     zNear = 1500.0;
     zFar  = 1e6;
     zoom  = 1.0;
-    eyeDistance    = 90.0;
+    eyeDistance    = 75.0;
     cameraPosition = defaultCameraPosition;
     cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
@@ -14093,13 +14093,4 @@ void tao_widget_refresh(double delay)
     TAO(refresh(delay));
 }
 
-}
-
-
-void sd()
-{
-    GLint attr = 0, cattr = 0;
-    glGetIntegerv(GL_ATTRIB_STACK_DEPTH, &attr);
-    glGetIntegerv(GL_CLIENT_ATTRIB_STACK_DEPTH, &cattr);
-    std::cerr << "Attr=" << attr << " cattr=" << cattr << "\n";
 }

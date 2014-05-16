@@ -315,18 +315,31 @@ void Layout::DrawSelection(Layout *where)
 //   Draw the selection for the elements in the layout
 // ----------------------------------------------------------------------------
 {
-    // Inherit offset from our parent layout if there is one
-    XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave;
-    Inherit(where);
-
-    PushLayout();
-    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+    if (true)
     {
-        Drawing *child = *i;
-        child->DrawSelection(this);
+        // Inherit offset from our parent layout if there is one
+        XL::Save<Point3> save(offset, offset);
+        GLAllStateKeeper glSave;
+        Inherit(where);
+        
+        PushLayout();
+        for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+        {
+            Drawing *child = *i;
+            child->DrawSelection(this);
+        }
+        PopLayout();
     }
-    PopLayout();
+
+    // Two passes for transparency, see #2199
+    if (!where && !transparency)
+    {
+        GL.DepthMask(GL_FALSE);
+        transparency = true;
+        DrawSelection(NULL);
+        GL.DepthMask(GL_TRUE);
+        transparency = false;
+    }
 }
 
 
@@ -335,22 +348,34 @@ void Layout::Identify(Layout *where)
 //   Identify the elements of the layout for OpenGL selection
 // ----------------------------------------------------------------------------
 {
-    // Remember that we are in Identify mode
-    XL::Save<bool> saveIdenitfy(inIdentify, true);
-
-    // Inherit offset from our parent layout if there is one
-    XL::Save<Point3> save(offset, offset);
-    GLAllStateKeeper glSave;
-    Inherit(where);
-
-
-    PushLayout();
-    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+    if (true)
     {
-        Drawing *child = *i;
-        child->Identify(this);
+        // Remember that we are in Identify mode
+        XL::Save<bool> saveIdenitfy(inIdentify, true);
+
+        // Inherit offset from our parent layout if there is one
+        XL::Save<Point3> save(offset, offset);
+        GLAllStateKeeper glSave;
+        Inherit(where);
+
+        PushLayout();
+        for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+        {
+            Drawing *child = *i;
+            child->Identify(this);
+        }
+        PopLayout();
     }
-    PopLayout();
+
+    // Two passes for transparency, see #2199
+    if (!where && !transparency)
+    {
+        GL.DepthMask(GL_FALSE);
+        transparency = true;
+        Identify(NULL);
+        GL.DepthMask(GL_TRUE);
+        transparency = false;
+    }
 }
 
 

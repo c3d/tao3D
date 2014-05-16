@@ -14053,12 +14053,3 @@ void tao_widget_refresh(double delay)
 }
 
 }
-
-
-void sd()
-{
-    GLint attr = 0, cattr = 0;
-    glGetIntegerv(GL_ATTRIB_STACK_DEPTH, &attr);
-    glGetIntegerv(GL_CLIENT_ATTRIB_STACK_DEPTH, &cattr);
-    std::cerr << "Attr=" << attr << " cattr=" << cattr << "\n";
-}

@@ -48,7 +48,7 @@ Tree_p lens_flare_target(Tree_p tree, Real_p tx, Real_p ty, Real_p tz)
 {
     if(! lens)
     {
-        Ooops("No lens flare defined '$1' ", tree);
+        Ooops("LensFlare: No lens flare for target in $1 ", tree);
         return xl_false;
     }
     lens->setTarget(Vector3(tx, ty, tz));
@@ -64,7 +64,7 @@ Tree_p lens_flare_source(Tree_p tree, Real_p sx, Real_p sy, Real_p sz)
 {
     if(! lens)
     {
-        Ooops("No lens flare defined '$1' ", tree);
+        Ooops("LensFlare: No lens flare for source in $1 ", tree);
         return xl_false;
     }
     lens->setSource(Vector3(sx, sy, sz));
@@ -80,7 +80,7 @@ Tree_p add_flare(Tree_p tree, GLuint id, Real_p loc, Real_p scale, double r,
 {
     if(! lens)
     {
-        Ooops("No lens flare defined '$1' ", tree);
+        Ooops("LensFlare: No lens flare while adding flare in $1 ", tree);
         return xl_false;
     }
     lens->addFlare(id, loc, scale, r, g, b, a);
@@ -88,14 +88,14 @@ Tree_p add_flare(Tree_p tree, GLuint id, Real_p loc, Real_p scale, double r,
     return xl_true;
 }
 
-Tree_p lens_flare_depth_test(Tree_p tree, Name_p name)
+Tree_p lens_flare_depth_test(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //    Enable or disable depth test on the lens flare
 // ----------------------------------------------------------------------------
 {
-    if(! lens)
+    if(!lens)
     {
-        Ooops("No lens flare defined '$1' ", tree);
+        Ooops("LensFlare: No lens flare for depth test in $1", self);
         return xl_false;
     }
 
@@ -107,6 +107,11 @@ Tree_p lens_flare_depth_test(Tree_p tree, Name_p name)
     else if (name == XL::xl_true || name->value == "ON")
     {
         enable = true;
+    }
+    else
+    {
+        Ooops("LensFlare: Invalid name '$2' in '$1'", self, name);
+        return xl_false;
     }
     lens->enableDephTest(enable);
 

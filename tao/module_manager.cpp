@@ -129,7 +129,6 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
 //   The primitive to import a module, for example:   import ModuleName "1.10"
 // ----------------------------------------------------------------------------
 {
-    XL::Tree *err = NULL;
     XL::Name *name = NULL;
     double m_v = 1.0;
     XL::Prefix *prefix = what->AsPrefix();
@@ -215,35 +214,34 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                 {
                     if (enabled_found)
                     {
-                        err = XL::Ooops("Module $1 load error", name);
+                        XL::Ooops("Module $1 load error", name);
+                        return XL::xl_false;
                     }
                     else
                     {
-                        err = XL::Ooops("Module $1 is disabled", name);
+                        XL::Ooops("Module $1 is disabled", name);
+                        return XL::xl_false;
                     }
                 }
                 else
                 {
-                    err = XL::Ooops("Installed module $1 version $2 does not "
-                                    "match requested version $3", name,
-                                    new XL::Real(inst_v),
-                                    prefix ? prefix->right
-                                           : new XL::Real(m_v));
+                    XL::Ooops("Installed module $1 version $2 does not "
+                              "match requested version $3", name)
+                        .Arg(inst_v).Arg(m_v);
+                    return XL::xl_false;
                 }
             }
             else
             {
-                err = XL::Ooops("Module $1 not found", name);
+                XL::Ooops("Module $1 not found", name);
+                return XL::xl_false;
             }
         }
     }
     else
     {
-        err = XL::Ooops("Invalid module import: $1", self);
+        XL::Ooops("Invalid module import $1", self);
     }
-
-    if (err)
-        return xl_evaluate(context, err);
 
     return XL::xl_true;
 }

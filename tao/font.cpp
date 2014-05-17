@@ -43,7 +43,8 @@ Tree *FontParsingAction::Do (Tree *what)
 //   Default action on trees - Do nothing?
 // ----------------------------------------------------------------------------
 {
-    return Ooops("Unexpected font entry '$1'", what);
+    Ooops("Unexpected font entry $1", what);
+    return what;
 }
 
 
@@ -251,7 +252,8 @@ Tree *FontParsingAction::DoName(Name *what)
     }
     else
     {
-        return Ooops("Unexpected font keyword '$1'", what);
+        Ooops("Unexpected font keyword $1", what);
+        return what;
     }
     return what;
 }
@@ -318,7 +320,8 @@ Tree *FontParsingAction::DoPrefix(Prefix *what)
     Tree *value = context->Evaluate(what);
     if (value != what)
         return value->Do(this);
-    return Ooops("Invalid font attribute '$1'", what);
+    Ooops("Invalid font attribute $1", what);
+    return what;
 }
 
 
@@ -330,7 +333,8 @@ Tree *FontParsingAction::DoPostfix(Postfix *what)
     Tree *value = context->Evaluate(what);
     if (value != what)
         return value->Do(this);
-    return Ooops("Invalid font attribute '$1'", what);
+    Ooops("Invalid font attribute $1", what);
+    return what;
 }
 
 
@@ -355,7 +359,8 @@ Tree *FontParsingAction::DoInfix(Infix *what)
     Tree *value = context->Evaluate(what);
     if (value != what)
         return value->Do(this);
-    return Ooops("Invalid font attribute '$1'", what);
+    Ooops("Invalid font attribute $1", what);
+    return what;
 }
 
 

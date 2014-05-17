@@ -8245,7 +8245,7 @@ Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
 
     if (!gradient)
     {
-        Ooops("No gradient defined $1", self);
+        Ooops("No gradient defined for $1", self);
         return XL::xl_false;
     }
 
@@ -8263,8 +8263,8 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 {
     if (texUnit > GL.MaxTextureUnits())
     {
-        Ooops("Invalid texture unit $1", self);
-        return new XL::Integer((longlong)0);
+        Ooops("Invalid texture unit for $1", self);
+        return new XL::Integer(0, self->Position());
     }
 
     layout->Add(new TextureUnit(texUnit));
@@ -8279,14 +8279,14 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 {
     if (!GL.currentTextures.textures.count(texId))
     {
-        Ooops(+QString("Invalid texture id (%1) $1").arg(texId), self);
-        return new XL::Integer((longlong)0);
+        Ooops("Invalid texture id $2 in $1", self).Arg(texId);
+        return new XL::Integer(0, self->Position());
     }
 
     // Get corresponding texture type
     GLenum type = GL.currentTextures.textures[texId].type;
     layout->Add(new FillTexture(texId, type));
-    return new XL::Integer(texId);
+    return new XL::Integer(texId, self->Position());
 }
 
 
@@ -8488,7 +8488,7 @@ static void list_files(Context *context, Dir &current,
         }
         return;
     }
-    Ooops("Malformed files list $1", patterns);
+    Ooops("Malformed files list for $1: $2", self, patterns);
 }
 
 
@@ -8563,7 +8563,8 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     //to the maximum of texture coordinates (maximum of texture transformation)
     if (texUnit >= GL.MaxTextureCoords())
     {
-        Ooops("Invalid texture unit to transform $1", self);
+        Ooops("Invalid texture unit $2 (max $3) for $1", self)
+            .Arg(texUnit).Arg(GL.MaxTextureCoords());
         return XL::xl_false;
     }
 
@@ -8637,7 +8638,8 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 {
     if (unit > GL.MaxTextureUnits())
     {
-        Ooops("Invalid texture unit $1", self);
+        Ooops("Invalid texture unit $2 for $1, maximum is $3", self)
+            .Arg(unit).Arg(GL.MaxTextureUnits());
         return XL::xl_false;
     }
 
@@ -8849,7 +8851,7 @@ static inline QGLShader::ShaderType ShaderType(Widget::ShaderKind kind)
     case Widget::FRAGMENT:      return QGLShader::Fragment;
     case Widget::GEOMETRY:      return QGLShader::Geometry;
     }
-    XL::Ooops("Shader type not implemented");
+    XL::Ooops("Internal error: Shader type $1 not implemented").Arg(kind);
     return QGLShader::ShaderType(0);
 }
 
@@ -8861,7 +8863,7 @@ Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
+        Ooops("No shader program for $1", self);
         return XL::xl_false;
     }
 
@@ -8899,7 +8901,7 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
+        Ooops("No shader program for $1", self);
         return XL::xl_false;
     }
 
@@ -8958,7 +8960,10 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
 {
     GLuint programId = layout->programId;
     if (!programId)
-        return Ooops("No program for shader assignment $1", self);
+    {
+        Ooops("No shader program for $1", self);
+        return XL::xl_false;
+    }
 
     if (Infix *infix = code->AsInfix())
     {
@@ -9000,7 +9005,7 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
                 else if (Real *rt = value->AsReal())
                     values.push_back(rt->value);
                 else
-                    Ooops("Shader value $1 is not a number", value);
+                    Ooops("Shader value $2 is not a number in $1", self, value);
             }
 
 
@@ -9026,14 +9031,15 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
                 }
                 else
                 {
-                    return Ooops("Unkown shader variable name $1", name);
+                    Ooops("Unkown shader variable name $2 in $1", self, name);
+                    return XL::xl_false;
                 }
             }
 
             return XL::xl_true;
         }
     }
-    Ooops("Malformed shader_set statement $1", code);
+    Ooops("Malformed shader_set statement $1", self);
     return XL::xl_false;
 }
 
@@ -9045,7 +9051,7 @@ Text_p Widget::shaderLog(Tree_p self)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
+        Ooops("No shader program for $1", self);
         return new Text("");
     }
 
@@ -9061,7 +9067,7 @@ Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
+        Ooops("No shader program for $1", self);
         return XL::xl_false;
     }
 
@@ -9077,8 +9083,8 @@ Integer* Widget::geometryInputType(Tree_p self)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
-        return new XL::Integer((longlong)0);
+        Ooops("No shader program for $1", self);
+        return new XL::Integer(0, self->Position());
     }
     return new XL::Integer(currentShaderProgram->program->geometryInputType());
 }
@@ -9091,7 +9097,7 @@ Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
+        Ooops("No shader program for $1", self);
         return XL::xl_false;
     }
 
@@ -9115,7 +9121,7 @@ Integer* Widget::geometryOutputType(Tree_p self)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
+        Ooops("No shader program for $1", self);
         return new XL::Integer((longlong)0);
     }
     return new XL::Integer(currentShaderProgram->program->geometryOutputType());
@@ -9129,7 +9135,7 @@ Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
     if (!currentShaderProgram)
 
     {
-        Ooops("No shader program while executing $1", self);
+        Ooops("No shader program for $1", self);
         return XL::xl_false;
     }
 
@@ -9150,8 +9156,8 @@ Integer* Widget::geometryOutputCount(Tree_p self)
 {
     if (!currentShaderProgram)
     {
-        Ooops("No shader program while executing $1", self);
-        return new XL::Integer((longlong)0);
+        Ooops("No shader program for $1", self);
+        return new XL::Integer(0, self->Position());
     }
 
     QGLShaderProgram *prog = currentShaderProgram->program;
@@ -9172,7 +9178,10 @@ Tree_p Widget::newPath(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     if (path)
-        return Ooops("Path '$1' while evaluating a path", self);
+    {
+        Ooops("Nest path $1", self);
+        return XL::xl_false;
+    }
 
     TesselatedPath *localPath = new TesselatedPath(GLU_TESS_WINDING_ODD);
     XL::Save<GraphicPath *> save(path, localPath);
@@ -9208,7 +9217,10 @@ Tree_p Widget::lineTo(Tree_p self, Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 {
     if (!path)
-        return Ooops("No path for '$1'", self);
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
     path->lineTo(Point3(x,y,z));
     path->AddControl(self, true, x, y, z);
     return XL::xl_true;
@@ -9223,7 +9235,10 @@ Tree_p Widget::curveTo(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     if (!path)
-        return Ooops("No path for '$1'", self);
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
     path->curveTo(Point3(cx, cy, cz), Point3(x,y,z));
     path->AddControl(self, true, x, y, z);
     path->AddControl(self, false, cx, cy, cz);
@@ -9240,7 +9255,10 @@ Tree_p Widget::curveTo(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     if (!path)
-        return Ooops("No path for '$1'", self);
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
     path->curveTo(Point3(c1x, c1y, c1z), Point3(c2x, c2y, c2z), Point3(x,y,z));
     path->AddControl(self, true, x, y, z);
     path->AddControl(self, false, c1x, c1y, c1z);
@@ -9273,7 +9291,10 @@ Tree_p Widget::lineToRel(Tree_p self, Real_p x, Real_p y, Real_p z)
 // ----------------------------------------------------------------------------
 {
     if (!path)
-        return Ooops("No path for '$1'", self);
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
     path->lineTo(Vector3(x,y,z));
     path->AddControl(self, true, x, y, z);
     return XL::xl_true;
@@ -9285,7 +9306,8 @@ Tree_p Widget::pathTextureCoord(Tree_p self, Real_p x, Real_p y, Real_p r)
 //    Add a texture coordinate to the path
 // ----------------------------------------------------------------------------
 {
-    return XL::Ooops ("Path texture coordinate '$1' not supported yet", self);
+    XL::Ooops ("Path texture coordinate $1 not supported yet", self);
+    return XL::xl_false;
 }
 
 
@@ -9294,7 +9316,8 @@ Tree_p Widget::pathColor(Tree_p self, Real_p r, Real_p g, Real_p b, Real_p a)
 //   Add a color element to the path
 // ----------------------------------------------------------------------------
 {
-    return XL::Ooops ("Path color coordinate '$1' not supported yet", self);
+    XL::Ooops ("Path color coordinate $1 not supported yet", self);
+    return XL::xl_false;
 }
 
 
@@ -9304,7 +9327,10 @@ Tree_p Widget::closePath(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!path)
-        return Ooops("No path for '$1'", self);
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
     path->close();
     return XL::xl_true;
 }
@@ -9379,7 +9405,10 @@ Tree_p Widget::endpointsStyle(Tree_p self, symbol_r s, symbol_r e)
 // ----------------------------------------------------------------------------
 {
     if (!path)
-        return Ooops("No path for '$1'", self);
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
 
     path->startStyle = endpointStyle(s);
     path->endStyle   = endpointStyle(e);
@@ -9425,7 +9454,10 @@ Tree_p Widget::lineStipple(Tree_p self, text name)
 // ----------------------------------------------------------------------------
 {
     if (!path)
-        return Ooops("No path for '$1'", self);
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
 
     path->lineStyle = lineStyle(name);
 
@@ -10799,7 +10831,10 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell '$1' outside of any table", self);
+    {
+        Ooops("Table cell $1 outside of any table", self);
+        return XL::xl_false;
+    }
 
     // Define a new text layout
     PageLayout *tbox = new PageLayout(this);
@@ -10823,7 +10858,10 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell '$1' outside of any table", self);
+    {
+        Ooops("Table cell $1 outside of any table", self);
+        return XL::xl_false;
+    }
     if (!body->Symbols())
         body->SetSymbols(self->Symbols());
 
@@ -10846,7 +10884,10 @@ Tree_p Widget::tableMargins(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table margins '$1' outside of any table", self);
+    {
+        Ooops("Table margins $1 outside of any table", self);
+        return XL::xl_false;
+    }
     table->margins = Box(x-w/2, y-h/2, w, h);
     return XL::xl_true;
 }
@@ -10858,7 +10899,10 @@ Tree_p Widget::tableMargins(Tree_p self, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table margins '$1' outside of any table", self);
+    {
+        Ooops("Table cell $1 outside of any table", self);
+        return XL::xl_false;
+    }
     table->margins = Box(-w/2, -h/2, w, h);
     return XL::xl_true;
 }
@@ -10870,7 +10914,10 @@ Tree_p Widget::tableFill(Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table fill '$1' outside of any table", self);
+    {
+        Ooops("Table fill $1 outside of any table", self);
+        return XL::xl_false;
+    }
     if (!code->Symbols())
         code->SetSymbols(self->Symbols());
     table->fill = code;
@@ -10884,7 +10931,10 @@ Tree_p Widget::tableBorder(Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table border '$1' outside of any table", self);
+    {
+        Ooops("Table border $1 outside of any table", self);
+        return XL::xl_false;
+    }
     if (!code->Symbols())
         code->SetSymbols(self->Symbols());
     table->border = code;
@@ -10898,8 +10948,10 @@ Real_p Widget::tableCellX(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell position '$1' without a table", self)
-            ->AsReal();
+    {
+        Ooops("Table cell position $1 without a table", self);
+        return new Real(0.0, self->Position());
+    }
     return new Real(table->cellBox.Center().x, self->Position());
 }
 
@@ -10910,8 +10962,10 @@ Real_p Widget::tableCellY(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell position '$1' without a table", self)
-            ->AsReal();
+    {
+        Ooops("Table cell position $1 without a table", self);
+        return new Real(0.0, self->Position());
+    }
     return new Real(table->cellBox.Center().y, self->Position());
 }
 
@@ -10922,8 +10976,10 @@ Real_p Widget::tableCellW(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell size '$1' without a table", self)
-            ->AsReal();
+    {
+        Ooops("Table cell size $1 without a table", self);
+        return new Real(1.0, self->Position());
+    }
     return new Real(table->cellBox.Width(), self->Position());
 }
 
@@ -10934,8 +10990,10 @@ Real_p Widget::tableCellH(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell size '$1' without a table", self)
-            ->AsReal();
+    {
+        Ooops("Table cell size $1 without a table", self);
+        return new Real(1.0, self->Position());
+    }
     return new Real(table->cellBox.Height(), self->Position());
 }
 
@@ -10946,8 +11004,10 @@ Integer_p Widget::tableRow(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell attribute '$1' without a table", self)
-            ->AsInteger();
+    {
+        Ooops("Table cell attribute $1 without a table", self);
+        return new Integer(0, self->Position());
+    }
     return new Integer(table->row, self->Position());
 }
 
@@ -10958,8 +11018,10 @@ Integer_p Widget::tableColumn(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table cell attribute '$1' without a table", self)
-            ->AsInteger();
+    {
+        Ooops("Table cell attribute $1 without a table", self);
+        return new Integer(0, self->Position());
+    }
     return new Integer(table->column, self->Position());
 }
 
@@ -10970,8 +11032,10 @@ Integer_p Widget::tableRows(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table attribute '$1' without a table", self)
-            ->AsInteger();
+    {
+        Ooops("Table attribute $1 without a table", self);
+        return new Integer(0, self->Position());
+    }
     return new Integer(table->rows, self->Position());
 }
 
@@ -10982,8 +11046,10 @@ Integer_p Widget::tableColumns(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     if (!table)
-        return Ooops("Table attribute '$1' without a table", self)
-            ->AsInteger();
+    {
+        Ooops("Table attribute $1 without a table", self);
+        return new Integer(0, self->Position());
+    }
     return new Integer(table->columns, self->Position());
 }
 
@@ -12699,10 +12765,7 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     {
         err.Display();
     }
-
-    Tree_p result = (Tree *) err;
-    result->SetSymbols(self->Symbols());
-    return result;
+    return XL::xl_false;
 }
 
 
@@ -13860,15 +13923,15 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
             }
             else
             {
-                Ooops("display_set value $1 is not a string and not a number",
-                      arg);
+                Ooops("Display driver argument $2 be text or number in $1",
+                      self, arg);
                 return XL::xl_false;
             }
             displayDriver->setOption(name->value, strval);
             return XL::xl_true;
         }
     }
-    Ooops("Malformed display_set statement $1", code);
+    Ooops("Malformed display_set statement $1", self);
     return XL::xl_false;
 }
 

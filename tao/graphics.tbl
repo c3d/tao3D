@@ -992,15 +992,14 @@ PREFIX(Separator,  tree,  "separator", , RTAO(separator(self)),
 // ============================================================================
 
 PREFIX(ErrorMessage,  tree,  "error",
-       PARM(m, text, )
-       PARM(s, tree, )
-       , return Tao::Widget::runtimeError(self, m, s),
+       PARM(m, text, ) PARM(s, tree, ),
+       return Tao::Widget::runtimeError(self, m, s),
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
 PREFIX(ErrorMessage0,  tree,  "error",
-       PARM(m, text, "The message to display")
-       , return Tao::Widget::runtimeError(self, m, NULL),
+       PARM(m, text, "The message to display"),
+       return Tao::Widget::runtimeError(self, m, NULL),
        GROUP()
        SYNOPSIS("Display an error message from the input")
        DESCRIPTION("Display an error message from the input")

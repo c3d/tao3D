@@ -469,30 +469,28 @@ PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
 // ============================================================================
 
 PREFIX(PageSeconds,  real,      "page_time", , RTAO(pageTime(self)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
+       GROUP(formula)
+       SYNOPSIS("")
+       DESCRIPTION(""))
 PREFIX(ErrorMessage,  tree,  "error", 
-    PARM(m, text, )
-    PARM(s, tree, )
-, return Tao::Widget::formulaRuntimeError(self, m, &s), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
+       PARM(m, text, ) PARM(s, tree, ),
+       return Tao::Widget::formulaRuntimeError(self, m, &s), 
+       GROUP(formula)
+       SYNOPSIS("")
+       DESCRIPTION(""))
 
 PREFIX(ErrorMessage0,  tree,  "error", 
-    PARM(m, text, )
-, return Tao::Widget::formulaRuntimeError(self, m, NULL), 
-    GROUP(formula)
+       PARM(m, text, ),
+       return Tao::Widget::formulaRuntimeError(self, m, NULL), 
+       GROUP(formula)
     SYNOPSIS("")
-    DESCRIPTION(""))
+       DESCRIPTION(""))
 PREFIX(ErrorMessageM,  tree,  "error_message_box", 
-    PARM(m, text, )
-    PARM(s, tree, )
-, RTAO(runtimeError(self, m, &s)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
+       PARM(m, text, ) PARM(s, tree, ),
+       RTAO(runtimeError(self, m, &s)), 
+       GROUP(formula)
+       SYNOPSIS("")
+       DESCRIPTION(""))
 
 
 
@@ -503,39 +501,29 @@ PREFIX(ErrorMessageM,  tree,  "error_message_box",
 // ============================================================================
 
 PREFIX(ErrorMessageM0,  tree,  "error_message_box", 
-    PARM(m, text, )
-, RTAO(runtimeError(self, m, NULL)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-POSTFIX(FromCm,    real, 
-    PARM(x, real, )
-,  "cm", RTAO(fromCm(self, x)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-POSTFIX(FromMm,    real, 
-    PARM(x, real, )
-,  "mm", RTAO(fromMm(self, x)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-POSTFIX(FromInch,  real, 
-    PARM(x, real, )
-,  "inch", RTAO(fromIn(self, x)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
-POSTFIX(FromPt,    real, 
-    PARM(x, real, )
-,  "pt", RTAO(fromPt(self, x)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
+       PARM(m, text, ),
+       RTAO(runtimeError(self, m, NULL)), 
+       GROUP(formula)
+       SYNOPSIS("")
+       DESCRIPTION(""))
+POSTFIX(FromCm,    real, PARM(x, real, ), "cm", RTAO(fromCm(self, x)), 
+        GROUP(formula)
+        SYNOPSIS("")
+        DESCRIPTION(""))
+POSTFIX(FromMm,    real, PARM(x, real, ), "mm", RTAO(fromMm(self, x)), 
+        GROUP(formula)
+        SYNOPSIS("")
+        DESCRIPTION(""))
+POSTFIX(FromInch,  real, PARM(x, real, ), "inch", RTAO(fromIn(self, x)), 
+        GROUP(formula)
+        SYNOPSIS("")
+        DESCRIPTION(""))
+POSTFIX(FromPt, real, PARM(x, real, ), "pt", RTAO(fromPt(self, x)), 
+        GROUP(formula)
+        SYNOPSIS("")
+        DESCRIPTION(""))
 
-POSTFIX(FromPx,    real, 
-    PARM(x, real, )
-,  "px", RTAO(fromPx(self, x)), 
-    GROUP(formula)
-    SYNOPSIS("")
-    DESCRIPTION(""))
+POSTFIX(FromPx, real, PARM(x, real, ), "px", RTAO(fromPx(self, x)), 
+        GROUP(formula)
+        SYNOPSIS("")
+        DESCRIPTION(""))

@@ -31,6 +31,7 @@
        display_checkerboard \
        display_2dplusdepth \
        display_tridelity \
+       display_united_entertain \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \

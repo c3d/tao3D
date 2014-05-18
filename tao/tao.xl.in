@@ -187,9 +187,8 @@ display_mode_chooser ->
     if has_display_mode "united_entertain" then
         chooser_choice tr "Enable stereoscopy (United Entertain)", {enable_stereoscopy united_entertain}
     if has_display_mode "2dplusdepth" then
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"}
     if has_display_mode "tridelity_mv" then
         chooser_choice tr "Enable stereoscopy (Tridelity MV)", {enable_stereoscopy "tridelity_mv"}
     if has_display_mode "tridelity_ml" then

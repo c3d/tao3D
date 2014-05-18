@@ -180,22 +180,17 @@ display_mode_chooser ->
         chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
     if has_display_mode "hframepacking" then
         chooser_choice tr "Enable stereoscopy (horizontal frame packing)", {enable_stereoscopy hframepacking}
-    if has_display_mode "vsplitstereo" then
+    if has_display_mode "vframepacking" then
         chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
     if has_display_mode "alioscopy" then
         chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
     if has_display_mode "united_entertain" then
         chooser_choice tr "Enable stereoscopy (United Entertain)", {enable_stereoscopy united_entertain}
     if has_display_mode "2dplusdepth" then
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
-    if has_display_mode "tridelity_mv" then
-        chooser_choice tr "Enable stereoscopy (Tridelity MV)", {enable_stereoscopy "tridelity_mv"}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"}
     if has_display_mode "tridelity_ml" then
         chooser_choice tr "Enable stereoscopy (Tridelity ML)", {enable_stereoscopy "tridelity_ml"}
-    if has_display_mode "tridelity_mp" then
-        chooser_choice tr "Enable stereoscopy (Tridelity MP)", {enable_stereoscopy "tridelity_mp"}
     if has_display_mode "anaglyph" then
         chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}
     if has_display_mode "checkerboard" then

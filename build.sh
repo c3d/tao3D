@@ -6,7 +6,8 @@
 git fetch --tags
 
 # Create a clean build each time we have a "true" release candidate
-(tao/updaterev.sh -n | grep [dg]) || make distclean
+# Other releases have a git hash beginning with g, like 1.50-1-ge0db3af
+(tao/updaterev.sh -n | grep g) || make distclean
 
 # Configure with the Jenkins input parameters
 ./configure -$BUILD_OPT $BUILD_VERSION VLC=$VLCPATH 

@@ -1,5 +1,42 @@
 Change log for Tao Presentations 2.x
 
+2.0-beta-2 (21-May-2014)
+
+#3425 Support for Dimenco 1080p displays using native 9-view mix
+#3424 Add View > Display menu entries for 2D+Z (Dimenco)
+#3410 Include multiscopic drivers in default download
+ --   Enable following modules by default: quiz, web_remote, prez_at, tao_sync 
+ --   Update to git 1.9.0
+ --   Add missing Linux dependency on libestools (required by Speech module)
+#3408 Prevent ObjectLoader from corrupting GL drawing state
+#3404 Accept OBJ files generated from 3DS Max export
+#3399 WebRemote module snapshots pages on page transitions, not at startup
+#3396 Fix crash caused by invalid data types for some XL errors
+#3394 Add -display option to select display mode at startup
+#3391 Allow FPS statistics trace to be activated from the preferences box
+#3390 Send error and log messages to tao.log file when there is no console
+#3385 Fix shader errors with Mac Retina displays
+#3384 Added multistream_movie and multiview_image
+#3383 Added text_frame and text_frame_texture (text box rendering to texture)
+#3365 Allow more than 8 texture units
+#3364 Report errors during stereoscopic driver initialization, avoid crash
+#3363 Add "highlight" color style for Slides module
+#3362 Add 8VIEW6 tiled movie decoding mode, skipping the broken-up views
+#3361 Update demo quiz information and quiz module
+#3360 Add 5VIEW4 tiled movie decoding mode, skipping the broken-up view
+#3359 Support for United Entertain displays
+#3358 Unified configurable multiscopic driver
+#3357 Ensure VLC ouptut from -tvlc shows on the standard error
+#3355 Support playback of multiple video streams in a single video file
+#3338 Added Alex Brush and Open Sans fonts
+#3214 Initialize slides language to the language of the user interface
+#3043 Fix XL regression causing error in Seasons Greetings theme
+#2836 Support for Tridelity ML displays
+#2281 Recompute the Z-map scaling for 2D+Z based on eye_distance
+#2199 Enhance rendering of transparent objects, e.g cubes
+#2121 Improve depth perception for objects around Z=0
+
+
 2.0-beta (24-Jan-2014)
 
 Improved editor

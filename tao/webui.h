@@ -58,6 +58,7 @@ protected:
 protected slots:
     void           serverStartError();
     void           readServerOut(QByteArray newOut);
+    void           readServerError(QByteArray newOut);
 
 protected:
     Process        server;

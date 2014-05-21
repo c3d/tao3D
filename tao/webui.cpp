@@ -49,6 +49,8 @@ WebUI::WebUI(QObject *parent)
             this, SLOT(serverStartError()));
     connect(&server, SIGNAL(standardOutputUpdated(QByteArray)),
             this,    SLOT(readServerOut(QByteArray)));
+    connect(&server, SIGNAL(standardErrorUpdated(QByteArray)),
+            this,    SLOT(readServerError(QByteArray)));
     server.setWd(serverDir());
 }
 
@@ -112,7 +114,7 @@ void WebUI::startServer(bool andBrowser)
     QStringList args("server.js");
     if (GeneralPage::webUISecurityTokenEnabled())
     {
-        token = QUuid::createUuid().toString().replace("{", "").replace("}", "");
+        token = QUuid::createUuid().toString().replace("{","").replace("}","");
         args << "-t" << token;
     }
     else
@@ -149,7 +151,16 @@ void WebUI::readServerOut(QByteArray newOut)
     }
 
     IFTRACE(webui)
-            std::cout << "[Server] " << newOut.data() << "\n";
+        std::cout << "[WebUI Server] " << newOut.data() << "\n";
+}
+
+
+void WebUI::readServerError(QByteArray newErr)
+// ----------------------------------------------------------------------------
+//   Make sure we report errors in WebUI server
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[WebUI Server] " << newErr.data() << "\n";
 }
 
 

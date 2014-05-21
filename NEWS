@@ -6,6 +6,7 @@ Major enhancements in this release:
 - Support for United Entertain, Tridelity ML and Dimenco in 9-view mode
 - Support for multi-stream videos in MP4 containers
 
+#3427 Fix for line_arrow not showing arrows
 #3425 Support for Dimenco 1080p displays using native 9-view mix
 #3424 Add View > Display menu entries for 2D+Z (Dimenco)
 #3410 Include multiscopic drivers in default download

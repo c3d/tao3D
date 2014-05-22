@@ -241,17 +241,13 @@ void redirect_console()
 {
     bool redirectToTaoLog = true;
 #ifdef CONFIG_MINGW
+
     // Note: must be done before AttachConsole()
     DWORD outType, errType;
     outType = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
     errType = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
 
-    fprintf(stderr, "Initializing\n");
-    std::cerr << "Initializing C++\n";
-    printf("Hello world\n");
-    std::cout << "Hello world C++\n";
-
-    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    if (!getenv("TAO_LOG") && AttachConsole(ATTACH_PARENT_PROCESS))
     {
         // Parent has a console.
         // Tested with cmd.exe and MinGW shell (bash):
@@ -266,8 +262,10 @@ void redirect_console()
             freopen("CON", "a", stdout);
         if (errType == FILE_TYPE_UNKNOWN)
             freopen("CON", "a", stderr);
+        std::cerr.rdbuf(std::cout.rdbuf());
         redirectToTaoLog = false;
     }
+
 #else // Non Windows, normal systems
 
     // Check if we have a shell or if stdout is a terminal. Redirect otherwise.
@@ -296,10 +294,13 @@ void redirect_console()
         log = path.toStdString().c_str();
 
 #ifdef CONFIG_MINGW
-        freopen(log, "a", stdout);
-        freopen(log, "a", stderr);
-#endif
-
+        freopen(log, "w", stdout);
+        stderr->_file = stdout->_file;
+        stderr->_flag = stdout->_flag;
+        setbuf(stdout, NULL);
+        setbuf(stderr, NULL);
+        std::cerr.rdbuf(std::cout.rdbuf());
+#else
         int fd = open(log, O_RDWR | O_CREAT | O_TRUNC, 0644);
         if (fd != -1)
         {
@@ -312,7 +313,14 @@ void redirect_console()
             fprintf(stderr, "Unable to redirect to %s: %s\n=",
                     log, strerror(errno));
         }
+#endif
     }
+
+    // Check that the various output logs are all functioning
+    fprintf(stderr, "Initializing Tao - stderr is ready\n");
+    std::cerr <<    "                   std::cerr is ready\n";
+    printf(         "                   stdout is ready\n");
+    std::cout <<    "                   std::cout is ready\n";
 
     // Defaults for our logging
     std::cout.setf(std::ios::fixed, std::ios::floatfield);

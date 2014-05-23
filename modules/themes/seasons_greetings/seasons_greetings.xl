@@ -141,7 +141,7 @@ theme_bullet_picture "SeasonsGreetings", Master:text, Level:integer ->
 //    Draw a snowflake for the theme bullets
 // ----------------------------------------------------------------------------
     seasons_greetings_bullet S:real ->
-        color "white"
+        color "white", 0.95
         image_px -30, 15, S*0.8, S*0.8, "Snowfall:snowflake.png"
     seasons_greetings_bullet theme_size(theme, Master, "bullet", Level)
 

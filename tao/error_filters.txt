@@ -29,4 +29,5 @@
 shader\(s\) linked\.
 # Bug #3271
 QGLShader::link: "No errors\.
-
+# Bug #3431
+QFileSystemWatcher::removePaths: list is empty

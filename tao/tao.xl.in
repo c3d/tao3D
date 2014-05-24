@@ -169,7 +169,7 @@ display_mode_chooser ->
 //   List the available display modes for the chooser
 // ----------------------------------------------------------------------------
     if has_display_mode "quadstereo" then
-        chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
+        chooser_choice tr "Enable stereoscopy (quad buffer)", {enable_stereoscopy true}
     if has_display_mode "hsplitstereo" then
         chooser_choice tr "Enable stereoscopy (side by side)", {enable_stereoscopy hsplit}
         chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}

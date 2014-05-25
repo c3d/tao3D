@@ -168,21 +168,6 @@ toggle_hand_cursor();
 
 /**
  * @~english
- * Partially shows or hides elements.
- * Applies a transparency factor of @p amount to the current layout.
- * When @p amount is 0.0, the layout is totally invisible. When @p amount
- * is 1.0, the layout is totally visible.
- * @~french
- * Montre ou cache partiellement des éléments graphiques.
- * Applique un facteur de transparence @p amount au @a layout courant.
- * Lorsque @p amount vaut 0.0, le @a layout est totalement invisible. Lorsque
- * @p amount est 1.0, le @a layout est totalement visible.
- */
-show(amount:real);
-
-
-/**
- * @~english
  * The current value of the frame counter.
  * Returns the number of frames (images) that have been displayed so far for the
  * current document. You may use this value for instance to compute

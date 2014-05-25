@@ -920,6 +920,21 @@ line_color_cymk (c:real, y:real, m:real, k:real);
 
 /**
  * @~english
+ * Partially shows or hides elements.
+ * Applies a transparency factor of @p amount to the current layout.
+ * When @p amount is 0.0, the layout is totally invisible. When @p amount
+ * is 1.0, the layout is totally visible.
+ * @~french
+ * Montre ou cache partiellement des éléments graphiques.
+ * Applique un facteur de transparence @p amount au @a layout courant.
+ * Lorsque @p amount vaut 0.0, le @a layout est totalement invisible. Lorsque
+ * @p amount est 1.0, le @a layout est totalement visible.
+ */
+show(amount:real);
+
+
+/**
+ * @~english
  * Creates a stop point in the current gradient at the given position with the given color.
  *
  * @param pos position of stop point in the current gradient, in the range 0.0 to 1.0.

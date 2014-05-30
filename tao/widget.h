@@ -582,7 +582,7 @@ public:
                          GLfloat a, GLfloat b, GLfloat c, GLfloat d);
     Tree_p      shaderProgram(Context *, Tree_p self, Tree_p code);
     Tree_p      shaderFromSource(Tree_p self, ShaderKind kind, text source);
-    Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
+    Tree_p      shaderFromFile(Context *, Tree_p self, ShaderKind k, text file);
     Tree_p      shaderSet(Context *, Tree_p self, Tree_p code);
     Text_p      shaderLog(Tree_p self);
     Name_p      setGeometryInputType(Tree_p self, uint inputType);
@@ -706,7 +706,7 @@ public:
     Tree_p      drawingBreak(Tree_p self, BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
-    Text_p      loadText(Tree_p self, text file, text encoding);
+    Text_p      loadText(Context *, Tree_p self, text file, text encoding);
     Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
     Text_p      taoEdition(Tree_p self);

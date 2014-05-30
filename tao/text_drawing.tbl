@@ -287,14 +287,14 @@ PREFIX(TextEditKey,  boolean,  "text_edit_key",
 PREFIX(LoadEncodedText,  tree,  "load_text",
        PARM(f,text, "file name")
        PARM(encoding,text, "text encoding"),
-       RTAO(loadText(self,f, encoding)),
+       RTAO(loadText(context, self,f, encoding)),
        GROUP(text:file)
        SYNOPSIS("Load a text file from disk")
        DESCRIPTION("Load a text file from disk. It uses the 'doc' prefix to look into resources")
        RETURNS(tree, "The content of the file."))
 PREFIX(LoadText,  tree,  "load_text",
        PARM(f,text, "file name"),
-       RTAO(loadText(self,f,"UTF-8")),
+       RTAO(loadText(context, self,f,"UTF-8")),
        GROUP(text:file)
        SYNOPSIS("Load a text file from disk")
        DESCRIPTION("Load a text file from disk. It uses the 'doc' prefix to look into resources")

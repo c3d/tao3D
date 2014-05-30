@@ -206,7 +206,7 @@ PREFIX(VertexShaderFromSource, tree, "vertex_shader", PARM(src, text,),
        SYNOPSIS("Define a vertex shader")
        DESCRIPTION(""))
 PREFIX(VertexShaderFromFile, tree, "vertex_shader_file", PARM(file, text,),
-       RTAO(shaderFromFile(self, Tao::Widget::VERTEX, file)),
+       RTAO(shaderFromFile(context, self, Tao::Widget::VERTEX, file)),
        GROUP(lighting)
        SYNOPSIS("Define a vertex shader")
        DESCRIPTION(""))
@@ -217,7 +217,7 @@ PREFIX(FragmentShaderFromSource, tree, "fragment_shader",
        SYNOPSIS("Define a fragment shader"))
 PREFIX(FragmentShaderFromFile, tree, "fragment_shader_file",
        PARM(file, text, "Name of fragment shader file"),
-       RTAO(shaderFromFile(self, Tao::Widget::FRAGMENT, file)),
+       RTAO(shaderFromFile(context, self, Tao::Widget::FRAGMENT, file)),
        GROUP(graph:shading)
        SYNOPSIS("Load a fragment shader from a file"))
 PREFIX(GeometryShaderFromSource, tree, "geometry_shader",
@@ -227,7 +227,7 @@ PREFIX(GeometryShaderFromSource, tree, "geometry_shader",
        SYNOPSIS("Define a geometry shader"))
 PREFIX(GeometryShaderFromFile, tree, "geometry_shader_file",
        PARM(file, text, "File name for the shader"),
-       RTAO(shaderFromFile(self, Tao::Widget::GEOMETRY, file)),
+       RTAO(shaderFromFile(context, self, Tao::Widget::GEOMETRY, file)),
        GROUP(graph:shading)
        SYNOPSIS("Define a geometry shader"))
 PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),

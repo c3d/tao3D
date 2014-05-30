@@ -8894,7 +8894,8 @@ Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
 }
 
 
-Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
+Tree_p Widget::shaderFromFile(Context *context,
+                              Tree_p self, ShaderKind kind, text file)
 // ----------------------------------------------------------------------------
 //   Load a shader from shader source
 // ----------------------------------------------------------------------------
@@ -8905,7 +8906,11 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
         return XL::xl_false;
     }
 
-    Text_p source = loadText(self, file, "");
+    IFTRACE(shaders)
+        std::cerr << "Loading shader from " << file << "\n";
+    Text_p source = loadText(context, self, file, "");
+    IFTRACE(shaders)
+        std::cerr << "Source is " << source->value << "\n";
     return shaderFromSource(self, kind, source->value);
 }
 
@@ -8971,7 +8976,27 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
         {
             ADJUST_CONTEXT_FOR_INTERPRETER(context);
             XL::Symbols *symbols = self->Symbols();
+            kstring cname = "";
             Name_p name = infix->left->AsName();
+            if (name)
+            {
+                cname = name->value.c_str();
+            }
+            else
+            {
+                Text_p tname = infix->left->AsText();
+                if (tname)
+                {
+                    cname = tname->value.c_str();
+                }
+                else
+                {
+                    Ooops("Shader name $2 must be a name or text in $1",
+                          self, infix->left);
+                    cname = "unknown";
+                }
+            } 
+
             Tree_p arg = infix->right;
             if (Block *block = arg->AsBlock())
                 arg = block->child;
@@ -9010,7 +9035,6 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
 
 
             // Get location for the given uniform
-            kstring cname = name->value.c_str();
             GLint uniformLoc = GL.GetUniformLocation(programId, cname);
 
             if (uniformLoc >= 0)
@@ -9031,7 +9055,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
                 }
                 else
                 {
-                    Ooops("Unkown shader variable name $2 in $1", self, name);
+                    Ooops("Unkown shader variable name $2 in $1",
+                          self, infix->left);
                     return XL::xl_false;
                 }
             }
@@ -10551,12 +10576,15 @@ struct LoadTextInfo : Info
 };
 
 
-Text_p Widget::loadText(Tree_p self, text file, text encoding)
+Text_p Widget::loadText(Context *context,
+                        Tree_p self, text file, text encoding)
 // ----------------------------------------------------------------------------
 //    Load a text file from disk
 // ----------------------------------------------------------------------------
 {
     bool doLoad = false;
+
+    file  = context->ResolvePrefixedPath(file);
 
     QFileInfo fileInfo(+file);
     if (!fileInfo.isAbsolute())

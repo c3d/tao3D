@@ -302,11 +302,9 @@ void Layout::Draw(Layout *where)
     if (!where && !transparency)
     {
         GL.DepthMask(GL_FALSE);
-        GL.Disable(GL_CULL_FACE);
         transparency = true;
         Draw(NULL);
         GL.DepthMask(GL_TRUE);
-        GL.Enable(GL_CULL_FACE);
         transparency = false;
     }
 }

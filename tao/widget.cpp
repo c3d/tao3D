@@ -2845,8 +2845,8 @@ void Widget::setupGL()
     GL.ActivateTextureUnits(0);
     GL.ActiveTexture(GL_TEXTURE0); // Reset the default active texture
     GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
-    GL.Enable(GL_CULL_FACE);
-    GL.CullFace(GL_FRONT);
+    GL.Disable(GL_CULL_FACE);
+    GL.CullFace(GL_BACK);
     GL.ShadeModel(GL_SMOOTH);
     GL.Disable(GL_LIGHTING);
     GL.Disable(GL_COLOR_MATERIAL);

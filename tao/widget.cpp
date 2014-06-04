@@ -7962,6 +7962,21 @@ static inline QColor colorByName(text name)
 {
     if (QColor::isValidColor(+name))
         return QColor(+name);
+
+    kstring cname = name.c_str();
+
+    int r, g, b, a;
+    if (sscanf(cname, "rgb(%d,%d,%d)", &r, &g, &b) == 3)
+        return QColor::fromRgb(r, g, b);
+    if (sscanf(cname, "rgba(%d,%d,%d,%d)", &r, &g, &b, &a) == 4)
+        return QColor::fromRgb(r, g, b, a);
+
+    int h, s, l;
+    if (sscanf(cname, "hsl(%d,%d,%d)", &h, &s, &l) == 3)
+        return QColor::fromHsl(h, s, l);
+    if (sscanf(cname, "hsla(%d,%d,%d,%d)", &h, &s, &l, &a) == 4)
+        return QColor::fromHsl(h, s, l, a);
+
     return QColor(0.0, 0.0, 0.0);
 }
 
@@ -8001,7 +8016,7 @@ Tree_p Widget::lineColorName(Tree_p self, text name, double a)
 {
     CHECK_0_1_RANGE(a);
     QColor c = colorByName(name);
-    layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), a));
+    layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), c.alphaF() * a));
     return XL::xl_true;
 }
 
@@ -8115,7 +8130,7 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 {
     CHECK_0_1_RANGE(a);
     QColor c = colorByName(name);
-    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
+    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), c.alphaF() * a));
     return XL::xl_true;
 }
 

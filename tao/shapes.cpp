@@ -109,15 +109,18 @@ bool Shape::setFillColor(Layout *where)
     {
         Color &color = where->fillColor;
         scale v = where->visibility * color.alpha;
-        bool render =  where->blendOrShade
-            ? !where->transparency
-            : where->transparency == (v < 1.0);
-        if (v > 0.0 && render)
+        if (v > 0.0)
         {
-            GL.Color(color.red, color.green, color.blue, v);
-            where->PolygonOffset();
-            GL.Sync();
-            return true;
+            bool render =  where->blendOrShade
+                ? !where->transparency
+                : where->transparency == (v < 1.0);
+            if (render)
+            {
+                GL.Color(color.red, color.green, color.blue, v);
+                where->PolygonOffset();
+                GL.Sync();
+                return true;
+            }
         }
     }
     return false;
@@ -135,15 +138,18 @@ bool Shape::setLineColor(Layout *where)
         Color &color = where->lineColor;
         scale width = where->lineWidth;
         scale v = where->visibility * color.alpha;
-        bool render =  where->blendOrShade
-            ? !where->transparency
-            : where->transparency == (v < 1.0);
-        if (v > 0.0 && render && (width > 0.0 || where->extrudeDepth > 0.0))
+        if (v > 0.0 && (width > 0.0 || where->extrudeDepth > 0.0))
         {
-            GL.Color(color.red, color.green, color.blue, v);
-            where->PolygonOffset();
-            GL.Sync();
-            return true;
+            bool render =  where->blendOrShade
+                ? !where->transparency
+                : where->transparency == (v < 1.0);
+            if (render)
+            {
+                GL.Color(color.red, color.green, color.blue, v);
+                where->PolygonOffset();
+                GL.Sync();
+                return true;
+            }
         }
     }
     return false;

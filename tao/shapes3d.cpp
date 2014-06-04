@@ -182,39 +182,12 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Apply textures
     setTexture(where);
 
-    scale v = where->visibility * where->fillColor.alpha;
-    bool drawBackFaces = where->programId || !culling || v != 1.0;
-    // Optimize drawing of convex
-    // shapes in case of no shaders thanks to
+    // Optimize drawing of convex shapes in case of no shaders thanks to
     // backface culling (doesn't need to draw back faces)
-    GL.Enable(GL_CULL_FACE);
-    if (drawBackFaces)
-    {
-        // Use painter algorithm to apply correctly
-        // transparency on shapes
-        // This was made necessary by Bug #1403.
-        GL.CullFace(GL_FRONT);
-
-        // Read Only mode of depth buffer
-        if (v != 1.0)
-            GL.DepthMask(false);
-
-        if (setFillColor(where))
-            GL.DrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
-        if (setLineColor(where))
-            GL.DrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
-    }
-
-    // Draw the stuff in the front
-    GL.CullFace(GL_BACK);
-    GL.DepthMask(true);
-
     if (setFillColor(where))
         GL.DrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
         GL.DrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
-
-    GL.Disable(GL_CULL_FACE);
 
     // Disable texture coordinates
     disableTexCoord(~0ULL);

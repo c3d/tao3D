@@ -192,6 +192,13 @@ display_mode_chooser ->
             display_set lineOffset := -27.0/28.0
             display_set pixelOffset := -(3.0+6/28.0)
             display_set viewskip := 2.0
+        chooser_choice tr "Enable stereoscopy (SiOptica 5-view)",
+            enable_stereoscopy united_entertain
+            display_set points_of_view := 5
+            display_set pixel_offset := 3
+            display_set line_offset := -2.0/3
+            display_set view_skip := 1
+            display_set rgb_mix := 1
     if has_display_mode "2dplusdepth" then
         chooser_choice tr "Enable stereoscopy (Dimenco 2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"}
         chooser_choice tr "Enable stereoscopy (Dimenco 2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"}

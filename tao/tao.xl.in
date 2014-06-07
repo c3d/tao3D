@@ -62,6 +62,7 @@ key "Control-M"                         -> toggle_hand_cursor
 key "Control-1"                         -> reset_view
 key "Control-+"                         -> zoom_in
 key "Control--"                         -> zoom_out
+key "Control-T"                         -> screenshot "Tao Screen Snapshot " & timestamp & ".png"
 key "Delete"                            -> delete_selection "Delete"
 key "Backspace"                         -> delete_selection "Backspace"
 key "Control-G"                         -> page_chooser
@@ -1313,6 +1314,11 @@ middle_mouse_button -> (mouse_buttons and 16#00000004) <> 0
 
 // "Comment out" a block of code
 disabled B:block -> false
+
+// A date stamp that can be used in file names
+timestamp -> datestamp & " " & hourstamp
+hourstamp -> "" & hours & ":" & minutes & ":" & seconds
+datestamp -> "" & year & "-" & month & "-" & day
 
 
 // ============================================================================

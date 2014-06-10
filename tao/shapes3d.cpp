@@ -47,13 +47,28 @@ void Shape3::DrawSelection(Layout *layout)
 }
 
 
+void Shape3::enableCulling(Layout *where)
+// ----------------------------------------------------------------------------
+//    Enable culling if shape is not transparent
+// ----------------------------------------------------------------------------
+{
+    if (where->transparency)
+        GL.Disable(GL_CULL_FACE);
+    else
+        GL.Enable(GL_CULL_FACE);
+}
+
+
 bool Shape3::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
 //    Set the fill color and texture according to the layout attributes
 // ----------------------------------------------------------------------------
 {
     where->ClearPolygonOffset();
-    return Shape::setFillColor(where);
+    bool result = Shape::setFillColor(where);
+    if (result)
+        enableCulling(where);
+    return result;
 }
 
 

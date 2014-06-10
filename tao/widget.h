@@ -44,6 +44,7 @@
 #include "tao_gl.h"
 #include "statistics.h"
 #include "file_monitor.h"
+#include "preview.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -1026,6 +1027,7 @@ private:
 #else
     bool                  frameBufferReady() { return true; }
 #endif
+    PreviewThread         savePreviewThread;
     QString               screenShotPath;
     bool                  screenShotWithAlpha;
 #ifdef Q_OS_LINUX

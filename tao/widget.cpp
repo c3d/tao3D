@@ -2707,10 +2707,19 @@ void Widget::paintGL()
     {
         draw();
         showGlErrors();
-        if (screenShotPath != "")
+        if (screenShotPath != "" || savePreviewThread.isReady())
         {
-            grabFrameBuffer(screenShotWithAlpha).save(screenShotPath);
-            screenShotPath = "";
+            bool withAlpha = screenShotWithAlpha || screenShotPath == "";
+            QImage grabbed = grabFrameBuffer(withAlpha);
+            if (screenShotPath != "")
+            {
+                grabbed.save(screenShotPath);
+                screenShotPath = "";
+            }
+            if (savePreviewThread.isReady())
+            {
+                savePreviewThread.record(grabbed);
+            }
         }
     }
 }
@@ -4598,22 +4607,23 @@ void Widget::checkEditorInstructionsFile()
         file.close();
         file.remove();
 
-        unsigned pnum = 0;
-        sscanf(data.c_str(), "page %u", &pnum);
-        std::cerr << "Got page number " << pnum << "\n";
-        if (pnum)
+        unsigned pnum = 0, pid = 0;
+        if (sscanf(data.c_str(), "page %u id %u", &pnum, &pid) == 2)
         {
-            pnum--;
-            if (pnum < pageNames.size())
+            if (pnum)
             {
-                gotoPageName = pageNames[pnum];
-                std::cerr << "Got page name " << gotoPageName << "\n";
-                refresh(0);
-            }
-            else
-            {
-                std::cerr << "Page number " << pnum
-                          << " >= " << pageNames.size() << "\n";
+                pnum--;
+                if (pnum < pageNames.size())
+                {
+                    gotoPageName = pageNames[pnum];
+                    std::cerr << "Got page name " << gotoPageName << "\n";
+                    QString previewScreenShot = QString("%1-preview-%2.png")
+                        .arg(+xlProgram->name).arg(pid);
+                    savePreviewThread.setMaxSize(800, 600);
+                    savePreviewThread.setInterval(533);
+                    savePreviewThread.setPath(previewScreenShot);
+                    refresh(0);
+                }
             }
         }
     }
@@ -14042,6 +14052,8 @@ Name_p Widget::screenShot(Tree_p, text filename, bool withAlpha)
     screenShotWithAlpha = withAlpha;
     return XL::xl_true;
 }
+
+
 
 // ============================================================================
 //

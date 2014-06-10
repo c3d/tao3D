@@ -115,6 +115,7 @@ HEADERS +=     activity.h \
     path3d.h \
     preferences_dialog.h \
     preferences_pages.h \
+    preview.h \
     process.h \
     qtlocalpeer.h \
     qtlockedfile.h \
@@ -201,6 +202,7 @@ SOURCES +=     activity.cpp \
     path3d.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
+    preview.cpp \
     process.cpp \
     qtlocalpeer.cpp \
     qtlockedfile.cpp \

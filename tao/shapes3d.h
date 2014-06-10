@@ -36,6 +36,7 @@ struct Shape3 : Shape
     virtual void        DrawSelection(Layout *layout);
 
     static bool         setFillColor(Layout *where);
+    static void         enableCulling(Layout *where);
 };
 
 

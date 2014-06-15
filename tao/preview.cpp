@@ -37,9 +37,18 @@ PreviewThread::PreviewThread(uint timeInterval, uint maxWidth, uint maxHeight)
 {
     IFTRACE(preview)
         debug() << "Starting preview thread (" << timeInterval << " ms)\n";
+
+    // Ready the thread to receive events
     moveToThread(this);
-    start();                    // Wait until a preview is posted to save
     connect(this, SIGNAL(imageAvailable()), this, SLOT(savePreview()));
+
+    // Configure the timer
+    nextSave.setSingleShot(true);
+    nextSave.setInterval(timeInterval);
+    connect(&nextSave, SIGNAL(timeout()), this, SLOT(savePreview()));
+
+    start();                    // Wait until a preview is posted to save
+
 }
 
 
@@ -85,6 +94,7 @@ void PreviewThread::setInterval(uint interval)
 {
     QMutexLocker locker(&mutex);
     this->timeInterval = interval;
+    this->nextSave.setInterval(interval);
 }
 
 
@@ -121,7 +131,7 @@ void PreviewThread::savePreview()
     if (!toSave.isNull() && filePath != "")
     {
         // Arm singles shot time for next save
-        QTimer::singleShot(timeInterval, this, SLOT(savePreview()));
+        nextSave.start(timeInterval);
 
         // Rescale image to maximum dimensions
         if ((uint) toSave.width() > maxWidth)

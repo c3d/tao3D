@@ -4616,7 +4616,6 @@ void Widget::checkEditorInstructionsFile()
                 if (pnum < pageNames.size())
                 {
                     gotoPageName = pageNames[pnum];
-                    std::cerr << "Got page name " << gotoPageName << "\n";
                     QString previewScreenShot = QString("%1-preview-%2.png")
                         .arg(+xlProgram->name).arg(pid);
                     savePreviewThread.setMaxSize(800, 600);

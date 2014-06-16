@@ -302,6 +302,7 @@ void Layout::Draw(Layout *where)
     if (!where && !transparency)
     {
         ClearPolygonOffset();
+        ClearAttributes();
         GL.DepthMask(GL_FALSE);
         transparency = true;
         Draw(NULL);
@@ -336,6 +337,7 @@ void Layout::DrawSelection(Layout *where)
     if (!where && !transparency)
     {
         ClearPolygonOffset();
+        ClearAttributes();
         GL.DepthMask(GL_FALSE);
         transparency = true;
         DrawSelection(NULL);
@@ -373,6 +375,7 @@ void Layout::Identify(Layout *where)
     if (!where && !transparency)
     {
         ClearPolygonOffset();
+        ClearAttributes();
         GL.DepthMask(GL_FALSE);
         transparency = true;
         Identify(NULL);

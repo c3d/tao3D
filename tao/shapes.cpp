@@ -117,12 +117,13 @@ bool Shape::setFillColor(Layout *where)
             if (render)
             {
                 GL.Color(color.red, color.green, color.blue, v);
-                where->PolygonOffset();
+                where->PolygonOffset(true);
                 GL.Sync();
                 return true;
             }
         }
     }
+    where->PolygonOffset(false);
     return false;
 }
 
@@ -146,12 +147,13 @@ bool Shape::setLineColor(Layout *where)
             if (render)
             {
                 GL.Color(color.red, color.green, color.blue, v);
-                where->PolygonOffset();
+                where->PolygonOffset(true);
                 GL.Sync();
                 return true;
             }
         }
     }
+    where->PolygonOffset(false);
     return false;
 }
 
@@ -240,6 +242,8 @@ void Shape2::Identify(Layout *where)
     path.Draw(where, GL_SELECT);
 }
 
+
+
 // ============================================================================
 //
 //   Shape drawing routines
@@ -281,7 +285,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     GL.LineWidth(1);
     GL.Disable(GL_LINE_STIPPLE);
 
-    where->PolygonOffset();
+    where->PolygonOffset(true);
     path.Draw(where, where->Offset(), GL_LINE_STRIP, 0);
 }
 

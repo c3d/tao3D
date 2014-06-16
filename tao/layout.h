@@ -117,7 +117,7 @@ public:
     virtual void        Clear();
     virtual void        ClearCaches();
     virtual Widget *    Display()        { return display; }
-    virtual void        PolygonOffset();
+    virtual void        PolygonOffset(bool willDraw);
     virtual void        ClearPolygonOffset();
     virtual uint        Selected();
     virtual uint        ChildrenSelected();

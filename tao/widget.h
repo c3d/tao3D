@@ -525,28 +525,20 @@ public:
     bool        VSyncSupported();
 
     // Graphic attributes
-    Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
+    static QColor colorByName(text name, double alpha=1.0);
+    static QColor colorRGB(scale r, scale g, scale b, scale a = 1.0);
+    static QColor colorHSV(scale h, scale s, scale v, scale a = 1.0);
+    static QColor colorHSL(scale h, scale s, scale l, scale a = 1.0);
+    static QColor colorCMYK(scale c, scale m, scale y, scale k, scale a = 1.0);
+    Tree_p      clearColor(Tree_p self, QColor c);
+    Tree_p      fillColor(Tree_p self, QColor c);
+    Tree_p      lineColor(Tree_p self, QColor c);
+    Tree_p      gradientColor(Tree_p self, double pos, QColor c);
     Tree_p      motionBlur(Tree_p self, double f);
-    Tree_p      lineColorName(Tree_p self, text name, double a);
-    Tree_p      lineColorRgb(Tree_p self, double r, double g, double b, double a);
-    Tree_p      lineColorHsl(Tree_p self, double h, double s, double l, double a);
-    Tree_p      lineColorHsv(Tree_p self, double h, double s, double v, double a);
-    Tree_p      lineColorCmyk(Tree_p self, double c, double m, double y, double k, double a);
     Tree_p      visibility(Tree_p self, double lw);
     Tree_p      lineWidth(Tree_p self, double lw);
     Tree_p      lineStipple(Tree_p self, uint16 pattern, uint16 scale);
     Tree_p      lineStipple(Tree_p self, text nae);
-    Tree_p      fillColorName(Tree_p self, text name, double a);
-    Tree_p      fillColorRgb(Tree_p self,
-                             double r, double g, double b, double a);
-    Tree_p      fillColorHsl(Tree_p self,
-                             double h, double s, double l, double a);
-    Tree_p      fillColorHsv(Tree_p self,
-                             double h, double s, double v, double a);
-    Tree_p      fillColorCmyk(Tree_p self,
-                              double c, double m, double y, double k, double a);
-    Tree_p      fillColorGradient(Tree_p self,
-                                  Real_p pos, double r, double g, double b, double a);
 
     Integer*    fillTextureUnit(Tree_p self, GLuint texUnit);
     Integer*    fillTextureId(Tree_p self, GLuint texId);
@@ -606,7 +598,6 @@ public:
     Tree_p      moveToRel(Tree_p self, Real_p x, Real_p y, Real_p z);
     Tree_p      lineToRel(Tree_p self, Real_p x, Real_p y, Real_p z);
     Tree_p      pathTextureCoord(Tree_p self, Real_p x, Real_p y, Real_p r);
-    Tree_p      pathColor(Tree_p self, Real_p r, Real_p g, Real_p b, Real_p a);
     Tree_p      closePath(Tree_p self);
     Tree_p      endpointsStyle(Tree_p self,symbol_r s,symbol_r e);
 

@@ -1381,47 +1381,6 @@ old_camera_settings ->
 
 // ============================================================================
 // 
-//    Colors
-// 
-// ============================================================================
-
-// Defaults colors (you can define your own named colors the same way)
-color "default"          -> color        0.0, 0.0, 0.0, 1.0
-color "fill"             -> color        0.2, 0.6, 1.0, 0.5
-color "line"             -> color        0.0, 0.0, 0.0, 0.0
-color "font"             -> color        0.0, 0.0, 0.0, 1.0
-color "transparent"      -> color        0.0, 0.0, 0.0, 0.0
-no_color                 -> color        0.0, 0.0, 0.0, 0.0
-line_color "default"     -> line_color   0.0, 0.0, 0.0, 0.0
-line_color "fill"        -> line_color   0.0, 0.0, 0.0, 0.0
-line_color "line"        -> line_color   0.0, 0.2, 0.8, 1.0
-line_color "font"        -> line_color   0.0, 0.0, 0.0, 0.0
-line_color "transparent" -> line_color   0.0, 0.0, 0.0, 0.0
-no_line_color            -> line_color   0.0, 0.0, 0.0, 0.0
-line_width "default"     -> line_width   4
-font "default"           -> font "Times New Roman", 24
-
-color       "default"
-line_color  "default"
-line_width  "default"
-font        "default"
-
-// Colors without alpha default to an alpha of 100%
-color n:text                                    -> color n, 1.0
-color r:real, g:real, b:real                    -> color r, g, b, 1.0
-color_hsl h:real, s:real, l:real                -> color_hsl h, s, l, 1.0
-color_hsv h:real, s:real, v:real                -> color_hsv h, s, v, 1.0
-color_cmyk c:real, m:real, y:real, k:real       -> color_cmyk c, m, y, k, 1.0
-
-line_color n:text                               -> line_color n, 1.0
-line_color r:real, g:real, b:real               -> line_color r, g, b, 1.0
-line_color_hsl h:real, s:real, l:real           -> line_color_hsl h, s, l, 1.0
-line_color_hsv h:real, s:real, v:real           -> line_color_hsv h, s, v, 1.0
-line_color_cmyk c:real, m:real, y:real, k:real  -> line_color_cmyk c,m,y,k, 1.0
-
-
-// ============================================================================
-// 
 //    Textures and images
 // 
 // ============================================================================

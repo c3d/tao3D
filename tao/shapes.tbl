@@ -289,15 +289,6 @@ PREFIX(PathTexCoord,  tree,  "path_texture",
        GROUP(graph:path)
        SYNOPSIS("Not supported yet")
        DESCRIPTION(" NOT SUPPORTED YET. Add a texture coordinate to the path. NOT SUPPORTED YET"))
-PREFIX(PathColor,  tree,  "path_color",
-       PARM(r, real, "The red componant of the color")
-       PARM(g, real, "The blue componant of the color")
-       PARM(b, real, "The green componant of the color")
-       PARM(a, real, "Alpha channel: the transparency of the color. "),
-       RTAO(pathColor(self, r,g,b, a)),
-       GROUP(graph:path)
-       SYNOPSIS("Not supported yet")
-       DESCRIPTION("NOT SUPPORTED YET. Add a color element to the path. NOT SUPPORTED YET. "))
 PREFIX(ClosePath,  tree,  "close_path", , RTAO(closePath(self)),
        GROUP(graph:path)
        SYNOPSIS("close the path")

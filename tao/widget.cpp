@@ -128,7 +128,16 @@ static int DisplayLink = -1;
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
-#define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
+#define CHECK_0_1_RANGE(var)                    \
+    if (var < 0)                                \
+        var = 0;                                \
+    else if (var > 1)                           \
+        var = 1;
+#define CHECK_0_255_RANGE(var)                  \
+    if (var < 0)                                \
+        var = 0;                                \
+    else if (var > 255)                         \
+        var = 255;
 
 namespace Tao {
 
@@ -6049,7 +6058,7 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
                 break;
             }
 
-        clearColor(self, 1, 1, 1, 1);
+        clearColor(self, QColor::fromRgbF(1, 1, 1, 1));
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
@@ -6082,7 +6091,7 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
                 break;
             }
 
-        clearColor(self, 1, 1, 1, 1);
+        clearColor(self, QColor::fromRgbF(1, 1, 1, 1));
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
@@ -8006,45 +8015,171 @@ bool Widget::VSyncSupported()
 }
 
 
-static inline QColor colorByName(text name)
+QColor Widget::colorByName(text name, double alpha)
 // ----------------------------------------------------------------------------
 //    Return a color by name, or black if the color is invalid
 // ----------------------------------------------------------------------------
 {
     if (QColor::isValidColor(+name))
-        return QColor(+name);
+    {
+        QColor result(+name);
+        result.setAlphaF(alpha);
+        return result;
+    }
 
     kstring cname = name.c_str();
 
+    // RGB model
     int r, g, b, a;
     if (sscanf(cname, "rgb(%d,%d,%d)", &r, &g, &b) == 3)
-        return QColor::fromRgb(r, g, b);
+    {
+        CHECK_0_255_RANGE(r);
+        CHECK_0_255_RANGE(g);
+        CHECK_0_255_RANGE(b);
+        return QColor::fromRgb(r, g, b, int(255 * alpha));
+    }
     if (sscanf(cname, "rgba(%d,%d,%d,%d)", &r, &g, &b, &a) == 4)
-        return QColor::fromRgb(r, g, b, a);
+    {
+        CHECK_0_255_RANGE(r);
+        CHECK_0_255_RANGE(g);
+        CHECK_0_255_RANGE(b);
+        CHECK_0_255_RANGE(a);
+        return QColor::fromRgb(r, g, b, int(a * alpha));
+    }
 
-    int h, s, l;
+    // HSV model
+    int h, s, l, v;
+    if (sscanf(cname, "hsv(%d,%d,%d)", &h, &s, &v) == 3)
+    {
+        CHECK_0_255_RANGE(s);
+        CHECK_0_255_RANGE(v);
+        return QColor::fromHsv(h, s, v, int(255 * alpha));
+    }
+    if (sscanf(cname, "hsva(%d,%d,%d,%d)", &h, &s, &v, &a) == 4)
+    {
+        CHECK_0_255_RANGE(s);
+        CHECK_0_255_RANGE(v);
+        CHECK_0_255_RANGE(a);
+        return QColor::fromHsv(h, s, v, int (a * alpha));
+    }
+
+    // HSL model
     if (sscanf(cname, "hsl(%d,%d,%d)", &h, &s, &l) == 3)
-        return QColor::fromHsl(h, s, l);
+    {
+        CHECK_0_255_RANGE(s);
+        CHECK_0_255_RANGE(l);
+        return QColor::fromHsl(h, s, l, int(255 * alpha));
+    }
     if (sscanf(cname, "hsla(%d,%d,%d,%d)", &h, &s, &l, &a) == 4)
-        return QColor::fromHsl(h, s, l, a);
+    {
+        CHECK_0_255_RANGE(s);
+        CHECK_0_255_RANGE(l);
+        CHECK_0_255_RANGE(a);
+        return QColor::fromHsl(h, s, l, int (a * alpha));
+    }
 
-    return QColor(0.0, 0.0, 0.0);
+    return QColor(0.0, 0.0, 0.0, alpha);
 }
 
-Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
+
+QColor Widget::colorRGB(scale r, scale g, scale b, scale a)
 // ----------------------------------------------------------------------------
-//    Set the clear (background) color for current FrameInfo or for the Widget
+//   Compute an RGB color
 // ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(r);
     CHECK_0_1_RANGE(g);
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
+    return QColor::fromRgbF(r, g, b, a);
+}
 
+
+QColor Widget::colorHSV(scale h, scale s, scale v, scale a)
+// ----------------------------------------------------------------------------
+//   Compute an HSV color
+// ----------------------------------------------------------------------------
+{
+    h = fmod(h, 360) / 360;
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(v);
+    CHECK_0_1_RANGE(a);
+    return QColor::fromHsvF(h, s, v, a);
+}
+
+
+QColor Widget::colorHSL(scale h, scale s, scale l, scale a)
+// ----------------------------------------------------------------------------
+//   Compute an HSL color
+// ----------------------------------------------------------------------------
+{
+    h = fmod(h, 360) / 360;
+    CHECK_0_1_RANGE(s);
+    CHECK_0_1_RANGE(l);
+    CHECK_0_1_RANGE(a);
+    return QColor::fromHslF(h, s, l, a);
+}
+
+
+QColor Widget::colorCMYK(scale c, scale m, scale y, scale k, scale a)
+// ----------------------------------------------------------------------------
+//   Compute a CMYK color
+// ----------------------------------------------------------------------------
+{
+    CHECK_0_1_RANGE(c);
+    CHECK_0_1_RANGE(m);
+    CHECK_0_1_RANGE(y);
+    CHECK_0_1_RANGE(k);
+    CHECK_0_1_RANGE(a);
+    return QColor::fromCmykF(c, m, y, k, a);
+}
+
+
+Tree_p Widget::clearColor(Tree_p self, QColor c)
+// ----------------------------------------------------------------------------
+//    Set the clear (background) color for current FrameInfo or for the Widget
+// ----------------------------------------------------------------------------
+{
     if (frameInfo)
-        frameInfo->clearColor.Set(r, g, b, a);
+        frameInfo->clearColor.Set(c.redF(), c.greenF(), c.blueF(), c.alphaF());
     else
-        clearCol.setRgbF(r, g, b, a);
+        clearCol = c;
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::fillColor(Tree_p self, QColor c)
+// ----------------------------------------------------------------------------
+//    Set the fill color
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), c.alphaF()));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::lineColor(Tree_p self, QColor c)
+// ----------------------------------------------------------------------------
+//    Set the named color for lines
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), c.alphaF()));
+    return XL::xl_true;
+}
+
+
+Tree_p  Widget::gradientColor(Tree_p self, double pos, QColor c)
+// ----------------------------------------------------------------------------
+//   Define a step of a color gradient
+// ----------------------------------------------------------------------------
+{
+    if (!gradient)
+    {
+        Ooops("No gradient defined for $1", self);
+        return XL::xl_false;
+    }
+
+    gradient->setColorAt(pos, c);
     return XL::xl_true;
 }
 
@@ -8056,90 +8191,6 @@ Tree_p Widget::motionBlur(Tree_p self, double f)
 {
     CHECK_0_1_RANGE(f);
     blurFactor = f;
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::lineColorName(Tree_p self, text name, double a)
-// ----------------------------------------------------------------------------
-//    Set the named color for lines
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(a);
-    QColor c = colorByName(name);
-    layout->Add(new LineColor(c.redF(), c.greenF(), c.blueF(), c.alphaF() * a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::lineColorRgb(Tree_p self, double r, double g, double b, double a)
-// ----------------------------------------------------------------------------
-//    Set the RGB color for lines
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(r);
-    CHECK_0_1_RANGE(g);
-    CHECK_0_1_RANGE(b);
-    CHECK_0_1_RANGE(a);
-
-    layout->Add(new LineColor(r, g, b, a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::lineColorHsl(Tree_p self, double h, double s, double l, double a)
-// ----------------------------------------------------------------------------
-//    Set the HSL color for lines
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(s);
-    CHECK_0_1_RANGE(l);
-    CHECK_0_1_RANGE(a);
-
-    h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if (h < 0) h++;
-
-    QColor hsl;
-    hsl.setHslF(h, s, l);
-    layout->Add(new LineColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::lineColorHsv(Tree_p self, double h, double s, double v, double a)
-// ----------------------------------------------------------------------------
-//    Set the HSV color for lines
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(s);
-    CHECK_0_1_RANGE(v);
-    CHECK_0_1_RANGE(a);
-
-    h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if (h < 0) h++;
-
-    QColor hsv;
-    hsv.setHsvF(h, s, v);
-    layout->Add(new LineColor(hsv.redF(), hsv.greenF(), hsv.blueF(), a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::lineColorCmyk(Tree_p self,
-                             double c, double m, double y, double k, double a)
-// ----------------------------------------------------------------------------
-//    Set the CMYK color for lines
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(c);
-    CHECK_0_1_RANGE(m);
-    CHECK_0_1_RANGE(y);
-    CHECK_0_1_RANGE(k);
-    CHECK_0_1_RANGE(a);
-
-    QColor cmyk;
-    cmyk.setCmykF(c, m, y, k);
-    layout->Add(new LineColor(cmyk.redF(), cmyk.greenF(), cmyk.blueF(), a));
     return XL::xl_true;
 }
 
@@ -8170,113 +8221,6 @@ Tree_p Widget::lineStipple(Tree_p self, uint16 pattern, uint16 scale)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new LineStipple(pattern, scale));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::fillColorName(Tree_p self, text name, double a)
-// ----------------------------------------------------------------------------
-//    Set the named color for fill
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(a);
-    QColor c = colorByName(name);
-    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), c.alphaF() * a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::fillColorRgb(Tree_p self, double r, double g, double b, double a)
-// ----------------------------------------------------------------------------
-//    Set the RGB color for fill
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(r);
-    CHECK_0_1_RANGE(g);
-    CHECK_0_1_RANGE(b);
-    CHECK_0_1_RANGE(a);
-    layout->Add(new FillColor(r, g, b, a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::fillColorHsl(Tree_p self, double h, double s, double l, double a)
-// ----------------------------------------------------------------------------
-//    Set the HSL color for fill
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(s);
-    CHECK_0_1_RANGE(l);
-    CHECK_0_1_RANGE(a);
-
-    h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if (h < 0) h++;
-
-    QColor hsl;
-    hsl.setHslF(h, s, l);
-    layout->Add( new FillColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::fillColorHsv(Tree_p self, double h, double s, double v, double a)
-// ----------------------------------------------------------------------------
-//    Set the HSV color for fill
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(s);
-    CHECK_0_1_RANGE(v);
-    CHECK_0_1_RANGE(a);
-
-    h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if (h < 0) h++;
-
-    QColor hsv;
-    hsv.setHsvF(h, s, v);
-    layout->Add(new FillColor(hsv.redF(), hsv.greenF(), hsv.blueF(), a));
-    return XL::xl_true;
-}
-
-
-Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y,
-                             double k, double a)
-// ----------------------------------------------------------------------------
-//    Set the CMYK color for fill
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(c);
-    CHECK_0_1_RANGE(m);
-    CHECK_0_1_RANGE(y);
-    CHECK_0_1_RANGE(k);
-    CHECK_0_1_RANGE(a);
-
-    QColor cmyk;
-    cmyk.setCmykF(c, m, y, k);
-    layout->Add(new FillColor(cmyk.redF(), cmyk.greenF(), cmyk.blueF(), a));
-    return XL::xl_true;
-}
-
-
-Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
-                                double r, double g, double b, double a)
-// ----------------------------------------------------------------------------
-//   Define a step of a color gradient
-// ----------------------------------------------------------------------------
-{
-    CHECK_0_1_RANGE(r);
-    CHECK_0_1_RANGE(g);
-    CHECK_0_1_RANGE(b);
-    CHECK_0_1_RANGE(a);
-
-    if (!gradient)
-    {
-        Ooops("No gradient defined for $1", self);
-        return XL::xl_false;
-    }
-
-    QColor color;
-    color.setRgbF(r, g, b, a);
-    gradient->setColorAt(pos, color);
     return XL::xl_true;
 }
 
@@ -9357,16 +9301,6 @@ Tree_p Widget::pathTextureCoord(Tree_p self, Real_p x, Real_p y, Real_p r)
 // ----------------------------------------------------------------------------
 {
     XL::Ooops ("Path texture coordinate $1 not supported yet", self);
-    return XL::xl_false;
-}
-
-
-Tree_p Widget::pathColor(Tree_p self, Real_p r, Real_p g, Real_p b, Real_p a)
-// ----------------------------------------------------------------------------
-//   Add a color element to the path
-// ----------------------------------------------------------------------------
-{
-    XL::Ooops ("Path color coordinate $1 not supported yet", self);
     return XL::xl_false;
 }
 

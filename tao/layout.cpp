@@ -301,6 +301,7 @@ void Layout::Draw(Layout *where)
     // Two passes for transparency, see #2199
     if (!where && !transparency)
     {
+        ClearPolygonOffset();
         GL.DepthMask(GL_FALSE);
         transparency = true;
         Draw(NULL);
@@ -334,6 +335,7 @@ void Layout::DrawSelection(Layout *where)
     // Two passes for transparency, see #2199
     if (!where && !transparency)
     {
+        ClearPolygonOffset();
         GL.DepthMask(GL_FALSE);
         transparency = true;
         DrawSelection(NULL);
@@ -370,6 +372,7 @@ void Layout::Identify(Layout *where)
     // Two passes for transparency, see #2199
     if (!where && !transparency)
     {
+        ClearPolygonOffset();
         GL.DepthMask(GL_FALSE);
         transparency = true;
         Identify(NULL);
@@ -458,14 +461,15 @@ void Layout::Add(Drawing *d)
 }
 
 
-void Layout::PolygonOffset()
+void Layout::PolygonOffset(bool willDraw)
 // ----------------------------------------------------------------------------
 //   Compute a polygon offset for the next shape being drawn
 // ----------------------------------------------------------------------------
 {
     int offset = polygonOffset++;
-    GL.PolygonOffset(factorBase + offset * factorIncrement,
-                     unitBase + offset * unitIncrement);
+    if (willDraw)
+        GL.PolygonOffset(factorBase + offset * factorIncrement,
+                         unitBase + offset * unitIncrement);
 }
 
 

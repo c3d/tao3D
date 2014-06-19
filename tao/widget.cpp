@@ -7973,10 +7973,11 @@ QColor Widget::colorByName(text name, double alpha)
     if (QColor::isValidColor(+name))
     {
         QColor result(+name);
+        alpha *= result.alphaF();
+        CHECK_0_1_RANGE(alpha);
         result.setAlphaF(alpha);
         return result;
     }
-
     kstring cname = name.c_str();
 
     // RGB model

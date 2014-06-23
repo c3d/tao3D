@@ -1,5 +1,21 @@
 Change log for Tao Presentations
 
+1.51 (23-Jun-2014)
+
+#3435 Better label for 'quad-buffer' stereoscopic mode
+#3436 Move 'show' documentation to the Graphics section
+#3438 Add a few transitions from GLSL.io
+#3439 Ability to set variables with names having high XL precedence like 'to'
+#3440 Resolve paths in shader file names
+#3446 Better fix for skippy movie_time
+#3452 Accept CSS color names such as 'rgb(20, 30, 40)' or 'hsv(10, 20, 30)'
+#2199 Fixed culling for spheres and transparency
+#3454 Add SiOptica 5-view multiscopic mode 
+#3455 Add Control-T keybord shortcut for a timed snapshot
+#3464 Implement unified color model for all color functions
+#3469 Add an optional 'body' argument to load_tsv, load_csv or load_data
+#3468 Added a Weather module
+
 1.50 (21-May-2014)
 
 Major enhancements in this release:

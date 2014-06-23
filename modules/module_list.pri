@@ -71,6 +71,7 @@
        charts \
        tao_synchro \
        quiz \
+       weather \
        web_remote \
        prez_at \
        tao_tester   \

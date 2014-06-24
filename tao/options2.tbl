@@ -83,7 +83,7 @@ OPTION(savect, "Save compressed textures to disk so that the document loads "
                "enabled in the preferences)", tcache_savecomp = true)
 
 OPTVAR(preload_files, text, "")
-OPTION(p, "Preload file before document. Files are loaded after builtins.xl and tao.xl "
+OPTION(preload, "Preload file before document. Files are loaded after builtins.xl and tao.xl "
        "but before user.xl and theme.xl. . When the option is used multiple times, files "
        "are loaded in the order they appear on the command line.",
        preload_files += STRING; preload_files += ":")
@@ -98,3 +98,18 @@ OPTION(stderr, "Define when to send error messages to stderr. Possible values ar
        "auto: [default] Send errors to stderr when program runs in fullscreen mode only; "
        "on: Always send errors to stderr; off: Never send errors to stderr.",
        to_stderr = STRING)
+
+OPTVAR(proofOfPlayFile, text, "")
+OPTVAR(proofOfPlayInterval, uint, 493)
+OPTVAR(proofOfPlayWidth, uint, 800)
+OPTVAR(proofOfPlayHeight, uint, 600)
+OPTION(proof_interval,
+       "Set the interval between proof-of-play recordings in milliseconds",
+       proofOfPlayInterval = INTEGER(250, 86400000))
+OPTION(proof_width, "Set max width for of proof-of-play pictures",
+       proofOfPlayWidth = INTEGER(32, 2048))
+OPTION(proof_height, "Set max height for of proof-of-play pictures",
+       proofOfPlayHeight = INTEGER(32, 2048))
+OPTION(proof,
+       "Set the file name for recording proof-of-play pictures",
+       proofOfPlayFile = STRING)

@@ -1019,6 +1019,7 @@ private:
     bool                  frameBufferReady() { return true; }
 #endif
     PreviewThread         savePreviewThread;
+    PreviewThread         saveProofOfPlayThread;
     QString               screenShotPath;
     bool                  screenShotWithAlpha;
 #ifdef Q_OS_LINUX

@@ -323,8 +323,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     mouseFocusTracker = new MouseFocusTracker(this);
 
     // Find which page overscaling to use
+    XL::Options &options = XL::MAIN->options;
     while (printOverscaling < 8 &&
-           printOverscaling * 72 < XL::MAIN->options.printResolution)
+           printOverscaling * 72 < options.printResolution)
         printOverscaling <<= 1;
 
     // Initialize start time
@@ -349,6 +350,16 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
             this, SLOT(addToReloadList(QString)));
     connect(&srcFileMonitor, SIGNAL(deleted(QString,QString)),
             this, SLOT(addToReloadList(QString)));
+
+    // Prepare to record proof-of-play pictures
+    if (options.proofOfPlayFile != "")
+    {
+        uint popw = options.proofOfPlayWidth;
+        uint poph = options.proofOfPlayHeight;
+        saveProofOfPlayThread.setMaxSize(popw, poph);
+        saveProofOfPlayThread.setInterval(options.proofOfPlayInterval);
+        saveProofOfPlayThread.setPath(+options.proofOfPlayFile);
+    }
 }
 
 
@@ -2716,7 +2727,8 @@ void Widget::paintGL()
     {
         draw();
         showGlErrors();
-        if (screenShotPath != "" || savePreviewThread.isReady())
+        if (screenShotPath != "" ||
+            saveProofOfPlayThread.isReady() || savePreviewThread.isReady())
         {
             bool withAlpha = screenShotWithAlpha || screenShotPath == "";
             QImage grabbed = grabFrameBuffer(withAlpha);
@@ -2726,9 +2738,9 @@ void Widget::paintGL()
                 screenShotPath = "";
             }
             if (savePreviewThread.isReady())
-            {
                 savePreviewThread.record(grabbed);
-            }
+            if (saveProofOfPlayThread.isReady())
+                saveProofOfPlayThread.record(grabbed);
         }
     }
 }

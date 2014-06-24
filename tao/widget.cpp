@@ -2545,7 +2545,7 @@ void Widget::resetView()
     zNear = 1500.0;
     zFar  = 1e6;
     zoom  = 1.0;
-    eyeDistance    = 75.0;
+    eyeDistance    = 25.0;
     cameraPosition = defaultCameraPosition;
     cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);

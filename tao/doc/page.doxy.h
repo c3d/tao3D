@@ -190,6 +190,21 @@ text page_name (n:integer);
 
 /**
  * @~english
+ * Returns a unique name for the page
+ *
+ * @p name is the base name for the page. A unique ID will be appened
+ * to that base to form a unique page name.
+ *
+ * @~french
+ * Renvoie un nom de page unique
+ *
+ * @p name est un nom de base pour la page. Un identificateur unique sera
+ * ajouté à cette base pour former un nom de page unique.
+ */
+text page_unique_name (name:integer);
+
+/**
+ * @~english
  * Generates a page thumbnail as a texture.
  *
  * @p p is the name of the page to render. The mini page is scaled by a

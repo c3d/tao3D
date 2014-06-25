@@ -5789,6 +5789,16 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
 }
 
 
+XL::Text_p Widget::pageUniqueName(Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Find a page name that is unique
+// ----------------------------------------------------------------------------
+{
+    text unique = +QString("%1 #%2").arg(+name).arg(pageId);
+    return new Text(unique, "\"", "\"", self->Position());
+}
+
+
 XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
 // ----------------------------------------------------------------------------
 //   Indicate the chaining of pages, returns previous information

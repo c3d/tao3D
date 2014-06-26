@@ -1074,6 +1074,8 @@ void Widget::commitPageChange(bool afterTransition)
 //   Commit a page change, e.g. as a result of 'goto_page' or transition end
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this);
+
     if (runPageExitHandlers())
         return;
 
@@ -1106,10 +1108,6 @@ void Widget::commitPageChange(bool afterTransition)
 
     if (!inOfflineRendering && pageChangeActions.size())
     {
-        // REVISIT? Added saveCurrent because I've hit assert(current) during
-        // ctx->Evaluate(), below.
-        TaoSave saveCurrent(current, this);
-
         page_action_map::iterator i;
         for (i = pageChangeActions.begin(); i != pageChangeActions.end(); i++)
         {

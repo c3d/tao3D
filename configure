@@ -49,7 +49,7 @@ usage() {
   echo "  player      Configure for the Tao Presentations Player and Player Pro."
   echo "              A stripped-down version of the"
   echo "              regular build, with no template, no documentation, no SDK, and some"
-  echo "              limitations (see compile options). VLC is not packaged, it may be"
+  echo "              limitations (see compile options)."
   echo "              installed separately."
   echo "              Edition is determined at run time, depending on the available licenses:"
   echo "                - 'Tao Presentations Player Pro <version>' => Player Pro"

@@ -17,6 +17,7 @@ Change log for Tao Presentations 2.x
 #3468 Added a Weather module
 #3471 Add page_unique_name
 #3473 Fix a rare crash when evaluating page exit handlers
+#3475 Reintegrate VLC in the Player edition
 
 2.0-alpha3 (21-May-2014)
 

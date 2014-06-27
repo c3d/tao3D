@@ -49,7 +49,7 @@ usage() {
   echo "  player      Configure for the Tao Presentations Player and Player Pro."
   echo "              A stripped-down version of the regular build,"
   echo "              with no template, no documentation, no SDK, no Web Editor and some"
-  echo "              limitations (see compile options). VLC is not packaged, it may be"
+  echo "              limitations (see compile options)."
   echo "              installed separately."
   echo "              Edition is determined at run time, depending on the available licenses:"
   echo "                - 'Tao Presentations Player Pro <version>' => Player Pro"
@@ -152,7 +152,7 @@ while [ $# -ne 0 ] ; do
       ;;
     player)
       FLAGS="$FLAGS NO_SDK=1 NO_DOC=1 NO_HELP_VIEWER=1 NO_WELCOME=1"
-      FLAGS="$FLAGS NO_FONTS=1 VLCAV_NO_VLC_INSTALL=1 TAO_PLAYER=1"
+      FLAGS="$FLAGS NO_FONTS=1 TAO_PLAYER=1"
       FLAGS="$FLAGS NO_WEBUI=1"
       FLAGS="$FLAGS DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NOGIT"
       FLAGS="$FLAGS DEFINES+=CFG_NONETWORK DEFINES+=CFG_NOEDIT"

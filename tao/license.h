@@ -149,6 +149,15 @@ public:
         return LM().company;
     }
 
+    static text Mail()
+    {
+        return LM().email;
+    }
+    static bool PublisherMatches(QString name)
+    {
+        return LM().publisherMatches(name);
+    }
+
     static uint UnlicensedCount()
     {
         return LM().unlicensedCount;
@@ -175,6 +184,7 @@ private:
     text                company;
     text                address;
     text                email;
+    std::vector<QRegExp>publishers;
     uint                unlicensedCount;
     struct LicenseFile
     {
@@ -183,6 +193,7 @@ private:
         text                company;
         text                address;
         text                email;
+        std::vector<QRegExp>publishers;
         text                hostid;
     };
 
@@ -200,6 +211,7 @@ private:
     text sign(LicenseFile &lf);
 #endif
     bool verify(LicenseFile &lf, text signature);
+    bool publisherMatches(QString name);
     static std::ostream & debug();
 };
 

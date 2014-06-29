@@ -114,7 +114,7 @@ void Licenses::addLicenseFile(kstring licfname)
     {
         // REVISIT: We may want to add host, ip, MAC, display type, ...
         START, SIGNATURE, DONE, TAG,
-        NAME, COMPANY, ADDRESS, EMAIL, FEATURES,
+        NAME, COMPANY, ADDRESS, EMAIL, FEATURES, PUBLISHER,
         EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR,
         HOSTID, ERR
     } state = START;
@@ -157,6 +157,8 @@ void Licenses::addLicenseFile(kstring licfname)
                     state = ADDRESS;
                 else if (item == "email")
                     state = EMAIL;
+                else if (item == "publisher")
+                    state = PUBLISHER;
                 else if (item == "features")
                     state = FEATURES;
                 else if (item == "expires")
@@ -264,6 +266,22 @@ void Licenses::addLicenseFile(kstring licfname)
             else
             {
                 licenseError(licfname, tr("Invalid features pattern"));
+                state = ERR;
+            }
+            break;
+
+        case PUBLISHER:
+            if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
+            {
+                item = scanner.TextValue();
+                state = TAG;
+                QRegExp regexp(+item);
+                additional.publishers.push_back(regexp);
+                publishers.push_back(regexp);
+            }
+            else
+            {
+                licenseError(licfname, tr("Invalid publisher pattern"));
                 state = ERR;
             }
             break;
@@ -411,6 +429,14 @@ text Licenses::toText(LicenseFile &lf)
     if (lf.hostid.length())
         os << "hostid \"" << lf.hostid << "\"\n";
 
+    // Loop on all the publishers
+    uint p, pmax = lf.publishers.size();
+    for (p = 0; p < pmax; p++)
+    {
+        QRegExp &publisher = lf.publishers[p];
+        os << "publisher \"" << +publisher.pattern() << "\"\n";
+    }
+
     // Loop on all data blocks
     uint i, max = lf.licenses.size();
     for (i = 0; i < max; i++)
@@ -521,6 +547,29 @@ bool Licenses::verify(LicenseFile &licenses, text signature)
     byte * bsig = (byte *) sig.data();
     bool result = verifier.VerifyMessage(data, data_length, bsig, size);
 
+    return result;
+}
+
+
+bool Licenses::publisherMatches(QString name)
+// ----------------------------------------------------------------------------
+//   Check if the publisher matches the known publishers
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(lic)
+        debug() << "Checking if publisher matches " << +name << "\n";
+
+    bool result = false;
+    uint i, max = publishers.size();
+    for (i = 0; !result && i < max; i++)
+    {
+        QRegExp &publisher = publishers[i];
+        bool matches = publisher.indexIn(name) >= 0;
+        IFTRACE(lic)
+            debug() << "  Pattern " << +publisher.pattern()
+                    << (matches ? " matches\n" : " does not match\n");
+        result = matches;
+    }
     return result;
 }
 

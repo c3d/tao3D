@@ -310,7 +310,8 @@ public:
     static XL::Tree_p      import(XL::Context_p context,
                                   XL::Tree_p self,
                                   XL::Tree_p what,
-                                  XL::phase_t phase);
+                                  XL::phase_t phase,
+                                  bool needSignature = true);
 
     struct ModuleInfoPrivate : ModuleInfo
     // ------------------------------------------------------------------------

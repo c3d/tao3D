@@ -46,7 +46,7 @@ using namespace XL;
 
 Tree *xl_process_module_import(Symbols *symbols, Tree *source, phase_t phase)
 // ----------------------------------------------------------------------------
-//   Standard connector for 'load' statements
+//   Standard connector for 'import' statements
 // ----------------------------------------------------------------------------
 {
     if (Prefix *pfx = source->AsPrefix())
@@ -54,6 +54,23 @@ Tree *xl_process_module_import(Symbols *symbols, Tree *source, phase_t phase)
         source->SetSymbols(symbols);
         return Tao::ModuleManager::import(MAIN->context, source,
                                           pfx->right, phase);
+    }
+    return NULL;
+}
+
+
+Tree *xl_process_module_config(Symbols *symbols, Tree *source, phase_t phase)
+// ----------------------------------------------------------------------------
+//   Standard connector for 'configuration' statements
+// ----------------------------------------------------------------------------
+{
+    if (Prefix *pfx = source->AsPrefix())
+    {
+        source->SetSymbols(symbols);
+        if (phase == DECLARATION_PHASE)
+            return Tao::ModuleManager::import(MAIN->context, source,
+                                              pfx->right, phase, false);
+        return XL::xl_false;
     }
     return NULL;
 }
@@ -71,6 +88,7 @@ void EnterGraphics()
 #include "opcodes_define.h"
 #include "graphics.tbl"
     xl_enter_declarator("import", xl_process_module_import);
+    xl_enter_declarator("configuration", xl_process_module_config);
 }
 
 

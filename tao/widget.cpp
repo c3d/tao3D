@@ -4403,7 +4403,8 @@ QString Widget::signDocument(text path)
     using namespace XL;
     if (path != "")
     {
-        err = attachSigatureInfoAndSign(MAIN->files[path]);
+        if (!excludedFromSignature.contains(+path))
+            err = attachSigatureInfoAndSign(MAIN->files[path]);
     }
     else
     {
@@ -4412,9 +4413,14 @@ QString Widget::signDocument(text path)
         for (it = files.begin(); it != files.end(); it++)
         {
             SourceFile &sf = (*it).second;
+            IFTRACE(lic)
+                std::cerr << "[SignatureInfo] " << sf.name
+                          << (excludedFromSignature.contains(+sf.name)
+                              ? " excluded\n" : " not excluded\n");
+            if (excludedFromSignature.contains(+sf.name))
+                continue;
             if (!isUserFile(+sf.name))
                 continue;
-
             err = attachSigatureInfoAndSign(sf);
             if (!err.isEmpty())
                 break;
@@ -4463,11 +4469,16 @@ bool Widget::checkDocumentSigned()
     for (it = files.begin(); it != files.end(); it++)
     {
         SourceFile &sf = (*it).second;
-        SignatureInfo *si = sf.GetInfo<SignatureInfo>();
-        if (!si || si->loadAndCheckSignature() != SignatureInfo::SI_VALID)
+        if (!excludedFromSignature.contains(+sf.name))
         {
-            sig = false;
-            break;
+            SignatureInfo *si = sf.GetInfo<SignatureInfo>();
+            if (!si || si->loadAndCheckSignature() != SignatureInfo::SI_VALID)
+            {
+                sig = false;
+                IFTRACE(lic)
+                    std::cerr << "Bad signature for " << sf.name << "\n";
+                break;
+            }
         }
         sig = true;
     }
@@ -4505,6 +4516,21 @@ bool Widget::checkDocumentSigned()
         std::cerr << "Document is " << (sig ? "" : "not ") << "signed\n";
 
     return (isDocumentSigned = sig);
+}
+
+
+void Widget::excludeFromSignature(text path)
+// ----------------------------------------------------------------------------
+//    Exclude a given path from the signature
+// ----------------------------------------------------------------------------
+{
+    QString qpath = +path;
+    if (!excludedFromSignature.contains(qpath))
+    {
+        IFTRACE(lic)
+            std::cerr << "[SignatureInfo] Excluding " << +qpath << "\n";
+        excludedFromSignature << qpath;
+    }
 }
 #endif // CFG_NO_DOC_SIGNATURE
 

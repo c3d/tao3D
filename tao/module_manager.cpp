@@ -79,7 +79,7 @@ static QStringList allPaths(XL::source_files &files)
 
 
 static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
-                             XL::phase_t phase)
+                             XL::phase_t phase, bool needSignature)
 // ----------------------------------------------------------------------------
 //   Call XLR to import a file, update monitored paths
 // ----------------------------------------------------------------------------
@@ -93,6 +93,12 @@ static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
             foreach (QString path, after)
                 if (!before.contains(path))
                     Widget::Tao()->fileMonitor().addPath(path);
+
+        if (!needSignature)
+        {
+            text path = XL::MAIN->SearchFile(name);
+            Widget::Tao()->excludeFromSignature(path);
+        }
     }
     return ret;
 }
@@ -101,7 +107,8 @@ static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
 XL::Tree_p ModuleManager::import(XL::Context_p context,
                                  XL::Tree_p self,
                                  XL::Tree_p what,
-                                 XL::phase_t phase)
+                                 XL::phase_t phase,
+                                 bool needSignature)
 // ----------------------------------------------------------------------------
 //   The import primitive
 // ----------------------------------------------------------------------------
@@ -109,9 +116,8 @@ XL::Tree_p ModuleManager::import(XL::Context_p context,
     // import "filename"
     XL::Text *file = what->AsText();
     if (file)
-    {
-        return doXLImport(context, self, file->value, phase);
-    }
+        return doXLImport(context, self, file->value, phase, needSignature);
+
     // Other import syntax: explicit module import
     ModuleManager *mmgr = moduleManager();
     if (mmgr)
@@ -198,7 +204,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                         }
                     }
 
-                    doXLImport(context, self, +xlPath, phase);
+                    doXLImport(context, self, +xlPath, phase, true);
                     if (phase != XL::PARSING_PHASE)
                         moduleById(m.id)->loaded = true;
                     break;

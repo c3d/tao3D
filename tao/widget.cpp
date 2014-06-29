@@ -1646,7 +1646,7 @@ void Widget::print(QPrinter *prt)
 
                 setGlClearColor();
                 GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-                
+
                 space->Draw(NULL);
                 frame.end();
 
@@ -4424,7 +4424,8 @@ QString Widget::signDocument(text path)
     using namespace XL;
     if (path != "")
     {
-        err = attachSigatureInfoAndSign(MAIN->files[path]);
+        if (!excludedFromSignature.contains(+path))
+            err = attachSigatureInfoAndSign(MAIN->files[path]);
     }
     else
     {
@@ -4433,13 +4434,41 @@ QString Widget::signDocument(text path)
         for (it = files.begin(); it != files.end(); it++)
         {
             SourceFile &sf = (*it).second;
+            IFTRACE(lic)
+                std::cerr << "[SignatureInfo] " << sf.name
+                          << (excludedFromSignature.contains(+sf.name)
+                              ? " excluded\n" : " not excluded\n");
+            if (excludedFromSignature.contains(+sf.name))
+                continue;
             if (!isUserFile(+sf.name))
                 continue;
-
             err = attachSigatureInfoAndSign(sf);
             if (!err.isEmpty())
                 break;
         }
+
+        // Generate the publisher information
+        QDir    outDir(taoWindow()->currentProjectFolderPath());
+        QString outFileName(outDir.filePath("publisher.info"));
+        QFile   outFile(outFileName);
+        if (outFile.open(QFile::WriteOnly))
+        {
+            QTextStream out(&outFile);
+            out.setCodec("UTF-8");
+            out << +Licenses::Name() << "\n"
+                << +Licenses::Company() << "\n"
+                << +Licenses::Mail() << "\n";
+            outFile.close();
+
+            // Sign the license file
+            SignatureInfo si(+outFileName);
+            si.signFileWithDocKey();
+        }
+        else
+        {
+            err = "publisher.info: "  + outFile.errorString();
+        }
+
     }
     checkDocumentSigned();
     return err;
@@ -4454,24 +4483,75 @@ bool Widget::checkDocumentSigned()
 {
     bool sig = false;
     using namespace XL;
+
+    // Checking the signature of the .XL and .DDD files
     source_files &files = MAIN->files;
     source_files::iterator it;
     for (it = files.begin(); it != files.end(); it++)
     {
         SourceFile &sf = (*it).second;
-        SignatureInfo *si = sf.GetInfo<SignatureInfo>();
-        if (!si ||
-             si->loadAndCheckSignature() != SignatureInfo::SI_VALID)
+        if (!excludedFromSignature.contains(+sf.name))
         {
-            sig = false;
-            break;
+            SignatureInfo *si = sf.GetInfo<SignatureInfo>();
+            if (!si || si->loadAndCheckSignature() != SignatureInfo::SI_VALID)
+            {
+                sig = false;
+                IFTRACE(lic)
+                    std::cerr << "Bad signature for " << sf.name << "\n";
+                break;
+            }
         }
         sig = true;
     }
+
+    // Checking the signature of the publisher
+    if (sig)
+    {
+        QDir          pubDir(taoWindow()->currentProjectFolderPath());
+        QString       pubFileName(pubDir.filePath("publisher.info"));
+        SignatureInfo si(+pubFileName);
+        
+        IFTRACE(lic)
+            std::cerr << "Player publisher info is " << +pubFileName << "\n";
+
+        if (si.loadAndCheckSignature() == SignatureInfo::SI_VALID)
+        {
+            QFile   pubFile(pubFileName);
+            if (pubFile.open(QFile::ReadOnly))
+            {
+                QTextStream in(&pubFile);
+                in.setCodec("UTF-8");
+                QString name = in.readLine();
+                QString company = in.readLine();
+                QString mail = in.readLine();
+                pubFile.close();
+
+                sig = Licenses::PublisherMatches(name) ||
+                    Licenses::PublisherMatches(company) ||
+                    Licenses::PublisherMatches(mail);
+            }
+        }
+    }
+
     IFTRACE2(lic, fileload)
         std::cerr << "Document is " << (sig ? "" : "not ") << "signed\n";
 
     return (isDocumentSigned = sig);
+}
+
+
+void Widget::excludeFromSignature(text path)
+// ----------------------------------------------------------------------------
+//    Exclude a given path from the signature
+// ----------------------------------------------------------------------------
+{
+    QString qpath = +path;
+    if (!excludedFromSignature.contains(qpath))
+    {
+        IFTRACE(lic)
+            std::cerr << "[SignatureInfo] Excluding " << +qpath << "\n";
+        excludedFromSignature << qpath;
+    }
 }
 #endif // CFG_NO_DOC_SIGNATURE
 
@@ -4562,7 +4642,7 @@ void Widget::refreshProgram()
         else
             std::cerr << "Surgical replacement worked\n";
     }
-    
+
     // Clear errors and indicate a reload
     clearErrors();
 
@@ -8985,7 +9065,7 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
                           self, infix->left);
                     cname = "unknown";
                 }
-            } 
+            }
 
             Tree_p arg = infix->right;
             if (Block *block = arg->AsBlock())
@@ -11600,7 +11680,7 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
-    } while (0); // State keeper and layout 
+    } while (0); // State keeper and layout
 
     glPopAttrib();
 

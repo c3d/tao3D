@@ -18,6 +18,8 @@ Change log for Tao Presentations 2.x
 #3471 Add page_unique_name
 #3473 Fix a rare crash when evaluating page exit handlers
 #3475 Reintegrate VLC in the Player edition
+#3478 Add a 'configuration' import that does not require a signature
+#3479 Add a 'publisher' entry in Player license to list authorized publishers
 
 2.0-alpha3 (21-May-2014)
 

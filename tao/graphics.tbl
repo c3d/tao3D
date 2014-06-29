@@ -1248,6 +1248,12 @@ PREFIX(ImportModule, tree, "import",
        return Tao::ModuleManager::import(context, self, m, XL::EXECUTION_PHASE),
        GROUP(modules)
        SYNOPSIS("Import a module from a file"))
+PREFIX(LoadConfiguration, tree, "configuration",
+       PARM(m, tree, "Module file name"),
+       return Tao::ModuleManager::import(context, self, m,
+                                         XL::EXECUTION_PHASE, false),
+       GROUP(modules)
+       SYNOPSIS("Import a module from a file"))
 PREFIX(Blink, boolean,  "blink",
        PARM(on, real, "Duration of first period, primitive returns true")
        PARM(off, real, "Duration of second period, primitive returns false")

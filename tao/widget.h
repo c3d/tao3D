@@ -270,6 +270,7 @@ public:
     QString      signDocument(text path);
 #endif
     bool         checkDocumentSigned();
+    void         excludeFromSignature(text path);
 #endif
 
     // Timing
@@ -970,6 +971,7 @@ private:
     bool                  contextFilesLoaded;
     FileMonitor           srcFileMonitor;
     QStringList           toReload;
+    QStringList           excludedFromSignature;
 
     // Rendering
     OpenGLState           gl;   // Must appear first (ctor and dtor order)

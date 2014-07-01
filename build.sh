@@ -19,13 +19,13 @@ upload() {
         ( echo $REV | grep g) || UNAME=`uname`
         case "$UNAME" in
             Darwin)
-                scp packaging/macosx/Tao*.dmg www-data@www.taodyne.com:downloads/
+                scp -i ~/.ssh/upload packaging/macosx/Tao*.dmg www-data@www.taodyne.com:downloads/
                 ;;
             MINGW*)
-                scp packaging/win/Tao*.exe www-data@www.taodyne.com:downloads/
+                scp -i /c/jenkins/.ssh/upload packaging/win/Tao*.exe www-data@www.taodyne.com:downloads/
                 ;;
             Linux*)
-                scp packaging/linux/Tao*.deb packaging/linux/Tao*.tar.bz2 www-data@www.taodyne.com:downloads/
+                scp -i ~/.ssh/upload packaging/linux/Tao*.deb packaging/linux/Tao*.tar.bz2 www-data@www.taodyne.com:downloads/
                 ;;
         esac
     fi

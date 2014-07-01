@@ -6691,8 +6691,12 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
         refreshOn(QEvent::KeyRelease);
 
         QRegExp re(".*");
+        QString pattern = "";
         if (qname.startsWith("key:"))
-            re = QRegExp(qname.mid(qname.indexOf(':') + 1));
+        {
+            pattern = qname.mid(qname.indexOf(':')+1);
+            re = QRegExp(pattern);
+        }
 
         QString qkeyName = +keyName;
         QString qkeyText = +keyText;
@@ -6704,9 +6708,14 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
                 qkeyText = "~" + qkeyText;
             // keyEvent already has the ~
         }
-        bool eval = (!(+keyEventName).isEmpty() && re.exactMatch(+keyEventName))  ||
-                    (!qkeyName.isEmpty()    && re.exactMatch(qkeyName)) ||
-                    (!qkeyText.isEmpty()    && re.exactMatch(qkeyText));
+        bool eval =
+            (!(+keyEventName).isEmpty() &&
+             (pattern == +keyEventName || re.exactMatch(+keyEventName)))  ||
+            (!qkeyName.isEmpty()    &&
+             (pattern == qkeyName      || re.exactMatch(qkeyName)))       ||
+            (!qkeyText.isEmpty()    &&
+             (pattern == qkeyText      || re.exactMatch(qkeyText)));
+
         if (eval)
             return context->Evaluate(action);
     }

@@ -13,23 +13,5 @@ REV="$(tao/updaterev.sh -n)"
 # Configure with the Jenkins input parameters
 ./configure -$BUILD_OPT $BUILD_VERSION VLC=$VLCPATH 
 
-upload() {
-    if [ "$BUILD_OPT" == "release" -a "$BUILD_VERSION" != "internal" ]; then
-        UNAME=""
-        ( echo $REV | grep g) || UNAME=`uname`
-        case "$UNAME" in
-            Darwin)
-                scp -i ~/.ssh/upload packaging/macosx/Tao*.dmg www-data@www.taodyne.com:downloads/
-                ;;
-            MINGW*)
-                scp -i /c/jenkins/.ssh/upload packaging/win/Tao*.exe www-data@www.taodyne.com:downloads/
-                ;;
-            Linux*)
-                scp -i ~/.ssh/upload packaging/linux/Tao*.deb packaging/linux/Tao*.tar.bz2 www-data@www.taodyne.com:downloads/
-                ;;
-        esac
-    fi
-}
-
 # Build it and upload on server
-make kit && upload
+make kit

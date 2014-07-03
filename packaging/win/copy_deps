@@ -53,6 +53,13 @@ fi
 rm -f $EXCL
 )
 
+# Copy the rsync package from io.taodyne.com
+
+if [ -z "$PACKAGE_NORSYNC" ] ; then
+
+ssh io.taodyne.com "cat rsync-windows.tar.gz" | ( cd build_root ; tar xvfz - )
+
+fi # -z "$PACKAGE_NORSYNC"
 
 #
 # Uncompress Git distribution into build_root/

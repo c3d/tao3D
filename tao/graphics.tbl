@@ -926,6 +926,9 @@ PREFIX(ConicalGradient,  tree,  "conical_gradient",
        SYNOPSIS("A conical gradient with content as colors")
        DESCRIPTION("Make a conical gradient")
        RETURNS(tree, "The id of current gradient"))
+
+
+
 // ============================================================================
 //
 //    Menus
@@ -1304,3 +1307,36 @@ PREFIX(TextureCacheRefresh, boolean, "texture_cache_refresh", ,
        DESCRIPTION("Causes the texture cache to purge any network image "
                    "that has changed on the server. NOTE: currently "
                    "all network images are purged."))
+
+
+
+// ============================================================================
+// 
+//    Process management
+// 
+// ============================================================================
+
+PREFIX(RunProcess, boolean, "run_process",
+       PARM(processName, text, "Name of the process")
+       PARM(processArgs, text, "Arguments for the process"),
+       RTAO(runProcess(self, processName, processArgs)), )
+PREFIX(WriteToProcess, boolean, "write_process",
+       PARM(processName, text, "Process to write to")
+       PARM(toWrite, text, "Data to write to process"),
+       RTAO(writeToProcess(self, processName, toWrite)), )
+PREFIX(ReadFromProcess, text, "read_process",
+       PARM(processName, text, "Process to write from"),
+       RTAO(readFromProcess(self, processName)), )
+PREFIX(DropProcess, boolean, "drop_process",
+       PARM(processName, text, "Name of the process"),
+       RTAO(dropProcess(self, processName)), )
+
+PREFIX(RunRSync, text, "rsync",
+       PARM(source, text, "Source for the copy")
+       PARM(destination, text, "Destination for the copy"),
+       RTAO(runRsync(self, "", source, destination)), )
+PREFIX(RunRSyncWithOptions, text, "rsync_options",
+       PARM(options, text, "Options for rsync")
+       PARM(source, text, "Source for the copy")
+       PARM(destination, text, "Destination for the copy"),
+       RTAO(runRsync(self, options, source, destination)), )

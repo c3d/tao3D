@@ -14174,7 +14174,7 @@ Name_p Widget::runProcess(Tree_p self, text name, QStringList &args)
     // Check if we already have a process by that name
     QString qName = +name;
     if (!processMap.contains(qName))
-        processMap[qName] = new Process(+base, args);
+        processMap[qName] = new Process(+base, args, "", true, 1024, true);
 
     Process *process = processMap[qName];
     if (process->state() == QProcess::Running)
@@ -14201,7 +14201,7 @@ Name_p Widget::writeToProcess(Tree_p self, text name, text args)
 }
 
 
-Text_p Widget::readFromProcess(Tree_p self, text name)
+Text_p Widget::readFromProcess(Tree_p self, text name, uint lines)
 // ----------------------------------------------------------------------------
 //   Read from the given process
 // ----------------------------------------------------------------------------
@@ -14210,9 +14210,8 @@ Text_p Widget::readFromProcess(Tree_p self, text name)
     if (processMap.contains(qName))
     {
         Process *process = processMap[qName];
-        if (process->state() == QProcess::Running)
-            return new Text(+(process->out + process->err),
-                            "\"", "\"", self->Position());
+        QString result = process->getTail(lines);
+        return new Text(+result, "\"", "\"", self->Position());
     }
     return new Text("", "\"", "\"", self->Position());
 }
@@ -14252,10 +14251,10 @@ Text_p Widget::runRsync(Tree_p self, text opt, text src, text dst)
                    << "/usr/local/bin/rsync"
                    << "/opt/local/bin/rsync";
 
-        path = "<not found>";
+        path = "<rsync not found>";
         foreach (QString p, candidates)
         {
-            if (!QFileInfo(p).exists())
+            if (QFileInfo(p).exists())
             {
                 path = +p;
                 break;
@@ -14263,15 +14262,17 @@ Text_p Widget::runRsync(Tree_p self, text opt, text src, text dst)
         }
     }
 
-    if (path == "<not found>")
-        return new Text("", "\"", "\"", self->Position());
+    if (path == "<rsync not found>")
+        return new Text(path, "\"", "\"", self->Position());
 
     QStringList args;
     if (opt != "")
         args << +opt;
+    else
+        args << "-aP";
     args << +src << +dst;
     runProcess(self, path, args);
-    return readFromProcess(self, path);
+    return readFromProcess(self, path, 5);
 }
 
 

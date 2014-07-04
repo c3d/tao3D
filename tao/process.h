@@ -47,12 +47,16 @@ public:
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
             bool  startImmediately = true,
-            size_t bufSize = 1024);
+            size_t bufSize = 1024,
+            bool combine = false);
     virtual ~Process();
 
     virtual void start();
     virtual bool done(text *errors = NULL, text *output = NULL);
     virtual bool failed();
+
+    void combineOutAndErr(bool flag=true) { combine = flag; }
+    QString getTail(uint lines);
 
     QProcessEnvironment getProcessEnvironment();
 
@@ -86,6 +90,7 @@ public:
     QString     wd;
     void       *id;
     bool        aborted;
+    bool        combine;
     QString     err, out;
     int         errPos;    // current position in err (% complete parsing)
     int         percent;   // % complete

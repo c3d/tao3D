@@ -1325,8 +1325,12 @@ PREFIX(WriteToProcess, boolean, "write_process",
        PARM(toWrite, text, "Data to write to process"),
        RTAO(writeToProcess(self, processName, toWrite)), )
 PREFIX(ReadFromProcess, text, "read_process",
-       PARM(processName, text, "Process to write from"),
+       PARM(processName, text, "Process to read from"),
        RTAO(readFromProcess(self, processName)), )
+PREFIX(ReadFromProcessTail, text, "read_process_tail",
+       PARM(processName, text, "Process to read from")
+       PARM(processLines, integer, "Number of lines to read"),
+       RTAO(readFromProcess(self, processName, processLines)), )
 PREFIX(DropProcess, boolean, "drop_process",
        PARM(processName, text, "Name of the process"),
        RTAO(dropProcess(self, processName)), )
@@ -1335,7 +1339,7 @@ PREFIX(RunRSync, text, "rsync",
        PARM(source, text, "Source for the copy")
        PARM(destination, text, "Destination for the copy"),
        RTAO(runRsync(self, "", source, destination)), )
-PREFIX(RunRSyncWithOptions, text, "rsync_options",
+PREFIX(RunRSyncWithOptions, text, "rsync",
        PARM(options, text, "Options for rsync")
        PARM(source, text, "Source for the copy")
        PARM(destination, text, "Destination for the copy"),

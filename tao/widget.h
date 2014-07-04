@@ -915,7 +915,7 @@ public:
     Name_p      runProcess(Tree_p self, text name, text args);
     Name_p      runProcess(Tree_p self, text name, QStringList &args);
     Name_p      writeToProcess(Tree_p self, text name, text data);
-    Text_p      readFromProcess(Tree_p self, text name);
+    Text_p      readFromProcess(Tree_p self, text name, uint lines = ~0U);
     Name_p      dropProcess(Tree_p self, text name);
 
     // Run rsync

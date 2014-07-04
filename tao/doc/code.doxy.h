@@ -847,4 +847,106 @@ text tao_edition();
  */
 text tao_language();
 
+
+/**
+ * @~english
+ * Execute an external process
+ * Run an external process. The function returns true if the process runs,
+ * false if the process cannot be run or terminated.
+ * Different processes with the same executable can be invoked by adding
+ * a hash sign followed by an id, for example @code ls#3 @endcode
+ * For security reasons, this function requires a specific license
+ * allowing the named process to be run. For example, you must have a
+ * license for @code RunProcess:ls @endcode to be able to invoke
+ * @code ls @endcode or @code ls#3 @endcode.
+ * 
+ * @~french
+ * Lance un processus externe
+ * Exécute le processus nommé en argument. La fonction retourne true
+ * si le process s'exécute, false si le process ne peut s'exécuter ou
+ * s'il a terminé son exécution.
+ * Différents processus avec le même nom peuvent être lancés en
+ * ajoutant au nom un signe dièse # par exemple @code ls#3 @endcode.
+ * Pour des raisons de sécurité, cette fonction requiert une license
+ * spécifique autorisant le lancement du processus indiqué. Par
+ * exemple, il faut avoir une licence couvrant @RunProcess:ls@ pour
+ * pouvoir lancer la commande @code ls @endcode ou @code ls#3 @endcode.
+ * @~
+ * @see read_process, write_process, drop_process
+ */
+boolean run_process(name:text);
+
+/**
+ * @~english
+ * Execute an external process with arguments
+ * The @p args specify a space-separated list of arguments to be given
+ * to the specified process.
+ * 
+ * @~french
+ * Lance un processus externe avec des arguments
+ * @p args contient une liste d'arguments séparés par des espaces.
+ * @~
+ * @see run_process, read_process, write_process, drop_process
+ */
+boolean run_process(name:text,args:text);
+
+/**
+ * @~english
+ * Read the standard output and standard error of a process.
+ * The output of a process can be read even after the process died.
+ * @p name is the name of a process launched with @ref run_process.
+ * @~french
+ * Lit la sortie standard d'un processus
+ * La sortie d'un processus peut être lue après que le processus se
+ * soit terminé.
+ * @p name est le nom d'un processus lancé avec @ref run_process.
+ * @~
+ * @see run_process, read_process_tail, write_process, drop_process
+ */
+text read_process(name:text);
+
+/**
+ * @~english
+ * Read the last lines of the standard output and standard error of a process
+ * @p name is the name of a process launched with @ref run_process.
+ * @p lines is the maximum number of lines to read.
+ * @~french
+ * Lit les dernières lignes de la sortie standard d'un processus
+ * @p name est le nom d'un processus lancé avec @ref run_process.
+ * @p lines indique le nombre maximum de lignes à lire
+ * @~
+ * @see run_process, read_process, write_process, drop_process
+ */
+text read_process_tail(name:text,lines:integer);
+
+/**
+ * @~english
+ * Write to the standard input of a process
+ * @p name is the name of a process launched with @ref run_process.
+ * @p input is the content to be sent to the process
+ * @~french
+ * Écrit l'entrée standard d'un processus
+ * @p name est le nom d'un processus lancé avec @ref run_process.
+ * @p input est le contenu à envoyer au processus.
+ * @~
+ * @see run_process, read_process, read_process_tail, drop_process
+ */
+boolean write_process(name:text,input:text);
+
+/**
+ * @~english
+ * Drop reference to a process
+ * @p name is the name of a process launched with @ref run_process.
+ * If @ref run_process is evaluated with the same process name, a new
+ * process will be launched.
+ * @~french
+ * Supprime la référence à un processus
+ * @p name est le nom d'un processus lancé avec @ref run_process.
+ * Si @ref run_process est à nouveau évalué avec le même nom de
+ * processus, un nouveau processus sera lancé.
+ * @~
+ * @see run_process, read_process, read_process_tail, drop_process
+ */
+boolean write_process(name:text,input:text);
+
 /** @} */

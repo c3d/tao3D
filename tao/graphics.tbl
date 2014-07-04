@@ -1320,6 +1320,9 @@ PREFIX(RunProcess, boolean, "run_process",
        PARM(processName, text, "Name of the process")
        PARM(processArgs, text, "Arguments for the process"),
        RTAO(runProcess(self, processName, processArgs)), )
+PREFIX(RunProcessNoArg, boolean, "run_process",
+       PARM(processName, text, "Name of the process"),
+       RTAO(runProcess(self, processName, "")), )
 PREFIX(WriteToProcess, boolean, "write_process",
        PARM(processName, text, "Process to write to")
        PARM(toWrite, text, "Data to write to process"),

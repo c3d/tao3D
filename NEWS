@@ -1,5 +1,10 @@
 Change log for Tao Presentations 2.x
 
+2.0-alpha9 (4-Jul-2014)
+#3480 Accept on "key:+" without interpreting + as a regexp
+#3483 Implement rsync function to invoke rsync synchronization
+#3486 Implement 'run_process' to run arbitrary external processes
+
 2.0-alpha6 (23-Jun-2014)
 
 #3435 Better label for 'quad-buffer' stereoscopic mode

@@ -14281,7 +14281,20 @@ Text_p Widget::readFromProcess(Tree_p self, text name, uint lines)
         QString result = process->getTail(lines);
         return new Text(+result, "\"", "\"", self->Position());
     }
-    return new Text("<process " + name + " does not exist>", "\"", "\"", self->Position());
+
+    // Extract the base name, e.g. turn ls#3 into ls
+    text base = name;
+    size_t hashIndex = base.find('#');
+    if (hashIndex != std::string::npos)
+        base = base.substr(0, hashIndex);
+    text feature = "RunProcess:" + base;
+    if (!Licenses::Has(feature))
+        return new Text("<no license for process " + name + ">",
+                        "\"", "\"", self->Position());
+
+    // Other case: report that the process does not exist
+    return new Text("<process " + name + " does not exist>",
+                    "\"", "\"", self->Position());
 }
 
 

@@ -14177,6 +14177,7 @@ Name_p Widget::runProcess(Tree_p self, text name, QStringList &args)
     {
         QString docPath = taoWindow()->currentProjectFolderPath();
         processMap[qName] = new Process(+base, args, docPath, true, 1024, true);
+        return XL::xl_true;     // Return true at least once
     }
 
     Process *process = processMap[qName];
@@ -14216,7 +14217,7 @@ Text_p Widget::readFromProcess(Tree_p self, text name, uint lines)
         QString result = process->getTail(lines);
         return new Text(+result, "\"", "\"", self->Position());
     }
-    return new Text("", "\"", "\"", self->Position());
+    return new Text("<process " + name + " does not exist>", "\"", "\"", self->Position());
 }
 
 

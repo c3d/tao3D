@@ -14144,7 +14144,7 @@ Name_p Widget::runProcess(Tree_p self, text name, text args)
     if (!processMap.contains(qName))
     {
         QString qArgs = +args;
-        QStringList qArgList = qArgs.split(' ');
+        QStringList qArgList = args == "" ? QStringList() : qArgs.split(' ');
         return runProcess(self, name, qArgList);
     }
 
@@ -14174,7 +14174,10 @@ Name_p Widget::runProcess(Tree_p self, text name, QStringList &args)
     // Check if we already have a process by that name
     QString qName = +name;
     if (!processMap.contains(qName))
-        processMap[qName] = new Process(+base, args, "", true, 1024, true);
+    {
+        QString docPath = taoWindow()->currentProjectFolderPath();
+        processMap[qName] = new Process(+base, args, docPath, true, 1024, true);
+    }
 
     Process *process = processMap[qName];
     if (process->state() == QProcess::Running)

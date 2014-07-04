@@ -14321,6 +14321,7 @@ Text_p Widget::runRsync(Tree_p self, text opt, text src, text dst)
 // ----------------------------------------------------------------------------
 {
     static text path;
+    static text ssh;
 
     if (path == "")
     {
@@ -14343,6 +14344,27 @@ Text_p Widget::runRsync(Tree_p self, text opt, text src, text dst)
         }
     }
 
+    if (ssh == "")
+    {
+        QStringList candidates;
+        candidates << qApp->applicationDirPath() + "/rsync/ssh.exe"
+                   << qApp->applicationDirPath() + "/rsync/ssh"
+                   << "/usr/bin/ssh"
+                   << "/bin/ssh"
+                   << "/usr/local/bin/ssh"
+                   << "/opt/local/bin/ssh";
+
+        ssh = "<ssh not found>";
+        foreach (QString p, candidates)
+        {
+            if (QFileInfo(p).exists())
+            {
+                ssh = +p;
+                break;
+            }
+        }
+    }
+
     if (path == "<rsync not found>")
         return new Text(path, "\"", "\"", self->Position());
 
@@ -14351,6 +14373,8 @@ Text_p Widget::runRsync(Tree_p self, text opt, text src, text dst)
         args << +opt;
     else
         args << "-aP";
+    if (ssh != "<ssh not found>")
+        args << "-e" << +ssh;
     args << +src << +dst;
     runProcess(self, path, args);
     return readFromProcess(self, path, 5);

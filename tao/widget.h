@@ -45,6 +45,7 @@
 #include "statistics.h"
 #include "file_monitor.h"
 #include "preview.h"
+#include "process.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -912,6 +913,16 @@ public:
     Text_p xlTrAdd(Tree_p self, text from, text to);
     Text_p xlTr(Tree_p self, text t);
 
+    // Run process
+    Name_p      runProcess(Tree_p self, text name, text args);
+    Name_p      runProcess(Tree_p self, text name, QStringList &args);
+    Name_p      writeToProcess(Tree_p self, text name, text data);
+    Text_p      readFromProcess(Tree_p self, text name, uint lines = ~0U);
+    Name_p      dropProcess(Tree_p self, text name);
+
+    // Run rsync
+    Text_p      runRsync(Tree_p self, text opts, text source, text dest);
+
 private:
     friend struct Window;
     friend struct Activity;
@@ -1118,6 +1129,9 @@ private:
     int                   offlineRenderingHeight;
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
     std::set<int>         pendingEvents;
+
+    // Processes
+    QMap<QString,Process*>processMap;
 
 private:
     Window *              taoWindow();

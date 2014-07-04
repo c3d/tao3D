@@ -47,13 +47,17 @@ public:
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
             bool  startImmediately = true,
-            size_t bufSize = 1024);
+            size_t bufSize = 1024,
+            bool combine = false);
     virtual ~Process();
 
     virtual void start();
     virtual bool done(text *errors = NULL, text *output = NULL);
     virtual bool failed();
     virtual void setWd(const QString &wd);
+
+    void combineOutAndErr(bool flag=true) { combine = flag; }
+    QString getTail(uint lines);
 
     QProcessEnvironment getProcessEnvironment();
 
@@ -92,6 +96,7 @@ public:
     OpenMode    mode;
     void       *id;
     bool        aborted;
+    bool        combine;
     QString     err, out;
     unsigned    errOutMaxSize; // max size of err and out (characters)
     ulong        num;

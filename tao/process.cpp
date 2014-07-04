@@ -16,9 +16,9 @@
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2010 Taodyne SAS
+//  (C) 1992-2014 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2013 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2010-2014 Taodyne SAS
 // ****************************************************************************
 
 #include "process.h"
@@ -42,7 +42,7 @@ Process::Process(QObject *parent, size_t bufSize)
 // ----------------------------------------------------------------------------
     : QProcess(parent),
       mode(ReadWrite), id(NULL),
-      aborted(false), errOutMaxSize(100000)
+      aborted(false), combine(false), errOutMaxSize(100000)
 {
     initialize(bufSize);
 }
@@ -52,12 +52,13 @@ Process::Process(const QString &cmd,
                  const QStringList &args,
                  const QString &wd,
                  bool  startImmediately,
-                 size_t bufSize)
+                 size_t bufSize,
+                 bool combine)
 // ----------------------------------------------------------------------------
 //   Create a QProcess
 // ----------------------------------------------------------------------------
     : cmd(cmd), args(args), wd(""), mode(ReadWrite),
-      id(NULL), aborted(false), errOutMaxSize(100000)
+      id(NULL), aborted(false), combine(combine), errOutMaxSize(100000)
 {
     setWd(wd);
     initialize(bufSize);
@@ -184,6 +185,30 @@ bool Process::failed()
 }
 
 
+QString Process::getTail(uint lines)
+// ----------------------------------------------------------------------------
+//  Return the last N lines in the output
+// ----------------------------------------------------------------------------
+{
+    int current = 0;
+    QString tail = out;
+    if (lines != ~0U)
+    {
+        QRegExp lineSep("[\n\r]");
+        for (uint l = 0; l < lines; l++)
+        {
+            current = tail.lastIndexOf(lineSep, current-1);
+            if (current == -1)
+                break;
+        }
+        if (current >= 0)
+            tail = tail.mid(current);
+        out = tail;
+    }
+    return tail;
+}
+
+
 QProcessEnvironment Process::getProcessEnvironment()
 // ----------------------------------------------------------------------------
 //   Return the process environment that will be used to start the process
@@ -282,10 +307,11 @@ void Process::readStandardError()
 // ------------------------------------------------------------------------
 {
     QByteArray newErr = QProcess::readAllStandardError();
+    QString &where = combine ? out : err;
     if (errOutMaxSize)
     {
-        err.append(QString::fromUtf8(newErr.data()));
-        err = err.right(errOutMaxSize);
+        where.append(QString::fromUtf8(newErr.data()));
+        where = where.right(errOutMaxSize);
     }
     emit standardErrorUpdated(newErr);
 }

@@ -82,6 +82,8 @@
 #include "tao_info.h"
 #include "preferences_pages.h"
 #include "texture_cache.h"
+#include "process.h"
+
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
 #endif
@@ -14187,6 +14189,154 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
 //        << "=========================================================\n";
 
     return new Text(com, "", "");
+}
+
+
+
+// ============================================================================
+// 
+//   Running external processes
+// 
+// ============================================================================
+
+Name_p Widget::runProcess(Tree_p self, text name, text args)
+// ----------------------------------------------------------------------------
+//   Launch the given process
+// ----------------------------------------------------------------------------
+{
+    QString qName = +name;
+    if (!processMap.contains(qName))
+    {
+        QString qArgs = +args;
+        QStringList qArgList = qArgs.split(' ');
+        return runProcess(self, name, qArgList);
+    }
+
+    Process *process = processMap[qName];
+    if (process->state() == QProcess::Running)
+        return XL::xl_true;
+    return XL::xl_false;
+}
+
+
+Name_p Widget::runProcess(Tree_p self, text name, QStringList &args)
+// ----------------------------------------------------------------------------
+//   Launch the given process
+// ----------------------------------------------------------------------------
+{
+    // Extract the base name, e.g. turn ls#3 into ls
+    text base = name;
+    size_t hashIndex = base.find('#');
+    if (hashIndex != std::string::npos)
+        base = base.substr(0, hashIndex);
+
+    // Check if running this process is allowed by the license file
+    text feature = "RunProcess:" + base;
+    if (!Licenses::Has(feature))
+        return XL::xl_false;
+
+    // Check if we already have a process by that name
+    QString qName = +name;
+    if (!processMap.contains(qName))
+        processMap[qName] = new Process(+base, args, "", true, 1024, true);
+
+    Process *process = processMap[qName];
+    if (process->state() == QProcess::Running)
+        return XL::xl_true;
+    return XL::xl_false;
+}
+
+
+Name_p Widget::writeToProcess(Tree_p self, text name, text args)
+// ----------------------------------------------------------------------------
+//   Write to the given process
+// ----------------------------------------------------------------------------
+{
+    QString qName = +name;
+    if (!processMap.contains(qName))
+        return XL::xl_false;
+    Process *process = processMap[qName];
+    if (process->state() == QProcess::Running)
+    {
+        process->write(args.data(), args.length());
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Text_p Widget::readFromProcess(Tree_p self, text name, uint lines)
+// ----------------------------------------------------------------------------
+//   Read from the given process
+// ----------------------------------------------------------------------------
+{
+    QString qName = +name;
+    if (processMap.contains(qName))
+    {
+        Process *process = processMap[qName];
+        QString result = process->getTail(lines);
+        return new Text(+result, "\"", "\"", self->Position());
+    }
+    return new Text("", "\"", "\"", self->Position());
+}
+
+
+Name_p Widget::dropProcess(Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Read from the given process
+// ----------------------------------------------------------------------------
+{
+    QString qName = +name;
+    if (processMap.contains(qName))
+    {
+        Process *process = processMap[qName];
+        processMap.remove(qName);
+        delete process;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Text_p Widget::runRsync(Tree_p self, text opt, text src, text dst)
+// ----------------------------------------------------------------------------
+//   Read from the given process
+// ----------------------------------------------------------------------------
+{
+    static text path;
+
+    if (path == "")
+    {
+        QStringList candidates;
+        candidates << qApp->applicationDirPath() + "/rsync/rsync.exe"
+                   << qApp->applicationDirPath() + "/rsync/rsync"
+                   << "/usr/bin/rsync"
+                   << "/bin/rsync"
+                   << "/usr/local/bin/rsync"
+                   << "/opt/local/bin/rsync";
+
+        path = "<rsync not found>";
+        foreach (QString p, candidates)
+        {
+            if (QFileInfo(p).exists())
+            {
+                path = +p;
+                break;
+            }
+        }
+    }
+
+    if (path == "<rsync not found>")
+        return new Text(path, "\"", "\"", self->Position());
+
+    QStringList args;
+    if (opt != "")
+        args << +opt;
+    else
+        args << "-aP";
+    args << +src << +dst;
+    runProcess(self, path, args);
+    return readFromProcess(self, path, 5);
 }
 
 

@@ -747,6 +747,8 @@ public:
                              double w, double h, Tree_p prog, text name = "",
                              Integer_p depth=NULL, bool canvas=false);
     Integer *   framePixelCount(Tree_p self, float alphaMin);
+    Integer *   framePixel(Tree_p self, float x, float y,
+                           Real_p r, Real_p g, Real_p b, Real_p a);
     Tree*       drawingCache(Context *context, Tree_p self,
                              double version, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);

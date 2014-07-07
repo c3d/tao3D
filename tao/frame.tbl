@@ -94,3 +94,14 @@ PREFIX(FramePixelCount, integer, "frame_pixel_count",
        RTAO(framePixelCount(self, alphaMin)),
        GROUP(widget)
        SYNOPSIS("Count non-transparent pixels in current frame"))
+PREFIX(FramePixel, integer, "frame_pixel",
+       PARM(pixelX, real, "Pixel X position")
+       PARM(pixelY, real, "Pixel Y position")
+       PARM(pixelR, real, "Pixel red")
+       PARM(pixelG, real, "Pixel green")
+       PARM(pixelB, real, "Pixel blue")
+       PARM(pixelA, real, "Pixel alpha"),
+       RTAO(framePixel(self, pixelX, pixelY,
+                       &pixelR, &pixelG, &pixelB, &pixelA)),
+       GROUP(widget)
+       SYNOPSIS("Return pixel at the current coordinates"))

@@ -8696,6 +8696,36 @@ Integer *Widget::framePixelCount(Tree_p self, float alphaMin)
 }
 
 
+Integer *Widget::framePixel(Tree_p self, float x, float y,
+                            Real_p r, Real_p g, Real_p b, Real_p a)
+// ----------------------------------------------------------------------------
+//    Return the pixel at the given coordinates
+// ----------------------------------------------------------------------------
+{
+    longlong result = -1;
+    if (frameInfo)
+    {
+        QImage image = frameInfo->toImage();
+        uint width  = image.width();
+        uint height = image.height();
+        if (x >= 0 && x < width && y >= 0 && y < height)
+        {
+            QRgb rgb = image.pixel((int) x, (int) y);
+            uint rr = qRed(rgb);
+            uint gg = qGreen(rgb);
+            uint bb = qBlue(rgb);
+            uint aa = qAlpha(rgb);
+            r->value = rr / 255.0;
+            g->value = gg / 255.0;
+            b->value = bb  / 255.0;
+            a->value = aa / 255.0;
+            result = (rr << 24) | (gg << 16) | (bb << 8) | (aa << 0);
+        }
+    }
+    return new Integer(result, self->Position());
+}
+
+
 Tree_p Widget::extrudeDepth(Tree_p self, float depth)
 // ----------------------------------------------------------------------------
 //    Set the extrude depth

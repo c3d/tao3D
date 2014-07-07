@@ -14295,7 +14295,7 @@ Text_p Widget::runRsync(Tree_p self, text opt, text src, text dst)
         {
             if (QFileInfo(p).exists())
             {
-                ssh = +p;
+                ssh = "\"" + +p + "\"";
                 break;
             }
         }

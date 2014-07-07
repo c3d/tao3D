@@ -1,5 +1,9 @@
 Change log for Tao Presentations
 
+1.53 ---
+
+#3487 Implement 'frame_pixel' to read a pixel at given coordinates
+
 1.52 (4-Jul-2014)
 #3480 Accept on "key:+" without interpreting + as a regexp
 #3483 Implement rsync function to invoke rsync synchronization

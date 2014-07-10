@@ -98,7 +98,7 @@
     </p>
     <p style="margin-top: 1em; margin-bottom: 1em">
       <b>Warning <class style="font-style: normal">1</class>. </b>This document describes the
-      language XL as it should ultimately be implemented. The current XLR
+      language XL as it should ultimately be implemented. The available XLR
       implementations are currently incomplete. An attempt will be made to
       indicate in this document features that are not yet available with a
       warning. See also Section <a href="#state-of-implementation">1.5</a>.
@@ -218,8 +218,8 @@
       functional-style programming<a id="auto-20"></a> to simple meta-programming<a id="auto-21"></a>.
     </p>
     <p>
-      Figure <a href="#factorial">1</a> illustrates the definition of the factorial
-      function:
+      Figure <a href="#factorial">1</a> illustrates a recursive definition of the
+      factorial function:
     </p>
     <table align="center" id="factorial">
       <tbody><tr>
@@ -238,15 +238,27 @@ N! -&gt; N * (N-1)!</pre></td>
       </tr></tbody>
     </table>
     <p>
+      The code above reads as follows: the notation <tt class="verbatim">0!</tt> is
+      transformed into the integer node <tt class="verbatim">1</tt>, and the notation
+      <tt class="verbatim">N!</tt>, where N can be anything except <tt class="verbatim">0</tt>, is
+      transformed into the expression <tt class="verbatim">N * (N-1)!</tt>. Since that
+      expression is itself in the form <tt class="verbatim">N!</tt>, the definition is
+      recursive.
+    </p>
+    <p>
       Figure <a href="#map-reduce-filter">2</a> illustrates operations usually known as
       <em>map</em><a id="auto-23"></a>, <em>reduce</em><a id="auto-24"></a> and
       <em>filter</em><a id="auto-25"></a>. These operations are characteristic of a
       programming paradigm called <em>functional programming</em><a id="auto-26"></a>,
-      because they take functions as arguments. In XLR, <em>map</em>,
-      <em>reduce</em> and <em>filter</em> operations can all use an infix <tt
-      class="verbatim">with</tt> notation with slightly different forms for the
-      parameters. Section <a href="#list-operations">4.1.10</a> describes these operations in
-      more details.
+      because they take functions as arguments. The <em>map</em> operation
+      applies the same function to a list of elements, and returns a list. The
+      <em>reduce</em> operation combines elements in a list using a binary
+      function, and returns the accumulated result. The <em>filter</em>
+      operation selects elements in a list based on a predicate. In XLR,
+      <em>map</em>, <em>reduce</em> and <em>filter</em> operations can all use
+      an infix <tt class="verbatim">with</tt> notation with slightly different forms for
+      the parameters. Section <a href="#list-operations">4.1.10</a> describes these operations
+      in more details.
     </p>
     <table align="center" id="map-reduce-filter">
       <tbody><tr>
@@ -278,9 +290,10 @@ N! -&gt; N * (N-1)!</pre></td>
       meta-programming. Here, we tell the compiler how to transform a
       particular form of the source code (the if-then-else statement). Note
       how this transformation uses the same <tt class="verbatim">-&gt;</tt> notation we
-      used to declare a factorial function in Figure <a href="#factorial">1</a>. This
-      shows how, in XLR, meta-programming integrates transparently with
-      regular programming.
+      used to declare a factorial function in Figure <a href="#factorial">1</a>. This <tt
+      class="verbatim">-&gt;</tt> operator can be read as &ldquo;transforms into&rdquo;
+      and is the most important operation in XL. This shows how, in XLR,
+      meta-programming integrates transparently with regular programming.
     </p>
     <table align="center" id="if-then">
       <tbody><tr>
@@ -1913,7 +1926,7 @@ data a,b</pre></td>
     <p>
       An assignment is valid even if the reference on the left of <tt class="verbatim">:=</tt>
       had not previously been bound. In that case, it creates a new binding<a
-      id="auto-224"></a> in the current context. This is shown in Figure <a href="#creating-a-new-binding">6.15</a>.
+      id="auto-224"></a> in the current context. This is shown in Figure <a href="#creating-a-new-binding">27</a>.
     </p>
     <table align="center">
       <tbody><tr>
@@ -1932,7 +1945,7 @@ assigns_to_local -&gt; X := 1</pre></td>
     </table>
     <p>
       On the other hand, if there is an existing binding, the assignment
-      replaces the corresponding bound value. This is shown in Figure <a href="#nonlocal-assignment">6.15</a>:
+      replaces the corresponding bound value. This is shown in Figure <a href="#nonlocal-assignment">28</a>:
     </p>
     <table align="center">
       <tbody><tr>
@@ -1965,11 +1978,11 @@ X -&gt; 0</pre></td>
       <a id="auto-227"></a><h5>Local variables</h5>If the left side of an assignment is
       a type declaration<a id="auto-228"></a><a id="auto-229"></a>, that assignment creates a new
       binding<a id="auto-230"></a> in the local scope<a id="auto-231"></a><a id="auto-232"></a>, as
-      illustrated in Figure <a href="#assign-to-new-local">6.15</a>. That binding has a return type
+      illustrated in Figure <a href="#assign-to-new-local">29</a>. That binding has a return type
       declaration<a id="auto-233"></a><a id="auto-234"></a> associated with it, so that later
       assignments to that same name will only succeed if the type of the
       assigned value matches the previously declared type. This is shown in
-      Figure <a href="#assign-to-new-local">6.15</a>:
+      Figure <a href="#assign-to-new-local">29</a>:
     </p>
     <table align="center">
       <tbody><tr>
@@ -5189,7 +5202,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 24px">
           <p>
             1.4<span style="margin-left: 1em"></span>Concept programming <span style="margin-left: 5mm"></span> <a
-            href="#auto-30">2</a>
+            href="#auto-30">3</a>
           </p>
         </div>
         <div style="margin-left: 96px">
@@ -5215,7 +5228,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
-          <b>2<span style="margin-left: 1em"></span>Syntax</b> <span style="margin-left: 5mm"></span> <a href="#auto-46">3</a>
+          <b>2<span style="margin-left: 1em"></span>Syntax</b> <span style="margin-left: 5mm"></span> <a href="#auto-46">4</a>
         </p>
         <div style="margin-left: 24px">
           <p>
@@ -5231,13 +5244,13 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         </div>
         <div style="margin-left: 24px">
           <p>
-            2.3<span style="margin-left: 1em"></span>Literals <span style="margin-left: 5mm"></span> <a href="#auto-61">4</a>
+            2.3<span style="margin-left: 1em"></span>Literals <span style="margin-left: 5mm"></span> <a href="#auto-61">5</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             2.3.1<span style="margin-left: 1em"></span>Integer constants <span style="margin-left: 5mm"></span> <a
-            href="#auto-63">4</a>
+            href="#auto-63">5</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5249,7 +5262,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             2.3.3<span style="margin-left: 1em"></span>Text literals <span style="margin-left: 5mm"></span> <a
-            href="#auto-75">5</a>
+            href="#auto-75">6</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5261,12 +5274,12 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 24px">
           <p>
             2.4<span style="margin-left: 1em"></span>Structured nodes <span style="margin-left: 5mm"></span> <a
-            href="#auto-96">6</a>
+            href="#auto-96">7</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            2.4.1<span style="margin-left: 1em"></span>Infix nodes <span style="margin-left: 5mm"></span> <a href="#auto-103">6</a>
+            2.4.1<span style="margin-left: 1em"></span>Infix nodes <span style="margin-left: 5mm"></span> <a href="#auto-103">7</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5282,18 +5295,18 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         </div>
         <div style="margin-left: 24px">
           <p>
-            2.5<span style="margin-left: 1em"></span>Parsing rules <span style="margin-left: 5mm"></span> <a href="#auto-115">7</a>
+            2.5<span style="margin-left: 1em"></span>Parsing rules <span style="margin-left: 5mm"></span> <a href="#auto-115">8</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            2.5.1<span style="margin-left: 1em"></span>Precedence <span style="margin-left: 5mm"></span> <a href="#auto-121">7</a>
+            2.5.1<span style="margin-left: 1em"></span>Precedence <span style="margin-left: 5mm"></span> <a href="#auto-121">8</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             2.5.2<span style="margin-left: 1em"></span>Associativity <span style="margin-left: 5mm"></span> <a
-            href="#auto-125">7</a>
+            href="#auto-125">8</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5305,604 +5318,604 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             2.5.4<span style="margin-left: 1em"></span>Expression versus statement <span style="margin-left: 5mm"></span>
-            <a href="#auto-134">8</a>
+            <a href="#auto-134">9</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             2.6<span style="margin-left: 1em"></span>Syntax configuration <span style="margin-left: 5mm"></span>
-            <a href="#auto-141">8</a>
+            <a href="#auto-141">9</a>
           </p>
         </div>
         <div style="margin-left: 96px">
           <p>
-            Format of syntax configuration <span style="margin-left: 5mm"></span> <a href="#auto-151">10</a>
+            Format of syntax configuration <span style="margin-left: 5mm"></span> <a href="#auto-151">11</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
           <b>3<span style="margin-left: 1em"></span>Language semantics</b> <span style="margin-left: 5mm"></span>
-          <a href="#auto-163">11</a>
+          <a href="#auto-163">12</a>
         </p>
         <div style="margin-left: 24px">
           <p>
             3.1<span style="margin-left: 1em"></span>Tree rewrite operators <span style="margin-left: 5mm"></span>
-            <a href="#auto-167">11</a>
+            <a href="#auto-167">12</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.1.1<span style="margin-left: 1em"></span>Rewrite declarations <span style="margin-left: 5mm"></span>
-            <a href="#auto-189">12</a>
+            <a href="#auto-189">13</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.1.2<span style="margin-left: 1em"></span>Data declaration <span style="margin-left: 5mm"></span> <a
-            href="#auto-205">13</a>
+            href="#auto-205">14</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.1.3<span style="margin-left: 1em"></span>Type declaration <span style="margin-left: 5mm"></span> <a
-            href="#auto-212">13</a>
+            href="#auto-212">15</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.1.4<span style="margin-left: 1em"></span>Assignment <span style="margin-left: 5mm"></span> <a href="#auto-220">13</a>
+            3.1.4<span style="margin-left: 1em"></span>Assignment <span style="margin-left: 5mm"></span> <a href="#auto-220">15</a>
           </p>
         </div>
         <div style="margin-left: 96px">
           <p>
-            Local variables <span style="margin-left: 5mm"></span> <a href="#auto-227">13</a>
+            Local variables <span style="margin-left: 5mm"></span> <a href="#auto-227">15</a>
           </p>
         </div>
         <div style="margin-left: 96px">
           <p>
-            Assigning to references <span style="margin-left: 5mm"></span> <a href="#auto-236">14</a>
+            Assigning to references <span style="margin-left: 5mm"></span> <a href="#auto-236">16</a>
           </p>
         </div>
         <div style="margin-left: 96px">
           <p>
-            Assigning to parameters <span style="margin-left: 5mm"></span> <a href="#auto-239">14</a>
+            Assigning to parameters <span style="margin-left: 5mm"></span> <a href="#auto-239">16</a>
           </p>
         </div>
         <div style="margin-left: 96px">
           <p>
-            Assignments as expressions <span style="margin-left: 5mm"></span> <a href="#auto-242">14</a>
+            Assignments as expressions <span style="margin-left: 5mm"></span> <a href="#auto-242">16</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.1.5<span style="margin-left: 1em"></span>Guards <span style="margin-left: 5mm"></span> <a href="#auto-245">15</a>
+            3.1.5<span style="margin-left: 1em"></span>Guards <span style="margin-left: 5mm"></span> <a href="#auto-245">16</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.1.6<span style="margin-left: 1em"></span>Sequences <span style="margin-left: 5mm"></span> <a href="#auto-249">15</a>
+            3.1.6<span style="margin-left: 1em"></span>Sequences <span style="margin-left: 5mm"></span> <a href="#auto-249">17</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.1.7<span style="margin-left: 1em"></span>Index operators <span style="margin-left: 5mm"></span> <a
-            href="#auto-256">15</a>
+            href="#auto-256">17</a>
           </p>
         </div>
         <div style="margin-left: 96px">
           <p>
-            Comparison with C <span style="margin-left: 5mm"></span> <a href="#auto-265">16</a>
+            Comparison with C <span style="margin-left: 5mm"></span> <a href="#auto-265">17</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.1.8<span style="margin-left: 1em"></span>C interface <span style="margin-left: 5mm"></span> <a href="#auto-267">16</a>
+            3.1.8<span style="margin-left: 1em"></span>C interface <span style="margin-left: 5mm"></span> <a href="#auto-267">18</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.1.9<span style="margin-left: 1em"></span>Machine Interface <span style="margin-left: 5mm"></span> <a
-            href="#auto-275">16</a>
+            href="#auto-275">18</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             3.2<span style="margin-left: 1em"></span>Binding References to Values <span style="margin-left: 5mm"></span>
-            <a href="#auto-279">16</a>
+            <a href="#auto-279">18</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.2.1<span style="margin-left: 1em"></span>Context Order <span style="margin-left: 5mm"></span> <a
-            href="#auto-282">16</a>
+            href="#auto-282">18</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.2.2<span style="margin-left: 1em"></span>Scoping <span style="margin-left: 5mm"></span> <a href="#auto-285">17</a>
+            3.2.2<span style="margin-left: 1em"></span>Scoping <span style="margin-left: 5mm"></span> <a href="#auto-285">19</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.2.3<span style="margin-left: 1em"></span>Current context <span style="margin-left: 5mm"></span> <a
-            href="#auto-293">17</a>
+            href="#auto-293">19</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.2.4<span style="margin-left: 1em"></span>References <span style="margin-left: 5mm"></span> <a href="#auto-298">17</a>
+            3.2.4<span style="margin-left: 1em"></span>References <span style="margin-left: 5mm"></span> <a href="#auto-298">19</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            3.3<span style="margin-left: 1em"></span>Evaluation <span style="margin-left: 5mm"></span> <a href="#auto-301">18</a>
+            3.3<span style="margin-left: 1em"></span>Evaluation <span style="margin-left: 5mm"></span> <a href="#auto-301">19</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.1<span style="margin-left: 1em"></span>Standard evaluation <span style="margin-left: 5mm"></span>
-            <a href="#auto-303">18</a>
+            <a href="#auto-303">19</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.2<span style="margin-left: 1em"></span>Special forms <span style="margin-left: 5mm"></span> <a
-            href="#auto-314">19</a>
+            href="#auto-314">21</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.3<span style="margin-left: 1em"></span>Lazy evaluation <span style="margin-left: 5mm"></span> <a
-            href="#auto-317">20</a>
+            href="#auto-317">21</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.4<span style="margin-left: 1em"></span>Explicit evaluation <span style="margin-left: 5mm"></span>
-            <a href="#auto-323">21</a>
+            <a href="#auto-323">22</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.3.5<span style="margin-left: 1em"></span>Memoization <span style="margin-left: 5mm"></span> <a href="#auto-326">21</a>
+            3.3.5<span style="margin-left: 1em"></span>Memoization <span style="margin-left: 5mm"></span> <a href="#auto-326">22</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            3.4<span style="margin-left: 1em"></span>Types <span style="margin-left: 5mm"></span> <a href="#auto-331">21</a>
+            3.4<span style="margin-left: 1em"></span>Types <span style="margin-left: 5mm"></span> <a href="#auto-331">23</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.1<span style="margin-left: 1em"></span>Predefined types <span style="margin-left: 5mm"></span> <a
-            href="#auto-336">21</a>
+            href="#auto-336">23</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.2<span style="margin-left: 1em"></span>Type definition <span style="margin-left: 5mm"></span> <a
-            href="#auto-351">21</a>
+            href="#auto-351">23</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.3<span style="margin-left: 1em"></span>Normal form for a type <span style="margin-left: 5mm"></span>
-            <a href="#auto-369">22</a>
+            <a href="#auto-369">24</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.4.4<span style="margin-left: 1em"></span>Properties <span style="margin-left: 5mm"></span> <a href="#auto-376">23</a>
+            3.4.4<span style="margin-left: 1em"></span>Properties <span style="margin-left: 5mm"></span> <a href="#auto-376">25</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.5<span style="margin-left: 1em"></span>Data inheritance <span style="margin-left: 5mm"></span> <a
-            href="#auto-397">24</a>
+            href="#auto-397">26</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.6<span style="margin-left: 1em"></span>Explicit type check <span style="margin-left: 5mm"></span>
-            <a href="#auto-402">24</a>
+            <a href="#auto-402">26</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.7<span style="margin-left: 1em"></span>Explicit and automatic type conversions
-            <span style="margin-left: 5mm"></span> <a href="#auto-412">24</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-412">26</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.8<span style="margin-left: 1em"></span>Parameterized types <span style="margin-left: 5mm"></span>
-            <a href="#auto-418">25</a>
+            <a href="#auto-418">27</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.9<span style="margin-left: 1em"></span>Rewrite types <span style="margin-left: 5mm"></span> <a
-            href="#auto-423">25</a>
+            href="#auto-423">27</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
           <b>4<span style="margin-left: 1em"></span>Standard XL library</b> <span style="margin-left: 5mm"></span>
-          <a href="#auto-427">25</a>
+          <a href="#auto-427">27</a>
         </p>
         <div style="margin-left: 24px">
           <p>
             4.1<span style="margin-left: 1em"></span>Built-in operations <span style="margin-left: 5mm"></span> <a
-            href="#auto-429">25</a>
+            href="#auto-429">27</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.1.1<span style="margin-left: 1em"></span>Arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-433">25</a>
+            4.1.1<span style="margin-left: 1em"></span>Arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-433">27</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.1.2<span style="margin-left: 1em"></span>Comparison <span style="margin-left: 5mm"></span> <a href="#auto-437">26</a>
+            4.1.2<span style="margin-left: 1em"></span>Comparison <span style="margin-left: 5mm"></span> <a href="#auto-437">28</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.3<span style="margin-left: 1em"></span>Bitwise arithmetic <span style="margin-left: 5mm"></span>
-            <a href="#auto-440">26</a>
+            <a href="#auto-440">28</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.4<span style="margin-left: 1em"></span>Boolean operations <span style="margin-left: 5mm"></span>
-            <a href="#auto-444">26</a>
+            <a href="#auto-444">28</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.5<span style="margin-left: 1em"></span>Mathematical functions <span style="margin-left: 5mm"></span>
-            <a href="#auto-447">27</a>
+            <a href="#auto-447">28</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.6<span style="margin-left: 1em"></span>Text functions <span style="margin-left: 5mm"></span> <a
-            href="#auto-450">27</a>
+            href="#auto-450">29</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.1.7<span style="margin-left: 1em"></span>Conversions <span style="margin-left: 5mm"></span> <a href="#auto-453">27</a>
+            4.1.7<span style="margin-left: 1em"></span>Conversions <span style="margin-left: 5mm"></span> <a href="#auto-453">29</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.8<span style="margin-left: 1em"></span>Date and time <span style="margin-left: 5mm"></span> <a
-            href="#auto-459">27</a>
+            href="#auto-459">29</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.9<span style="margin-left: 1em"></span>Tree operations <span style="margin-left: 5mm"></span> <a
-            href="#auto-462">27</a>
+            href="#auto-462">30</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.10<span style="margin-left: 1em"></span>List operations, map, reduce and filter
-            <span style="margin-left: 5mm"></span> <a href="#auto-472">28</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-472">30</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             4.2<span style="margin-left: 1em"></span>Control structures <span style="margin-left: 5mm"></span> <a
-            href="#auto-482">29</a>
+            href="#auto-482">31</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.2.1<span style="margin-left: 1em"></span>Tests <span style="margin-left: 5mm"></span> <a href="#auto-483">29</a>
+            4.2.1<span style="margin-left: 1em"></span>Tests <span style="margin-left: 5mm"></span> <a href="#auto-483">31</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.2.2<span style="margin-left: 1em"></span>Infinite Loops <span style="margin-left: 5mm"></span> <a
-            href="#auto-488">30</a>
+            href="#auto-488">31</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.2.3<span style="margin-left: 1em"></span>Conditional Loops (<tt>while</tt> and
-            <tt>until</tt> loops) <span style="margin-left: 5mm"></span> <a href="#auto-490">30</a>
+            <tt>until</tt> loops) <span style="margin-left: 5mm"></span> <a href="#auto-490">32</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.2.4<span style="margin-left: 1em"></span>Controlled Loops (<tt>for</tt> loops)
-            <span style="margin-left: 5mm"></span> <a href="#auto-493">30</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-493">32</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.2.5<span style="margin-left: 1em"></span>Excursions<b></b> <span style="margin-left: 5mm"></span> <a
-            href="#auto-497">31</a>
+            href="#auto-497">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.2.6<span style="margin-left: 1em"></span>Error handling <span style="margin-left: 5mm"></span> <a
-            href="#auto-498">31</a>
+            href="#auto-498">33</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             4.3<span style="margin-left: 1em"></span>Library-defined types <span style="margin-left: 5mm"></span>
-            <a href="#auto-499">31</a>
+            <a href="#auto-499">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.3.1<span style="margin-left: 1em"></span>Range and range types <span style="margin-left: 5mm"></span>
-            <a href="#auto-500">31</a>
+            <a href="#auto-500">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.3.2<span style="margin-left: 1em"></span>Union types <span style="margin-left: 5mm"></span> <a href="#auto-504">31</a>
+            4.3.2<span style="margin-left: 1em"></span>Union types <span style="margin-left: 5mm"></span> <a href="#auto-504">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.3.3<span style="margin-left: 1em"></span>Enumeration types <span style="margin-left: 5mm"></span> <a
-            href="#auto-507">31</a>
+            href="#auto-507">34</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.3.4<span style="margin-left: 1em"></span>A type matching type declarations <span
-            style="margin-left: 5mm"></span> <a href="#auto-509">32</a>
+            style="margin-left: 5mm"></span> <a href="#auto-509">34</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            4.4<span style="margin-left: 1em"></span>Modules <span style="margin-left: 5mm"></span> <a href="#auto-511">32</a>
+            4.4<span style="margin-left: 1em"></span>Modules <span style="margin-left: 5mm"></span> <a href="#auto-511">34</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.4.1<span style="margin-left: 1em"></span>Import statement <span style="margin-left: 5mm"></span> <a
-            href="#auto-512">32</a>
+            href="#auto-512">34</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.4.2<span style="margin-left: 1em"></span>Declaring a module <span style="margin-left: 5mm"></span>
-            <a href="#auto-524">33</a>
+            <a href="#auto-524">35</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
           <b>5<span style="margin-left: 1em"></span>Example code</b> <span style="margin-left: 5mm"></span> <a
-          href="#auto-528">33</a>
+          href="#auto-528">35</a>
         </p>
         <div style="margin-left: 24px">
           <p>
             5.1<span style="margin-left: 1em"></span>Minimum and maximum <span style="margin-left: 5mm"></span> <a
-            href="#auto-529">33</a>
+            href="#auto-529">35</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.2<span style="margin-left: 1em"></span>Complex numbers <span style="margin-left: 5mm"></span> <a
-            href="#auto-530">33</a>
+            href="#auto-530">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.3<span style="margin-left: 1em"></span>Vector and Matrix computations <span style="margin-left: 5mm"></span>
-            <a href="#auto-531">33</a>
+            <a href="#auto-531">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.4<span style="margin-left: 1em"></span>Linked lists with dynamic allocation <span
-            style="margin-left: 5mm"></span> <a href="#auto-532">33</a>
+            style="margin-left: 5mm"></span> <a href="#auto-532">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.5<span style="margin-left: 1em"></span>Input / Output <span style="margin-left: 5mm"></span> <a
-            href="#auto-533">33</a>
+            href="#auto-533">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.6<span style="margin-left: 1em"></span>Object-Oriented Programming <span style="margin-left: 5mm"></span>
-            <a href="#auto-534">33</a>
+            <a href="#auto-534">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.6.1<span style="margin-left: 1em"></span>Classes <span style="margin-left: 5mm"></span> <a href="#auto-535">33</a>
+            5.6.1<span style="margin-left: 1em"></span>Classes <span style="margin-left: 5mm"></span> <a href="#auto-535">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.6.2<span style="margin-left: 1em"></span>Methods <span style="margin-left: 5mm"></span> <a href="#auto-536">33</a>
+            5.6.2<span style="margin-left: 1em"></span>Methods <span style="margin-left: 5mm"></span> <a href="#auto-536">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.3<span style="margin-left: 1em"></span>Dynamic dispatch <span style="margin-left: 5mm"></span> <a
-            href="#auto-537">33</a>
+            href="#auto-537">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.4<span style="margin-left: 1em"></span>Polymorphism <span style="margin-left: 5mm"></span> <a
-            href="#auto-538">33</a>
+            href="#auto-538">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.6.5<span style="margin-left: 1em"></span>Inheritance <span style="margin-left: 5mm"></span> <a href="#auto-539">33</a>
+            5.6.5<span style="margin-left: 1em"></span>Inheritance <span style="margin-left: 5mm"></span> <a href="#auto-539">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.6<span style="margin-left: 1em"></span>Multi-methods <span style="margin-left: 5mm"></span> <a
-            href="#auto-540">33</a>
+            href="#auto-540">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.7<span style="margin-left: 1em"></span>Object prototypes <span style="margin-left: 5mm"></span> <a
-            href="#auto-541">33</a>
+            href="#auto-541">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.7<span style="margin-left: 1em"></span>Functional-Programming <span style="margin-left: 5mm"></span>
-            <a href="#auto-542">33</a>
+            <a href="#auto-542">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.7.1<span style="margin-left: 1em"></span>Map <span style="margin-left: 5mm"></span> <a href="#auto-543">34</a>
+            5.7.1<span style="margin-left: 1em"></span>Map <span style="margin-left: 5mm"></span> <a href="#auto-543">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.7.2<span style="margin-left: 1em"></span>Reduce <span style="margin-left: 5mm"></span> <a href="#auto-544">34</a>
+            5.7.2<span style="margin-left: 1em"></span>Reduce <span style="margin-left: 5mm"></span> <a href="#auto-544">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.7.3<span style="margin-left: 1em"></span>Filter <span style="margin-left: 5mm"></span> <a href="#auto-545">34</a>
+            5.7.3<span style="margin-left: 1em"></span>Filter <span style="margin-left: 5mm"></span> <a href="#auto-545">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.4<span style="margin-left: 1em"></span>Functions as first-class objects <span
-            style="margin-left: 5mm"></span> <a href="#auto-546">34</a>
+            style="margin-left: 5mm"></span> <a href="#auto-546">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.5<span style="margin-left: 1em"></span>Anonymous functions (Lambda) <span style="margin-left: 5mm"></span>
-            <a href="#auto-547">34</a>
+            <a href="#auto-547">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.6<span style="margin-left: 1em"></span>Y-Combinator <span style="margin-left: 5mm"></span> <a
-            href="#auto-548">34</a>
+            href="#auto-548">36</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.7<span style="margin-left: 1em"></span>Infinite data structures <span style="margin-left: 5mm"></span>
-            <a href="#auto-549">34</a>
+            <a href="#auto-549">36</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
           <b>6<span style="margin-left: 1em"></span>Implementation notes</b> <span style="margin-left: 5mm"></span>
-          <a href="#auto-551">34</a>
+          <a href="#auto-551">37</a>
         </p>
         <div style="margin-left: 24px">
           <p>
             6.1<span style="margin-left: 1em"></span>Lazy evaluation <span style="margin-left: 5mm"></span> <a
-            href="#auto-552">35</a>
+            href="#auto-552">37</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.2<span style="margin-left: 1em"></span>Type inference <span style="margin-left: 5mm"></span> <a
-            href="#auto-553">35</a>
+            href="#auto-553">37</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.3<span style="margin-left: 1em"></span>Built-in operations <span style="margin-left: 5mm"></span> <a
-            href="#auto-554">35</a>
+            href="#auto-554">37</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.4<span style="margin-left: 1em"></span>Controlled compilation <span style="margin-left: 5mm"></span>
-            <a href="#auto-555">35</a>
+            <a href="#auto-555">37</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.5<span style="margin-left: 1em"></span>Tree representation <span style="margin-left: 5mm"></span> <a
-            href="#auto-558">35</a>
+            href="#auto-558">37</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.6<span style="margin-left: 1em"></span>Evaluation of trees <span style="margin-left: 5mm"></span> <a
-            href="#auto-559">36</a>
+            href="#auto-559">37</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            6.7<span style="margin-left: 1em"></span>Tree position <span style="margin-left: 5mm"></span> <a href="#auto-560">36</a>
+            6.7<span style="margin-left: 1em"></span>Tree position <span style="margin-left: 5mm"></span> <a href="#auto-560">38</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.8<span style="margin-left: 1em"></span>Actions on trees <span style="margin-left: 5mm"></span> <a
-            href="#auto-561">36</a>
+            href="#auto-561">38</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            6.9<span style="margin-left: 1em"></span>Symbols <span style="margin-left: 5mm"></span> <a href="#auto-562">36</a>
+            6.9<span style="margin-left: 1em"></span>Symbols <span style="margin-left: 5mm"></span> <a href="#auto-562">38</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.10<span style="margin-left: 1em"></span>Evaluating trees <span style="margin-left: 5mm"></span> <a
-            href="#auto-563">36</a>
+            href="#auto-563">38</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.11<span style="margin-left: 1em"></span>Code generation for trees <span style="margin-left: 5mm"></span>
-            <a href="#auto-564">36</a>
+            <a href="#auto-564">38</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             6.11.1<span style="margin-left: 1em"></span>Right side of a rewrite <span style="margin-left: 5mm"></span>
-            <a href="#auto-566">?</a>
+            <a href="#auto-566">38</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            6.11.2<span style="margin-left: 1em"></span>Closures <span style="margin-left: 5mm"></span> <a href="#auto-567">?</a>
+            6.11.2<span style="margin-left: 1em"></span>Closures <span style="margin-left: 5mm"></span> <a href="#auto-567">39</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.12<span style="margin-left: 1em"></span>Tail recursion <span style="margin-left: 5mm"></span> <a
-            href="#auto-569">?</a>
+            href="#auto-569">39</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.13<span style="margin-left: 1em"></span>Partial recompilation <span style="margin-left: 5mm"></span>
-            <a href="#auto-570">?</a>
+            <a href="#auto-570">39</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.14<span style="margin-left: 1em"></span>Machine Interface <span style="margin-left: 5mm"></span> <a
-            href="#auto-571">?</a>
+            href="#auto-571">39</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.15<span style="margin-left: 1em"></span>Machine Types and Normal Types <span
-            style="margin-left: 5mm"></span> <a href="#auto-572">?</a>
+            style="margin-left: 5mm"></span> <a href="#auto-572">39</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
@@ -5912,7 +5925,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           <b>List of figures</b> <span style="margin-left: 5mm"></span> <a href="#auto-91">43</a>
         </p>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
-          <b>List of tables</b> <span style="margin-left: 5mm"></span> <a href="#auto-92">45</a>
+          <b>List of tables</b> <span style="margin-left: 5mm"></span> <a href="#auto-92">46</a>
         </p>
       </div>
     </div>
@@ -5924,218 +5937,218 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       <div style="text-indent: 0em">
         <div class="compact-block">
           <font size="-1"><multicol cols="2"><p>
-            := <span style="margin-left: 5mm"></span> <a href="#auto-222">13</a>
+            := <span style="margin-left: 5mm"></span> <a href="#auto-222">15</a>
           </p><p>
-            abstract syntax tree <span style="margin-left: 5mm"></span> <a href="#auto-15">1</a>, <a href="#auto-47">3</a>
+            abstract syntax tree <span style="margin-left: 5mm"></span> <a href="#auto-15">2</a>, <a href="#auto-47">4</a>
           </p><p>
-            anonymous function <span style="margin-left: 5mm"></span> <a href="#auto-201">12</a>
+            anonymous function <span style="margin-left: 5mm"></span> <a href="#auto-201">14</a>
           </p><p>
-            argument <span style="margin-left: 5mm"></span> <a href="#auto-200">12</a>
+            argument <span style="margin-left: 5mm"></span> <a href="#auto-200">14</a>
           </p><p>
-            arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-434">25</a>
+            arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-434">27</a>
           </p><div style="margin-left: 24px">
             <p>
-              bitwise <span style="margin-left: 5mm"></span> <a href="#auto-442">26</a>
+              bitwise <span style="margin-left: 5mm"></span> <a href="#auto-442">28</a>
             </p>
           </div><p>
             array
           </p><div style="margin-left: 24px">
             <p>
-              as function <span style="margin-left: 5mm"></span> <a href="#auto-266">16</a>
+              as function <span style="margin-left: 5mm"></span> <a href="#auto-266">17</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              index <span style="margin-left: 5mm"></span> <a href="#auto-259">15</a>
+              index <span style="margin-left: 5mm"></span> <a href="#auto-259">17</a>
             </p>
           </div><p>
-            array index <span style="margin-left: 5mm"></span> <a href="#auto-260">15</a>
+            array index <span style="margin-left: 5mm"></span> <a href="#auto-260">17</a>
           </p><p>
             art <span style="margin-left: 5mm"></span> <a href="#auto-41">3</a>
           </p><p>
-            assignment <span style="margin-left: 5mm"></span> <a href="#auto-180">11</a>, <a href="#auto-221">13</a>,
-            <a href="#auto-297">17</a>
+            assignment <span style="margin-left: 5mm"></span> <a href="#auto-180">13</a>, <a href="#auto-221">15</a>,
+            <a href="#auto-297">19</a>
           </p><div style="margin-left: 24px">
             <p>
-              in expression <span style="margin-left: 5mm"></span> <a href="#auto-243">14</a>
+              in expression <span style="margin-left: 5mm"></span> <a href="#auto-243">16</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              to parameter <span style="margin-left: 5mm"></span> <a href="#auto-240">14</a>
+              to parameter <span style="margin-left: 5mm"></span> <a href="#auto-240">16</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              to type declaration <span style="margin-left: 5mm"></span> <a href="#auto-219">13</a>, <a
-              href="#auto-228">14</a>
+              to type declaration <span style="margin-left: 5mm"></span> <a href="#auto-219">15</a>, <a
+              href="#auto-228">15</a>
             </p>
           </div><p>
-            associativity <span style="margin-left: 5mm"></span> <a href="#auto-118">7</a>, <a href="#auto-126">8</a>
+            associativity <span style="margin-left: 5mm"></span> <a href="#auto-118">8</a>, <a href="#auto-126">8</a>
           </p><p>
             AST
           </p><div style="margin-left: 24px">
             <p>
-              manipulations <span style="margin-left: 5mm"></span> <a href="#auto-464">27</a>
+              manipulations <span style="margin-left: 5mm"></span> <a href="#auto-464">30</a>
             </p>
           </div><p>
-            AST (abstract syntax tree) <span style="margin-left: 5mm"></span> <a href="#auto-16">1</a>
+            AST (abstract syntax tree) <span style="margin-left: 5mm"></span> <a href="#auto-16">2</a>
           </p><p>
-            automatic type conversion <span style="margin-left: 5mm"></span> <a href="#auto-401">24</a>, <a
-            href="#auto-416">24</a>
+            automatic type conversion <span style="margin-left: 5mm"></span> <a href="#auto-401">26</a>, <a
+            href="#auto-416">26</a>
           </p><p>
             bandwidth <span style="margin-left: 5mm"></span> <a href="#auto-39">3</a>
           </p><p>
-            binding <span style="margin-left: 5mm"></span> <a href="#auto-181">11</a>, <a href="#auto-280">16</a>
+            binding <span style="margin-left: 5mm"></span> <a href="#auto-181">13</a>, <a href="#auto-280">18</a>
           </p><div style="margin-left: 24px">
             <p>
-              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-224">13</a>
+              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-224">15</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              local scope <span style="margin-left: 5mm"></span> <a href="#auto-230">14</a>
+              local scope <span style="margin-left: 5mm"></span> <a href="#auto-230">15</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of module names <span style="margin-left: 5mm"></span> <a href="#auto-523">33</a>
+              of module names <span style="margin-left: 5mm"></span> <a href="#auto-523">35</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              parameters <span style="margin-left: 5mm"></span> <a href="#auto-310">19</a>
+              parameters <span style="margin-left: 5mm"></span> <a href="#auto-310">20</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              with return type declaration <span style="margin-left: 5mm"></span> <a href="#auto-234">14</a>
+              with return type declaration <span style="margin-left: 5mm"></span> <a href="#auto-234">15</a>
             </p>
           </div><p>
             bindings
           </p><div style="margin-left: 24px">
             <p>
-              in type definitions <span style="margin-left: 5mm"></span> <a href="#auto-365">22</a>
+              in type definitions <span style="margin-left: 5mm"></span> <a href="#auto-365">24</a>
             </p>
           </div><p>
-            bitwise arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-441">26</a>
+            bitwise arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-441">28</a>
           </p><p>
-            block <span style="margin-left: 5mm"></span> <a href="#auto-101">6</a>, <a href="#auto-113">7</a>, <a
-            href="#auto-348">21</a>
+            block <span style="margin-left: 5mm"></span> <a href="#auto-101">7</a>, <a href="#auto-113">7</a>, <a
+            href="#auto-348">23</a>
           </p><p>
-            block delimiters <span style="margin-left: 5mm"></span> <a href="#auto-114">7</a>, <a href="#auto-156">10</a>
+            block delimiters <span style="margin-left: 5mm"></span> <a href="#auto-114">7</a>, <a href="#auto-156">11</a>
           </p><p>
-            block type <span style="margin-left: 5mm"></span> <a href="#auto-14">1</a>
+            block type <span style="margin-left: 5mm"></span> <a href="#auto-14">2</a>
           </p><p>
-            boolean <span style="margin-left: 5mm"></span> <a href="#auto-350">21</a>, <a href="#auto-445">27</a>
+            boolean <span style="margin-left: 5mm"></span> <a href="#auto-350">23</a>, <a href="#auto-445">28</a>
           </p><p>
-            built-in operations <span style="margin-left: 5mm"></span> <a href="#auto-430">25</a>
+            built-in operations <span style="margin-left: 5mm"></span> <a href="#auto-430">27</a>
           </p><p>
-            builtins.xl <span style="margin-left: 5mm"></span> <a href="#auto-432">25</a>
+            builtins.xl <span style="margin-left: 5mm"></span> <a href="#auto-432">27</a>
           </p><p>
-            C interface <span style="margin-left: 5mm"></span> <a href="#auto-268">16</a>
+            C interface <span style="margin-left: 5mm"></span> <a href="#auto-268">18</a>
           </p><p>
             C symbols <span style="margin-left: 5mm"></span> <a href="#auto-161">11</a>
           </p><p>
-            catch-all rewrite <span style="margin-left: 5mm"></span> <a href="#auto-291">17</a>
+            catch-all rewrite <span style="margin-left: 5mm"></span> <a href="#auto-291">19</a>
           </p><p>
-            child <span style="margin-left: 5mm"></span> <a href="#auto-468">28</a>
+            child <span style="margin-left: 5mm"></span> <a href="#auto-468">30</a>
           </p><p>
-            child node <span style="margin-left: 5mm"></span> <a href="#auto-102">6</a>
+            child node <span style="margin-left: 5mm"></span> <a href="#auto-102">7</a>
           </p><p>
-            closing <span style="margin-left: 5mm"></span> <a href="#auto-471">28</a>
+            closing <span style="margin-left: 5mm"></span> <a href="#auto-471">30</a>
           </p><p>
-            closure <span style="margin-left: 5mm"></span> <a href="#auto-312">19</a>
+            closure <span style="margin-left: 5mm"></span> <a href="#auto-312">21</a>
           </p><p>
-            code space <span style="margin-left: 5mm"></span> <a href="#auto-33">2</a>
+            code space <span style="margin-left: 5mm"></span> <a href="#auto-33">3</a>
           </p><p>
             comments <span style="margin-left: 5mm"></span> <a href="#auto-59">4</a>
           </p><p>
-            comparisons <span style="margin-left: 5mm"></span> <a href="#auto-438">26</a>
+            comparisons <span style="margin-left: 5mm"></span> <a href="#auto-438">28</a>
           </p><p>
-            concept <span style="margin-left: 5mm"></span> <a href="#auto-31">2</a>
+            concept <span style="margin-left: 5mm"></span> <a href="#auto-31">3</a>
           </p><p>
-            concept space <span style="margin-left: 5mm"></span> <a href="#auto-32">2</a>
+            concept space <span style="margin-left: 5mm"></span> <a href="#auto-32">3</a>
           </p><p>
-            constant <span style="margin-left: 5mm"></span> <a href="#auto-195">12</a>
+            constant <span style="margin-left: 5mm"></span> <a href="#auto-195">13</a>
           </p><p>
-            constant symbols <span style="margin-left: 5mm"></span> <a href="#auto-198">12</a>
+            constant symbols <span style="margin-left: 5mm"></span> <a href="#auto-198">14</a>
           </p><p>
-            contains <span style="margin-left: 5mm"></span> <a href="#auto-407">24</a>
+            contains <span style="margin-left: 5mm"></span> <a href="#auto-407">26</a>
           </p><p>
-            context <span style="margin-left: 5mm"></span> <a href="#auto-203">13</a>, <a href="#auto-281">16</a>
+            context <span style="margin-left: 5mm"></span> <a href="#auto-203">14</a>, <a href="#auto-281">18</a>
           </p><div style="margin-left: 24px">
             <p>
-              current <span style="margin-left: 5mm"></span> <a href="#auto-295">17</a>
+              current <span style="margin-left: 5mm"></span> <a href="#auto-295">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-288">17</a>
+              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-288">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              parameter context <span style="margin-left: 5mm"></span> <a href="#auto-313">19</a>
+              parameter context <span style="margin-left: 5mm"></span> <a href="#auto-313">21</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              passed with arguments <span style="margin-left: 5mm"></span> <a href="#auto-311">19</a>
+              passed with arguments <span style="margin-left: 5mm"></span> <a href="#auto-311">21</a>
             </p>
           </div><p>
-            context order <span style="margin-left: 5mm"></span> <a href="#auto-283">17</a>, <a href="#auto-305">18</a>
+            context order <span style="margin-left: 5mm"></span> <a href="#auto-283">18</a>, <a href="#auto-305">20</a>
           </p><p>
-            control characters <span style="margin-left: 5mm"></span> <a href="#auto-79">5</a>
+            control characters <span style="margin-left: 5mm"></span> <a href="#auto-79">6</a>
           </p><p>
             conversion
           </p><div style="margin-left: 24px">
             <p>
-              from number to text <span style="margin-left: 5mm"></span> <a href="#auto-458">27</a>
+              from number to text <span style="margin-left: 5mm"></span> <a href="#auto-458">29</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              from text to number <span style="margin-left: 5mm"></span> <a href="#auto-457">27</a>
+              from text to number <span style="margin-left: 5mm"></span> <a href="#auto-457">29</a>
             </p>
           </div><p>
-            conversions <span style="margin-left: 5mm"></span> <a href="#auto-454">27</a>
+            conversions <span style="margin-left: 5mm"></span> <a href="#auto-454">29</a>
           </p><p>
-            C.syntax <span style="margin-left: 5mm"></span> <a href="#auto-271">16</a>
+            C.syntax <span style="margin-left: 5mm"></span> <a href="#auto-271">18</a>
           </p><div style="margin-left: 24px">
             <p>
-              connexion to xl.syntax <span style="margin-left: 5mm"></span> <a href="#auto-273">16</a>
+              connexion to xl.syntax <span style="margin-left: 5mm"></span> <a href="#auto-273">18</a>
             </p>
           </div><p>
-            C.syntax file <span style="margin-left: 5mm"></span> <a href="#auto-160">10</a>
+            C.syntax file <span style="margin-left: 5mm"></span> <a href="#auto-160">11</a>
           </p><p>
-            current context <span style="margin-left: 5mm"></span> <a href="#auto-294">17</a>
+            current context <span style="margin-left: 5mm"></span> <a href="#auto-294">19</a>
           </p><p>
-            data declaration <span style="margin-left: 5mm"></span> <a href="#auto-207">13</a>
+            data declaration <span style="margin-left: 5mm"></span> <a href="#auto-207">14</a>
           </p><p>
-            data declarations <span style="margin-left: 5mm"></span> <a href="#auto-174">11</a>
+            data declarations <span style="margin-left: 5mm"></span> <a href="#auto-174">12</a>
           </p><p>
-            data inheritance <span style="margin-left: 5mm"></span> <a href="#auto-399">24</a>
+            data inheritance <span style="margin-left: 5mm"></span> <a href="#auto-399">26</a>
           </p><p>
-            date and time <span style="margin-left: 5mm"></span> <a href="#auto-460">27</a>
+            date and time <span style="margin-left: 5mm"></span> <a href="#auto-460">29</a>
           </p><p>
-            declaration <span style="margin-left: 5mm"></span> <a href="#auto-254">15</a>
+            declaration <span style="margin-left: 5mm"></span> <a href="#auto-254">17</a>
           </p><div style="margin-left: 24px">
             <p>
-              of data <span style="margin-left: 5mm"></span> <a href="#auto-206">13</a>
+              of data <span style="margin-left: 5mm"></span> <a href="#auto-206">14</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of rewrites <span style="margin-left: 5mm"></span> <a href="#auto-190">12</a>
+              of rewrites <span style="margin-left: 5mm"></span> <a href="#auto-190">13</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of types <span style="margin-left: 5mm"></span> <a href="#auto-213">13</a>
+              of types <span style="margin-left: 5mm"></span> <a href="#auto-213">15</a>
             </p>
           </div><p>
-            default precedence <span style="margin-left: 5mm"></span> <a href="#auto-154">10</a>
+            default precedence <span style="margin-left: 5mm"></span> <a href="#auto-154">11</a>
           </p><p>
-            default prefix (precedence) <span style="margin-left: 5mm"></span> <a href="#auto-131">8</a>
+            default prefix (precedence) <span style="margin-left: 5mm"></span> <a href="#auto-131">9</a>
           </p><p>
-            default value <span style="margin-left: 5mm"></span> <a href="#auto-385">23</a>
+            default value <span style="margin-left: 5mm"></span> <a href="#auto-385">25</a>
           </p><p>
             definition
           </p><div style="margin-left: 24px">
             <p>
-              of properties <span style="margin-left: 5mm"></span> <a href="#auto-384">23</a>
+              of properties <span style="margin-left: 5mm"></span> <a href="#auto-384">25</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of types <span style="margin-left: 5mm"></span> <a href="#auto-354">21</a>
+              of types <span style="margin-left: 5mm"></span> <a href="#auto-354">23</a>
             </p>
           </div><p>
             domain-specific language <span style="margin-left: 5mm"></span> <a href="#auto-17">2</a>
@@ -6147,582 +6160,582 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              as index operator <span style="margin-left: 5mm"></span> <a href="#auto-258">15</a>
+              as index operator <span style="margin-left: 5mm"></span> <a href="#auto-258">17</a>
             </p>
           </div><p>
-            double quote <span style="margin-left: 5mm"></span> <a href="#auto-83">5</a>
+            double quote <span style="margin-left: 5mm"></span> <a href="#auto-83">6</a>
           </p><p>
             DSL (domain-specific language) <span style="margin-left: 5mm"></span> <a href="#auto-18">2</a>
           </p><p>
-            evaluation <span style="margin-left: 5mm"></span> <a href="#auto-166">11</a>, <a href="#auto-302">18</a>
+            evaluation <span style="margin-left: 5mm"></span> <a href="#auto-166">12</a>, <a href="#auto-302">19</a>
           </p><div style="margin-left: 24px">
             <p>
-              data declaration arguments <span style="margin-left: 5mm"></span> <a href="#auto-209">13</a>
+              data declaration arguments <span style="margin-left: 5mm"></span> <a href="#auto-209">14</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              demand-based <span style="margin-left: 5mm"></span> <a href="#auto-320">20</a>
+              demand-based <span style="margin-left: 5mm"></span> <a href="#auto-320">21</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              explicit <span style="margin-left: 5mm"></span> <a href="#auto-325">21</a>
+              explicit <span style="margin-left: 5mm"></span> <a href="#auto-325">22</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              explicit vs. lazy <span style="margin-left: 5mm"></span> <a href="#auto-329">21</a>
+              explicit vs. lazy <span style="margin-left: 5mm"></span> <a href="#auto-329">22</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              forcing explicit evaluation <span style="margin-left: 5mm"></span> <a href="#auto-330">21</a>
+              forcing explicit evaluation <span style="margin-left: 5mm"></span> <a href="#auto-330">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-223">13</a>
+              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-223">15</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              lazy <span style="margin-left: 5mm"></span> <a href="#auto-319">20</a>
+              lazy <span style="margin-left: 5mm"></span> <a href="#auto-319">21</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              mismatch <span style="margin-left: 5mm"></span> <a href="#auto-309">19</a>
+              mismatch <span style="margin-left: 5mm"></span> <a href="#auto-309">20</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-307">19</a>
+              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-307">20</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              order <span style="margin-left: 5mm"></span> <a href="#auto-252">15</a>
+              order <span style="margin-left: 5mm"></span> <a href="#auto-252">17</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              special forms <span style="margin-left: 5mm"></span> <a href="#auto-316">20</a>
+              special forms <span style="margin-left: 5mm"></span> <a href="#auto-316">21</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              standard case <span style="margin-left: 5mm"></span> <a href="#auto-304">18</a>
+              standard case <span style="margin-left: 5mm"></span> <a href="#auto-304">19</a>
             </p>
           </div><p>
-            evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-185">11</a>
+            evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-185">13</a>
           </p><p>
-            execution (of programs) <span style="margin-left: 5mm"></span> <a href="#auto-165">11</a>
+            execution (of programs) <span style="margin-left: 5mm"></span> <a href="#auto-165">12</a>
           </p><p>
-            explicit evaluation <span style="margin-left: 5mm"></span> <a href="#auto-324">21</a>
+            explicit evaluation <span style="margin-left: 5mm"></span> <a href="#auto-324">22</a>
           </p><p>
-            explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-403">24</a>
+            explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-403">26</a>
           </p><p>
-            explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-413">24</a>
+            explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-413">26</a>
           </p><p>
             exponent (for real constants) <span style="margin-left: 5mm"></span> <a href="#auto-73">5</a>
           </p><p>
             expression
           </p><div style="margin-left: 24px">
             <p>
-              allowed on left of assignment <span style="margin-left: 5mm"></span> <a href="#auto-238">14</a>
+              allowed on left of assignment <span style="margin-left: 5mm"></span> <a href="#auto-238">16</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              assignment as expression <span style="margin-left: 5mm"></span> <a href="#auto-244">14</a>
+              assignment as expression <span style="margin-left: 5mm"></span> <a href="#auto-244">16</a>
             </p>
           </div><p>
-            expression (as opposed to statement) <span style="margin-left: 5mm"></span> <a href="#auto-138">8</a>
+            expression (as opposed to statement) <span style="margin-left: 5mm"></span> <a href="#auto-138">9</a>
           </p><p>
-            expression vs. statement <span style="margin-left: 5mm"></span> <a href="#auto-94">6</a>, <a
-            href="#auto-120">7</a>, <a href="#auto-135">8</a>
+            expression vs. statement <span style="margin-left: 5mm"></span> <a href="#auto-94">7</a>, <a
+            href="#auto-120">8</a>, <a href="#auto-135">9</a>
           </p><p>
             Extensible language and runtime <span style="margin-left: 5mm"></span> <a href="#auto-4">1</a>
           </p><p>
-            extern syntax <span style="margin-left: 5mm"></span> <a href="#auto-269">16</a>
+            extern syntax <span style="margin-left: 5mm"></span> <a href="#auto-269">18</a>
           </p><p>
-            external syntax file <span style="margin-left: 5mm"></span> <a href="#auto-159">10</a>
+            external syntax file <span style="margin-left: 5mm"></span> <a href="#auto-159">11</a>
           </p><p>
-            field index <span style="margin-left: 5mm"></span> <a href="#auto-262">16</a>
+            field index <span style="margin-left: 5mm"></span> <a href="#auto-262">17</a>
           </p><p>
             filter <span style="margin-left: 5mm"></span> <a href="#auto-25">2</a>
           </p><p>
-            filter operation <span style="margin-left: 5mm"></span> <a href="#auto-479">28</a>
+            filter operation <span style="margin-left: 5mm"></span> <a href="#auto-479">31</a>
           </p><p>
             function <span style="margin-left: 5mm"></span> <a href="#auto-111">7</a>
           </p><p>
-            function precedence <span style="margin-left: 5mm"></span> <a href="#auto-110">7</a>, <a href="#auto-132">8</a>,
-            <a href="#auto-155">10</a>
+            function precedence <span style="margin-left: 5mm"></span> <a href="#auto-110">7</a>, <a href="#auto-132">9</a>,
+            <a href="#auto-155">11</a>
           </p><p>
             functional programming <span style="margin-left: 5mm"></span> <a href="#auto-20">2</a>, <a
             href="#auto-26">2</a>
           </p><p>
-            getter <span style="margin-left: 5mm"></span> <a href="#auto-391">23</a>
+            getter <span style="margin-left: 5mm"></span> <a href="#auto-391">25</a>
           </p><p>
-            good (function) <span style="margin-left: 5mm"></span> <a href="#auto-486">29</a>
+            good (function) <span style="margin-left: 5mm"></span> <a href="#auto-486">31</a>
           </p><p>
-            guard <span style="margin-left: 5mm"></span> <a href="#auto-246">15</a>
+            guard <span style="margin-left: 5mm"></span> <a href="#auto-246">16</a>
           </p><p>
-            guard (in a rewrite declaration) <span style="margin-left: 5mm"></span> <a href="#auto-178">11</a>
+            guard (in a rewrite declaration) <span style="margin-left: 5mm"></span> <a href="#auto-178">13</a>
           </p><p>
             hash sign (as a radix delimiter) <span style="margin-left: 5mm"></span> <a href="#auto-66">5</a>
           </p><p>
             if-then-else
           </p><div style="margin-left: 24px">
             <p>
-              library definition <span style="margin-left: 5mm"></span> <a href="#auto-484">29</a>
+              library definition <span style="margin-left: 5mm"></span> <a href="#auto-484">31</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              statement <span style="margin-left: 5mm"></span> <a href="#auto-28">2</a>, <a href="#auto-192">12</a>
+              statement <span style="margin-left: 5mm"></span> <a href="#auto-28">2</a>, <a href="#auto-192">13</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              type <span style="margin-left: 5mm"></span> <a href="#auto-355">21</a>
+              type <span style="margin-left: 5mm"></span> <a href="#auto-355">23</a>
             </p>
           </div><p>
-            implementation <span style="margin-left: 5mm"></span> <a href="#auto-172">11</a>
+            implementation <span style="margin-left: 5mm"></span> <a href="#auto-172">12</a>
           </p><p>
-            import <span style="margin-left: 5mm"></span> <a href="#auto-514">32</a>
+            import <span style="margin-left: 5mm"></span> <a href="#auto-514">34</a>
           </p><div style="margin-left: 24px">
             <p>
-              with a short name <span style="margin-left: 5mm"></span> <a href="#auto-519">32</a>
+              with a short name <span style="margin-left: 5mm"></span> <a href="#auto-519">35</a>
             </p>
           </div><p>
-            indentation <span style="margin-left: 5mm"></span> <a href="#auto-56">4</a>, <a href="#auto-152">10</a>,
-            <a href="#auto-157">10</a>
+            indentation <span style="margin-left: 5mm"></span> <a href="#auto-56">4</a>, <a href="#auto-152">11</a>,
+            <a href="#auto-157">11</a>
           </p><p>
             indentation (in long text) <span style="margin-left: 5mm"></span> <a href="#auto-86">6</a>
           </p><p>
             index
           </p><div style="margin-left: 24px">
             <p>
-              array <span style="margin-left: 5mm"></span> <a href="#auto-261">15</a>
+              array <span style="margin-left: 5mm"></span> <a href="#auto-261">17</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              field <span style="margin-left: 5mm"></span> <a href="#auto-263">16</a>
+              field <span style="margin-left: 5mm"></span> <a href="#auto-263">17</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              for user-defined types <span style="margin-left: 5mm"></span> <a href="#auto-366">22</a>
+              for user-defined types <span style="margin-left: 5mm"></span> <a href="#auto-366">24</a>
             </p>
           </div><p>
-            index operator <span style="margin-left: 5mm"></span> <a href="#auto-187">12</a>, <a href="#auto-257">15</a>,
-            <a href="#auto-300">18</a>
+            index operator <span style="margin-left: 5mm"></span> <a href="#auto-187">13</a>, <a href="#auto-257">17</a>,
+            <a href="#auto-300">19</a>
           </p><p>
-            infix <span style="margin-left: 5mm"></span> <a href="#auto-98">6</a>, <a href="#auto-104">7</a>, <a
-            href="#auto-345">21</a>
+            infix <span style="margin-left: 5mm"></span> <a href="#auto-98">7</a>, <a href="#auto-104">7</a>, <a
+            href="#auto-345">23</a>
           </p><p>
-            infix type <span style="margin-left: 5mm"></span> <a href="#auto-11">1</a>
+            infix type <span style="margin-left: 5mm"></span> <a href="#auto-11">2</a>
           </p><p>
-            infix vs. prefix vs. postfix <span style="margin-left: 5mm"></span> <a href="#auto-119">7</a>,
+            infix vs. prefix vs. postfix <span style="margin-left: 5mm"></span> <a href="#auto-119">8</a>,
             <a href="#auto-128">8</a>
           </p><p>
-            inherit <span style="margin-left: 5mm"></span> <a href="#auto-380">23</a>, <a href="#auto-398">24</a>
+            inherit <span style="margin-left: 5mm"></span> <a href="#auto-380">25</a>, <a href="#auto-398">26</a>
           </p><p>
-            integer <span style="margin-left: 5mm"></span> <a href="#auto-339">21</a>
+            integer <span style="margin-left: 5mm"></span> <a href="#auto-339">23</a>
           </p><p>
-            integer constant <span style="margin-left: 5mm"></span> <a href="#auto-64">4</a>
+            integer constant <span style="margin-left: 5mm"></span> <a href="#auto-64">5</a>
           </p><p>
-            integer type <span style="margin-left: 5mm"></span> <a href="#auto-7">1</a>
+            integer type <span style="margin-left: 5mm"></span> <a href="#auto-7">2</a>
           </p><p>
-            interval arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-502">31</a>
+            interval arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-502">33</a>
           </p><p>
-            is_a <span style="margin-left: 5mm"></span> <a href="#auto-410">24</a>
+            is_a <span style="margin-left: 5mm"></span> <a href="#auto-410">26</a>
           </p><p>
-            lambda function <span style="margin-left: 5mm"></span> <a href="#auto-202">13</a>
+            lambda function <span style="margin-left: 5mm"></span> <a href="#auto-202">14</a>
           </p><p>
-            lazy evaluation <span style="margin-left: 5mm"></span> <a href="#auto-318">20</a>
+            lazy evaluation <span style="margin-left: 5mm"></span> <a href="#auto-318">21</a>
           </p><p>
-            left <span style="margin-left: 5mm"></span> <a href="#auto-466">27</a>
+            left <span style="margin-left: 5mm"></span> <a href="#auto-466">30</a>
           </p><p>
-            library <span style="margin-left: 5mm"></span> <a href="#auto-428">25</a>
+            library <span style="margin-left: 5mm"></span> <a href="#auto-428">27</a>
           </p><p>
-            line-terminating characters <span style="margin-left: 5mm"></span> <a href="#auto-78">5</a>
+            line-terminating characters <span style="margin-left: 5mm"></span> <a href="#auto-78">6</a>
           </p><p>
             list
           </p><div style="margin-left: 24px">
             <p>
-              comma-separated <span style="margin-left: 5mm"></span> <a href="#auto-475">28</a>
+              comma-separated <span style="margin-left: 5mm"></span> <a href="#auto-475">30</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              operations on lists <span style="margin-left: 5mm"></span> <a href="#auto-474">28</a>
+              operations on lists <span style="margin-left: 5mm"></span> <a href="#auto-474">30</a>
             </p>
           </div><p>
-            list operations <span style="margin-left: 5mm"></span> <a href="#auto-473">28</a>
+            list operations <span style="margin-left: 5mm"></span> <a href="#auto-473">30</a>
           </p><p>
-            literal node types <span style="margin-left: 5mm"></span> <a href="#auto-62">4</a>
+            literal node types <span style="margin-left: 5mm"></span> <a href="#auto-62">5</a>
           </p><p>
-            local scope <span style="margin-left: 5mm"></span> <a href="#auto-231">14</a>
+            local scope <span style="margin-left: 5mm"></span> <a href="#auto-231">15</a>
           </p><p>
-            long text <span style="margin-left: 5mm"></span> <a href="#auto-84">5</a>
+            long text <span style="margin-left: 5mm"></span> <a href="#auto-84">6</a>
           </p><p>
-            machine interface <span style="margin-left: 5mm"></span> <a href="#auto-276">16</a>
+            machine interface <span style="margin-left: 5mm"></span> <a href="#auto-276">18</a>
           </p><p>
             map <span style="margin-left: 5mm"></span> <a href="#auto-23">2</a>
           </p><p>
-            map operation <span style="margin-left: 5mm"></span> <a href="#auto-477">28</a>
+            map operation <span style="margin-left: 5mm"></span> <a href="#auto-477">30</a>
           </p><p>
-            mathematical functions <span style="margin-left: 5mm"></span> <a href="#auto-448">27</a>
+            mathematical functions <span style="margin-left: 5mm"></span> <a href="#auto-448">28</a>
           </p><p>
             memoization
           </p><div style="margin-left: 24px">
             <p>
-              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-308">19</a>
+              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-308">20</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of parameters <span style="margin-left: 5mm"></span> <a href="#auto-327">21</a>
+              of parameters <span style="margin-left: 5mm"></span> <a href="#auto-327">22</a>
             </p>
           </div><p>
             meta-programming <span style="margin-left: 5mm"></span> <a href="#auto-21">2</a>
           </p><p>
-            module <span style="margin-left: 5mm"></span> <a href="#auto-513">32</a>
+            module <span style="margin-left: 5mm"></span> <a href="#auto-513">34</a>
           </p><div style="margin-left: 24px">
             <p>
-              description <span style="margin-left: 5mm"></span> <a href="#auto-526">33</a>
+              description <span style="margin-left: 5mm"></span> <a href="#auto-526">35</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              import <span style="margin-left: 5mm"></span> <a href="#auto-515">32</a>
+              import <span style="margin-left: 5mm"></span> <a href="#auto-515">34</a>
             </p>
           </div><p>
-            module description <span style="margin-left: 5mm"></span> <a href="#auto-525">33</a>
+            module description <span style="margin-left: 5mm"></span> <a href="#auto-525">35</a>
           </p><p>
-            module path <span style="margin-left: 5mm"></span> <a href="#auto-517">32</a>
+            module path <span style="margin-left: 5mm"></span> <a href="#auto-517">34</a>
           </p><p>
             music <span style="margin-left: 5mm"></span> <a href="#auto-43">3</a>
           </p><p>
-            name <span style="margin-left: 5mm"></span> <a href="#auto-92">45</a>, <a href="#auto-343">21</a>
+            name <span style="margin-left: 5mm"></span> <a href="#auto-92">46</a>, <a href="#auto-343">23</a>
           </p><p>
-            name type <span style="margin-left: 5mm"></span> <a href="#auto-10">1</a>
+            name type <span style="margin-left: 5mm"></span> <a href="#auto-10">2</a>
           </p><p>
             noise <span style="margin-left: 5mm"></span> <a href="#auto-42">3</a>
           </p><p>
-            normal form <span style="margin-left: 5mm"></span> <a href="#auto-370">22</a>
+            normal form <span style="margin-left: 5mm"></span> <a href="#auto-370">24</a>
           </p><p>
             normal XLR <span style="margin-left: 5mm"></span> <a href="#auto-51">4</a>
           </p><p>
             off-side rule <span style="margin-left: 5mm"></span> <a href="#auto-53">4</a>
           </p><p>
-            opcode <span style="margin-left: 5mm"></span> <a href="#auto-277">16</a>
+            opcode <span style="margin-left: 5mm"></span> <a href="#auto-277">18</a>
           </p><p>
-            opening <span style="margin-left: 5mm"></span> <a href="#auto-470">28</a>
+            opening <span style="margin-left: 5mm"></span> <a href="#auto-470">30</a>
           </p><p>
             operand (in prefix and postfix) <span style="margin-left: 5mm"></span> <a href="#auto-108">7</a>
           </p><p>
-            operator <span style="margin-left: 5mm"></span> <a href="#auto-344">21</a>
+            operator <span style="margin-left: 5mm"></span> <a href="#auto-344">23</a>
           </p><p>
-            operator symbols <span style="margin-left: 5mm"></span> <a href="#auto-93">6</a>
+            operator symbols <span style="margin-left: 5mm"></span> <a href="#auto-93">48</a>
           </p><p>
-            operators <span style="margin-left: 5mm"></span> <a href="#auto-144">8</a>
+            operators <span style="margin-left: 5mm"></span> <a href="#auto-144">9</a>
           </p><p>
-            overloading <span style="margin-left: 5mm"></span> <a href="#auto-217">13</a>
+            overloading <span style="margin-left: 5mm"></span> <a href="#auto-217">15</a>
           </p><p>
-            parameter <span style="margin-left: 5mm"></span> <a href="#auto-199">12</a>
+            parameter <span style="margin-left: 5mm"></span> <a href="#auto-199">14</a>
           </p><p>
-            parameterized types <span style="margin-left: 5mm"></span> <a href="#auto-419">25</a>
+            parameterized types <span style="margin-left: 5mm"></span> <a href="#auto-419">27</a>
           </p><p>
             parameters
           </p><div style="margin-left: 24px">
             <p>
-              of types <span style="margin-left: 5mm"></span> <a href="#auto-364">22</a>
+              of types <span style="margin-left: 5mm"></span> <a href="#auto-364">24</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              with properties types <span style="margin-left: 5mm"></span> <a href="#auto-382">23</a>
+              with properties types <span style="margin-left: 5mm"></span> <a href="#auto-382">25</a>
             </p>
           </div><p>
-            parsing <span style="margin-left: 5mm"></span> <a href="#auto-116">7</a>, <a href="#auto-129">8</a>
+            parsing <span style="margin-left: 5mm"></span> <a href="#auto-116">8</a>, <a href="#auto-129">8</a>
           </p><p>
-            parsing ambiguities <span style="margin-left: 5mm"></span> <a href="#auto-130">8</a>, <a href="#auto-136">8</a>
+            parsing ambiguities <span style="margin-left: 5mm"></span> <a href="#auto-130">8</a>, <a href="#auto-136">9</a>
           </p><p>
-            pattern <span style="margin-left: 5mm"></span> <a href="#auto-171">11</a>, <a href="#auto-194">12</a>
+            pattern <span style="margin-left: 5mm"></span> <a href="#auto-171">12</a>, <a href="#auto-194">13</a>
           </p><div style="margin-left: 24px">
             <p>
-              in type <span style="margin-left: 5mm"></span> <a href="#auto-359">22</a>
+              in type <span style="margin-left: 5mm"></span> <a href="#auto-359">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              making type pattern specific <span style="margin-left: 5mm"></span> <a href="#auto-372">22</a>
+              making type pattern specific <span style="margin-left: 5mm"></span> <a href="#auto-372">24</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              matching <span style="margin-left: 5mm"></span> <a href="#auto-306">19</a>
+              matching <span style="margin-left: 5mm"></span> <a href="#auto-306">20</a>
             </p>
           </div><p>
-            postfix <span style="margin-left: 5mm"></span> <a href="#auto-100">6</a>, <a href="#auto-107">7</a>, <a
-            href="#auto-347">21</a>
+            postfix <span style="margin-left: 5mm"></span> <a href="#auto-100">7</a>, <a href="#auto-107">7</a>, <a
+            href="#auto-347">23</a>
           </p><p>
-            postfix type <span style="margin-left: 5mm"></span> <a href="#auto-13">1</a>
+            postfix type <span style="margin-left: 5mm"></span> <a href="#auto-13">2</a>
           </p><p>
-            power operator <span style="margin-left: 5mm"></span> <a href="#auto-435">26</a>
+            power operator <span style="margin-left: 5mm"></span> <a href="#auto-435">27</a>
           </p><p>
-            precedence <span style="margin-left: 5mm"></span> <a href="#auto-117">7</a>, <a href="#auto-122">7</a>, <a
+            precedence <span style="margin-left: 5mm"></span> <a href="#auto-117">8</a>, <a href="#auto-122">8</a>, <a
             href="#auto-146">9</a>
           </p><p>
-            predefined types <span style="margin-left: 5mm"></span> <a href="#auto-338">21</a>
+            predefined types <span style="margin-left: 5mm"></span> <a href="#auto-338">23</a>
           </p><p>
-            predicate <span style="margin-left: 5mm"></span> <a href="#auto-480">29</a>
+            predicate <span style="margin-left: 5mm"></span> <a href="#auto-480">31</a>
           </p><p>
-            prefix <span style="margin-left: 5mm"></span> <a href="#auto-99">6</a>, <a href="#auto-106">7</a>, <a
-            href="#auto-346">21</a>
+            prefix <span style="margin-left: 5mm"></span> <a href="#auto-99">7</a>, <a href="#auto-106">7</a>, <a
+            href="#auto-346">23</a>
           </p><p>
-            prefix type <span style="margin-left: 5mm"></span> <a href="#auto-12">1</a>
+            prefix type <span style="margin-left: 5mm"></span> <a href="#auto-12">2</a>
           </p><p>
             programming paradigm <span style="margin-left: 5mm"></span> <a href="#auto-3">1</a>
           </p><p>
-            properties <span style="margin-left: 5mm"></span> <a href="#auto-377">23</a>
+            properties <span style="margin-left: 5mm"></span> <a href="#auto-377">25</a>
           </p><div style="margin-left: 24px">
             <p>
-              arguments <span style="margin-left: 5mm"></span> <a href="#auto-389">23</a>
+              arguments <span style="margin-left: 5mm"></span> <a href="#auto-389">25</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              as parameter types <span style="margin-left: 5mm"></span> <a href="#auto-388">23</a>
+              as parameter types <span style="margin-left: 5mm"></span> <a href="#auto-388">25</a>
             </p>
           </div><p>
-            property <span style="margin-left: 5mm"></span> <a href="#auto-379">23</a>
+            property <span style="margin-left: 5mm"></span> <a href="#auto-379">25</a>
           </p><div style="margin-left: 24px">
             <p>
-              default value <span style="margin-left: 5mm"></span> <a href="#auto-386">23</a>
+              default value <span style="margin-left: 5mm"></span> <a href="#auto-386">25</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              required <span style="margin-left: 5mm"></span> <a href="#auto-395">24</a>
+              required <span style="margin-left: 5mm"></span> <a href="#auto-395">25</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              setting <span style="margin-left: 5mm"></span> <a href="#auto-387">23</a>
+              setting <span style="margin-left: 5mm"></span> <a href="#auto-387">25</a>
             </p>
           </div><p>
-            property definition <span style="margin-left: 5mm"></span> <a href="#auto-383">23</a>
+            property definition <span style="margin-left: 5mm"></span> <a href="#auto-383">25</a>
           </p><p>
             pseudo-metric <span style="margin-left: 5mm"></span> <a href="#auto-36">3</a>
           </p><p>
-            quote <span style="margin-left: 5mm"></span> <a href="#auto-81">5</a>
+            quote <span style="margin-left: 5mm"></span> <a href="#auto-81">6</a>
           </p><p>
             radix
           </p><div style="margin-left: 24px">
             <p>
-              in integer numbers <span style="margin-left: 5mm"></span> <a href="#auto-65">4</a>
+              in integer numbers <span style="margin-left: 5mm"></span> <a href="#auto-65">5</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
               in real numbers <span style="margin-left: 5mm"></span> <a href="#auto-71">5</a>
             </p>
           </div><p>
-            range <span style="margin-left: 5mm"></span> <a href="#auto-481">29</a>
+            range <span style="margin-left: 5mm"></span> <a href="#auto-481">31</a>
           </p><p>
-            real <span style="margin-left: 5mm"></span> <a href="#auto-340">21</a>
+            real <span style="margin-left: 5mm"></span> <a href="#auto-340">23</a>
           </p><p>
-            real type <span style="margin-left: 5mm"></span> <a href="#auto-8">1</a>
+            real type <span style="margin-left: 5mm"></span> <a href="#auto-8">2</a>
           </p><p>
             reduce <span style="margin-left: 5mm"></span> <a href="#auto-24">2</a>
           </p><p>
-            reduce operation <span style="margin-left: 5mm"></span> <a href="#auto-478">28</a>
+            reduce operation <span style="margin-left: 5mm"></span> <a href="#auto-478">30</a>
           </p><p>
-            reference <span style="margin-left: 5mm"></span> <a href="#auto-299">18</a>
+            reference <span style="margin-left: 5mm"></span> <a href="#auto-299">19</a>
           </p><p>
-            required property <span style="margin-left: 5mm"></span> <a href="#auto-394">24</a>
+            required property <span style="margin-left: 5mm"></span> <a href="#auto-394">25</a>
           </p><p>
-            return type declaration <span style="margin-left: 5mm"></span> <a href="#auto-215">13</a>
+            return type declaration <span style="margin-left: 5mm"></span> <a href="#auto-215">15</a>
           </p><div style="margin-left: 24px">
             <p>
-              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-233">14</a>
+              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-233">15</a>
             </p>
           </div><p>
-            rewrite declaration <span style="margin-left: 5mm"></span> <a href="#auto-191">12</a>
+            rewrite declaration <span style="margin-left: 5mm"></span> <a href="#auto-191">13</a>
           </p><p>
-            rewrite declarations <span style="margin-left: 5mm"></span> <a href="#auto-170">11</a>
+            rewrite declarations <span style="margin-left: 5mm"></span> <a href="#auto-170">12</a>
           </p><p>
-            rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-424">25</a>
+            rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-424">27</a>
           </p><p>
-            right <span style="margin-left: 5mm"></span> <a href="#auto-467">27</a>
+            right <span style="margin-left: 5mm"></span> <a href="#auto-467">30</a>
           </p><p>
-            scope <span style="margin-left: 5mm"></span> <a href="#auto-286">17</a>
+            scope <span style="margin-left: 5mm"></span> <a href="#auto-286">19</a>
           </p><div style="margin-left: 24px">
             <p>
-              creation <span style="margin-left: 5mm"></span> <a href="#auto-296">17</a>
+              creation <span style="margin-left: 5mm"></span> <a href="#auto-296">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-289">17</a>
+              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-289">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              for modules <span style="margin-left: 5mm"></span> <a href="#auto-521">32</a>
+              for modules <span style="margin-left: 5mm"></span> <a href="#auto-521">35</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              global <span style="margin-left: 5mm"></span> <a href="#auto-290">17</a>
+              global <span style="margin-left: 5mm"></span> <a href="#auto-290">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              local <span style="margin-left: 5mm"></span> <a href="#auto-232">14</a>, <a href="#auto-287">17</a>
+              local <span style="margin-left: 5mm"></span> <a href="#auto-232">15</a>, <a href="#auto-287">19</a>
             </p>
           </div><p>
-            self <span style="margin-left: 5mm"></span> <a href="#auto-211">13</a>
+            self <span style="margin-left: 5mm"></span> <a href="#auto-211">14</a>
           </p><p>
             semantic noise <span style="margin-left: 5mm"></span> <a href="#auto-38">3</a>
           </p><p>
-            semantics <span style="margin-left: 5mm"></span> <a href="#auto-164">11</a>
+            semantics <span style="margin-left: 5mm"></span> <a href="#auto-164">12</a>
           </p><p>
-            sequence <span style="margin-left: 5mm"></span> <a href="#auto-183">11</a>, <a href="#auto-250">15</a>
+            sequence <span style="margin-left: 5mm"></span> <a href="#auto-183">13</a>, <a href="#auto-250">17</a>
           </p><div style="margin-left: 24px">
             <p>
-              evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-251">15</a>
+              evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-251">17</a>
             </p>
           </div><p>
-            sequence operator <span style="margin-left: 5mm"></span> <a href="#auto-184">11</a>
+            sequence operator <span style="margin-left: 5mm"></span> <a href="#auto-184">13</a>
           </p><p>
-            setter <span style="margin-left: 5mm"></span> <a href="#auto-392">23</a>
+            setter <span style="margin-left: 5mm"></span> <a href="#auto-392">25</a>
           </p><p>
-            shadowed binding <span style="margin-left: 5mm"></span> <a href="#auto-284">17</a>
+            shadowed binding <span style="margin-left: 5mm"></span> <a href="#auto-284">19</a>
           </p><p>
             shadowing
           </p><div style="margin-left: 24px">
             <p>
-              in modules <span style="margin-left: 5mm"></span> <a href="#auto-522">33</a>
+              in modules <span style="margin-left: 5mm"></span> <a href="#auto-522">35</a>
             </p>
           </div><p>
-            short module name <span style="margin-left: 5mm"></span> <a href="#auto-518">32</a>
+            short module name <span style="margin-left: 5mm"></span> <a href="#auto-518">35</a>
           </p><p>
             signal-noise ratio <span style="margin-left: 5mm"></span> <a href="#auto-40">3</a>
           </p><p>
-            single quote <span style="margin-left: 5mm"></span> <a href="#auto-82">5</a>
+            single quote <span style="margin-left: 5mm"></span> <a href="#auto-82">6</a>
           </p><p>
             spaces (for indentation) <span style="margin-left: 5mm"></span> <a href="#auto-54">4</a>
           </p><p>
-            special forms <span style="margin-left: 5mm"></span> <a href="#auto-315">20</a>
+            special forms <span style="margin-left: 5mm"></span> <a href="#auto-315">21</a>
           </p><p>
-            standard operators <span style="margin-left: 5mm"></span> <a href="#auto-145">8</a>
+            standard operators <span style="margin-left: 5mm"></span> <a href="#auto-145">9</a>
           </p><p>
-            statement <span style="margin-left: 5mm"></span> <a href="#auto-137">8</a>, <a href="#auto-255">15</a>
+            statement <span style="margin-left: 5mm"></span> <a href="#auto-137">9</a>, <a href="#auto-255">17</a>
           </p><p>
-            statement precedence <span style="margin-left: 5mm"></span> <a href="#auto-140">8</a>, <a href="#auto-153">10</a>
+            statement precedence <span style="margin-left: 5mm"></span> <a href="#auto-140">9</a>, <a href="#auto-153">11</a>
           </p><p>
-            structured node types <span style="margin-left: 5mm"></span> <a href="#auto-97">6</a>
+            structured node types <span style="margin-left: 5mm"></span> <a href="#auto-97">7</a>
           </p><p>
-            subject and complement <span style="margin-left: 5mm"></span> <a href="#auto-139">8</a>
+            subject and complement <span style="margin-left: 5mm"></span> <a href="#auto-139">9</a>
           </p><p>
-            symbol <span style="margin-left: 5mm"></span> <a href="#auto-342">21</a>, <a href="#auto-469">28</a>
+            symbol <span style="margin-left: 5mm"></span> <a href="#auto-342">23</a>, <a href="#auto-469">30</a>
           </p><p>
-            symbols <span style="margin-left: 5mm"></span> <a href="#auto-91">43</a>, <a href="#auto-89">37</a>
+            symbols <span style="margin-left: 5mm"></span> <a href="#auto-91">43</a>, <a href="#auto-89">6</a>
           </p><p>
             syntactic noise <span style="margin-left: 5mm"></span> <a href="#auto-37">3</a>
           </p><p>
             syntax
           </p><div style="margin-left: 24px">
             <p>
-              in modules <span style="margin-left: 5mm"></span> <a href="#auto-520">32</a>
+              in modules <span style="margin-left: 5mm"></span> <a href="#auto-520">35</a>
             </p>
           </div><p>
-            syntax configuration <span style="margin-left: 5mm"></span> <a href="#auto-50">4</a>, <a href="#auto-133">8</a>,
-            <a href="#auto-142">8</a>
+            syntax configuration <span style="margin-left: 5mm"></span> <a href="#auto-50">4</a>, <a href="#auto-133">9</a>,
+            <a href="#auto-142">9</a>
           </p><p>
-            syntax statement <span style="margin-left: 5mm"></span> <a href="#auto-124">7</a>, <a href="#auto-148">10</a>,
-            <a href="#auto-150">10</a>
+            syntax statement <span style="margin-left: 5mm"></span> <a href="#auto-124">8</a>, <a href="#auto-148">11</a>,
+            <a href="#auto-150">11</a>
           </p><p>
             tabs (for indentation) <span style="margin-left: 5mm"></span> <a href="#auto-55">4</a>
           </p><p>
-            text <span style="margin-left: 5mm"></span> <a href="#auto-341">21</a>
+            text <span style="margin-left: 5mm"></span> <a href="#auto-341">23</a>
           </p><p>
-            text delimiters <span style="margin-left: 5mm"></span> <a href="#auto-80">5</a>, <a href="#auto-158">10</a>
+            text delimiters <span style="margin-left: 5mm"></span> <a href="#auto-80">6</a>, <a href="#auto-158">11</a>
           </p><p>
-            text functions <span style="margin-left: 5mm"></span> <a href="#auto-451">27</a>
+            text functions <span style="margin-left: 5mm"></span> <a href="#auto-451">29</a>
           </p><p>
-            text literals <span style="margin-left: 5mm"></span> <a href="#auto-76">5</a>
+            text literals <span style="margin-left: 5mm"></span> <a href="#auto-76">6</a>
           </p><p>
-            text type <span style="margin-left: 5mm"></span> <a href="#auto-9">1</a>
+            text type <span style="margin-left: 5mm"></span> <a href="#auto-9">2</a>
           </p><p>
-            tree <span style="margin-left: 5mm"></span> <a href="#auto-349">21</a>
+            tree <span style="margin-left: 5mm"></span> <a href="#auto-349">23</a>
           </p><div style="margin-left: 24px">
             <p>
-              operations <span style="margin-left: 5mm"></span> <a href="#auto-463">27</a>
+              operations <span style="margin-left: 5mm"></span> <a href="#auto-463">30</a>
             </p>
           </div><p>
-            tree rewrite <span style="margin-left: 5mm"></span> <a href="#auto-168">11</a>
+            tree rewrite <span style="margin-left: 5mm"></span> <a href="#auto-168">12</a>
           </p><p>
-            tree rewrite operators <span style="margin-left: 5mm"></span> <a href="#auto-169">11</a>
+            tree rewrite operators <span style="margin-left: 5mm"></span> <a href="#auto-169">12</a>
           </p><p>
-            type <span style="margin-left: 5mm"></span> <a href="#auto-332">21</a>
+            type <span style="margin-left: 5mm"></span> <a href="#auto-332">23</a>
           </p><div style="margin-left: 24px">
             <p>
-              belonging to a type <span style="margin-left: 5mm"></span> <a href="#auto-335">21</a>
+              belonging to a type <span style="margin-left: 5mm"></span> <a href="#auto-335">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              check <span style="margin-left: 5mm"></span> <a href="#auto-406">24</a>
+              check <span style="margin-left: 5mm"></span> <a href="#auto-406">26</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              conversions <span style="margin-left: 5mm"></span> <a href="#auto-414">24</a>, <a href="#auto-455">27</a>
+              conversions <span style="margin-left: 5mm"></span> <a href="#auto-414">26</a>, <a href="#auto-455">29</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              declaration <span style="margin-left: 5mm"></span> <a href="#auto-334">21</a>
+              declaration <span style="margin-left: 5mm"></span> <a href="#auto-334">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              definition <span style="margin-left: 5mm"></span> <a href="#auto-353">21</a>
+              definition <span style="margin-left: 5mm"></span> <a href="#auto-353">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-404">24</a>
+              explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-404">26</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              identifying arbitrary tree shapes <span style="margin-left: 5mm"></span> <a href="#auto-408">24</a>
+              identifying arbitrary tree shapes <span style="margin-left: 5mm"></span> <a href="#auto-408">26</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              multiple notations <span style="margin-left: 5mm"></span> <a href="#auto-374">23</a>
+              multiple notations <span style="margin-left: 5mm"></span> <a href="#auto-374">24</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              normal form <span style="margin-left: 5mm"></span> <a href="#auto-371">22</a>
+              normal form <span style="margin-left: 5mm"></span> <a href="#auto-371">24</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              parameterized type <span style="margin-left: 5mm"></span> <a href="#auto-420">25</a>
+              parameterized type <span style="margin-left: 5mm"></span> <a href="#auto-420">27</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              pattern <span style="margin-left: 5mm"></span> <a href="#auto-358">21</a>
+              pattern <span style="margin-left: 5mm"></span> <a href="#auto-358">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              predefined <span style="margin-left: 5mm"></span> <a href="#auto-337">21</a>
+              predefined <span style="margin-left: 5mm"></span> <a href="#auto-337">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              properties <span style="margin-left: 5mm"></span> <a href="#auto-378">23</a>
+              properties <span style="margin-left: 5mm"></span> <a href="#auto-378">25</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-425">25</a>
+              rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-425">27</a>
             </p>
           </div><p>
-            type check <span style="margin-left: 5mm"></span> <a href="#auto-405">24</a>
+            type check <span style="margin-left: 5mm"></span> <a href="#auto-405">26</a>
           </p><p>
-            type declaration <span style="margin-left: 5mm"></span> <a href="#auto-214">13</a>, <a href="#auto-333">21</a>
+            type declaration <span style="margin-left: 5mm"></span> <a href="#auto-214">15</a>, <a href="#auto-333">23</a>
           </p><div style="margin-left: 24px">
             <p>
-              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-218">13</a>, <a href="#auto-229">14</a>
+              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-218">15</a>, <a href="#auto-229">15</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              vs. type definition <span style="margin-left: 5mm"></span> <a href="#auto-361">22</a>
+              vs. type definition <span style="margin-left: 5mm"></span> <a href="#auto-361">24</a>
             </p>
           </div><p>
-            type declarations <span style="margin-left: 5mm"></span> <a href="#auto-176">11</a>
+            type declarations <span style="margin-left: 5mm"></span> <a href="#auto-176">12</a>
           </p><p>
-            type definition <span style="margin-left: 5mm"></span> <a href="#auto-352">21</a>
+            type definition <span style="margin-left: 5mm"></span> <a href="#auto-352">23</a>
           </p><div style="margin-left: 24px">
             <p>
-              vs. type declaration <span style="margin-left: 5mm"></span> <a href="#auto-362">22</a>
+              vs. type declaration <span style="margin-left: 5mm"></span> <a href="#auto-362">24</a>
             </p>
           </div><p>
-            type pattern <span style="margin-left: 5mm"></span> <a href="#auto-357">21</a>
+            type pattern <span style="margin-left: 5mm"></span> <a href="#auto-357">23</a>
           </p><p>
-            undefined form <span style="margin-left: 5mm"></span> <a href="#auto-292">17</a>
+            undefined form <span style="margin-left: 5mm"></span> <a href="#auto-292">19</a>
           </p><p>
             underscore
           </p><div style="margin-left: 24px">
@@ -6730,23 +6743,23 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
               as digit separator <span style="margin-left: 5mm"></span> <a href="#auto-67">5</a>, <a href="#auto-72">5</a>
             </p>
           </div><p>
-            UTF-8 <span style="margin-left: 5mm"></span> <a href="#auto-77">5</a>
+            UTF-8 <span style="margin-left: 5mm"></span> <a href="#auto-77">6</a>
           </p><p>
             value (of text literals) <span style="margin-left: 5mm"></span> <a href="#auto-88">6</a>
           </p><p>
-            variable <span style="margin-left: 5mm"></span> <a href="#auto-196">12</a>
+            variable <span style="margin-left: 5mm"></span> <a href="#auto-196">13</a>
           </p><p>
-            when infix operator <span style="margin-left: 5mm"></span> <a href="#auto-247">15</a>
+            when infix operator <span style="margin-left: 5mm"></span> <a href="#auto-247">16</a>
           </p><p>
-            XL0 (abstract syntax tree for XLR) <span style="margin-left: 5mm"></span> <a href="#auto-48">3</a>
+            XL0 (abstract syntax tree for XLR) <span style="margin-left: 5mm"></span> <a href="#auto-48">4</a>
           </p><p>
             XLR (eXtensible Language and Runtime <span style="margin-left: 5mm"></span> <a href="#auto-5">1</a>
           </p><p>
-            xl.syntax <span style="margin-left: 5mm"></span> <a href="#auto-49">3</a>, <a href="#auto-109">7</a>, <a
-            href="#auto-123">7</a>, <a href="#auto-143">8</a>, <a href="#auto-431">25</a>
+            xl.syntax <span style="margin-left: 5mm"></span> <a href="#auto-49">4</a>, <a href="#auto-109">7</a>, <a
+            href="#auto-123">8</a>, <a href="#auto-143">9</a>, <a href="#auto-431">27</a>
           </p><div style="margin-left: 24px">
             <p>
-              connexion to C.syntax <span style="margin-left: 5mm"></span> <a href="#auto-272">16</a>
+              connexion to C.syntax <span style="margin-left: 5mm"></span> <a href="#auto-272">18</a>
             </p>
           </div></multicol></font>
         </div>
@@ -6771,13 +6784,13 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             style="margin-left: 5mm"></span> <a href="#auto-57">4</a>
           </p>
           <p>
-            Single-line and multi-line comments <span style="margin-left: 5mm"></span> <a href="#auto-60">4</a>
+            Single-line and multi-line comments <span style="margin-left: 5mm"></span> <a href="#auto-60">5</a>
           </p>
           <p>
             Valid integer constants <span style="margin-left: 5mm"></span> <a href="#auto-68">5</a>
           </p>
           <p>
-            Valid real constants <span style="margin-left: 5mm"></span> <a href="#auto-74">5</a>
+            Valid real constants <span style="margin-left: 5mm"></span> <a href="#auto-74">6</a>
           </p>
           <p>
             Valid text constants <span style="margin-left: 5mm"></span> <a href="#auto-85">6</a>
@@ -6787,192 +6800,192 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p>
           <p>
             Examples of valid operator and name symbols <span style="margin-left: 5mm"></span>
-            <a href="#auto-95">6</a>
+            <a href="#auto-95">7</a>
           </p>
           <p>
             Default syntax configuration file <span style="margin-left: 5mm"></span> <a href="#auto-147">10</a>
           </p>
           <p>
             Use of the <tt>syntax</tt> specification in a source file <span
-            style="margin-left: 5mm"></span> <a href="#auto-149">10</a>
+            style="margin-left: 5mm"></span> <a href="#auto-149">11</a>
           </p>
           <p>
-            C syntax configuration file <span style="margin-left: 5mm"></span> <a href="#auto-162">11</a>
+            C syntax configuration file <span style="margin-left: 5mm"></span> <a href="#auto-162">12</a>
           </p>
           <p>
-            Example of rewrite declaration <span style="margin-left: 5mm"></span> <a href="#auto-173">11</a>
+            Example of rewrite declaration <span style="margin-left: 5mm"></span> <a href="#auto-173">12</a>
           </p>
           <p>
-            Example of data declaration <span style="margin-left: 5mm"></span> <a href="#auto-175">11</a>
+            Example of data declaration <span style="margin-left: 5mm"></span> <a href="#auto-175">12</a>
           </p>
           <p>
             Example of data declarations containing type declarations <span
-            style="margin-left: 5mm"></span> <a href="#auto-177">11</a>
+            style="margin-left: 5mm"></span> <a href="#auto-177">13</a>
           </p>
           <p>
             Example of guard to build the Syracuse suite <span style="margin-left: 5mm"></span>
-            <a href="#auto-179">11</a>
+            <a href="#auto-179">13</a>
           </p>
           <p>
-            Example of assignment <span style="margin-left: 5mm"></span> <a href="#auto-182">11</a>
+            Example of assignment <span style="margin-left: 5mm"></span> <a href="#auto-182">13</a>
           </p>
           <p>
-            Example of sequence <span style="margin-left: 5mm"></span> <a href="#auto-186">12</a>
+            Example of sequence <span style="margin-left: 5mm"></span> <a href="#auto-186">13</a>
           </p>
           <p>
-            Examples of index operators <span style="margin-left: 5mm"></span> <a href="#auto-188">12</a>
+            Examples of index operators <span style="margin-left: 5mm"></span> <a href="#auto-188">13</a>
           </p>
           <p>
-            Examples of tree rewrites <span style="margin-left: 5mm"></span> <a href="#auto-193">12</a>
+            Examples of tree rewrites <span style="margin-left: 5mm"></span> <a href="#auto-193">13</a>
           </p>
           <p>
-            Constants vs. Variable symbols <span style="margin-left: 5mm"></span> <a href="#auto-197">12</a>
+            Constants vs. Variable symbols <span style="margin-left: 5mm"></span> <a href="#auto-197">14</a>
           </p>
           <p>
             Declarations are visible to the entire sequence containing them
-            <span style="margin-left: 5mm"></span> <a href="#auto-204">13</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-204">14</a>
           </p>
           <p>
-            Declaring a comma-separated list <span style="margin-left: 5mm"></span> <a href="#auto-208">13</a>
+            Declaring a comma-separated list <span style="margin-left: 5mm"></span> <a href="#auto-208">14</a>
           </p>
           <p>
             Declaring a <tt>complex</tt> data type <span style="margin-left: 5mm"></span> <a
-            href="#auto-210">13</a>
+            href="#auto-210">14</a>
           </p>
           <p>
-            Simple type declarations <span style="margin-left: 5mm"></span> <a href="#auto-216">13</a>
+            Simple type declarations <span style="margin-left: 5mm"></span> <a href="#auto-216">15</a>
           </p>
           <p>
-            Creating a new binding<a id="creating-a-new-binding"></a> <span style="margin-left: 5mm"></span> <a href="#auto-225">13</a>
+            Creating a new binding<a id="creating-a-new-binding"></a> <span style="margin-left: 5mm"></span> <a href="#auto-225">15</a>
           </p>
           <p>
             Assignment to existing binding<a id="nonlocal-assignment"></a> <span style="margin-left: 5mm"></span> <a
-            href="#auto-226">13</a>
+            href="#auto-226">15</a>
           </p>
           <p>
             Assigning to new local variable <a id="assign-to-new-local"></a> <span style="margin-left: 5mm"></span>
-            <a href="#auto-235">14</a>
+            <a href="#auto-235">15</a>
           </p>
           <p>
-            Assignment to references <span style="margin-left: 5mm"></span> <a href="#auto-237">14</a>
+            Assignment to references <span style="margin-left: 5mm"></span> <a href="#auto-237">16</a>
           </p>
           <p>
-            Assigning to parameter <span style="margin-left: 5mm"></span> <a href="#auto-241">14</a>
+            Assigning to parameter <span style="margin-left: 5mm"></span> <a href="#auto-241">16</a>
           </p>
           <p>
             Guard limit the validity of operations <span style="margin-left: 5mm"></span> <a
-            href="#auto-248">15</a>
+            href="#auto-248">16</a>
           </p>
           <p>
             Code writing <tt>A</tt>, then <tt>B</tt>, then
-            <tt>f(100)+f(200)</tt> <span style="margin-left: 5mm"></span> <a href="#auto-253">15</a>
+            <tt>f(100)+f(200)</tt> <span style="margin-left: 5mm"></span> <a href="#auto-253">17</a>
           </p>
           <p>
-            Structured data <span style="margin-left: 5mm"></span> <a href="#auto-264">16</a>
+            Structured data <span style="margin-left: 5mm"></span> <a href="#auto-264">17</a>
           </p>
           <p>
             Creating an interface for a C function <span style="margin-left: 5mm"></span> <a
-            href="#auto-270">16</a>
+            href="#auto-270">18</a>
           </p>
           <p>
             Generating machine code using opcode declarations <span style="margin-left: 5mm"></span>
-            <a href="#auto-278">16</a>
+            <a href="#auto-278">18</a>
           </p>
           <p>
-            Evaluation for comparison <span style="margin-left: 5mm"></span> <a href="#auto-321">20</a>
+            Evaluation for comparison <span style="margin-left: 5mm"></span> <a href="#auto-321">21</a>
           </p>
           <p>
-            Evaluation for type comparison <span style="margin-left: 5mm"></span> <a href="#auto-322">20</a>
+            Evaluation for type comparison <span style="margin-left: 5mm"></span> <a href="#auto-322">22</a>
           </p>
           <p>
-            Explicit vs. lazy evaluation <span style="margin-left: 5mm"></span> <a href="#auto-328">21</a>
+            Explicit vs. lazy evaluation <span style="margin-left: 5mm"></span> <a href="#auto-328">22</a>
           </p>
           <p>
-            Simple type declaration <span style="margin-left: 5mm"></span> <a href="#auto-356">21</a>
+            Simple type declaration <span style="margin-left: 5mm"></span> <a href="#auto-356">23</a>
           </p>
           <p>
-            Simple type declaration <span style="margin-left: 5mm"></span> <a href="#auto-360">22</a>
+            Simple type declaration <span style="margin-left: 5mm"></span> <a href="#auto-360">24</a>
           </p>
           <p>
-            Using the <tt>complex</tt> type <span style="margin-left: 5mm"></span> <a href="#auto-363">22</a>
+            Using the <tt>complex</tt> type <span style="margin-left: 5mm"></span> <a href="#auto-363">24</a>
           </p>
           <p>
             Binding for a <tt>complex</tt> parameter <span style="margin-left: 5mm"></span> <a
-            href="#auto-367">22</a>
+            href="#auto-367">24</a>
           </p>
           <p>
             Making type <tt>A</tt> equivalent to type <tt>B</tt> <span style="margin-left: 5mm"></span>
-            <a href="#auto-368">22</a>
+            <a href="#auto-368">24</a>
           </p>
           <p>
-            Named patterns for <tt>complex</tt> <span style="margin-left: 5mm"></span> <a href="#auto-373">22</a>
+            Named patterns for <tt>complex</tt> <span style="margin-left: 5mm"></span> <a href="#auto-373">24</a>
           </p>
           <p>
             Creating a normal form for the complex type <span style="margin-left: 5mm"></span>
-            <a href="#auto-375">23</a>
+            <a href="#auto-375">24</a>
           </p>
           <p>
-            Properties declaration <span style="margin-left: 5mm"></span> <a href="#auto-381">23</a>
+            Properties declaration <span style="margin-left: 5mm"></span> <a href="#auto-381">25</a>
           </p>
           <p>
-            Color properties <span style="margin-left: 5mm"></span> <a href="#auto-390">23</a>
+            Color properties <span style="margin-left: 5mm"></span> <a href="#auto-390">25</a>
           </p>
           <p>
             Setting default arguments from the current context <span style="margin-left: 5mm"></span>
-            <a href="#auto-393">23</a>
+            <a href="#auto-393">25</a>
           </p>
           <p>
-            Additional code in properties <span style="margin-left: 5mm"></span> <a href="#auto-396">24</a>
+            Additional code in properties <span style="margin-left: 5mm"></span> <a href="#auto-396">25</a>
           </p>
           <p>
-            Data inheritance <span style="margin-left: 5mm"></span> <a href="#auto-400">24</a>
+            Data inheritance <span style="margin-left: 5mm"></span> <a href="#auto-400">26</a>
           </p>
           <p>
             Defining a type identifying an arbitrary AST shape <span style="margin-left: 5mm"></span>
-            <a href="#auto-409">24</a>
+            <a href="#auto-409">26</a>
           </p>
           <p>
-            Explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-411">24</a>
+            Explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-411">26</a>
           </p>
           <p>
-            Explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-415">24</a>
+            Explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-415">26</a>
           </p>
           <p>
-            Automatic type conversion <span style="margin-left: 5mm"></span> <a href="#auto-417">24</a>
+            Automatic type conversion <span style="margin-left: 5mm"></span> <a href="#auto-417">26</a>
           </p>
           <p>
-            Parameterized type <span style="margin-left: 5mm"></span> <a href="#auto-421">25</a>
+            Parameterized type <span style="margin-left: 5mm"></span> <a href="#auto-421">27</a>
           </p>
           <p>
             Declaring a range type using an infix form <span style="margin-left: 5mm"></span> <a
-            href="#auto-422">25</a>
+            href="#auto-422">27</a>
           </p>
           <p>
-            Declaration of a rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-426">25</a>
+            Declaration of a rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-426">27</a>
           </p>
           <p>
-            Library definition of if-then-else <span style="margin-left: 5mm"></span> <a href="#auto-485">29</a>
+            Library definition of if-then-else <span style="margin-left: 5mm"></span> <a href="#auto-485">31</a>
           </p>
           <p>
-            The <tt>good</tt> function <span style="margin-left: 5mm"></span> <a href="#auto-487">30</a>
+            The <tt>good</tt> function <span style="margin-left: 5mm"></span> <a href="#auto-487">31</a>
           </p>
           <p>
-            Infinite loop <span style="margin-left: 5mm"></span> <a href="#auto-489">30</a>
+            Infinite loop <span style="margin-left: 5mm"></span> <a href="#auto-489">31</a>
           </p>
           <p>
-            While loop <span style="margin-left: 5mm"></span> <a href="#auto-491">30</a>
+            While loop <span style="margin-left: 5mm"></span> <a href="#auto-491">32</a>
           </p>
           <p>
-            Until loop <span style="margin-left: 5mm"></span> <a href="#auto-492">30</a>
+            Until loop <span style="margin-left: 5mm"></span> <a href="#auto-492">32</a>
           </p>
           <p>
-            For loop on an integer range <span style="margin-left: 5mm"></span> <a href="#auto-494">30</a>
+            For loop on an integer range <span style="margin-left: 5mm"></span> <a href="#auto-494">32</a>
           </p>
           <p>
-            For loop on a container <span style="margin-left: 5mm"></span> <a href="#auto-495">30</a>
+            For loop on a container <span style="margin-left: 5mm"></span> <a href="#auto-495">32</a>
           </p>
           <p>
-            Other kinds of <tt>for</tt> loop <span style="margin-left: 5mm"></span> <a href="#auto-496">30</a>
+            Other kinds of <tt>for</tt> loop <span style="margin-left: 5mm"></span> <a href="#auto-496">32</a>
           </p>
           <p>
             <p>
@@ -6981,42 +6994,42 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             
             <span style="margin-left: 5mm"></span>
             
-            <a href="#auto-501">31</a>
+            <a href="#auto-501">33</a>
           </p>
           <p>
-            Ranges as lists <span style="margin-left: 5mm"></span> <a href="#auto-503">31</a>
+            Ranges as lists <span style="margin-left: 5mm"></span> <a href="#auto-503">33</a>
           </p>
           <p>
-            Union type definition <span style="margin-left: 5mm"></span> <a href="#auto-505">31</a>
+            Union type definition <span style="margin-left: 5mm"></span> <a href="#auto-505">33</a>
           </p>
           <p>
-            Using union types <span style="margin-left: 5mm"></span> <a href="#auto-506">31</a>
+            Using union types <span style="margin-left: 5mm"></span> <a href="#auto-506">33</a>
           </p>
           <p>
-            Enumeration type definition <span style="margin-left: 5mm"></span> <a href="#auto-508">31</a>
+            Enumeration type definition <span style="margin-left: 5mm"></span> <a href="#auto-508">34</a>
           </p>
           <p>
-            Type matching a type declaration <span style="margin-left: 5mm"></span> <a href="#auto-510">32</a>
+            Type matching a type declaration <span style="margin-left: 5mm"></span> <a href="#auto-510">34</a>
           </p>
           <p>
-            Import statements examples <span style="margin-left: 5mm"></span> <a href="#auto-516">32</a>
+            Import statements examples <span style="margin-left: 5mm"></span> <a href="#auto-516">34</a>
           </p>
           <p>
-            Module definition <span style="margin-left: 5mm"></span> <a href="#auto-527">33</a>
+            Module definition <span style="margin-left: 5mm"></span> <a href="#auto-527">35</a>
           </p>
           <p>
-            Lazy evaluation of an infinite list <span style="margin-left: 5mm"></span> <a href="#auto-550">34</a>
+            Lazy evaluation of an infinite list <span style="margin-left: 5mm"></span> <a href="#auto-550">36</a>
           </p>
           <p>
-            Controlled compilation <span style="margin-left: 5mm"></span> <a href="#auto-556">35</a>
-          </p>
-          <p>
-            Signature for rewrite code with two variables. <span style="margin-left: 5mm"></span>
-            <a href="#auto-565">?</a>
+            Controlled compilation <span style="margin-left: 5mm"></span> <a href="#auto-556">37</a>
           </p>
           <p>
             Signature for rewrite code with two variables. <span style="margin-left: 5mm"></span>
-            <a href="#auto-568">?</a>
+            <a href="#auto-565">38</a>
+          </p>
+          <p>
+            Signature for rewrite code with two variables. <span style="margin-left: 5mm"></span>
+            <a href="#auto-568">39</a>
           </p>
         </p></font>
       </div>
@@ -7027,40 +7040,40 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <font size="-1"><p>
           <p>
             Type correspondances in a C interface <span style="margin-left: 5mm"></span> <a
-            href="#auto-274">16</a>
+            href="#auto-274">18</a>
           </p>
           <p>
-            Arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-436">26</a>
+            Arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-436">28</a>
           </p>
           <p>
-            Comparisons <span style="margin-left: 5mm"></span> <a href="#auto-439">26</a>
+            Comparisons <span style="margin-left: 5mm"></span> <a href="#auto-439">28</a>
           </p>
           <p>
-            Bitwise arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-443">26</a>
+            Bitwise arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-443">28</a>
           </p>
           <p>
-            Boolean operations <span style="margin-left: 5mm"></span> <a href="#auto-446">27</a>
+            Boolean operations <span style="margin-left: 5mm"></span> <a href="#auto-446">28</a>
           </p>
           <p>
-            Mathematical operations <span style="margin-left: 5mm"></span> <a href="#auto-449">27</a>
+            Mathematical operations <span style="margin-left: 5mm"></span> <a href="#auto-449">29</a>
           </p>
           <p>
-            Text operations <span style="margin-left: 5mm"></span> <a href="#auto-452">27</a>
+            Text operations <span style="margin-left: 5mm"></span> <a href="#auto-452">29</a>
           </p>
           <p>
-            Conversions <span style="margin-left: 5mm"></span> <a href="#auto-456">27</a>
+            Conversions <span style="margin-left: 5mm"></span> <a href="#auto-456">29</a>
           </p>
           <p>
-            Date and time <span style="margin-left: 5mm"></span> <a href="#auto-461">27</a>
+            Date and time <span style="margin-left: 5mm"></span> <a href="#auto-461">30</a>
           </p>
           <p>
-            Tree operations <span style="margin-left: 5mm"></span> <a href="#auto-465">27</a>
+            Tree operations <span style="margin-left: 5mm"></span> <a href="#auto-465">30</a>
           </p>
           <p>
-            List operations <span style="margin-left: 5mm"></span> <a href="#auto-476">28</a>
+            List operations <span style="margin-left: 5mm"></span> <a href="#auto-476">30</a>
           </p>
           <p>
-            LLVM operations <span style="margin-left: 5mm"></span> <a href="#auto-557">35</a>
+            LLVM operations <span style="margin-left: 5mm"></span> <a href="#auto-557">37</a>
           </p>
         </p></font>
       </div>

@@ -3574,7 +3574,7 @@ static text toKeyEventName(QKeyEvent *event, uint prevModifiers,
 
     // Make sure name does not end with "-" (modifiers only)
     size_t len = name.length();
-    if (name[len - 1] == '-')
+    if (len > 1 && name[len - 1] == '-')
         name = name.substr(0, len - 1);
 
     return name;

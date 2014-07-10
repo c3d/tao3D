@@ -172,7 +172,7 @@ protected:
 
 public:
     qevent_ids          refreshEvents;
-    double              nextRefresh, lastRefresh;
+    double              nextRefresh;
     Tree_p              body;
     Context_p           ctx;
 

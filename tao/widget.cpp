@@ -1428,12 +1428,10 @@ void Widget::runProgramOnce()
         if (transitionTree && transitionStartTime > 0)
         {
             runTransition(xlProgram->context);
-            layout->lastRefresh = CurrentTime();
         }
         else if (Tree *prog = xlProgram->tree)
         {
             saveAndEvaluate(xlProgram->context, prog);
-            layout->lastRefresh = CurrentTime();
         }
     }
     stats.end(Statistics::EXEC);
@@ -6760,7 +6758,6 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
     Layout *childLayout = layout->AddChild(shapeId(), child, context);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = saveAndEvaluate(currentContext, child);
-    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -6786,7 +6783,6 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
     context->ClosureValue(child, &childContext);
     XL::Save<bool> setSaveArgs(childContext->keepSource, true);
     Tree_p result = saveAndEvaluate(currentContext, child);
-    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -6807,7 +6803,6 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = saveAndEvaluate(context, child);
-    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -6829,7 +6824,6 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child, bool abs)
         selectNextTime.erase(self);
     }
     Tree_p result = saveAndEvaluate(context, child);
-    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -6854,7 +6848,6 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     childLayout = layout->AddChild(shapeId(), child, context, childLayout);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = saveAndEvaluate(currentContext, child);
-    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -7234,16 +7227,40 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
 }
 
 
+struct LastRefreshInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Refresh information for refresh_time
+// ----------------------------------------------------------------------------
+{
+    LastRefreshInfo(double last): last(last), refresh(0) {}
+    double last, refresh;
+};
+
+
 Real_p Widget::refreshTime(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return time since last execution of the current layout, or 0
 // ----------------------------------------------------------------------------
 {
-    double refresh = CurrentTime() - layout->lastRefresh;
-    Q_ASSERT(refresh > 0);
-    if (layout->lastRefresh == 0)
-        refresh = 0;
-    return new XL::Real(refresh);
+    double current = CurrentTime();
+    LastRefreshInfo *info = self->GetInfo<LastRefreshInfo>();
+    if (!info)
+    {
+        info = new LastRefreshInfo(current);
+        self->SetInfo<LastRefreshInfo>(info);
+    }
+    
+    double refresh = current - info->last;
+    if (refresh > 0)
+    {
+        info->refresh = refresh;
+        info->last = current;
+    }
+    else
+    {
+        refresh = info->refresh;
+    }
+    return new XL::Real(refresh, self->Position());
 }
 
 
@@ -10200,7 +10217,6 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 {
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     PageLayout *tbox = new PageLayout(this);
-    tbox->lastRefresh = layout->lastRefresh;
     tbox->space = Box(x - w/2, y-h/2, w, h);
     tbox->id = shapeId();
     tbox->body = body;
@@ -10214,7 +10230,6 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 
     XL::Save<Layout *> save(layout, tbox);
     Tree_p result = saveAndEvaluate(context, body);
-    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -10244,7 +10259,6 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
     Tree_p result = saveAndEvaluate(context, prog);
-    flow->lastRefresh = CurrentTime();
 
     return result;
 }
@@ -10298,7 +10312,6 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 
     XL::Save<Layout *> saveLayout(layout, childLayout);
     Tree_p result = saveAndEvaluate(context, child);
-    layout->lastRefresh = CurrentTime();
 
     return result;
 }
@@ -11000,7 +11013,6 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
 
     XL::Save<Layout *> save(layout, tbox);
     Tree_p result = saveAndEvaluate(context, body);
-    layout->lastRefresh = CurrentTime();
     table->NextCell();
     return result;
 }
@@ -13615,12 +13627,13 @@ Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
     }
 
     Tree_p result = saveAndEvaluate(context, shapes);
-    layout->lastRefresh = CurrentTime();
     return result;
 }
 
 
-Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p selected)
+Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent,
+                                                   Tree *child,
+                                                   Tree_p selected)
 // ----------------------------------------------------------------------------
 //   Replace 'child' with a group created from the selection
 // ----------------------------------------------------------------------------

@@ -149,7 +149,7 @@ Layout::Layout(Widget *widget)
       LayoutState(widget->layout ? *widget->layout : LayoutState()),
       id(0), charId(0), parent(NULL),
       items(), display(widget), idx(-1),
-      refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
+      refreshEvents(), nextRefresh(DBL_MAX)
 {
     IFTRACE(justify)
         std::cerr << "<-> Layout::Layout ["<< this << "] parent widget is "
@@ -164,7 +164,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0), parent(NULL),
       items(), display(o.display), idx(-1),
-      refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(o.lastRefresh)
+      refreshEvents(), nextRefresh(DBL_MAX)
 {
     IFTRACE(justify)
         std::cerr << "<-> Layout::Layout ["<< this << "] parent layout is "
@@ -202,7 +202,6 @@ Layout *Layout::AddChild(uint childId,
     result->id = childId;
     result->body = body;
     result->ctx = ctx;
-    result->lastRefresh = lastRefresh;
     return result;
 }
 
@@ -237,7 +236,6 @@ void Layout::Clear()
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
-    // lastRefresh is NOT reset on purpose
     IFTRACE(justify)
         std::cerr << "<- Layout::Clear ["<< this << "] \n";
 }
@@ -599,9 +597,6 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
             else
                 std::cerr << "Unexpected NULL ctx/body in non-root layout\n";
         }
-
-        // Record date of last evaluation
-        lastRefresh = now;
 
         changed = true;
     }

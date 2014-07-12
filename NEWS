@@ -3,6 +3,7 @@ Change log for Tao Presentations
 1.53 ---
 
 #3487 Implement 'frame_pixel' to read a pixel at given coordinates
+#3491 Fix issue restoring clip plane #2.
 
 1.52 (4-Jul-2014)
 #3480 Accept on "key:+" without interpreting + as a regexp

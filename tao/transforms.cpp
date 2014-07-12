@@ -141,7 +141,7 @@ void ClipPlane::Draw(Layout *)
     if (maxClipPlanes == 0)
         glGetIntegerv(GL_MAX_CLIP_PLANES, &maxClipPlanes);
 
-    if (plane >= 0 && plane < maxClipPlanes)
+    if (plane >= 0 && plane < maxClipPlanes && plane <= GL_CLIP_PLANE5)
     {
         GLdouble result[] = { a, b, c, d };
         GL.Enable(GL_CLIP_PLANE0 + plane);

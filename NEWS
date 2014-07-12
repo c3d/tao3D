@@ -4,6 +4,7 @@ Change log for Tao Presentations 2.x
 
 #3487 Implement 'frame_pixel' to read a pixel at given coordinates
 #3491 Fix issue restoring clip plane #2.
+#3492 Respect clipping with displacement mapping
 
 2.0-alpha9 (4-Jul-2014)
 

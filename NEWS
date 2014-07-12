@@ -1,8 +1,12 @@
 Change log for Tao Presentations 2.x
 
-2.0-alpha9 (4-Jul-2014)
+2.0-alpha10 ---
 
 #3487 Implement 'frame_pixel' to read a pixel at given coordinates
+#3491 Fix issue restoring clip plane #2.
+
+2.0-alpha9 (4-Jul-2014)
+
 #3480 Accept on "key:+" without interpreting + as a regexp
 #3483 Implement rsync function to invoke rsync synchronization
 #3486 Implement 'run_process' to run arbitrary external processes

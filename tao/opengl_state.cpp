@@ -1573,6 +1573,7 @@ void OpenGLState::Enable(GLenum cap)
     }
     case GL_CLIP_PLANE0:
     case GL_CLIP_PLANE1:
+    case GL_CLIP_PLANE2:
     case GL_CLIP_PLANE3:
     case GL_CLIP_PLANE4:
     case GL_CLIP_PLANE5:
@@ -1636,6 +1637,7 @@ void OpenGLState::Disable(GLenum cap)
     }
     case GL_CLIP_PLANE0:
     case GL_CLIP_PLANE1:
+    case GL_CLIP_PLANE2:
     case GL_CLIP_PLANE3:
     case GL_CLIP_PLANE4:
     case GL_CLIP_PLANE5:
@@ -2879,10 +2881,10 @@ ClipPlaneState &OpenGLState::ClipPlane(GLenum plane)
     if (id >= clipPlanes.planes.size())
     {
         clipPlanes.planes.resize(id + 1);
-        (clipPlanes.planes[id]) = ClipPlaneState(plane);
+        clipPlanes.planes[id] = ClipPlaneState(plane);
     }
 
-    return (clipPlanes.planes[id]);
+    return clipPlanes.planes[id];
 }
 
 

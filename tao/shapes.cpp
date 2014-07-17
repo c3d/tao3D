@@ -112,7 +112,7 @@ bool Shape::setFillColor(Layout *where)
         if (v > 0.0)
         {
             bool render =  where->blendOrShade
-                ? !where->transparency
+                ? where->transparency
                 : where->transparency == (v < 1.0);
             if (render)
             {
@@ -142,7 +142,7 @@ bool Shape::setLineColor(Layout *where)
         if (v > 0.0 && (width > 0.0 || where->extrudeDepth > 0.0))
         {
             bool render =  where->blendOrShade
-                ? !where->transparency
+                ? where->transparency
                 : where->transparency == (v < 1.0);
             if (render)
             {

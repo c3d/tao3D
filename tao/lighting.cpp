@@ -186,7 +186,6 @@ void ShaderProgram::Draw(Layout *where)
         {
             program->bind();
             where->programId = program->programId();
-            where->blendOrShade = true;
         }
         else
         {

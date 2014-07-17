@@ -59,8 +59,7 @@ LayoutState::LayoutState()
       perPixelLighting(TaoApp->useShaderLighting),
       programId(0),
       groupDrag(false),
-      transparency(false),
-      blendOrShade(false)
+      transparency(false)
 {}
 
 
@@ -84,8 +83,7 @@ LayoutState::LayoutState(const LayoutState &o)
       programId(o.programId),
       model(o.model),
       groupDrag(false),
-      transparency(false),
-      blendOrShade(false)
+      transparency(false)
 {}
 
 
@@ -931,7 +929,6 @@ void LayoutState::InheritState(LayoutState *where)
 
     groupDrag        = where->groupDrag;
     transparency     = where->transparency;
-    blendOrShade     = where->blendOrShade;
 }
 
 

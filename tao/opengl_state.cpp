@@ -1617,9 +1617,7 @@ void OpenGLState::Disable(GLenum cap)
 
         // Otherwise update active flag if needed
         uint unit = activeTexture - GL_TEXTURE0;
-        uint active =  1ULL << unit;
-        if(textureUnits.active & active)
-            textureUnits.active ^= active;
+        textureUnits.active &= ~(1ULL << unit);
 
         break;
     }
@@ -1646,10 +1644,7 @@ void OpenGLState::Disable(GLenum cap)
         ps.active = false;
 
         uint id = cap - GL_CLIP_PLANE0;
-        uint active = 1ULL << id;
-        if(clipPlanes.active & active)
-            clipPlanes.active ^= active;
-
+        clipPlanes.active &= ~(1ULL << id);
         break;
     }
 
@@ -2893,13 +2888,10 @@ void OpenGLState::ClipPlane(GLenum plane, const GLdouble *equation)
 //   Define clip plane parameters
 // ----------------------------------------------------------------------------
 {
+    Sync();
     ClipPlaneState &ps = ClipPlane(plane);
     ps.equation = Vector4(equation[0], equation[1], equation[2], equation[3]);
-
-    // We synchronize clip planes state now as
-    // glClipPlane depends on current MV and Proj matrices
-    GL.LoadMatrix();
-    GL.Sync(STATE_clipPlanes);
+    Sync(STATE_clipPlanes);
 }
 
 
@@ -2929,7 +2921,7 @@ void ClipPlaneState::Sync(ClipPlaneState &p, bool force)
 
     // Synchronise plane parameters
     SYNC_PLANE(active,
-        if (active) glEnable(plane); else glDisable(plane));
+               if (active) glEnable(plane); else glDisable(plane));
     SYNC_PLANE(equation, glClipPlane(plane, eq));
 
 #undef SYNC_PLANE

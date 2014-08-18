@@ -8314,10 +8314,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 // ----------------------------------------------------------------------------
 {
     if (!GL.currentTextures.textures.count(texId))
-    {
-        Ooops("Invalid texture id $2 in $1", self).Arg(texId);
-        return new XL::Integer(0, self->Position());
-    }
+        return new XL::Integer(-1, self->Position());
 
     // Get corresponding texture type
     GLenum type = GL.currentTextures.textures[texId].type;

@@ -1,10 +1,14 @@
 Change log for Tao Presentations
 
-1.53 ---
+1.53 (3-Sep-2014)
 
 #3487 Implement 'frame_pixel' to read a pixel at given coordinates
 #3491 Fix issue restoring clip plane #2.
 #3492 Respect clipping with displacement mapping
+#3495 Make it easier to control transparency manually
+#3506 Do not stop animation for an invalid texture ID
+#3507 Synchronize clip planes correctly
+#3508 WebRemote: Snapshot after a delay to enhance quality
 
 1.52 (4-Jul-2014)
 #3480 Accept on "key:+" without interpreting + as a regexp

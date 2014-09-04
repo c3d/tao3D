@@ -250,7 +250,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
     bool invert = poly.path->invert;
 
     // Check if there is an extrude radius
-    if (radius > 0 && count > 0)
+    if (radius != 0 && count > 0)
     {
         if (depth < 2 * radius)
             radius = depth / 2;

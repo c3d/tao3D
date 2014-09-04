@@ -135,6 +135,7 @@ draw_environment ->
         cube_map_face 3, BOTTOM
         cube_map_face 4, FRONT
         cube_map_face 5, BACK
+    scale -1, 1, 1
     cube 0, 0, 0, 60000, 60000, 60000
 
 draw_light ->

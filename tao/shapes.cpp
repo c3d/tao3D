@@ -111,7 +111,9 @@ bool Shape::setFillColor(Layout *where)
         scale v = where->visibility * color.alpha;
         if (v > 0.0)
         {
-            bool render = where->transparency == (v < 1.0);
+            bool render =  where->blendOrShade
+                ? where->transparency
+                : where->transparency == (v < 1.0);
             if (render)
             {
                 GL.Color(color.red, color.green, color.blue, v);
@@ -139,7 +141,9 @@ bool Shape::setLineColor(Layout *where)
         scale v = where->visibility * color.alpha;
         if (v > 0.0 && (width > 0.0 || where->extrudeDepth > 0.0))
         {
-            bool render = where->transparency == (v < 1.0);
+            bool render =  where->blendOrShade
+                ? where->transparency
+                : where->transparency == (v < 1.0);
             if (render)
             {
                 GL.Color(color.red, color.green, color.blue, v);

@@ -366,23 +366,30 @@ void VerticalMarginChange::Draw(Layout *where)
 }
 
 
-void DepthTest::Draw(Layout *)
+void DepthTest::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enable or disable the depth test
 // ----------------------------------------------------------------------------
 {
     if (enable)
+    {
         GL.Enable(GL_DEPTH_TEST);
+    }
     else
+    {
         GL.Disable(GL_DEPTH_TEST);
+        where->blendOrShade = true;
+    }
 }
 
 
-void DepthMask::Draw(Layout *)
+void DepthMask::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enable or disable the depth mask
 // ----------------------------------------------------------------------------
 {
+    if (!enable)
+        where->blendOrShade = true;
     GL.DepthMask(enable ? GL_TRUE : GL_FALSE);
 }
 
@@ -396,30 +403,38 @@ void DepthFunc::Draw(Layout *)
 }
 
 
-void BlendFunc::Draw(Layout *)
+void BlendFunc::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Change the blend function
 // ----------------------------------------------------------------------------
 {
     GL.BlendFunc(sfactor, dfactor);
+    if (sfactor != GL_SRC_ALPHA || dfactor != GL_ONE_MINUS_SRC_ALPHA)
+        where->blendOrShade = true;
 }
 
 
-void BlendFuncSeparate::Draw(Layout *)
+void BlendFuncSeparate::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Change the blend function separately for alpha and color
 // ----------------------------------------------------------------------------
 {
     GL.BlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
+    if (sfactor != GL_SRC_ALPHA ||
+        dfactor != GL_ONE_MINUS_SRC_ALPHA ||
+        sfalpha != GL_ONE_MINUS_SRC_ALPHA)
+        where->blendOrShade = true;
 }
 
 
-void BlendEquation::Draw(Layout *)
+void BlendEquation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Change the blend equation
 // ----------------------------------------------------------------------------
 {
     GL.BlendEquation(equation);
+    if (equation != GL_FUNC_ADD)
+        where->blendOrShade = true;
 }
 
 

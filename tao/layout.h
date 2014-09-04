@@ -82,6 +82,7 @@ public:
     Matrix4             model;
     bool                groupDrag       : 1;
     bool                transparency    : 1;
+    bool                blendOrShade    : 1;
 };
 
 

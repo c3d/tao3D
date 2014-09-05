@@ -1,6 +1,6 @@
 Change log for Tao Presentations 2.x
 
-2.0-alpha10 (4-Sep-2014)
+2.0-alpha10 (5-Sep-2014)
 
 #3487 Implement 'frame_pixel' to read a pixel at given coordinates
 #3491 Fix issue restoring clip plane #2.
@@ -11,7 +11,7 @@ Change log for Tao Presentations 2.x
 #3507 Synchronize clip planes correctly
 #3508 WebRemote: Snapshot after a delay to enhance quality
 #3509 Materials demo broken because of culling
-
+#3510 Fix for a crash or incorrect data accessing arrays
 
 2.0-alpha9 (4-Jul-2014)
 

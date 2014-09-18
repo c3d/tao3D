@@ -68,6 +68,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     setupGl                      = DisplayDriver::setupGl;
     showGlErrors                 = DisplayDriver::showGlErrors;
     setStereo                    = DisplayDriver::setStereo;
+    setStereoPlanes              = DisplayDriver::setStereoPlanes;
     setProjectionMatrix          = DisplayDriver::setProjectionMatrix;
     setModelViewMatrix           = DisplayDriver::setModelViewMatrix;
     drawScene                    = DisplayDriver::drawScene;

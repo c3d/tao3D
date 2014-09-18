@@ -49,7 +49,7 @@ struct DisplayDriver
     static QStringList  allDisplayFunctions();
     double              windowWidthFactor()  { return wFactor; }
     double              windowHeightFactor() { return hFactor; }
-    int                 viewPointsChangedEvent() { return vpEvt; }
+    static int          viewPointsChangedEvent() { return vpEvt; }
 
 public:
     // Methods exported by the module API for use by display modules
@@ -68,6 +68,7 @@ public:
     static void         setupGl();
     static void         showGlErrors();
     static bool         setStereo(bool on);
+    static void         setStereoPlanes(uint planes);
     static void         getCamera(Point3 *pos, Point3 *target, Vector3 *up,
                                   double *toScreen);
     static int          renderHeight();
@@ -84,8 +85,6 @@ public:
     static void         doMouseTracking(bool on);
     static void         setMouseTrackingViewport(int x, int y, int w, int h);
 
-protected:
-    void                setStereoPlanes(int planes);
 
 protected:
     static std::ostream & debug();
@@ -167,7 +166,7 @@ protected:
     bool                  useInProgress;
     // Set by display module to adjust window_width and window_height
     double                wFactor, hFactor;
-    int                   vpEvt;
+    static int            vpEvt;
 
 protected:
     static display_map    map;

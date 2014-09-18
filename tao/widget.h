@@ -1022,7 +1022,7 @@ private:
     bool                  doMouseTracking;
     bool                  runningTransitionCode;
     GLint                 mouseTrackingViewport[4];
-    int                   stereoPlane, stereoPlanes;
+    uint                  stereoPlane, stereoPlanes;
     DisplayDriver *       displayDriver;
     GLuint                watermark;
     text                  watermarkText;

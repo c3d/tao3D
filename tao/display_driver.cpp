@@ -34,15 +34,18 @@ namespace Tao {
 
 // Static map of registered display functions and associated parameters
 DisplayDriver::display_map DisplayDriver::map;
+int DisplayDriver::vpEvt = 0;
 
 
 DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : useInProgress(false), wFactor(1.0), hFactor(1.0),
-      vpEvt(QEvent::registerEventType())
+    : useInProgress(false), wFactor(1.0), hFactor(1.0)
 {
+    if (!vpEvt)
+        vpEvt = QEvent::registerEventType();
+
     IFTRACE2(displaymode, layoutevents)
         debug() << "ID of 'viewpoints changed' user event: " << vpEvt << "\n";
 
@@ -623,6 +626,7 @@ int DisplayDriver::getCurrentEye()
     return Widget::Tao()->stereoPlane + 1;
 }
 
+
 int DisplayDriver::getEyesNumber()
 // ----------------------------------------------------------------------------
 //   Number of eyes
@@ -631,12 +635,13 @@ int DisplayDriver::getEyesNumber()
     return Widget::Tao()->stereoPlanes;
 }
 
-void DisplayDriver::setStereoPlanes(int planes)
+
+void DisplayDriver::setStereoPlanes(uint planes)
 // ----------------------------------------------------------------------------
 //   Set the number of views per frame
 // ----------------------------------------------------------------------------
 {
-    int &current = Widget::Tao()->stereoPlanes;
+    uint &current = Widget::Tao()->stereoPlanes;
     if (current != planes)
     {
         current = planes;

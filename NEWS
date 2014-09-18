@@ -1,5 +1,9 @@
 Change log for Tao Presentations
 
+1.54 ---
+
+#3512 Update stereo_viewpoints when setting viewpoints in the generic mv driver
+
 1.53 (5-Sep-2014)
 
 #3487 Implement 'frame_pixel' to read a pixel at given coordinates

@@ -134,6 +134,26 @@ void TextSplit::Draw(Layout *where)
 }
 
 
+static bool IsRightToLeft(QChar::Direction dir)
+// ----------------------------------------------------------------------------
+//   Return true if the direction is right-to-left
+// ----------------------------------------------------------------------------
+{
+    switch (dir)
+    {
+    case QChar::DirAL:
+    case QChar::DirAN:
+    case QChar::DirR:
+    case QChar::DirRLE:
+    case QChar::DirRLO:
+        return true;
+    default:
+        return false;
+    }
+    return false;
+}
+
+
 void TextSplit::DrawCached(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw text span using cached textures
@@ -170,11 +190,20 @@ void TextSplit::DrawCached(Layout *where)
     float spread = where->alongX.perSolid;
 
     // Loop over all characters in the text span
-    uint i, max = str.length();
-    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    uint i, next, max = str.length();
+    bool rtl = false;
+    uint rtlWidth = 0, rtlCount = 0;
+    for (i = start; i < max && i < end; i = next)
     {
+        next = XL::Utf8Next(str, i);
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
+        QChar unicodeChar(unicode);
+        QChar::Direction direction = unicodeChar.direction();
+
+        std::cerr << "unicodeChar " << str.substr(i, next-i)
+                  << " code " << unicode
+                  << " direction " << direction << "\n";
 
         // Advance to next character
         if (newLine)
@@ -183,15 +212,39 @@ void TextSplit::DrawCached(Layout *where)
             scale spacing = height + glyphs.Leading(font);
             x = 0;
             y -= spacing;
+
+            if (rtl)
+            {
+                std::cerr << "At newline offset " << i
+                          << " adding " << rtlWidth
+                          << " to " << rtlCount << " chars\n";
+                uint l = quads.size();
+                for (uint g = 0; g < 4 * rtlCount; g++)
+                    quads[--l].x += rtlWidth;
+                rtlWidth = 0;
+                rtlCount = 0;
+            }
         }
         else
         {
+            bool charIsRtl = rtl;
+            if (!unicodeChar.isSpace())
+                charIsRtl = IsRightToLeft(direction);
+
             // Find the glyph in the glyph cache
             if (!glyphs.Find(font, unicode, glyph, false))
             {
                 // Try to create the glyph
                 if (!glyphs.Find(font, unicode, glyph, true))
                     continue;
+            }
+
+            uint glyphWidth = glyph.advance + spread;
+            if (charIsRtl)
+            {
+                rtlWidth += glyphWidth;
+                rtlCount += 1;
+                x -= glyphWidth;
             }
 
             // Enter the geometry coordinates
@@ -213,7 +266,20 @@ void TextSplit::DrawCached(Layout *where)
             texCoords.push_back(Point(texU.x/tw, texU.y/th));
             texCoords.push_back(Point(texL.x/tw, texU.y/th));
 
-            x += glyph.advance + spread;
+            if (rtl && (!charIsRtl || next >= end || next >= max))
+            {
+                std::cerr << "At offset " << i << " adding " << rtlWidth
+                          << " to " << rtlCount << " chars\n";
+                uint l = quads.size();
+                for (uint g = 0; g < 4*rtlCount; g++)
+                    quads[--l].x += rtlWidth;
+                rtlWidth = 0;
+                rtlCount = 0;
+            }
+
+            if (!charIsRtl)
+                x += glyphWidth;
+            rtl = charIsRtl;
         }
     }
 

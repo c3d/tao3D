@@ -162,7 +162,7 @@ void TextSplit::DrawCached(Layout *where)
     Widget     *widget   = where->Display();
     GlyphCache &glyphs   = widget->glyphs();
     Point3      pos      = where->offset;
-    Text *      ttree    = source;
+    Text       *ttree    = source;
     text        str      = ttree->value;
     bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
     TextSelect *sel      = widget->textSelection();
@@ -193,6 +193,7 @@ void TextSplit::DrawCached(Layout *where)
     uint i, next, max = str.length();
     bool rtl = false;
     uint rtlWidth = 0, rtlCount = 0;
+    text rtlText = "";
     for (i = start; i < max && i < end; i = next)
     {
         next = XL::Utf8Next(str, i);
@@ -200,52 +201,39 @@ void TextSplit::DrawCached(Layout *where)
         bool  newLine  = unicode == '\n';
         QChar unicodeChar(unicode);
         QChar::Direction direction = unicodeChar.direction();
+        bool  addIt = rtl && (next >= max || next >= end);
 
-        std::cerr << "unicodeChar " << str.substr(i, next-i)
-                  << " code " << unicode
-                  << " direction " << direction << "\n";
-
-        // Advance to next character
-        if (newLine)
+        bool charIsRtl = rtl;
+        if (!unicodeChar.isSpace())
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
-            scale spacing = height + glyphs.Leading(font);
-            x = 0;
-            y -= spacing;
-
-            if (rtl)
+            charIsRtl = IsRightToLeft(direction);
+            if (charIsRtl)
             {
-                std::cerr << "At newline offset " << i
-                          << " adding " << rtlWidth
-                          << " to " << rtlCount << " chars\n";
-                uint l = quads.size();
-                for (uint g = 0; g < 4 * rtlCount; g++)
-                    quads[--l].x += rtlWidth;
-                rtlWidth = 0;
-                rtlCount = 0;
+                rtlText += str.substr(i, next-i);
+                if (rtl && (!charIsRtl || next >= end || next >= max))
+
+                addIt = next >= max || next >= end;
+            }
+            else if (rtl)
+            {
+                addIt = true;
             }
         }
-        else
-        {
-            bool charIsRtl = rtl;
-            if (!unicodeChar.isSpace())
-                charIsRtl = IsRightToLeft(direction);
 
+        if (addIt || newLine)
+        {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, false))
+            if (!glyphs.Find(font, rtlText, glyph, false))
             {
                 // Try to create the glyph
-                if (!glyphs.Find(font, unicode, glyph, true))
+                if (!glyphs.Find(font, rtlText, glyph, true))
                     continue;
             }
 
             uint glyphWidth = glyph.advance + spread;
-            if (charIsRtl)
-            {
-                rtlWidth += glyphWidth;
-                rtlCount += 1;
-                x -= glyphWidth;
-            }
+            rtlWidth += glyphWidth;
+            rtlCount += 1;
+            x -= glyphWidth;
 
             // Enter the geometry coordinates
             coord charX1 = x + glyph.bounds.lower.x;
@@ -265,11 +253,63 @@ void TextSplit::DrawCached(Layout *where)
             texCoords.push_back(Point(texU.x/tw, texL.y/th));
             texCoords.push_back(Point(texU.x/tw, texU.y/th));
             texCoords.push_back(Point(texL.x/tw, texU.y/th));
+        }
 
+        // Advance to next character
+        if (newLine)
+        {
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing;
+
+            if (rtl)
+            {
+                uint l = quads.size();
+                for (uint g = 0; g < 4 * rtlCount; g++)
+                    quads[--l].x += rtlWidth;
+                rtlWidth = 0;
+                rtlCount = 0;
+            }
+        }
+        else
+        {
+            if (!charIsRtl)
+            {
+                // Find the glyph in the glyph cache
+                if (!glyphs.Find(font, unicode, glyph, false))
+                {
+                    // Try to create the glyph
+                    if (!glyphs.Find(font, unicode, glyph, true))
+                        continue;
+                }
+                
+                uint glyphWidth = glyph.advance + spread;
+
+                // Enter the geometry coordinates
+                coord charX1 = x + glyph.bounds.lower.x;
+                coord charX2 = x + glyph.bounds.upper.x;
+                coord charY1 = y - glyph.bounds.lower.y;
+                coord charY2 = y - glyph.bounds.upper.y;
+                quads.push_back(Point3(charX1, charY1, z));
+                quads.push_back(Point3(charX2, charY1, z));
+                quads.push_back(Point3(charX2, charY2, z));
+                quads.push_back(Point3(charX1, charY2, z));
+
+                // Enter the texture coordinates
+                Point &texL = glyph.texture.lower;
+                Point &texU = glyph.texture.upper;
+                int tw = glyphs.Width(), th = glyphs.Height();
+                texCoords.push_back(Point(texL.x/tw, texL.y/th));
+                texCoords.push_back(Point(texU.x/tw, texL.y/th));
+                texCoords.push_back(Point(texU.x/tw, texU.y/th));
+                texCoords.push_back(Point(texL.x/tw, texU.y/th));
+
+                x += glyphWidth;
+            }
+                
             if (rtl && (!charIsRtl || next >= end || next >= max))
             {
-                std::cerr << "At offset " << i << " adding " << rtlWidth
-                          << " to " << rtlCount << " chars\n";
                 uint l = quads.size();
                 for (uint g = 0; g < 4*rtlCount; g++)
                     quads[--l].x += rtlWidth;
@@ -277,8 +317,6 @@ void TextSplit::DrawCached(Layout *where)
                 rtlCount = 0;
             }
 
-            if (!charIsRtl)
-                x += glyphWidth;
             rtl = charIsRtl;
         }
     }

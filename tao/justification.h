@@ -133,22 +133,23 @@ public:
     // Structure recording an item after we placed it
     struct Place
     {
-        Place(Item item, uint itemCount = 0, bool solid=true,
-              scale size = 0, coord pos = 0)
-            : item(item), size(size), position(pos),
+        Place(Item item, uint itemCount = 0, bool solid=true, bool rev=false,
+              scale size = 0, coord pos = 0, scale trail = 0)
+            : item(item), size(size), trail(trail), position(pos),
               itemCount(itemCount),
-              solid(solid)
+              solid(solid), reverse(rev)
         { }
         Item    item;
-        scale   size;
+        scale   size, trail;
         coord   position;
-        uint    itemCount       : 31;
+        uint    itemCount       : 30;
         bool    solid           : 1;
+        bool    reverse         : 1;
     };
     typedef std::vector<Place>          Places;
     typedef typename Places::iterator   PlacesIterator;
 
-    // Structure used during only during layout
+    // Structure that only exists during layout
     struct LayoutData
     {
         LayoutData(coord start, coord end, Justification &j);
@@ -264,11 +265,13 @@ bool Justifier<Item>::AddItem(Item item, uint count,
     if (!HasRoom())
         return false;
 
+    bool reverse = item->IsRTL();
     IFTRACE(justify)
         std::cerr << "Justifier[" << this << "]::AddItem "
                   << item << ":" << demangle(typeid(*item).name())
                   << " * " << count
                   << (solid ? " solid " : " break ")
+                  << (reverse ? " reverse " : " forward ")
                   << size << " + " << offset << " "
                   << (forceBreak ? "force-break\n" : "\n");
 
@@ -314,7 +317,7 @@ bool Justifier<Item>::AddItem(Item item, uint count,
                   << " = " << pos + sign*offset << std::endl;
 
     coord offPos = pos + sign * offset;
-    places.push_back(Place(item, count, solid, size, offPos));
+    places.push_back(Place(item, count, solid, reverse, size, offPos, lspace));
     pos += sign * size;
     lastOversize = size - originalSize;
 
@@ -337,6 +340,8 @@ bool Justifier<Item>::AddItem(Item item, uint count,
         numItems += count;
 
         // Record size of last space
+        if (reverse)
+            lspace = 0;
         lastSpace = lspace;
     }
 
@@ -416,23 +421,60 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     *perBreak = atBreak;
 
     // Now perform the adjustment on individual positions
-    PlacesIterator p;
-    for (p = places.begin(); p != places.end(); p++)
+    PlacesIterator p, begin = places.begin(), placesEnd = places.end();
+    scale reverseSize = 0;
+    uint  reverseCount = 0;
+    for (p = begin; p != placesEnd; p++)
     {
         Place &place = *p;
+        scale hsize = place.size;
         place.position += offset;
+        if (hsize > 0)
+        {
+            scale dsize = place.solid
+                ? atSolid
+                : atBreak + atSolid * place.itemCount;
+            offset += dsize;
+            hsize += dsize;
+        }
+
+        // Reverse all right-to-left chunks
+        if (place.reverse)
+        {
+            if (reverseCount == 0)
+            {
+                begin = p;
+                reverseSize = 2*place.position;
+            }
+            reverseSize += hsize;
+            reverseCount++;
+        }
+        else if (reverseCount)
+        {
+            while (reverseCount)
+            {
+                Place &rev = *begin++;
+                scale dsize = rev.solid
+                    ? atSolid
+                    : atBreak + atSolid * place.itemCount;
+                rev.position = reverseSize - rev.position - rev.trail - dsize;
+                reverseCount--;
+            }
+        }
+
         IFTRACE(justify)
                 std::cerr << "Justifier<Item>::Adjust Place.position change by "
                           << offset << " to "
                           << place.position << std::endl;
 
-        if (place.size > 0)
-        {
-            if (place.solid)
-                offset += atSolid;
-            else
-                offset += atBreak + atSolid * place.itemCount;
-        }
+    }
+
+    // Final adjustment
+    while (reverseCount)
+    {
+        Place &rev = *begin++;
+        rev.position = reverseSize - rev.position;
+        reverseCount--;
     }
 
     // UGLY: Preserve value of hasRoom for HadRoom

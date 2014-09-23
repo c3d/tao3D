@@ -134,6 +134,79 @@ void TextSplit::Draw(Layout *where)
 }
 
 
+void TextSplit::AddGlyph(coord x, coord y, coord z,
+                         GlyphCacheEntry &glyph, GlyphCache &glyphs,
+                         quads_t &quads, texCoords_t &texCoords)
+// ----------------------------------------------------------------------------
+//   Enter a glyph when generating a cached rendering
+// ----------------------------------------------------------------------------
+{
+    // Enter the geometry coordinates
+    coord charX1 = x + glyph.bounds.lower.x;
+    coord charX2 = x + glyph.bounds.upper.x;
+    coord charY1 = y - glyph.bounds.lower.y;
+    coord charY2 = y - glyph.bounds.upper.y;
+    quads.push_back(Point3(charX1, charY1, z));
+    quads.push_back(Point3(charX2, charY1, z));
+    quads.push_back(Point3(charX2, charY2, z));
+    quads.push_back(Point3(charX1, charY2, z));
+
+    // Enter the texture coordinates
+    Point &texL = glyph.texture.lower;
+    Point &texU = glyph.texture.upper;
+    int tw = glyphs.Width(), th = glyphs.Height();
+    texCoords.push_back(Point(texL.x/tw, texL.y/th));
+    texCoords.push_back(Point(texU.x/tw, texL.y/th));
+    texCoords.push_back(Point(texU.x/tw, texU.y/th));
+    texCoords.push_back(Point(texL.x/tw, texU.y/th));
+}
+
+
+void TextSplit::DrawGlyphs(Layout *where,
+                           quads_t &quads, texCoords_t &texCoords)
+// ----------------------------------------------------------------------------
+//    Draw the glyphs in the texture coordinates
+// ----------------------------------------------------------------------------
+{
+    // Check if there's anything to draw
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    QFont      &font     = where->font;
+
+    uint count = quads.size();
+    if (count && setFillColor(where))
+    {
+        // Bind the glyph texture
+        GL.BindTexture(GL_TEXTURE_2D, glyphs.Texture());
+        if (font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
+        {
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        }
+        GL.Enable(GL_TEXTURE_2D);
+        if (TaoApp->hasGLMultisample)
+            GL.Enable(GL_MULTISAMPLE);
+
+        // Ensure that the last active texture unit is 0. Fix #1918.
+        GL.ClientActiveTexture(GL_TEXTURE0);
+
+        // Draw a list of rectangles with the textures
+        GL.VertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+        GL.TexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
+        GL.EnableClientState(GL_VERTEX_ARRAY);
+        GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        // Load model view matrix
+        GL.LoadMatrix();
+        GL.DrawArrays(GL_QUADS, 0, count);
+
+        GL.DisableClientState(GL_VERTEX_ARRAY);
+        GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+        GL.Disable(GL_TEXTURE_2D);
+    }
+}
+
+
 void TextSplit::DrawCached(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw text span using cached textures
@@ -142,7 +215,7 @@ void TextSplit::DrawCached(Layout *where)
     Widget     *widget   = where->Display();
     GlyphCache &glyphs   = widget->glyphs();
     Point3      pos      = where->offset;
-    Text *      ttree    = source;
+    Text       *ttree    = source;
     text        str      = ttree->value;
     bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
     TextSelect *sel      = widget->textSelection();
@@ -187,69 +260,136 @@ void TextSplit::DrawCached(Layout *where)
         else
         {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, false))
-            {
-                // Try to create the glyph
-                if (!glyphs.Find(font, unicode, glyph, true))
-                    continue;
-            }
+            if (!glyphs.Find(font, unicode, glyph, true))
+                continue;
 
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            quads.push_back(Point3(charX1, charY1, z));
-            quads.push_back(Point3(charX2, charY1, z));
-            quads.push_back(Point3(charX2, charY2, z));
-            quads.push_back(Point3(charX1, charY2, z));
+            uint glyphWidth = glyph.advance + spread;
+            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
+            x += glyphWidth;
+        }
+    }
 
-            // Enter the texture coordinates
-            Point &texL = glyph.texture.lower;
-            Point &texU = glyph.texture.upper;
-            int tw = glyphs.Width(), th = glyphs.Height();
-            texCoords.push_back(Point(texL.x/tw, texL.y/th));
-            texCoords.push_back(Point(texU.x/tw, texL.y/th));
-            texCoords.push_back(Point(texU.x/tw, texU.y/th));
-            texCoords.push_back(Point(texL.x/tw, texU.y/th));
+    DrawGlyphs(where, quads, texCoords);
+    where->offset = Point3(x, y, z);
+}
 
-            x += glyph.advance + spread;
+
+void TextSplitRTL::DrawCached(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw text span using cached textures
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text       *ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Cases where we can't select
+    if (canSel)
+    {
+        if (!where->id || IsMarkedConstant(ttree))
+            canSel = false;
+        else if (TextFlow *flow = dynamic_cast<TextFlow *> (where))
+            if (sel && sel->textBoxId &&
+                flow->textBoxIds.count(sel->textBoxId) == 0)
+                canSel = false;
+    }
+
+    // Compute per-char spread
+    float spread = where->alongX.perSolid;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
+
+        // Advance to next character
+        if (newLine)
+        {
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing;
+        }
+        else
+        {
+            // Find the glyph in the glyph cache, create it otherwise
+            if (!glyphs.Find(font, unicode, glyph, true))
+                continue;
+
+            uint glyphWidth = glyph.advance + spread;
+            x -= glyphWidth;
+            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
         }
     }
 
     // Check if there's anything to draw
-    uint count = quads.size();
-    if (count && setFillColor(where))
+    DrawGlyphs(where, quads, texCoords);
+    where->offset = Point3(x, y, z);
+}
+
+
+void TextSplitArabic::DrawCached(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw text span using cached textures
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text       *ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Cases where we can't select
+    if (canSel)
     {
-        // Bind the glyph texture
-        GL.BindTexture(GL_TEXTURE_2D, glyphs.Texture());
-        if (font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
-        {
-            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        }
-        GL.Enable(GL_TEXTURE_2D);
-        if (TaoApp->hasGLMultisample)
-            GL.Enable(GL_MULTISAMPLE);
-
-        // Ensure that the last active texture unit is 0. Fix #1918.
-        GL.ClientActiveTexture(GL_TEXTURE0);
-
-        // Draw a list of rectangles with the textures
-        GL.VertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
-        GL.TexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
-        GL.EnableClientState(GL_VERTEX_ARRAY);
-        GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-        // Load model view matrix
-        GL.LoadMatrix();
-        GL.DrawArrays(GL_QUADS, 0, count);
-
-        GL.DisableClientState(GL_VERTEX_ARRAY);
-        GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
-        GL.Disable(GL_TEXTURE_2D);
+        if (!where->id || IsMarkedConstant(ttree))
+            canSel = false;
+        else if (TextFlow *flow = dynamic_cast<TextFlow *> (where))
+            if (sel && sel->textBoxId &&
+                flow->textBoxIds.count(sel->textBoxId) == 0)
+                canSel = false;
     }
 
+    // Compute per-char spread
+    float spread = where->alongX.perSolid;
+
+    // Loop over all characters in the text span
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+    // Find the glyph in the glyph cache
+    if (!glyphs.Find(font, rtlText, glyph, true))
+        return;
+
+    uint glyphWidth = glyph.advance + spread;
+    x -= glyphWidth;
+    AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);
+    DrawGlyphs(where, quads, texCoords);
     where->offset = Point3(x, y, z);
 }
 
@@ -272,6 +412,7 @@ void TextSplit::DrawDirect(Layout *where)
     coord       z        = pos.z;
     scale       lw       = where->lineWidth;
     uint        i, max   = str.length();
+    bool        rtl      = IsRTL();
 
     // Disable drawing of lines if we don't see them.
     if (where->lineColor.alpha <= 0)
@@ -288,8 +429,6 @@ void TextSplit::DrawDirect(Layout *where)
     }
 
     GlyphCache::GlyphEntry  glyph;
-    std::vector<Point3>     quads;
-    std::vector<Point>      texCoords;
 
     // Find length of text span and compute per-char spread
     float spread = where->alongX.perSolid;
@@ -313,6 +452,9 @@ void TextSplit::DrawDirect(Layout *where)
             // Find the glyph in the glyph cache
             if (!glyphs.Find(font, unicode, glyph, true, true, lw))
                 continue;
+
+            if (rtl)
+                x -= glyph.advance + spread;
 
             GLMatrixKeeper save;
             GL.Translate(x, y, z);
@@ -353,7 +495,99 @@ void TextSplit::DrawDirect(Layout *where)
                     GL.CallList(glyph.outline);
             }
 
-            x += glyph.advance + spread;
+            if (!rtl)
+                x += glyph.advance + spread;
+        }
+    }
+
+    where->offset = Point3(x, y, z);
+}
+
+
+void TextSplitArabic::DrawDirect(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the text split in direct mode
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text *      ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+    scale       lw       = where->lineWidth;
+
+    // Disable drawing of lines if we don't see them.
+    if (where->lineColor.alpha <= 0)
+        lw = 0;
+
+    if (canSel)
+    {
+        if (!where->id || IsMarkedConstant(ttree))
+            canSel = false;
+        else if (TextFlow *flow = dynamic_cast<TextFlow *> (where))
+            if (sel && sel->textBoxId &&
+                flow->textBoxIds.count(sel->textBoxId) == 0)
+                canSel = false;
+    }
+
+    // Find text to display
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+
+    // Find length of text span and compute per-char spread
+    float spread = where->alongX.perSolid;
+
+    // Find the glyph in the glyph cache
+    GlyphCache::GlyphEntry  glyph;
+    if (glyphs.Find(font, rtlText, glyph, true, true, lw))
+    {
+        x -= glyph.advance + spread;
+
+        GLMatrixKeeper save;
+        GL.Translate(x, y, z);
+        scale gscale = glyph.scalingFactor;
+        GL.Scale(gscale, gscale, gscale);
+        GL.LoadMatrix();
+
+        setTexture(where);
+        if (where->extrudeDepth > 0.0)
+        {
+            bool hasFill = setFillColor(where);
+            if (hasFill)
+            {
+                GraphicSave* save = GL.Save();
+                GL.Translate(0.0, 0.0, -where->extrudeDepth);
+                GL.Scale(1, 1, -1);
+                GL.FrontFace(GL_CCW);
+                GL.CallList(glyph.interior);
+                GL.Restore(save);
+                GL.FrontFace(GL_CW);
+                GL.CallList(glyph.interior);
+                GL.FrontFace(GL_CCW);
+            }
+
+            bool hasLine = setLineColor(where); // May fail, keep fill color
+            if (hasFill || hasLine)
+            {
+                GL.FrontFace(GL_CW);
+                GL.CallList(glyph.outline);
+                GL.FrontFace(GL_CCW);
+            }
+        }
+        else
+        {
+            if (setFillColor(where))
+                GL.CallList(glyph.interior);
+            if (lw > 0.0 && setLineColor(where))
+                GL.CallList(glyph.outline);
         }
     }
 
@@ -845,6 +1079,111 @@ Box3 TextSplit::Space(Layout *where)
 }
 
 
+Box3 TextSplitArabic::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the smallest box that surrounds the text
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    text        str      = source->value;
+    QFont      &font     = where->font;
+    Box3        result;
+    Point3      pos      = where->offset;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+    // Find the glyph in the glyph cache
+    if (glyphs.Find(font, rtlText, glyph, true))
+    {
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        result |= Point3(charX1, charY1, z);
+        result |= Point3(charX2, charY2, z);
+
+        x += glyph.advance;
+    }
+    where->offset = Point3(x,y,z);
+
+    return result;
+}
+
+
+Box3 TextSplitArabic::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the box that surrounds the text, including leading
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    text        str      = source->value;
+    QFont      &font     = where->font;
+    Box3        result;
+    scale       ascent   = glyphs.Ascent(font);
+    scale       descent  = glyphs.Descent(font);
+    scale       leading  = glyphs.Leading(font);
+    Point3      pos      = where->offset;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    IFTRACE(justify)
+        std::cerr << "->TextSplit::Space(Layout *" << where<< ") offset "
+                  << where->Offset() << " for\n"
+                  << *this << "\n";
+
+    // Loop over all characters in the text span
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+    // Find the glyph in the glyph cache
+    if (glyphs.Find(font, rtlText, glyph, true))
+    {
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
+
+        scale sa = ascent;
+        scale sd = descent;
+        scale sl = leading;
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        result |= Point3(charX1, charY1, z);
+        result |= Point3(charX2, charY2, z);
+        result |= Point3(charX1, y + sa, z);
+
+        result |= Point3(charX1 + glyph.advance, y - sd - sl, z);
+        x += glyph.advance;
+    }
+    where->offset = Point3(x,y,z);
+    IFTRACE(justify)
+        std::cerr << "<-TextSplit::Space(Layout *" << where<< ") offset "
+                  << where->Offset() << " result "
+                  << result << "\n";
+
+    return result;
+}
+
+
 static inline bool isBreakingSpace(QChar c)
 // ----------------------------------------------------------------------------
 //   Return true if this is a breaking space
@@ -1197,6 +1536,29 @@ TextUnit::~TextUnit()
 }
 
 
+static TextSplit *NewSplit(QChar::Direction dir,
+                          Text *source, uint start, uint end)
+// ----------------------------------------------------------------------------
+//   Build a new split for the character direction we are currently using
+// ----------------------------------------------------------------------------
+{
+    switch (dir)
+    {
+    case QChar::DirAL:
+    case QChar::DirAN:
+        return new TextSplitArabic(source, start, end);
+
+    case QChar::DirR:
+    case QChar::DirRLE:
+    case QChar::DirRLO:
+        return new TextSplitRTL(source, start, end);
+
+    default:
+        return new TextSplit(source, start, end);
+    }
+}
+
+
 bool TextUnit::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   If the text span contains a word or line break, cut there
@@ -1211,6 +1573,7 @@ bool TextUnit::Paginate(PageLayout *page)
     uint size = 0;
     uint last = start;
     uint first = start;
+    QChar::Direction dir = QChar::DirL;
 
     // Record that we are referenced by the given page
     // If we are invalidated, we need to drop references to text splits we
@@ -1227,7 +1590,6 @@ bool TextUnit::Paginate(PageLayout *page)
     {
         QChar c = QChar(XL::Utf8Code(str, i));
         BreakOrder charOrder = CharBreak;
-        size++;
         if (isBreakingSpace(c))
         {
             charOrder = WordBreak;
@@ -1238,14 +1600,34 @@ bool TextUnit::Paginate(PageLayout *page)
             else if (c == '\f')
                 charOrder = SentenceBreak;
         }
+        else
+        {
+            QChar::Direction d = c.direction();
+            if (d != dir)
+            {
+                if (size)
+                {
+                    TextSplit *split = NewSplit(dir, source, last, i);
+                    splits.push_back(split);
+                    ok = page->PaginateItem(split, charOrder, size);
+                    size = 0;
+                    last = i;
+                }
+                dir = d;
+            }
+        }
 
+        size++;
         if (charOrder > CharBreak)
         {
             // Create a text split with the part on the left including break
             uint next = XL::Utf8Next(str, i);
-            TextSplit *split = new TextSplit(source, last, next);
-            splits.push_back(split);
-            ok = page->PaginateItem(split, charOrder, size);
+            if (next > last)
+            {
+                TextSplit *split = NewSplit(dir, source, last, next);
+                splits.push_back(split);
+                ok = page->PaginateItem(split, charOrder, size);
+            }
             size = 0;
             last = next;
         }
@@ -1255,7 +1637,7 @@ bool TextUnit::Paginate(PageLayout *page)
     if (ok && size)
     {
         // Create a text split with the part on the right
-        TextSplit *split = new TextSplit(source, last, end);
+        TextSplit *split = NewSplit(dir, source, last, end);
         splits.push_back(split);
         ok = page->PaginateItem(split, NoBreak, size);
     }

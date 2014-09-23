@@ -38,6 +38,24 @@ TAO_BEGIN
 
 struct GlyphCache;
 
+struct GlyphCacheEntry
+// ----------------------------------------------------------------------------
+//   An entry in one of the glyph caches
+// ----------------------------------------------------------------------------
+{
+    Box             bounds;
+    Box             texture;
+    coord           advance;
+    scale           scalingFactor;
+    scale           outlineWidth;
+    scale           outlineDepth;
+    scale           outlineRadius;
+    uint            outlineCount;
+    uint            outline;
+    uint            interior;
+};
+
+
 struct PerFontGlyphCache
 // ----------------------------------------------------------------------------
 //    Cache storing glyph information for a specific font
@@ -47,21 +65,8 @@ struct PerFontGlyphCache
     ~PerFontGlyphCache();
 
 public:
-    struct GlyphEntry
-    {
-        Box             bounds;
-        Box             texture;
-        coord           advance;
-        scale           scalingFactor;
-        scale           outlineWidth;
-        scale           outlineDepth;
-        scale           outlineRadius;
-        uint            outlineCount;
-        uint            outline;
-        uint            interior;
-    };
+    typedef GlyphCacheEntry GlyphEntry;
 
-public:
     bool Find(uint code, GlyphEntry &entry);
     bool Find(text word, GlyphEntry &entry);
     void Insert(uint code, const GlyphEntry &entry);
@@ -90,7 +95,7 @@ struct GlyphCache
     ~GlyphCache();
 
 public:
-    typedef     PerFontGlyphCache::GlyphEntry   GlyphEntry;
+    typedef     GlyphCacheEntry                 GlyphEntry;
     typedef     PerFontGlyphCache               PerFont;
     typedef     BinPacker::Rect                 Rect;
 

@@ -32,6 +32,9 @@
 
 TAO_BEGIN
 
+struct GlyphCache;
+struct GlyphCacheEntry;
+
 struct TextSplit : Shape
 // ----------------------------------------------------------------------------
 //    A contiguous run of glyphs that where split at a word/sentence boundary
@@ -41,7 +44,6 @@ struct TextSplit : Shape
     virtual ~TextSplit();
 
     virtual void        Draw(Layout *where);
-    virtual void        DrawCached(Layout *where);
     virtual void        Identify(Layout *where);
     virtual Box3        Bounds(Layout *where);
     virtual Box3        Space(Layout *where);
@@ -53,17 +55,58 @@ struct TextSplit : Shape
     friend std::ostream &operator <<(std::ostream &, TextSplit &);
 
 protected:
-    void                DrawDirect(Layout *where);
+    virtual void        DrawCached(Layout *where);
+    virtual void        DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
     int                 PerformEditOperation(Widget *w, uint i);
     void                PerformInsertOperation(Layout * l,
                                                Widget * widget,
                                                uint     position);
 
+    // Quads management
+    typedef std::vector<Point3> quads_t;
+    typedef std::vector<Point>  texCoords_t;
+    void AddGlyph(coord x, coord y, coord z,
+                  GlyphCacheEntry &entry, GlyphCache &glyphs,
+                  quads_t &quads, texCoords_t &texCoords);
+    void DrawGlyphs(Layout *where, quads_t &quads, texCoords_t &texCoords);
+
 public:
     Text_p              source;
     uint                start, end;
     static bool         cacheEnabled;
+};
+
+
+struct TextSplitRTL : TextSplit
+// ----------------------------------------------------------------------------
+//   Right-to-left text split, with separated characters (Hebrew)
+// ----------------------------------------------------------------------------
+{
+    TextSplitRTL(Text *source, uint start = 0, uint end = ~0)
+        : TextSplit(source, start, end) {}
+
+    virtual bool        IsRTL() { return true; }
+
+protected:
+    virtual void        DrawCached(Layout *where);
+};
+
+
+struct TextSplitArabic : TextSplitRTL
+// ----------------------------------------------------------------------------
+//   Right-to-left text split with merged words (Arabic)
+// ----------------------------------------------------------------------------
+{
+    TextSplitArabic(Text *source, uint start = 0, uint end = ~0)
+        : TextSplitRTL(source, start, end) {}
+
+protected:
+    virtual void        DrawCached(Layout *where);
+    virtual void        DrawDirect(Layout *where);
+
+    virtual Box3        Bounds(Layout *where);
+    virtual Box3        Space(Layout *where);
 };
 
 

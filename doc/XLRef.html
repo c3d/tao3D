@@ -90,7 +90,7 @@
       to imperative languages descending from Algol (e.g. C, Pascal, Ada,
       Modula), while preserving the power and expressiveness of homoiconic
       languages descending from Lisp (i.e. languages where programs are
-      data).<strong></strong> But more importantlly, XL is designed from the
+      data).<strong></strong> But more importantly, XL is designed from the
       ground up to be <em>extensible</em>. XL lets you extend the core
       language to suit your own needs. It should be as easy to add new
       language constructs to XL as it is to add functions or classes in
@@ -124,7 +124,7 @@
       Over time, this lead to a never ending succession of <em>programming
       paradigms</em><a id="auto-3"></a>, each one intended to make the next generation
       of hardware accessible to programmers. For example, object-oriented
-      programming was primarily fueled by the demands of graphical user
+      programming was primarily fuelled by the demands of graphical user
       interfaces.
     </p>
     <p>
@@ -181,7 +181,7 @@
       programs, which makes meta-programming not just possible, but easy. Any
       XLR program<strong></strong> or data can be represented with just 8 data
       types: integer<a id="auto-7"></a>, real<a id="auto-8"></a>, text<a id="auto-9"></a>, name<a id="auto-10"></a>,
-      infix<a id="auto-11"></a>, prefix<a id="auto-12"></a>, posfix<a id="auto-13"></a> and block<a id="auto-14"></a>.
+      infix<a id="auto-11"></a>, prefix<a id="auto-12"></a>, postfix<a id="auto-13"></a> and block<a id="auto-14"></a>.
       For example, the internal representation for <tt class="verbatim">3 * sin X</tt>
       is an infix <tt class="verbatim">*</tt> node with two children, the left child of
       <tt class="verbatim">*</tt> being integer <tt class="verbatim">3</tt>, and the right child
@@ -207,7 +207,7 @@
       Conceptually, an XLR program is a transformation of ASTs following a
       number of tree rewrite rules. In other words, there is no real
       difference in XLR between meta-programming and normal program execution,
-      as both are represented by tranformations on ASTs. The entire XLR
+      as both are represented by transformations on ASTs. The entire XLR
       semantics boils down to this: incrementally rewriting abstract syntax
       trees.
     </p>
@@ -322,7 +322,7 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
     <p>
       <dfn>Programming is the art of transforming ideas (i.e.
       <em>concepts</em> that belong to <em>concept space</em><a id="auto-32"></a>) into
-      artifacts such as programs or data structure (i.e. <em>code</em> that
+      artefacts such as programs or data structure (i.e. <em>code</em> that
       belongs to <em>code space</em><a id="auto-33"></a>).</dfn>
     </p>
     <p>
@@ -344,8 +344,8 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
     </p>
     <p>
       The key takeaway is that the conversion of concept to code is
-      necessarily <em>lossy</em>. Minimizing the loss remains a worthy goal,
-      but doing so is difficult. By drawing our attention to the conversion
+      necessarily <em>lossy</em>. Reducing the loss remains a worthy goal, but
+      doing so is difficult. By drawing our attention to the conversion
       process itself, concept programming gives us new and useful tools to
       solve old problems.
     </p>
@@ -381,7 +381,7 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
       </li>
       <li>
         <p>
-          <em>Bandwith</em><a id="auto-39"></a> is the fraction of the concept space
+          <em>Bandwidth</em><a id="auto-39"></a> is the fraction of the concept space
           that is covered by a given code. The larger the bandwidth, the more
           general the code is. For example, the mathematical <em>minimum</em>
           concept includes the ability to compare almost anything provided
@@ -436,7 +436,7 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
     </p>
     <ul>
       <li>
-        An interpreted mode, corresponding to optimization level 0, which
+        An interpreted mode, corresponding to optimizations level 0, which
         proved so slow that it has not been maintained in a while and is a
         state of serous disrepair.
       </li>
@@ -460,7 +460,7 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
     </ul>
     <p>
       The net result of this development history is that the same compiler
-      supports slightly different features depending on the optimization
+      supports slightly different features depending on the optimizations
       level. Best effort attempts will be made to indicate which features are
       impacted with Warnings in this document.
     </p>
@@ -702,7 +702,7 @@ else
       Text<a id="auto-76"></a> is any valid UTF-8<a id="auto-77"></a> sequence of printable or
       space characters surrounded by text delimiters, such as <tt class="verbatim">&quot;Hello
       M&ouml;nd&eacute;&quot;</tt>. Except for line-terminating characters<a
-      id="auto-78"></a>, the behavior when a text sequence contains control
+      id="auto-78"></a>, the behaviour when a text sequence contains control
       characters<a id="auto-79"></a> or invalid UTF-8 sequences is unspecified.
       However, implementations are encouraged to preserve the contents of such
       sequences.
@@ -799,12 +799,11 @@ or not,
     <p>
       Names<a id="auto-92"></a> begin with an alphabetic character <tt class="verbatim">A</tt>..<tt
       class="verbatim">Z</tt> or <tt class="verbatim">a</tt>..<tt class="verbatim">z</tt> or any non-ASCII
-      UTF-8 character, followed by the longuest possible sequence of
-      alphabetic characters, digits or underscores. Two consecutive underscore
-      characters are not allowed. Thus, <tt class="verbatim">Marylin_Monroe</tt>, <tt
-      class="verbatim">&eacute;lab&ouml;r&agrave;tion</tt> or <tt class="verbatim">j1</tt> are
-      valid XLR names, whereas <tt class="verbatim">A-1</tt>, <tt class="verbatim">1cm</tt> or <tt
-      class="verbatim">A__2</tt> are not.
+      UTF-8 character, followed by the longest possible sequence of alphabetic
+      characters, digits or underscores. Two consecutive underscore characters
+      are not allowed. Thus, <tt class="verbatim">Marylin_Monroe</tt>, <tt class="verbatim">&eacute;lab&ouml;r&agrave;tion</tt>
+      or <tt class="verbatim">j1</tt> are valid XLR names, whereas <tt class="verbatim">A-1</tt>,
+      <tt class="verbatim">1cm</tt> or <tt class="verbatim">A__2</tt> are not.
     </p>
     <p>
       Operator symbols, or
@@ -1315,7 +1314,7 @@ if 6 apples weight 1.5 kg then
           <li>
             <tt class="verbatim">DEFAULT</tt> identifies the precedence for symbols not
             otherwise given a precedence. This precedence should be unique in
-            the syntax confguration, i.e. no other symbol should be given the
+            the syntax configuration, i.e. no other symbol should be given the
             <tt class="verbatim">DEFAULT</tt> precedence.<a id="auto-154"></a>
           </li>
         </ul>
@@ -1330,7 +1329,7 @@ if 6 apples weight 1.5 kg then
             <tt class="verbatim">FUNCTION </tt>identifies the precedence for default
             prefix symbols, i.e. symbols identified as prefix that are not
             otherwise given a precedence. This precedence should be unique,
-            i.e. no other symbol shoud be given the <tt class="verbatim">FUNCTION</tt>
+            i.e. no other symbol should be given the <tt class="verbatim">FUNCTION</tt>
             precedence.<a id="auto-155"></a>
           </li>
         </ul>
@@ -1597,7 +1596,7 @@ A.ref_count := A.ref_count + 1</pre></td>
       </li>
     </ul>
     <p style="margin-top: 1em; margin-bottom: 1em">
-      <b>Warning <class style="font-style: normal">3</class>. </b>The current implentation has a
+      <b>Warning <class style="font-style: normal">3</class>. </b>The current implementation has a
       number of deficiencies with respect to guards, assignment and index
       operators. These are described in the corresponding sections below.
     </p>
@@ -1633,7 +1632,14 @@ if false then TrueClause else FalseClause   -&gt; FalseClause</pre></td>
     </p>
     <p>
       The pattern contains <em>constant</em><a id="auto-195"></a> and
-      <em>variable</em><a id="auto-196"></a> symbols and names:
+      <em>variable</em><a id="auto-196"></a> symbols and names. Constant symbol and
+      names<a id="auto-197"></a> form the structure of the pattern, whereas variable
+      names form the parts of the pattern which can match other trees. The
+      names are called <em>parameters</em><a id="auto-198"></a> and the tree they match
+      are called <em>arguments</em><a id="auto-199"></a>.
+    </p>
+    <p>
+      Variables and constants in the pattern are identified as follows:
     </p>
     <ul>
       <li>
@@ -1653,12 +1659,45 @@ if false then TrueClause else FalseClause   -&gt; FalseClause</pre></td>
         in <tt class="verbatim">X cm</tt>.
       </li>
       <li>
-        A name alone on the left of a rewrite is a constant, like <tt class="verbatim">X</tt>
-        in <tt class="verbatim">X-&gt;0</tt>.
+        A name alone on the left of a rewrite is generally a constant
+        <p>
+          <font size="-1"><div align="justify">
+            <div style="margin-left: 0px">
+              <div style="margin-right: 0px">
+                <p>
+                  . In specific scenarios, e.g. when given as an argument to
+                  <tt class="verbatim">map</tt>, <tt class="verbatim">reduce</tt> or <tt class="verbatim">filter</tt>
+                  and other &ldquo;functional&rdquo; functions, a rewrite
+                  declaration like <tt class="verbatim">X-&gt;0</tt> may be interpreted
+                  as an anonymous function with parameter <tt class="verbatim">X</tt>
+                  instead of a declaration of <tt class="verbatim">X</tt>. For example,
+                  this is the case in <tt class="verbatim">(X-&gt;X+1) with 1,3,5</tt>,
+                  which returns <tt class="verbatim">2,4,6</tt>. This specific behavior
+                  is the result of a special processing done by these
+                  functional functions to their function arguments.
+                </p>
+              </div>
+            </div>
+          </div></font>
+        </p>
+        <span style="margin-left: 0em"></span>
+        <a id="footnr-5"></a>
+        <sup><a href="#footnote-5">5</a></sup>
+        , like
+        <tt class="verbatim">X</tt>
+        in
+        <tt class="verbatim">X-&gt;0</tt>
+        .
       </li>
       <li>
         Operators are constant, like <tt class="verbatim">+</tt> in <tt class="verbatim">X and
         +Y</tt>.
+      </li>
+      <li>
+        The left side of a type declaration is variable, the rest is not part
+        of the pattern, meaning that in <tt class="verbatim">X:real</tt>, only <tt
+        class="verbatim">X</tt> will be considered when matching the pattern, and will
+        be treated as a variable.
       </li>
       <li>
         All other names are variable.
@@ -1679,17 +1718,11 @@ if <em><font color="blue">false</font></em> then <em><font color="blue">TrueClau
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 22. </b><a id="auto-197"></a>Constants vs. Variable symbols
+            <b>Figure 22. </b><a id="auto-200"></a>Constants vs. Variable symbols
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
-    <p>
-      Constant symbol and names<a id="auto-198"></a> form the structure of the pattern,
-      whereas variable names form the parts of the pattern which can match
-      other trees. The names are called <em>parameters</em><a id="auto-199"></a> and the
-      tree they match are called <em>arguments</em><a id="auto-200"></a>.
-    </p>
     <p>
       For example, to match the pattern in Figure <a href="#if-then-else">21</a>, the <tt
       class="verbatim">if</tt>, <tt class="verbatim">then</tt> and <tt class="verbatim">else</tt> words must
@@ -1699,14 +1732,17 @@ if <em><font color="blue">false</font></em> then <em><font color="blue">TrueClau
       matching argument.
     </p>
     <p>
-      Note that there is a special case for a name as the pattern of a
-      rewrite. A rewrite like <tt class="verbatim">X-&gt;0</tt> binds <tt class="verbatim">X</tt>
-      to value <tt class="verbatim">0</tt>, i.e. <tt class="verbatim">X</tt> is a constant that
-      must match in the tree being evaluated.
-    </p>
-    <p>
-      It is however possible to create a rewrite with a variable on the left
-      by using a type declaration. For example, the rewrite
+      A rewrite like
+      <tt class="verbatim">X-&gt;0</tt>
+      binds
+      <tt class="verbatim">X</tt>
+      to value
+      <tt class="verbatim">0</tt>
+      , i.e.
+      <tt class="verbatim">X</tt>
+      is a constant that must match in the tree being evaluated. It is
+      however possible to create a rewrite with a variable on the left by
+      using a type declaration. For example, the rewrite
       <tt class="verbatim">X:real-&gt;X+1</tt>
       does not declare the variable
       <tt class="verbatim">X</tt>
@@ -1726,8 +1762,8 @@ if <em><font color="blue">false</font></em> then <em><font color="blue">TrueClau
         </div></font>
       </p>
       <span style="margin-left: 0em"></span>
-      <a id="footnr-5"></a>
-      <sup><a href="#footnote-5">5</a></sup>
+      <a id="footnr-6"></a>
+      <sup><a href="#footnote-6">6</a></sup>
       that increments its input. Such rewrites are somewhat special, in
       particular because they are not visible to their implementation so as to
       avoid infinite recursion if their return type is identical to their
@@ -1739,10 +1775,7 @@ if <em><font color="blue">false</font></em> then <em><font color="blue">TrueClau
       be evaluated, as shown in Figure <a href="#out-of-order-declarations">23</a>, which computes <tt
       class="verbatim">4</tt>. More generally, rewrites in a sequence belong to the
       context<a id="auto-203"></a> for the entire sequence (contexts are defined in
-      Section <a href="#binding">3.2</a>).
-    </p>
-    <p>
-      <strong></strong>
+      Section <a href="#binding">3.2</a>).<strong></strong>
     </p>
     <table align="center" id="out-of-order-declarations">
       <tbody><tr>
@@ -1818,8 +1851,8 @@ data a,b</pre></td>
         </div></font>
       </p>
       <span style="margin-left: 0em"></span>
-      <a id="footnr-6"></a>
-      <sup><a href="#footnote-6">6</a></sup>
+      <a id="footnr-7"></a>
+      <sup><a href="#footnote-7">7</a></sup>
       .
     </p>
     <table align="center" id="complex-type">
@@ -1905,8 +1938,8 @@ data a,b</pre></td>
         </div></font>
       </p>
       <span style="margin-left: 0em"></span>
-      <a id="footnr-7"></a>
-      <sup><a href="#footnote-7">7</a></sup>
+      <a id="footnr-8"></a>
+      <sup><a href="#footnote-8">8</a></sup>
       . If there is a return type declaration and the implementation does not
       actually return the declared return type, a type error expression of the
       form
@@ -2172,10 +2205,29 @@ write f(100)+f(200)</pre></td>
       </tr></tbody>
     </table>
     <p>
-      Items in a sequence can be <em>declarations</em><a id="auto-254"></a> or
-      <em>statements</em><a id="auto-255"></a>. Declarations include rewrite
-      declarations, data declarations, type declarations and assignments to a
-      type declaration. All other items in a sequence are statements.
+      Items in a sequence can be
+      <em>declarations</em>
+      <a id="auto-254"></a>
+      or
+      <em>statements</em>
+      <a id="auto-255"></a>
+      . Declarations include rewrite declarations and data declarations
+      <p>
+        <font size="-1"><div align="justify">
+          <div style="margin-left: 0px">
+            <div style="margin-right: 0px">
+              <p>
+                . Type declarations are only allowed in patterns, not in
+                sequences.
+              </p>
+            </div>
+          </div>
+        </div></font>
+      </p>
+      <span style="margin-left: 0em"></span>
+      <a id="footnr-9"></a>
+      <sup><a href="#footnote-9">9</a></sup>
+      . All other items in a sequence are statements.
     </p>
     <h4 id="auto-256"><a id="index-operators"></a>3.1.7<span style="margin-left: 1em"></span>Index operators</h4>
     <p>
@@ -2405,8 +2457,8 @@ extern double sin(double);</pre></td>
       to <tt class="verbatim">4</tt>.
     </p>
     <p style="margin-top: 1em; margin-bottom: 1em">
-      <b>Warning <class style="font-style: normal">12</class>. </b>The idea of formalizing the
-      context and making it available to programs was only formalized after
+      <b>Warning <class style="font-style: normal">12</class>. </b>The idea of defining the
+      context and making it available to programs was only elaborated after
       the standard and optimized mode were implemented. It is not currently
       working, but should be implemented in a future release. However, many
       notions described in this section apply internally to the existing
@@ -2565,15 +2617,15 @@ extern double sin(double);</pre></td>
             result will be compared against <tt class="verbatim">true</tt>.
           </li>
           <li>
-            This rule applies even if the binding occured in the same pattern.
-            For example, the pattern <tt class="verbatim">A+A</tt> will match <tt class="verbatim">3+3</tt>
-            but not <tt class="verbatim">3+4</tt>, because <tt class="verbatim">A</tt> is first
-            bound to <tt class="verbatim">3</tt> and then cannot match <tt class="verbatim">4</tt>.
-            The pattern <tt class="verbatim">A+A</tt> will also match <tt class="verbatim">(3-1)+(4-2)</tt>:
-            although <tt class="verbatim">A</tt> may first be bound to the unevaluated
-            value <tt class="verbatim">3-1</tt>, verifying if the second <tt class="verbatim">A</tt>
-            matches requires evaluating both <tt class="verbatim">A</tt> and the test
-            value.
+            This rule applies even if the binding occurred in the same
+            pattern. For example, the pattern <tt class="verbatim">A+A</tt> will match
+            <tt class="verbatim">3+3</tt> but not <tt class="verbatim">3+4</tt>, because <tt
+            class="verbatim">A</tt> is first bound to <tt class="verbatim">3</tt> and then cannot
+            match <tt class="verbatim">4</tt>. The pattern <tt class="verbatim">A+A</tt> will also
+            match <tt class="verbatim">(3-1)+(4-2)</tt>: although <tt class="verbatim">A</tt> may
+            first be bound to the unevaluated value <tt class="verbatim">3-1</tt>,
+            verifying if the second <tt class="verbatim">A</tt> matches requires
+            evaluating both <tt class="verbatim">A</tt> and the test value.
           </li>
           <li>
             Type declarations in <tt class="verbatim">P</tt> match if the result of
@@ -2622,7 +2674,7 @@ extern double sin(double);</pre></td>
           </li>
           <li>
             If the tree is a prefix with the left being a name containing <tt
-            class="verbatim">error</tt>, then the program immediatly aborts and shows
+            class="verbatim">error</tt>, then the program immediately aborts and shows
             the offending tree. This case corresponds to an unhandled error.
           </li>
           <li>
@@ -2696,8 +2748,8 @@ extern double sin(double);</pre></td>
           </div></font>
         </p>
         <span style="margin-left: 0em"></span>
-        <a id="footnr-8"></a>
-        <sup><a href="#footnote-8">8</a></sup>
+        <a id="footnr-10"></a>
+        <sup><a href="#footnote-10">10</a></sup>
         .
       </li>
       <li>
@@ -2825,7 +2877,7 @@ Z + 1 // Z not evaluated
       evaluate.
     </p>
     <p style="margin-top: 1em; margin-bottom: 1em">
-      <b>Warning <class style="font-style: normal">13</class>. </b>Lazy evaluation was formalized
+      <b>Warning <class style="font-style: normal">13</class>. </b>Lazy evaluation was documented
       after the compilers were implemented, and is not entirely consistent in
       the current implementations. This should be fixed in future versions.
     </p>
@@ -3563,7 +3615,7 @@ adder -&gt; type {X+Y -&gt; Z}</pre></td>
       program.
     </p>
     <p>
-      This section decsribes the minimum list of operations available in any
+      This section describes the minimum list of operations available in any
       XLR program. Operator priorities are defined by the <tt class="verbatim">xl.syntax</tt><a
       id="auto-431"></a> file in Figure <a href="#syntax-file">11</a>. All operations listed in this
       section may be implemented specially in the compiler, or using regular
@@ -3657,8 +3709,8 @@ adder -&gt; type {X+Y -&gt; Z}</pre></td>
         </div></font>
       </p>
       <span style="margin-left: 0em"></span>
-      <a id="footnr-9"></a>
-      <sup><a href="#footnote-9">9</a></sup>
+      <a id="footnr-11"></a>
+      <sup><a href="#footnote-11">11</a></sup>
       .
     </p>
     <table align="center" id="comparisons">
@@ -3701,7 +3753,7 @@ adder -&gt; type {X+Y -&gt; Z}</pre></td>
     <p>
       <a id="auto-441"></a><a id="auto-442"></a>Bitwise operators operate on the binary
       representation of <tt class="verbatim">integer</tt> values, treating each bit
-      indivudally.
+      individually.
     </p>
     <table align="center" id="bitwise-arithmetic">
       <tbody><tr>
@@ -4205,7 +4257,7 @@ adder -&gt; type {X+Y -&gt; Z}</pre></td>
     </p>
     <h4 id="auto-483">4.2.1<span style="margin-left: 1em"></span>Tests</h4>
     <p>
-      The defintion of the if-then-else statement in the library is as shown
+      The definition of the if-then-else statement in the library is as shown
       in Figure <a href="#if-then-else-definition">59</a><a id="auto-484"></a>:
     </p>
     <table align="center">
@@ -4227,7 +4279,7 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
     <p>
       <a id="if-then-else-definition"></a>This definition requires the value to be a <tt class="verbatim">boolean</tt>,
       i.e. <tt class="verbatim">true</tt> or <tt class="verbatim">false</tt>. The <tt class="verbatim">good</tt><a
-      id="auto-486"></a>  function shown in Figure <a href="#good-function">60</a> provides a behavior
+      id="auto-486"></a>  function shown in Figure <a href="#good-function">60</a> provides a behaviour
       closer to what is seen in languages such as C, where the value <tt
       class="verbatim">0</tt> is logically false and non-zero values are logically true.
     </p>
@@ -4542,8 +4594,8 @@ pred X:(integer|real) -&gt; X-1</pre></td>
       </tr></tbody>
     </table>
     <p style="margin-top: 1em; margin-bottom: 1em">
-      <b>Warning <class style="font-style: normal">20</class>. </b>Union types are not
-      implementede yet, pending improvements in the type system.
+      <b>Warning <class style="font-style: normal">20</class>. </b>Union types are not implemented
+      yet, pending improvements in the type system.
     </p>
     <h4 id="auto-507">4.3.3<span style="margin-left: 1em"></span>Enumeration types</h4>
     <p>
@@ -4755,7 +4807,7 @@ module_description
     <h2 id="auto-528">5<span style="margin-left: 1em"></span>Example code</h2>
     <h3 id="auto-529">5.1<span style="margin-left: 1em"></span>Minimum and maximum</h3>
     <p>
-      The minumum and maximum can be defined as follows:
+      The minimum and maximum can be defined as follows:
     </p>
     <table align="center">
       <tbody><tr>
@@ -4877,8 +4929,8 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         </div></font>
       </p>
       <span style="margin-left: 0em"></span>
-      <a id="footnr-10"></a>
-      <sup><a href="#footnote-10">10</a></sup>
+      <a id="footnr-12"></a>
+      <sup><a href="#footnote-12">12</a></sup>
       , and assumes a good understanding of LLVM basic operations. Table
       <a href="#llvm-operations">12</a>
       shows the correspondance between LLVM primitives and primitives that
@@ -4999,7 +5051,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
     <h3 id="auto-561">6.7<span style="margin-left: 1em"></span>Tree position</h3>
     <p>
       The position held in the <tt class="verbatim">tag</tt> field is character-precise.
-      To save space, it counts the number of characters since the begining of
+      To save space, it counts the number of characters since the beginning of
       compilation in a single integer value.
     </p>
     <p>

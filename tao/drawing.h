@@ -62,6 +62,7 @@ struct Drawing
     virtual void        ClearCaches();
     virtual scale       TrailingSpaceSize(Layout *);
     virtual bool        IsAttribute();
+    virtual bool        IsRTL() { return false; }
 
     static uint count;
 };

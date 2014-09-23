@@ -202,7 +202,7 @@ void GlyphCache::CheckActiveLayout(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Check if there are new texture units active compared to what we had
-    if(GL.ActiveTextureUnits() & ~this->texUnits)
+    if (GL.ActiveTextureUnits() & ~this->texUnits)
     {
         Clear();
         this->texUnits |= GL.ActiveTextureUnits();

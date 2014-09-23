@@ -87,7 +87,6 @@ struct TextSplitRTL : TextSplit
         : TextSplit(source, start, end) {}
 
     virtual bool        IsRTL() { return true; }
-    virtual scale       TrailingSpaceSize(Layout *) { return 0.0; }
 
 protected:
     virtual void        DrawCached(Layout *where);

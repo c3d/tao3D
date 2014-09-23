@@ -134,13 +134,13 @@ public:
     struct Place
     {
         Place(Item item, uint itemCount = 0, bool solid=true, bool rev=false,
-              scale size = 0, coord pos = 0)
-            : item(item), size(size), position(pos),
+              scale size = 0, coord pos = 0, scale trail = 0)
+            : item(item), size(size), trail(trail), position(pos),
               itemCount(itemCount),
               solid(solid), reverse(rev)
         { }
         Item    item;
-        scale   size;
+        scale   size, trail;
         coord   position;
         uint    itemCount       : 30;
         bool    solid           : 1;
@@ -317,7 +317,7 @@ bool Justifier<Item>::AddItem(Item item, uint count,
                   << " = " << pos + sign*offset << std::endl;
 
     coord offPos = pos + sign * offset;
-    places.push_back(Place(item, count, solid, reverse, size, offPos));
+    places.push_back(Place(item, count, solid, reverse, size, offPos, lspace));
     pos += sign * size;
     lastOversize = size - originalSize;
 
@@ -340,6 +340,8 @@ bool Justifier<Item>::AddItem(Item item, uint count,
         numItems += count;
 
         // Record size of last space
+        if (reverse)
+            lspace = 0;
         lastSpace = lspace;
     }
 
@@ -447,11 +449,17 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
             reverseSize += hsize;
             reverseCount++;
         }
-        else while (reverseCount)
+        else if (reverseCount)
         {
-            Place &rev = *begin++;
-            rev.position = reverseSize - rev.position;
-            reverseCount--;
+            while (reverseCount)
+            {
+                Place &rev = *begin++;
+                scale dsize = rev.solid
+                    ? atSolid
+                    : atBreak + atSolid * place.itemCount;
+                rev.position = reverseSize - rev.position - rev.trail - dsize;
+                reverseCount--;
+            }
         }
 
         IFTRACE(justify)

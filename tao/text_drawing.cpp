@@ -134,6 +134,7 @@ void TextSplit::Draw(Layout *where)
 }
 
 
+#if 0
 static bool IsRightToLeft(QChar::Direction dir)
 // ----------------------------------------------------------------------------
 //   Return true if the direction is right-to-left
@@ -151,6 +152,80 @@ static bool IsRightToLeft(QChar::Direction dir)
         return false;
     }
     return false;
+}
+#endif
+
+
+void TextSplit::AddGlyph(coord x, coord y, coord z,
+                         GlyphCacheEntry &glyph, GlyphCache &glyphs,
+                         quads_t &quads, texCoords_t &texCoords)
+// ----------------------------------------------------------------------------
+//   Enter a glyph when generating a cached rendering
+// ----------------------------------------------------------------------------
+{
+    // Enter the geometry coordinates
+    coord charX1 = x + glyph.bounds.lower.x;
+    coord charX2 = x + glyph.bounds.upper.x;
+    coord charY1 = y - glyph.bounds.lower.y;
+    coord charY2 = y - glyph.bounds.upper.y;
+    quads.push_back(Point3(charX1, charY1, z));
+    quads.push_back(Point3(charX2, charY1, z));
+    quads.push_back(Point3(charX2, charY2, z));
+    quads.push_back(Point3(charX1, charY2, z));
+
+    // Enter the texture coordinates
+    Point &texL = glyph.texture.lower;
+    Point &texU = glyph.texture.upper;
+    int tw = glyphs.Width(), th = glyphs.Height();
+    texCoords.push_back(Point(texL.x/tw, texL.y/th));
+    texCoords.push_back(Point(texU.x/tw, texL.y/th));
+    texCoords.push_back(Point(texU.x/tw, texU.y/th));
+    texCoords.push_back(Point(texL.x/tw, texU.y/th));
+}
+
+
+void TextSplit::DrawGlyphs(Layout *where,
+                           quads_t &quads, texCoords_t &texCoords)
+// ----------------------------------------------------------------------------
+//    Draw the glyphs in the texture coordinates
+// ----------------------------------------------------------------------------
+{
+    // Check if there's anything to draw
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    QFont      &font     = where->font;
+
+    uint count = quads.size();
+    if (count && setFillColor(where))
+    {
+        // Bind the glyph texture
+        GL.BindTexture(GL_TEXTURE_2D, glyphs.Texture());
+        if (font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
+        {
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        }
+        GL.Enable(GL_TEXTURE_2D);
+        if (TaoApp->hasGLMultisample)
+            GL.Enable(GL_MULTISAMPLE);
+
+        // Ensure that the last active texture unit is 0. Fix #1918.
+        GL.ClientActiveTexture(GL_TEXTURE0);
+
+        // Draw a list of rectangles with the textures
+        GL.VertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+        GL.TexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
+        GL.EnableClientState(GL_VERTEX_ARRAY);
+        GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        // Load model view matrix
+        GL.LoadMatrix();
+        GL.DrawArrays(GL_QUADS, 0, count);
+
+        GL.DisableClientState(GL_VERTEX_ARRAY);
+        GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+        GL.Disable(GL_TEXTURE_2D);
+    }
 }
 
 
@@ -190,70 +265,83 @@ void TextSplit::DrawCached(Layout *where)
     float spread = where->alongX.perSolid;
 
     // Loop over all characters in the text span
-    uint i, next, max = str.length();
-    bool rtl = false;
-    uint rtlWidth = 0, rtlCount = 0;
-    text rtlText = "";
-    for (i = start; i < max && i < end; i = next)
+    uint i, max = str.length();
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
-        next = XL::Utf8Next(str, i);
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
-        QChar unicodeChar(unicode);
-        QChar::Direction direction = unicodeChar.direction();
-        bool  addIt = rtl && (next >= max || next >= end);
 
-        bool charIsRtl = rtl;
-        if (!unicodeChar.isSpace())
+        // Advance to next character
+        if (newLine)
         {
-            charIsRtl = IsRightToLeft(direction);
-            if (charIsRtl)
-            {
-                rtlText += str.substr(i, next-i);
-                if (rtl && (!charIsRtl || next >= end || next >= max))
-
-                addIt = next >= max || next >= end;
-            }
-            else if (rtl)
-            {
-                addIt = true;
-            }
+            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale spacing = height + glyphs.Leading(font);
+            x = 0;
+            y -= spacing;
         }
-
-        if (addIt || newLine)
+        else
         {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, rtlText, glyph, false))
+            if (!glyphs.Find(font, unicode, glyph, false))
             {
                 // Try to create the glyph
-                if (!glyphs.Find(font, rtlText, glyph, true))
+                if (!glyphs.Find(font, unicode, glyph, true))
                     continue;
             }
 
             uint glyphWidth = glyph.advance + spread;
-            rtlWidth += glyphWidth;
-            rtlCount += 1;
-            x -= glyphWidth;
-
-            // Enter the geometry coordinates
-            coord charX1 = x + glyph.bounds.lower.x;
-            coord charX2 = x + glyph.bounds.upper.x;
-            coord charY1 = y - glyph.bounds.lower.y;
-            coord charY2 = y - glyph.bounds.upper.y;
-            quads.push_back(Point3(charX1, charY1, z));
-            quads.push_back(Point3(charX2, charY1, z));
-            quads.push_back(Point3(charX2, charY2, z));
-            quads.push_back(Point3(charX1, charY2, z));
-
-            // Enter the texture coordinates
-            Point &texL = glyph.texture.lower;
-            Point &texU = glyph.texture.upper;
-            int tw = glyphs.Width(), th = glyphs.Height();
-            texCoords.push_back(Point(texL.x/tw, texL.y/th));
-            texCoords.push_back(Point(texU.x/tw, texL.y/th));
-            texCoords.push_back(Point(texU.x/tw, texU.y/th));
-            texCoords.push_back(Point(texL.x/tw, texU.y/th));
+            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
+            x += glyphWidth;
         }
+    }
+
+    DrawGlyphs(where, quads, texCoords);
+    where->offset = Point3(x, y, z);
+}
+
+
+void TextSplitRTL::DrawCached(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw text span using cached textures
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text       *ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Cases where we can't select
+    if (canSel)
+    {
+        if (!where->id || IsMarkedConstant(ttree))
+            canSel = false;
+        else if (TextFlow *flow = dynamic_cast<TextFlow *> (where))
+            if (sel && sel->textBoxId &&
+                flow->textBoxIds.count(sel->textBoxId) == 0)
+                canSel = false;
+    }
+
+    // Compute per-char spread
+    float spread = where->alongX.perSolid;
+
+    // Loop over all characters in the text span
+    uint i, max = str.length();
+    uint rtlWidth = 0, rtlCount = 0;
+    for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
+    {
+        uint  unicode  = XL::Utf8Code(str, i);
+        bool  newLine  = unicode == '\n';
 
         // Advance to next character
         if (newLine)
@@ -263,97 +351,101 @@ void TextSplit::DrawCached(Layout *where)
             x = 0;
             y -= spacing;
 
-            if (rtl)
-            {
-                uint l = quads.size();
-                for (uint g = 0; g < 4 * rtlCount; g++)
-                    quads[--l].x += rtlWidth;
-                rtlWidth = 0;
-                rtlCount = 0;
-            }
+            uint l = quads.size();
+            for (uint g = 0; g < 4 * rtlCount; g++)
+                quads[--l].x += rtlWidth;
+            rtlWidth = 0;
+            rtlCount = 0;
         }
         else
         {
-            if (!charIsRtl)
+            // Find the glyph in the glyph cache
+            if (!glyphs.Find(font, unicode, glyph, false))
             {
-                // Find the glyph in the glyph cache
-                if (!glyphs.Find(font, unicode, glyph, false))
-                {
-                    // Try to create the glyph
-                    if (!glyphs.Find(font, unicode, glyph, true))
-                        continue;
-                }
-                
-                uint glyphWidth = glyph.advance + spread;
-
-                // Enter the geometry coordinates
-                coord charX1 = x + glyph.bounds.lower.x;
-                coord charX2 = x + glyph.bounds.upper.x;
-                coord charY1 = y - glyph.bounds.lower.y;
-                coord charY2 = y - glyph.bounds.upper.y;
-                quads.push_back(Point3(charX1, charY1, z));
-                quads.push_back(Point3(charX2, charY1, z));
-                quads.push_back(Point3(charX2, charY2, z));
-                quads.push_back(Point3(charX1, charY2, z));
-
-                // Enter the texture coordinates
-                Point &texL = glyph.texture.lower;
-                Point &texU = glyph.texture.upper;
-                int tw = glyphs.Width(), th = glyphs.Height();
-                texCoords.push_back(Point(texL.x/tw, texL.y/th));
-                texCoords.push_back(Point(texU.x/tw, texL.y/th));
-                texCoords.push_back(Point(texU.x/tw, texU.y/th));
-                texCoords.push_back(Point(texL.x/tw, texU.y/th));
-
-                x += glyphWidth;
-            }
-                
-            if (rtl && (!charIsRtl || next >= end || next >= max))
-            {
-                uint l = quads.size();
-                for (uint g = 0; g < 4*rtlCount; g++)
-                    quads[--l].x += rtlWidth;
-                rtlWidth = 0;
-                rtlCount = 0;
+                // Try to create the glyph
+                if (!glyphs.Find(font, unicode, glyph, true))
+                    continue;
             }
 
-            rtl = charIsRtl;
+            uint glyphWidth = glyph.advance + spread;
+            x -= glyphWidth;
+            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
         }
     }
+
+    // Adjust right to left position
+    uint l = quads.size();
+    for (uint g = 0; g < 4*rtlCount; g++)
+        quads[--l].x += rtlWidth;
+    rtlWidth = 0;
+    rtlCount = 0;
 
     // Check if there's anything to draw
-    uint count = quads.size();
-    if (count && setFillColor(where))
+    DrawGlyphs(where, quads, texCoords);
+    where->offset = Point3(x, y, z);
+}
+
+
+void TextSplitArabic::DrawCached(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw text span using cached textures
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text       *ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    std::vector<Point3>     quads;
+    std::vector<Point>      texCoords;
+
+    // Cases where we can't select
+    if (canSel)
     {
-        // Bind the glyph texture
-        GL.BindTexture(GL_TEXTURE_2D, glyphs.Texture());
-        if (font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
-        {
-            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        }
-        GL.Enable(GL_TEXTURE_2D);
-        if (TaoApp->hasGLMultisample)
-            GL.Enable(GL_MULTISAMPLE);
-
-        // Ensure that the last active texture unit is 0. Fix #1918.
-        GL.ClientActiveTexture(GL_TEXTURE0);
-
-        // Draw a list of rectangles with the textures
-        GL.VertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
-        GL.TexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
-        GL.EnableClientState(GL_VERTEX_ARRAY);
-        GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-        // Load model view matrix
-        GL.LoadMatrix();
-        GL.DrawArrays(GL_QUADS, 0, count);
-
-        GL.DisableClientState(GL_VERTEX_ARRAY);
-        GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
-        GL.Disable(GL_TEXTURE_2D);
+        if (!where->id || IsMarkedConstant(ttree))
+            canSel = false;
+        else if (TextFlow *flow = dynamic_cast<TextFlow *> (where))
+            if (sel && sel->textBoxId &&
+                flow->textBoxIds.count(sel->textBoxId) == 0)
+                canSel = false;
     }
 
+    // Compute per-char spread
+    float spread = where->alongX.perSolid;
+
+    // Loop over all characters in the text span
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+    // Find the glyph in the glyph cache
+    if (!glyphs.Find(font, rtlText, glyph, false))
+        // Try to create the glyph
+        if (!glyphs.Find(font, rtlText, glyph, true))
+            return;
+
+    uint glyphWidth = glyph.advance + spread;
+    x -= glyphWidth;
+
+    uint rtlWidth = glyphWidth;
+    uint rtlCount = 1;
+
+    AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
+    uint l = quads.size();
+    for (uint g = 0; g < 4 * rtlCount; g++)
+        quads[--l].x += rtlWidth;
+    rtlWidth = 0;
+    rtlCount = 0;
+
+    DrawGlyphs(where, quads, texCoords);
     where->offset = Point3(x, y, z);
 }
 
@@ -462,6 +554,24 @@ void TextSplit::DrawDirect(Layout *where)
     }
 
     where->offset = Point3(x, y, z);
+}
+
+
+void TextSplitRTL::DrawDirect(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the text split in direct mode
+// ----------------------------------------------------------------------------
+{
+    TextSplit::DrawDirect(where);
+}
+
+
+void TextSplitArabic::DrawDirect(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the text split in direct mode
+// ----------------------------------------------------------------------------
+{
+    TextSplit::DrawDirect(where);
 }
 
 

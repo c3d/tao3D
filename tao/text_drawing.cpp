@@ -260,12 +260,8 @@ void TextSplit::DrawCached(Layout *where)
         else
         {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, false))
-            {
-                // Try to create the glyph
-                if (!glyphs.Find(font, unicode, glyph, true))
-                    continue;
-            }
+            if (!glyphs.Find(font, unicode, glyph, true))
+                continue;
 
             uint glyphWidth = glyph.advance + spread;
             AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
@@ -315,7 +311,6 @@ void TextSplitRTL::DrawCached(Layout *where)
 
     // Loop over all characters in the text span
     uint i, max = str.length();
-    uint rtlWidth = 0, rtlCount = 0;
     for (i = start; i < max && i < end; i = XL::Utf8Next(str, i))
     {
         uint  unicode  = XL::Utf8Code(str, i);
@@ -328,37 +323,18 @@ void TextSplitRTL::DrawCached(Layout *where)
             scale spacing = height + glyphs.Leading(font);
             x = 0;
             y -= spacing;
-
-            uint l = quads.size();
-            for (uint g = 0; g < 4 * rtlCount; g++)
-                quads[--l].x += rtlWidth;
-            rtlWidth = 0;
-            rtlCount = 0;
         }
         else
         {
-            // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, false))
-            {
-                // Try to create the glyph
-                if (!glyphs.Find(font, unicode, glyph, true))
-                    continue;
-            }
+            // Find the glyph in the glyph cache, create it otherwise
+            if (!glyphs.Find(font, unicode, glyph, true))
+                continue;
 
             uint glyphWidth = glyph.advance + spread;
             x -= glyphWidth;
-            rtlCount++;
-            rtlWidth += glyphWidth;
             AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
         }
     }
-
-    // Adjust right to left position
-    uint l = quads.size();
-    for (uint g = 0; g < 4*rtlCount; g++)
-        quads[--l].x += rtlWidth;
-    rtlWidth = 0;
-    rtlCount = 0;
 
     // Check if there's anything to draw
     DrawGlyphs(where, quads, texCoords);
@@ -407,24 +383,12 @@ void TextSplitArabic::DrawCached(Layout *where)
     text rtlText = str.substr(start, size);
 
     // Find the glyph in the glyph cache
-    if (!glyphs.Find(font, rtlText, glyph, false))
-        // Try to create the glyph
-        if (!glyphs.Find(font, rtlText, glyph, true))
-            return;
+    if (!glyphs.Find(font, rtlText, glyph, true))
+        return;
 
     uint glyphWidth = glyph.advance + spread;
     x -= glyphWidth;
-
-    uint rtlWidth = glyphWidth;
-    uint rtlCount = 1;
-
-    AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
-    uint l = quads.size();
-    for (uint g = 0; g < 4 * rtlCount; g++)
-        quads[--l].x += rtlWidth;
-    rtlWidth = 0;
-    rtlCount = 0;
-
+    AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);
     DrawGlyphs(where, quads, texCoords);
     where->offset = Point3(x, y, z);
 }
@@ -448,6 +412,7 @@ void TextSplit::DrawDirect(Layout *where)
     coord       z        = pos.z;
     scale       lw       = where->lineWidth;
     uint        i, max   = str.length();
+    bool        rtl      = IsRTL();
 
     // Disable drawing of lines if we don't see them.
     if (where->lineColor.alpha <= 0)
@@ -464,8 +429,6 @@ void TextSplit::DrawDirect(Layout *where)
     }
 
     GlyphCache::GlyphEntry  glyph;
-    std::vector<Point3>     quads;
-    std::vector<Point>      texCoords;
 
     // Find length of text span and compute per-char spread
     float spread = where->alongX.perSolid;
@@ -489,6 +452,9 @@ void TextSplit::DrawDirect(Layout *where)
             // Find the glyph in the glyph cache
             if (!glyphs.Find(font, unicode, glyph, true, true, lw))
                 continue;
+
+            if (rtl)
+                x -= glyph.advance + spread;
 
             GLMatrixKeeper save;
             GL.Translate(x, y, z);
@@ -529,20 +495,12 @@ void TextSplit::DrawDirect(Layout *where)
                     GL.CallList(glyph.outline);
             }
 
-            x += glyph.advance + spread;
+            if (!rtl)
+                x += glyph.advance + spread;
         }
     }
 
     where->offset = Point3(x, y, z);
-}
-
-
-void TextSplitRTL::DrawDirect(Layout *where)
-// ----------------------------------------------------------------------------
-//   Draw the text split in direct mode
-// ----------------------------------------------------------------------------
-{
-    TextSplit::DrawDirect(where);
 }
 
 
@@ -551,7 +509,89 @@ void TextSplitArabic::DrawDirect(Layout *where)
 //   Draw the text split in direct mode
 // ----------------------------------------------------------------------------
 {
-    TextSplit::DrawDirect(where);
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text *      ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+    scale       lw       = where->lineWidth;
+
+    // Disable drawing of lines if we don't see them.
+    if (where->lineColor.alpha <= 0)
+        lw = 0;
+
+    if (canSel)
+    {
+        if (!where->id || IsMarkedConstant(ttree))
+            canSel = false;
+        else if (TextFlow *flow = dynamic_cast<TextFlow *> (where))
+            if (sel && sel->textBoxId &&
+                flow->textBoxIds.count(sel->textBoxId) == 0)
+                canSel = false;
+    }
+
+    // Find text to display
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+
+    // Find length of text span and compute per-char spread
+    float spread = where->alongX.perSolid;
+
+    // Find the glyph in the glyph cache
+    GlyphCache::GlyphEntry  glyph;
+    if (glyphs.Find(font, rtlText, glyph, true, true, lw))
+    {
+        x -= glyph.advance + spread;
+
+        GLMatrixKeeper save;
+        GL.Translate(x, y, z);
+        scale gscale = glyph.scalingFactor;
+        GL.Scale(gscale, gscale, gscale);
+        GL.LoadMatrix();
+
+        setTexture(where);
+        if (where->extrudeDepth > 0.0)
+        {
+            bool hasFill = setFillColor(where);
+            if (hasFill)
+            {
+                GraphicSave* save = GL.Save();
+                GL.Translate(0.0, 0.0, -where->extrudeDepth);
+                GL.Scale(1, 1, -1);
+                GL.FrontFace(GL_CCW);
+                GL.CallList(glyph.interior);
+                GL.Restore(save);
+                GL.FrontFace(GL_CW);
+                GL.CallList(glyph.interior);
+                GL.FrontFace(GL_CCW);
+            }
+
+            bool hasLine = setLineColor(where); // May fail, keep fill color
+            if (hasFill || hasLine)
+            {
+                GL.FrontFace(GL_CW);
+                GL.CallList(glyph.outline);
+                GL.FrontFace(GL_CCW);
+            }
+        }
+        else
+        {
+            if (setFillColor(where))
+                GL.CallList(glyph.interior);
+            if (lw > 0.0 && setLineColor(where))
+                GL.CallList(glyph.outline);
+        }
+    }
+
+    where->offset = Point3(x, y, z);
 }
 
 

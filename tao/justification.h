@@ -450,11 +450,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
         else while (reverseCount)
         {
             Place &rev = *begin++;
-            scale rhsize = rev.size;
-            scale rdsize = place.solid
-                ? atSolid
-                : atBreak + atSolid * rev.itemCount;
-            rev.position = reverseSize - (rev.position + rhsize + rdsize);
+            rev.position = reverseSize - rev.position;
             reverseCount--;
         }
 
@@ -469,11 +465,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     while (reverseCount)
     {
         Place &rev = *begin++;
-        scale rhsize = rev.size;
-        scale rdsize = rev.solid
-            ? atSolid
-            : atBreak + atSolid * rev.itemCount;
-        rev.position = reverseSize - (rev.position + rhsize + rdsize);
+        rev.position = reverseSize - rev.position;
         reverseCount--;
     }
 

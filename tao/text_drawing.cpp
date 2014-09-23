@@ -134,28 +134,6 @@ void TextSplit::Draw(Layout *where)
 }
 
 
-#if 0
-static bool IsRightToLeft(QChar::Direction dir)
-// ----------------------------------------------------------------------------
-//   Return true if the direction is right-to-left
-// ----------------------------------------------------------------------------
-{
-    switch (dir)
-    {
-    case QChar::DirAL:
-    case QChar::DirAN:
-    case QChar::DirR:
-    case QChar::DirRLE:
-    case QChar::DirRLO:
-        return true;
-    default:
-        return false;
-    }
-    return false;
-}
-#endif
-
-
 void TextSplit::AddGlyph(coord x, coord y, coord z,
                          GlyphCacheEntry &glyph, GlyphCache &glyphs,
                          quads_t &quads, texCoords_t &texCoords)
@@ -369,6 +347,8 @@ void TextSplitRTL::DrawCached(Layout *where)
 
             uint glyphWidth = glyph.advance + spread;
             x -= glyphWidth;
+            rtlCount++;
+            rtlWidth += glyphWidth;
             AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
         }
     }
@@ -1059,6 +1039,111 @@ Box3 TextSplit::Space(Layout *where)
 }
 
 
+Box3 TextSplitArabic::Bounds(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the smallest box that surrounds the text
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    text        str      = source->value;
+    QFont      &font     = where->font;
+    Box3        result;
+    Point3      pos      = where->offset;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+    // Find the glyph in the glyph cache
+    if (glyphs.Find(font, rtlText, glyph, true))
+    {
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        result |= Point3(charX1, charY1, z);
+        result |= Point3(charX2, charY2, z);
+
+        x += glyph.advance;
+    }
+    where->offset = Point3(x,y,z);
+
+    return result;
+}
+
+
+Box3 TextSplitArabic::Space(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the box that surrounds the text, including leading
+// ----------------------------------------------------------------------------
+{
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    text        str      = source->value;
+    QFont      &font     = where->font;
+    Box3        result;
+    scale       ascent   = glyphs.Ascent(font);
+    scale       descent  = glyphs.Descent(font);
+    scale       leading  = glyphs.Leading(font);
+    Point3      pos      = where->offset;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+
+    GlyphCache::GlyphEntry  glyph;
+    IFTRACE(justify)
+        std::cerr << "->TextSplit::Space(Layout *" << where<< ") offset "
+                  << where->Offset() << " for\n"
+                  << *this << "\n";
+
+    // Loop over all characters in the text span
+    uint max = str.length();
+    uint size = max < end ? max - start : end - start;
+    text rtlText = str.substr(start, size);
+
+    // Find the glyph in the glyph cache
+    if (glyphs.Find(font, rtlText, glyph, true))
+    {
+        if (where->extrudeDepth > 0 && where->extrudeRadius > 0)
+            glyphs.ScaleDown(glyph, 1, where->extrudeRadius);
+
+        scale sa = ascent;
+        scale sd = descent;
+        scale sl = leading;
+
+        // Enter the geometry coordinates
+        coord charX1 = x + glyph.bounds.lower.x;
+        coord charX2 = x + glyph.bounds.upper.x;
+        coord charY1 = y - glyph.bounds.lower.y;
+        coord charY2 = y - glyph.bounds.upper.y;
+
+        result |= Point3(charX1, charY1, z);
+        result |= Point3(charX2, charY2, z);
+        result |= Point3(charX1, y + sa, z);
+
+        result |= Point3(charX1 + glyph.advance, y - sd - sl, z);
+        x += glyph.advance;
+    }
+    where->offset = Point3(x,y,z);
+    IFTRACE(justify)
+        std::cerr << "<-TextSplit::Space(Layout *" << where<< ") offset "
+                  << where->Offset() << " result "
+                  << result << "\n";
+
+    return result;
+}
+
+
 static inline bool isBreakingSpace(QChar c)
 // ----------------------------------------------------------------------------
 //   Return true if this is a breaking space
@@ -1411,6 +1496,29 @@ TextUnit::~TextUnit()
 }
 
 
+static TextSplit *NewSplit(QChar::Direction dir,
+                          Text *source, uint start, uint end)
+// ----------------------------------------------------------------------------
+//   Build a new split for the character direction we are currently using
+// ----------------------------------------------------------------------------
+{
+    switch (dir)
+    {
+    case QChar::DirAL:
+    case QChar::DirAN:
+        return new TextSplitArabic(source, start, end);
+
+    case QChar::DirR:
+    case QChar::DirRLE:
+    case QChar::DirRLO:
+        return new TextSplitRTL(source, start, end);
+
+    default:
+        return new TextSplit(source, start, end);
+    }
+}
+
+
 bool TextUnit::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   If the text span contains a word or line break, cut there
@@ -1425,6 +1533,7 @@ bool TextUnit::Paginate(PageLayout *page)
     uint size = 0;
     uint last = start;
     uint first = start;
+    QChar::Direction dir = QChar::DirL;
 
     // Record that we are referenced by the given page
     // If we are invalidated, we need to drop references to text splits we
@@ -1441,7 +1550,6 @@ bool TextUnit::Paginate(PageLayout *page)
     {
         QChar c = QChar(XL::Utf8Code(str, i));
         BreakOrder charOrder = CharBreak;
-        size++;
         if (isBreakingSpace(c))
         {
             charOrder = WordBreak;
@@ -1452,14 +1560,34 @@ bool TextUnit::Paginate(PageLayout *page)
             else if (c == '\f')
                 charOrder = SentenceBreak;
         }
+        else
+        {
+            QChar::Direction d = c.direction();
+            if (d != dir)
+            {
+                if (size)
+                {
+                    TextSplit *split = NewSplit(dir, source, last, i);
+                    splits.push_back(split);
+                    ok = page->PaginateItem(split, charOrder, size);
+                    size = 0;
+                    last = i;
+                }
+                dir = d;
+            }
+        }
 
+        size++;
         if (charOrder > CharBreak)
         {
             // Create a text split with the part on the left including break
             uint next = XL::Utf8Next(str, i);
-            TextSplit *split = new TextSplit(source, last, next);
-            splits.push_back(split);
-            ok = page->PaginateItem(split, charOrder, size);
+            if (next > last)
+            {
+                TextSplit *split = NewSplit(dir, source, last, next);
+                splits.push_back(split);
+                ok = page->PaginateItem(split, charOrder, size);
+            }
             size = 0;
             last = next;
         }
@@ -1469,7 +1597,7 @@ bool TextUnit::Paginate(PageLayout *page)
     if (ok && size)
     {
         // Create a text split with the part on the right
-        TextSplit *split = new TextSplit(source, last, end);
+        TextSplit *split = NewSplit(dir, source, last, end);
         splits.push_back(split);
         ok = page->PaginateItem(split, NoBreak, size);
     }

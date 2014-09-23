@@ -51,8 +51,6 @@ struct TextSplit : Shape
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
     virtual void        Clear();
-    virtual bool        IsRTL()         { return false; }
-    virtual bool        IsArabic()      { return false; }
 
     friend std::ostream &operator <<(std::ostream &, TextSplit &);
 
@@ -104,11 +102,12 @@ struct TextSplitArabic : TextSplitRTL
     TextSplitArabic(Text *source, uint start = 0, uint end = ~0)
         : TextSplitRTL(source, start, end) {}
 
-    virtual bool        IsArabic() { return true; }
-
 protected:
     virtual void        DrawCached(Layout *where);
     virtual void        DrawDirect(Layout *where);
+
+    virtual Box3        Bounds(Layout *where);
+    virtual Box3        Space(Layout *where);
 };
 
 

@@ -2,6 +2,7 @@ Change log for Tao Presentations
 
 1.54 ---
 
+#3514 Implement right-to-left text (Arabic and Hebrew)
 #3512 Update stereo_viewpoints when setting viewpoints in the generic mv driver
 #3511 Generate 9 views when decoding 2D+Z on Dimenco 9-view display
 

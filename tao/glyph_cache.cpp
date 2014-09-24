@@ -341,6 +341,7 @@ bool GlyphCache::Find(const QFont &font,
         entry.outline = 0;
         entry.outlineWidth = 1.0;
         entry.outlineDepth = 0.0;
+        entry.outlineRadius = 0.0;
 
         // Store the new entry
         perFont->Insert(code, entry);
@@ -537,7 +538,7 @@ bool GlyphCache::Find(const QFont &font,
         entry.scalingFactor = fs;
         entry.interior = 0;
         entry.outline = 0;
-        entry.outlineWidth = lineWidth;
+        entry.outlineWidth = 1.0;
         entry.outlineDepth = 0.0;
         entry.outlineRadius = 0.0;
 
@@ -616,19 +617,12 @@ bool GlyphCache::Find(const QFont &font,
 
             }
 
-            if (outlineChange)
+            if (!entry.outline || outlineChange)
             {
                 if (!entry.outline)
                     entry.outline = GL.GenLists(1);
 
-                if (depth > 0.0)
-                {
-                    // Render outline as a depth border
-                    GL.NewList(entry.outline, GL_COMPILE);
-                    path.Draw(layout, Vector3(0,0,0), GL_POLYGON, GL_DEPTH);
-                    GL.EndList();
-                }
-                else
+                if (lineWidth > 0)
                 {
                     // Render outline in a GL list
                     QPainterPathStroker stroker;
@@ -642,6 +636,13 @@ bool GlyphCache::Find(const QFont &font,
                     GL.NewList(entry.outline, GL_COMPILE);
                     strokePath.Draw(layout, Vector3(0,0,0),
                                     GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+                    GL.EndList();
+                }
+                else if (depth > 0.0)
+                {
+                    // Render outline as a depth border
+                    GL.NewList(entry.outline, GL_COMPILE);
+                    path.Draw(layout, Vector3(0,0,0), GL_POLYGON, GL_DEPTH);
                     GL.EndList();
                 }
 

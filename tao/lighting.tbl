@@ -20,6 +20,9 @@
 //  (C) 2011 Taodyne SAS
 // ****************************************************************************
 
+#include "color_attribute.h"
+
+
 // ============================================================================
 //
 //   Lighting
@@ -50,24 +53,14 @@ PREFIX(LightEnable, tree, "light", PARM(l, integer,),
        SYNOPSIS("Select which light we are working with")
        DESCRIPTION(""))
 
-PREFIX(LightAmbient, tree, "light_ambient",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(light(self, GL_AMBIENT, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the ambient light")
-       DESCRIPTION(""))
-PREFIX(LightDiffuse, tree, "light_diffuse",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(light(self, GL_DIFFUSE, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the diffuse light")
-       DESCRIPTION(""))
-PREFIX(LightSpecular, tree, "light_specular",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(light(self, GL_SPECULAR, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the specular light")
-       DESCRIPTION(""))
+#undef  XPARM
+#undef  XARGS
+#define XPARM(a, b, c)
+#define XARGS(p)
+COLOR_ATTRIBUTE(LightAmbient,  "light_ambient",  lightAmbient)
+COLOR_ATTRIBUTE(LightDiffuse,  "light_diffuse",  lightDiffuse)
+COLOR_ATTRIBUTE(LightSpecular, "light_specular", lightSpecular)
+
 PREFIX(LightPosition3, tree, "light_position",
        PARM(x, real,) PARM(y, real,) PARM(z, real,),
        RTAO(light(self, GL_POSITION, x, y, z, 0)),
@@ -106,88 +99,30 @@ PREFIX(LightAttenuation, tree, "light_attenuation",
        SYNOPSIS("Select the light attenuation factor")
        DESCRIPTION(""))
 
-PREFIX(MaterialAmbient, tree, "material_ambient",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT_AND_BACK, GL_AMBIENT, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the ambient material")
-       DESCRIPTION(""))
-PREFIX(MaterialDiffuse, tree, "material_diffuse",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT_AND_BACK, GL_DIFFUSE, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the diffuse material")
-       DESCRIPTION(""))
-PREFIX(MaterialSpecular, tree, "material_specular",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT_AND_BACK, GL_SPECULAR, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the specular material")
-       DESCRIPTION(""))
-PREFIX(MaterialEmission, tree, "material_emission",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT_AND_BACK, GL_EMISSION, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the emission of the material")
-       DESCRIPTION(""))
+COLOR_ATTRIBUTE(MaterialAmbient,  "material_ambient",  materialAmbient)
+COLOR_ATTRIBUTE(MaterialDiffuse,  "material_diffuse",  materialDiffuse)
+COLOR_ATTRIBUTE(MaterialSpecular, "material_specular", materialSpecular)
+COLOR_ATTRIBUTE(MaterialEmission, "material_emission", materialEmission)
+
+COLOR_ATTRIBUTE(MaterialAmbientF,  "material_front_ambient",  materialAmbientF)
+COLOR_ATTRIBUTE(MaterialDiffuseF,  "material_front_diffuse",  materialDiffuseF)
+COLOR_ATTRIBUTE(MaterialSpecularF, "material_front_specular", materialSpecularF)
+COLOR_ATTRIBUTE(MaterialEmissionF, "material_front_emission", materialEmissionF)
+
+COLOR_ATTRIBUTE(MaterialAmbientB,  "material_back_ambient",  materialAmbientB)
+COLOR_ATTRIBUTE(MaterialDiffuseB,  "material_back_diffuse",  materialDiffuseB)
+COLOR_ATTRIBUTE(MaterialSpecularB, "material_back_specular", materialSpecularB)
+COLOR_ATTRIBUTE(MaterialEmissionB, "material_back_emission", materialEmissionB)
+
 PREFIX(MaterialShininess, tree, "material_shininess", PARM(x, real,),
        RTAO(material(self, GL_FRONT_AND_BACK, GL_SHININESS, x)),
        GROUP(lighting)
        SYNOPSIS("Select the shininess of the material")
        DESCRIPTION(""))
-
-PREFIX(MaterialFrontAmbient, tree, "material_front_ambient",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT, GL_AMBIENT, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the ambient material")
-       DESCRIPTION(""))
-PREFIX(MaterialFrontDiffuse, tree, "material_front_diffuse",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT, GL_DIFFUSE, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the diffuse material")
-       DESCRIPTION(""))
-PREFIX(MaterialFrontSpecular, tree, "material_front_specular",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT, GL_SPECULAR, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the specular material")
-       DESCRIPTION(""))
-PREFIX(MaterialFrontEmission, tree, "material_front_emission",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_FRONT, GL_EMISSION, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the emission of the material")
-       DESCRIPTION(""))
 PREFIX(MaterialFrontShininess, tree, "material_front_shininess", PARM(x, real,),
        RTAO(material(self, GL_FRONT, GL_SHININESS, x)),
        GROUP(lighting)
        SYNOPSIS("Select the shininess of the material")
-       DESCRIPTION(""))
-PREFIX(MaterialBackAmbient, tree, "material_back_ambient",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_BACK, GL_AMBIENT, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the ambient material")
-       DESCRIPTION(""))
-PREFIX(MaterialBackDiffuse, tree, "material_back_diffuse",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_BACK, GL_DIFFUSE, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the diffuse material")
-       DESCRIPTION(""))
-PREFIX(MaterialBackSpecular, tree, "material_back_specular",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_BACK, GL_SPECULAR, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the specular material")
-       DESCRIPTION(""))
-PREFIX(MaterialBackEmission, tree, "material_back_emission",
-       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
-       RTAO(material(self, GL_BACK, GL_EMISSION, r, g, b, a)),
-       GROUP(lighting)
-       SYNOPSIS("Select the emission of the material")
        DESCRIPTION(""))
 PREFIX(MaterialBackShininess, tree, "material_back_shininess", PARM(x, real,),
        RTAO(material(self, GL_BACK, GL_SHININESS, x)),

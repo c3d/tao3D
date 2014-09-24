@@ -420,14 +420,14 @@ bool GlyphCache::Find(const QFont &font,
                     XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
                     GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
-                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                              GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
                     GL.EndList();
                 }
                 else
                 {
                     GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
-                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                              GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
                     GL.EndList();
                 }
             }
@@ -604,14 +604,14 @@ bool GlyphCache::Find(const QFont &font,
                     XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
                     GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
-                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                              GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
                     GL.EndList();
                 }
                 else
                 {
                     GL.NewList(entry.interior, GL_COMPILE);
                     path.Draw(layout, Vector3(0,0,0),
-                              GL_POLYGON, GLU_TESS_WINDING_ODD);
+                              GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
                     GL.EndList();
                 }
 

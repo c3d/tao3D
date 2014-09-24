@@ -2,6 +2,7 @@ Change log for Tao Presentations
 
 1.54 (24-Sep-2014)
 
+#3515 Use the unified color model for the lights and materials as well
 #3514 Implement right-to-left text (Arabic and Hebrew)
 #3512 Update stereo_viewpoints when setting viewpoints in the generic mv driver
 #3511 Generate 9 views when decoding 2D+Z on Dimenco 9-view display

@@ -575,6 +575,40 @@ public:
     Tree_p      material(Tree_p self, GLenum face, GLenum function, GLfloat d);
     Tree_p      material(Tree_p self, GLenum face, GLenum function,
                          GLfloat a, GLfloat b, GLfloat c, GLfloat d);
+
+#define LIGHT_ADAPT(name,arg)                                   \
+    Tree_p name(Tree_p self, QColor c)                          \
+    {                                                           \
+        return light(self, arg,                                 \
+                     c.redF(),c.greenF(),c.blueF(),c.alphaF()); \
+    }
+    LIGHT_ADAPT(lightAmbient, GL_AMBIENT)
+    LIGHT_ADAPT(lightDiffuse, GL_DIFFUSE)
+    LIGHT_ADAPT(lightSpecular, GL_SPECULAR)
+#undef LIGHT_ADAPT
+
+#define MATERIAL_ADAPT(name,arg)                                        \
+    Tree_p name(Tree_p self, QColor c)                                  \
+    {                                                                   \
+        return material(self, GL_FRONT_AND_BACK, arg,                   \
+                        c.redF(),c.greenF(),c.blueF(),c.alphaF());      \
+    }                                                                   \
+    Tree_p name##F(Tree_p self, QColor c)                               \
+    {                                                                   \
+        return material(self, GL_FRONT, arg,                            \
+                        c.redF(),c.greenF(),c.blueF(),c.alphaF());      \
+    }                                                                   \
+    Tree_p name##B(Tree_p self, QColor c)                               \
+    {                                                                   \
+        return material(self, GL_BACK, arg,                             \
+                        c.redF(),c.greenF(),c.blueF(),c.alphaF());      \
+    }
+    MATERIAL_ADAPT(materialAmbient, GL_AMBIENT)
+    MATERIAL_ADAPT(materialDiffuse, GL_DIFFUSE)
+    MATERIAL_ADAPT(materialSpecular, GL_SPECULAR)
+    MATERIAL_ADAPT(materialEmission, GL_EMISSION)
+#undef MATERIAL_ADAPT
+
     Tree_p      shaderProgram(Context *, Tree_p self, Tree_p code);
     Tree_p      shaderFromSource(Tree_p self, ShaderKind kind, text source);
     Tree_p      shaderFromFile(Context *, Tree_p self, ShaderKind k, text file);

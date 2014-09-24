@@ -33,6 +33,8 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Enable stereoscopy (Tridelity ML)", "Activer stéréoscopie (Tridelity ML)"
     tr "Enable stereoscopy (anaglyph)", "Activer stéréoscopie (anaglyphe)"
     tr "Enable stereoscopy (checkerboard)", "Activer stéréoscopie (damier)"
+    tr "Enable stereoscopy (quad buffer)", "Activer stéréoscopie (quad buffer)"
+    tr "Enable stereoscopy (SiOptica 5-view)", "Activer stéréoscopie (SiOptica 5-vues)"
     tr "Increase eye distance", "Augmenter effet 3D"
     tr "Decrease eye distance", "Réduire effet 3D"
     tr "Insert", "Insérer"

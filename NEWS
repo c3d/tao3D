@@ -1,6 +1,6 @@
 Change log for Tao Presentations
 
-1.54 ---
+1.54 (24-Sep-2014)
 
 #3514 Implement right-to-left text (Arabic and Hebrew)
 #3512 Update stereo_viewpoints when setting viewpoints in the generic mv driver

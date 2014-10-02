@@ -1600,7 +1600,7 @@ bool TextUnit::Paginate(PageLayout *page)
             else if (c == '\f')
                 charOrder = SentenceBreak;
         }
-        else
+        else if (!c.isPunct())
         {
             QChar::Direction d = c.direction();
             if (d != dir)

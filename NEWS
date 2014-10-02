@@ -1,5 +1,10 @@
 Change log for Tao Presentations
 
+1.55 --
+
+#3520 WebRemote: Thumbnails not showing up if Tao document runs on Windows
+#3519 Text layout: undue word breaks at punctuations
+
 1.54 (24-Sep-2014)
 
 #3515 Use the unified color model for the lights and materials as well

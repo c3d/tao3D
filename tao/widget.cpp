@@ -11285,8 +11285,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // A canvas must have a name or it would not persist accross pages
         // (all anonymous FrameInfos are destroyed on page change, #3090).
         QString qname = QString("canvas%1").arg(shapeId());
-        return frameTexture(context, self, w, h, prog, +qname, withDepth,
-                            canvas);
+        name = +qname;
     }
 
     // Need to synchronize GL states

@@ -26,6 +26,7 @@
 #include "attributes.h"
 #include "tao_tree.h"
 #include "tao_utf8.h"
+#include "statistics.h"
 #include "preferences_pages.h"
 #include <sstream>
 #include "demangle.h"
@@ -279,6 +280,8 @@ void Layout::Draw(Layout *where)
 //   Draw the elements in the layout
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(lfps)
+        PerLayoutStatistics::beginDraw(body);
     if (true)
     {
         // Inherit offset from our parent layout if there is one
@@ -307,6 +310,8 @@ void Layout::Draw(Layout *where)
         GL.DepthMask(GL_TRUE);
         transparency = false;
     }
+    IFTRACE(lfps)
+        PerLayoutStatistics::endDraw(body);
 }
 
 
@@ -315,6 +320,8 @@ void Layout::DrawSelection(Layout *where)
 //   Draw the selection for the elements in the layout
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(lfps)
+        PerLayoutStatistics::beginDraw(body);
     if (true)
     {
         // Inherit offset from our parent layout if there is one
@@ -342,6 +349,8 @@ void Layout::DrawSelection(Layout *where)
         GL.DepthMask(GL_TRUE);
         transparency = false;
     }
+    IFTRACE(lfps)
+        PerLayoutStatistics::endDraw(body);
 }
 
 
@@ -350,6 +359,8 @@ void Layout::Identify(Layout *where)
 //   Identify the elements of the layout for OpenGL selection
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(lfps)
+        PerLayoutStatistics::beginDraw(body);
     if (true)
     {
         // Remember that we are in Identify mode
@@ -380,6 +391,8 @@ void Layout::Identify(Layout *where)
         GL.DepthMask(GL_TRUE);
         transparency = false;
     }
+    IFTRACE(lfps)
+        PerLayoutStatistics::endDraw(body);
 }
 
 
@@ -552,6 +565,10 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     if (widget->currentPrinter())
         return false;
     text layoutId;
+
+    IFTRACE(lfps)
+        PerLayoutStatistics::beginExec(body);
+
     IFTRACE(layoutevents)
     {
         if (!dbg.isEmpty())
@@ -618,7 +635,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         changed |= RefreshChildren(e, now, dbg);
     }
     IFTRACE(justify)
-        std::cerr << "<-Layout::Refresh[" << this << "]  \n";
+        std::cerr << "<-Layout::Refresh[" << this << "]  \n";    
+    IFTRACE(lfps)
+        PerLayoutStatistics::endExec(body);
 
     return changed;
 }

@@ -97,6 +97,7 @@
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+#include <queue>
 #include <sys/time.h>
 #include <string.h>
 #include <ctype.h>
@@ -753,7 +754,8 @@ void Widget::dawdle()
     if (stats.isEnabled(Statistics::TO_CONSOLE) != XLTRACE(fps))
         stats.enable(XLTRACE(fps), Statistics::TO_CONSOLE);
 
-
+    IFTRACE(lfps)
+        printPerLayoutStatistics();
 }
 
 
@@ -1509,11 +1511,19 @@ Tree_p Widget::saveAndEvaluate(Context* context, Tree_p code)
 //   Save GL states before evaluate a XL context
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(lfps)
+        PerLayoutStatistics::beginExec(code);
+
     // Save GL state before evaluate
     GLAllStateKeeper save;
 
     // Evaluate context
-    return context->Evaluate(code);
+    Tree *result = context->Evaluate(code);
+
+    IFTRACE(lfps)
+        PerLayoutStatistics::endExec(code);
+
+    return result;
 }
 
 
@@ -5304,6 +5314,103 @@ void Widget::printStatistics()
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
     RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
                        tot>>10, alloc>>10, freed>>10);
+}
+
+
+struct PerLayoutStatisticsWrapper
+// ----------------------------------------------------------------------------
+//   Used to provider the right operator less-than
+// ----------------------------------------------------------------------------
+{
+    PerLayoutStatisticsWrapper(Tree *lb, PerLayoutStatistics *stats)
+        : layoutBody(lb), stats(stats) {}
+    bool operator< (const PerLayoutStatisticsWrapper &o) const
+    {
+        return stats->totalTime() < o.stats->totalTime();
+    }
+    Tree                *layoutBody;
+    PerLayoutStatistics *stats;
+};
+typedef std::priority_queue<PerLayoutStatisticsWrapper> PerLayoutStatisticsQ;
+
+
+static void insertPerLayoutStatistics(XL::Tree *tree,
+                                      PerLayoutStatisticsQ &queue)
+// ----------------------------------------------------------------------------
+//    Insert the per-layout statistics in the queue
+// ----------------------------------------------------------------------------
+{
+    PerLayoutStatistics *info = tree->GetInfo<PerLayoutStatistics>();
+    if (info)
+        queue.push(PerLayoutStatisticsWrapper(tree, info));
+    if (Infix *infix = tree->AsInfix())
+    {
+        insertPerLayoutStatistics(infix->left, queue);
+        insertPerLayoutStatistics(infix->right, queue);
+    }
+    else if (Prefix *prefix = tree->AsPrefix())
+    {
+        insertPerLayoutStatistics(prefix->left, queue);
+        insertPerLayoutStatistics(prefix->right, queue);
+    }
+    else if (Postfix *postfix = tree->AsPostfix())
+    {
+        insertPerLayoutStatistics(postfix->left, queue);
+        insertPerLayoutStatistics(postfix->right, queue);
+    }
+    else if (Block *block = tree->AsBlock())
+    {
+        insertPerLayoutStatistics(block->child, queue);
+    }
+}
+
+
+void Widget::printPerLayoutStatistics()
+// ----------------------------------------------------------------------------
+//    Print the rendering statistics for all the layouts
+// ----------------------------------------------------------------------------
+{
+    static int refresh = 0;
+
+    if (refresh++ < 100)
+        return;
+    refresh = 0;
+
+    PerLayoutStatisticsQ queue;
+    XL::Main *xlr = XL::MAIN;
+    XL::source_files::iterator it;
+    for (it = xlr->files.begin(); it != xlr->files.end(); it++)
+    {
+        XL::SourceFile &sf = (*it).second;
+        if (sf.tree)
+            insertPerLayoutStatistics(sf.tree, queue);
+    }
+
+    fprintf(stderr,
+            "%s,%s,%s,%s,%s,%s,%s,%s\n",
+            "FILE", "LINE",
+            "EXEC (ms)", "XCNT", "XAVG",
+            "DRAW (ms)", "DCNT", "DAVG");
+    while (!queue.empty())
+    {
+        const PerLayoutStatisticsWrapper &top = queue.top();
+        PerLayoutStatistics *stats = top.stats;
+        
+        if (stats->sourceLine == 0)
+            XL::MAIN->positions.GetInfo(top.layoutBody->Position(),
+                                        &stats->sourceFile,
+                                        &stats->sourceLine,
+                                        NULL, NULL);
+        if (stats->execCount || stats->drawCount)
+            fprintf(stderr, "%s,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",
+                    stats->sourceFile.c_str(), stats->sourceLine,
+                    stats->totalExecTime, stats->execCount,
+                    stats->totalExecTime/(stats->execCount|!stats->execCount),
+                    stats->totalDrawTime, stats->drawCount, 
+                    stats->totalDrawTime/(stats->drawCount|!stats->drawCount));
+        stats->reset();
+        queue.pop();
+    }
 }
 
 
@@ -11240,8 +11347,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // A canvas must have a name or it would not persist accross pages
         // (all anonymous FrameInfos are destroyed on page change, #3090).
         QString qname = QString("canvas%1").arg(shapeId());
-        return frameTexture(context, self, w, h, prog, +qname, withDepth,
-                            canvas);
+        name = +qname;
     }
 
     // Need to synchronize GL states
@@ -11252,7 +11358,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     // as QT fbo functions modify implicitly GL states.
     glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-    Tree_p result = XL::xl_false;
     GLuint maxTextureSize = GL.MaxTextureSize();
     if (w > maxTextureSize) w = maxTextureSize;
     if (h > maxTextureSize) h = maxTextureSize;
@@ -11287,12 +11392,23 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     }
 
     FrameInfo &frame = *pFrame;
+    bool forceEval = !w_event;
+    if (!frame.layout)
+    {
+        frame.layout = new SpaceLayout(this);
+        forceEval = true;
+    }
+    if (frame.layout->body != prog || frame.layout->ctx != context)
+    {
+        frame.layout->body = prog;
+        frame.layout->ctx  = context;
+        forceEval = true;
+    }
 
-    Layout *parent = layout;
     do
     {
         GLAllStateKeeper      saveGL;
-        XL::Save<Layout *>    saveLayout(layout, layout->NewChild());
+        XL::Save<Layout *>    saveLayout(layout, frame.layout);
         XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
         XL::Save<Point3>      saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3>      saveEye(cameraPosition, defaultCameraPosition);
@@ -11307,26 +11423,32 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         setup(w, h);
 
         // Evaluate the program
-        result = saveAndEvaluate(context, prog);
+        bool draw = false;
+        if (forceEval)
+        {
+            layout->Clear();
+            saveAndEvaluate(context, prog);
+            draw = true;
+        }
+        else if (layout->Refresh(w_event, CurrentTime()))
+        {
+            draw = true;
+        }
 
         // Draw the layout in the frame context
-        stats.end(Statistics::EXEC);
-        stats.begin(Statistics::DRAW);
+        if (draw)
+        {
+            stats.end(Statistics::EXEC);
+            stats.begin(Statistics::DRAW);
+            
+            frame.begin(canvas == false);
+            layout->Draw(saveLayout.saved);
+            frame.end();
 
-        frame.begin(canvas == false);
-        layout->Draw(NULL);
-        frame.end();
-
-        stats.end(Statistics::DRAW);
-        stats.begin(Statistics::EXEC);
-
-        // Parent layout should refresh when layout would need to
-        parent->RefreshOn(layout);
-
-        // Delete the layout (it's not a child of the outer layout)
-        delete layout;
-        layout = NULL;
-    } while (0); // State keeper and layout
+            stats.end(Statistics::DRAW);
+            stats.begin(Statistics::EXEC);
+        }
+    } while(0);
 
     glPopAttrib();
 
@@ -11416,8 +11538,9 @@ Integer* Widget::thumbnail(Context *context,
 
     // Prohibit recursion on thumbnails
     if (page == pageName || !xlProgram)
-        new XL::Integer((longlong)0);
+        return new XL::Integer((longlong)0);
 
+    Tree *prog = xlProgram->tree;
     double w = width() * s;
     double h = height() * s;
 
@@ -11429,12 +11552,23 @@ Integer* Widget::thumbnail(Context *context,
         self->SetInfo< MultiFrameInfo<text> > (multiframe);
     }
     FrameInfo &frame = multiframe->frame(page);
+    bool forceEval = !w_event;
+    if (!frame.layout)
+    {
+        frame.layout = new SpaceLayout(this);
+        forceEval = true;
+    }
+    if (frame.layout->body != prog || frame.layout->ctx != context)
+    {
+        frame.layout->body = prog;
+        frame.layout->ctx  = context;
+        forceEval = true;
+    }
 
-    Layout *parent = layout;
-    if (frame.refreshTime < CurrentTime())
+    do
     {
         GLAllStateKeeper saveGL;
-        XL::Save<Layout *> saveLayout(layout,layout->NewChild());
+        XL::Save<Layout *> saveLayout(layout,frame.layout);
         XL::Save<Point3> saveCenter(cameraTarget, cameraTarget);
         XL::Save<Point3> saveEye(cameraPosition, cameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, cameraUpVector);
@@ -11457,27 +11591,34 @@ Integer* Widget::thumbnail(Context *context,
         setup(w, h);
 
         // Evaluate the program, not the context files (bug #1054)
-        if (Tree_p prog = xlProgram->tree)
-            saveAndEvaluate(context, prog);
+        bool draw = false;
+        if (forceEval)
+        {
+            layout->Clear();
+            if (prog)
+                saveAndEvaluate(context, prog);
+            draw = true;
+        }
+        else if (layout->Refresh(w_event, CurrentTime()))
+        {
+            draw = true;
+        }
 
         // Draw the layout in the frame context
-        stats.end(Statistics::EXEC);
-        stats.begin(Statistics::DRAW);
-        frame.begin();
-        layout->Draw(NULL);
-        frame.end();
-        stats.end(Statistics::DRAW);
-        stats.begin(Statistics::EXEC);
-
-        // Parent layout should refresh when layout would need to
-        parent->RefreshOn(layout);
-        // Delete the layout (it's not a child of the outer layout)
-        delete layout;
-        layout = NULL;
+        if (draw)
+        {
+            stats.end(Statistics::EXEC);
+            stats.begin(Statistics::DRAW);
+            frame.begin();
+            layout->Draw(NULL);
+            frame.end();
+            stats.end(Statistics::DRAW);
+            stats.begin(Statistics::EXEC);
+        }
 
         // Update refresh time
-        frame.refreshTime = CurrentTime() + interval;
-    }
+        layout->RefreshOn(QEvent::Timer, CurrentTime() + interval);
+    } while(0);
 
     glPopAttrib();
 
@@ -11490,7 +11631,6 @@ Integer* Widget::thumbnail(Context *context,
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
-
 
     return new Integer(texId, self->Position());
 }

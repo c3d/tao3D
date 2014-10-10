@@ -22,21 +22,64 @@
 //  (C) 2011 Taodyne SAS
 // ****************************************************************************
 
-
 #include "tao.h"
+#include "tree.h"
+#include "info.h"
 #include <QPair>
 #include <QList>
 #include <QTime>
+#include <QElapsedTimer>
 
 TAO_BEGIN
 
 struct Int64Timer
+// ----------------------------------------------------------------------------
+//    A high resolution timer
+// ----------------------------------------------------------------------------
 {
     Int64Timer() : startTime(-1) {}
     void   start()   { startTime = now(); }
     qint64 elapsed() { Q_ASSERT(startTime > 0); return now() - startTime; }
     qint64 now()   { return QDateTime::currentDateTime().toMSecsSinceEpoch(); }
     qint64 startTime;
+};
+
+
+struct PerLayoutStatistics : XL::Info
+// ----------------------------------------------------------------------------
+//   Statistics collected for each layout
+// ----------------------------------------------------------------------------
+{
+    PerLayoutStatistics():
+        execCount(0), drawCount(0),
+        totalExecTime(0), totalDrawTime(0),
+        execTime(), drawTime(),
+        sourceFile(""), sourceLine(0) {}
+
+public:
+    ulong               totalTime() { return totalExecTime + totalDrawTime; }
+    void                reset()
+    {
+        execCount = drawCount = 0;
+        totalExecTime = totalDrawTime = 0;
+    }
+
+public:
+    static void         beginExec(XL::Tree *);
+    static void         endExec(XL::Tree *);
+    static void         beginDraw(XL::Tree *);
+    static void         endDraw(XL::Tree *);
+
+public:
+    ulong               execCount;
+    ulong               drawCount;
+    ulong               totalExecTime;
+    ulong               totalDrawTime;
+    QElapsedTimer       execTime;
+    QElapsedTimer       drawTime;
+
+    text                sourceFile;
+    ulong               sourceLine;
 };
 
 

@@ -1,5 +1,9 @@
 Change log for Tao Presentations
 
+1.56
+
+#3527 Added the 'lfps' trace (per-layout timing statistics)
+
 1.55 (9-Oct-2014)
 
 #3520 WebRemote: Thumbnails not showing up if Tao document runs on Windows

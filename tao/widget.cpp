@@ -11332,11 +11332,20 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     FrameInfo &frame = *pFrame;
 
-    Layout *parent = layout;
-    do
+    if (!frame.layout || !w_event ||
+        frame.layout->NeedRefresh(w_event, CurrentTime())) 
     {
+        if (frame.layout)
+        {
+            frame.layout->Clear();
+        }
+        else
+        {
+            frame.layout = new SpaceLayout(this);
+        }
+
         GLAllStateKeeper      saveGL;
-        XL::Save<Layout *>    saveLayout(layout, layout->NewChild());
+        XL::Save<Layout *>    saveLayout(layout, frame.layout);
         XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
         XL::Save<Point3>      saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3>      saveEye(cameraPosition, defaultCameraPosition);
@@ -11363,14 +11372,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
         stats.end(Statistics::DRAW);
         stats.begin(Statistics::EXEC);
-
-        // Parent layout should refresh when layout would need to
-        parent->RefreshOn(layout);
-
-        // Delete the layout (it's not a child of the outer layout)
-        delete layout;
-        layout = NULL;
-    } while (0); // State keeper and layout
+    }
 
     glPopAttrib();
 
@@ -11474,11 +11476,20 @@ Integer* Widget::thumbnail(Context *context,
     }
     FrameInfo &frame = multiframe->frame(page);
 
-    Layout *parent = layout;
-    if (frame.refreshTime < CurrentTime())
+    if (!frame.layout || !w_event ||
+        frame.layout->NeedRefresh(w_event, CurrentTime())) 
     {
+        if (frame.layout)
+        {
+            frame.layout->Clear();
+        }
+        else
+        {
+            frame.layout = new SpaceLayout(this);
+        }
+
         GLAllStateKeeper saveGL;
-        XL::Save<Layout *> saveLayout(layout,layout->NewChild());
+        XL::Save<Layout *> saveLayout(layout,frame.layout);
         XL::Save<Point3> saveCenter(cameraTarget, cameraTarget);
         XL::Save<Point3> saveEye(cameraPosition, cameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, cameraUpVector);
@@ -11513,14 +11524,8 @@ Integer* Widget::thumbnail(Context *context,
         stats.end(Statistics::DRAW);
         stats.begin(Statistics::EXEC);
 
-        // Parent layout should refresh when layout would need to
-        parent->RefreshOn(layout);
-        // Delete the layout (it's not a child of the outer layout)
-        delete layout;
-        layout = NULL;
-
         // Update refresh time
-        frame.refreshTime = CurrentTime() + interval;
+        frame.layout->RefreshOn(QEvent::Timer, CurrentTime() + interval);
     }
 
     glPopAttrib();

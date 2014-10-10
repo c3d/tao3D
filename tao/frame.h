@@ -32,6 +32,8 @@
 
 TAO_BEGIN
 
+struct Layout;
+
 struct FrameInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //    Information about a given frame being rendered in a dynamic texture
@@ -67,7 +69,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
     QGLContext           *context;
     QGLFramebufferObject *renderFBO;
     QGLFramebufferObject *textureFBO;
-    double                refreshTime;
+    Layout *              layout;
     Color                 clearColor;
 
 

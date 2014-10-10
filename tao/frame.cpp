@@ -36,7 +36,7 @@ FrameInfo::FrameInfo(uint w, uint h, GLenum f)
 // ----------------------------------------------------------------------------
     : w(w), h(h), format(f), depthTextureID(0),
       context(NULL), renderFBO(NULL), textureFBO(NULL),
-      refreshTime(-1), clearColor(1, 1, 1, 0)
+      layout(NULL), clearColor(1, 1, 1, 0)
 {
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Constructor " << this
@@ -50,7 +50,7 @@ FrameInfo::FrameInfo(const FrameInfo &o)
 // ----------------------------------------------------------------------------
     : XL::Info(o), w(o.w), h(o.h), format(o.format), depthTextureID(0),
       context(NULL), renderFBO(NULL), textureFBO(NULL),
-      refreshTime(o.refreshTime), clearColor(o.clearColor)
+      layout(NULL), clearColor(o.clearColor)
 {
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Copy " << this
@@ -66,6 +66,7 @@ FrameInfo::~FrameInfo()
 {
     IFTRACE(fbo)
         std::cerr << "[FrameInfo] Destructor " << this << "\n";
+    delete layout;
     purge();
 }
 

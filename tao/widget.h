@@ -275,6 +275,7 @@ public:
     // Timing
     ulonglong   now();
     void        printStatistics();
+    void        printPerLayoutStatistics();
     void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
     void        resetTimes();

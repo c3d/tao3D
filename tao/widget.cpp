@@ -97,6 +97,7 @@
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+#include <queue>
 #include <sys/time.h>
 #include <string.h>
 #include <ctype.h>
@@ -742,7 +743,8 @@ void Widget::dawdle()
     if (stats.isEnabled(Statistics::TO_CONSOLE) != XLTRACE(fps))
         stats.enable(XLTRACE(fps), Statistics::TO_CONSOLE);
 
-
+    IFTRACE(lfps)
+        printPerLayoutStatistics();
 }
 
 
@@ -1498,11 +1500,19 @@ Tree_p Widget::saveAndEvaluate(Context* context, Tree_p code)
 //   Save GL states before evaluate a XL context
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(lfps)
+        PerLayoutStatistics::beginExec(code);
+
     // Save GL state before evaluate
     GLAllStateKeeper save;
 
     // Evaluate context
-    return context->Evaluate(code);
+    Tree *result = context->Evaluate(code);
+
+    IFTRACE(lfps)
+        PerLayoutStatistics::endExec(code);
+
+    return result;
 }
 
 
@@ -5242,6 +5252,103 @@ void Widget::printStatistics()
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
     RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
                        tot>>10, alloc>>10, freed>>10);
+}
+
+
+struct PerLayoutStatisticsWrapper
+// ----------------------------------------------------------------------------
+//   Used to provider the right operator less-than
+// ----------------------------------------------------------------------------
+{
+    PerLayoutStatisticsWrapper(Tree *lb, PerLayoutStatistics *stats)
+        : layoutBody(lb), stats(stats) {}
+    bool operator< (const PerLayoutStatisticsWrapper &o) const
+    {
+        return stats->totalTime() < o.stats->totalTime();
+    }
+    Tree                *layoutBody;
+    PerLayoutStatistics *stats;
+};
+typedef std::priority_queue<PerLayoutStatisticsWrapper> PerLayoutStatisticsQ;
+
+
+static void insertPerLayoutStatistics(XL::Tree *tree,
+                                      PerLayoutStatisticsQ &queue)
+// ----------------------------------------------------------------------------
+//    Insert the per-layout statistics in the queue
+// ----------------------------------------------------------------------------
+{
+    PerLayoutStatistics *info = tree->GetInfo<PerLayoutStatistics>();
+    if (info)
+        queue.push(PerLayoutStatisticsWrapper(tree, info));
+    if (Infix *infix = tree->AsInfix())
+    {
+        insertPerLayoutStatistics(infix->left, queue);
+        insertPerLayoutStatistics(infix->right, queue);
+    }
+    else if (Prefix *prefix = tree->AsPrefix())
+    {
+        insertPerLayoutStatistics(prefix->left, queue);
+        insertPerLayoutStatistics(prefix->right, queue);
+    }
+    else if (Postfix *postfix = tree->AsPostfix())
+    {
+        insertPerLayoutStatistics(postfix->left, queue);
+        insertPerLayoutStatistics(postfix->right, queue);
+    }
+    else if (Block *block = tree->AsBlock())
+    {
+        insertPerLayoutStatistics(block->child, queue);
+    }
+}
+
+
+void Widget::printPerLayoutStatistics()
+// ----------------------------------------------------------------------------
+//    Print the rendering statistics for all the layouts
+// ----------------------------------------------------------------------------
+{
+    static int refresh = 0;
+
+    if (refresh++ < 100)
+        return;
+    refresh = 0;
+
+    PerLayoutStatisticsQ queue;
+    XL::Main *xlr = XL::MAIN;
+    XL::source_files::iterator it;
+    for (it = xlr->files.begin(); it != xlr->files.end(); it++)
+    {
+        XL::SourceFile &sf = (*it).second;
+        if (sf.tree)
+            insertPerLayoutStatistics(sf.tree, queue);
+    }
+
+    fprintf(stderr,
+            "%s,%s,%s,%s,%s,%s,%s,%s\n",
+            "FILE", "LINE",
+            "EXEC (ms)", "XCNT", "XAVG",
+            "DRAW (ms)", "DCNT", "DAVG");
+    while (!queue.empty())
+    {
+        const PerLayoutStatisticsWrapper &top = queue.top();
+        PerLayoutStatistics *stats = top.stats;
+        
+        if (stats->sourceLine == 0)
+            XL::MAIN->positions.GetInfo(top.layoutBody->Position(),
+                                        &stats->sourceFile,
+                                        &stats->sourceLine,
+                                        NULL, NULL);
+        if (stats->execCount || stats->drawCount)
+            fprintf(stderr, "%s,%lu,%lu,%lu,%lu,%lu,%lu,%lu\n",
+                    stats->sourceFile.c_str(), stats->sourceLine,
+                    stats->totalExecTime, stats->execCount,
+                    stats->totalExecTime/(stats->execCount|!stats->execCount),
+                    stats->totalDrawTime, stats->drawCount, 
+                    stats->totalDrawTime/(stats->drawCount|!stats->drawCount));
+        stats->reset();
+        queue.pop();
+    }
 }
 
 

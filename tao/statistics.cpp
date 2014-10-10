@@ -25,6 +25,85 @@
 
 TAO_BEGIN
 
+// ============================================================================
+// 
+//   Per-layout statistics
+// 
+// ============================================================================
+
+void PerLayoutStatistics::beginExec(XL::Tree *body)
+// ----------------------------------------------------------------------------
+//    Begin timing the execution phase
+// ----------------------------------------------------------------------------
+{
+    if (body)
+    {
+        PerLayoutStatistics *info = body->GetInfo<PerLayoutStatistics>();
+        if (!info)
+        {
+            info = new PerLayoutStatistics;
+            body->SetInfo<PerLayoutStatistics>(info);
+        }
+        info->execCount++;
+        info->execTime.restart();
+    }
+}
+
+
+void PerLayoutStatistics::endExec(XL::Tree *body)
+// ----------------------------------------------------------------------------
+//    End of execution phase timing
+// ----------------------------------------------------------------------------
+{
+    if (body)
+    {
+        PerLayoutStatistics *info = body->GetInfo<PerLayoutStatistics>();
+        XL_ASSERT(info);
+        info->totalExecTime += info->execTime.nsecsElapsed();
+    }
+}
+
+
+void PerLayoutStatistics::beginDraw(XL::Tree *body)
+// ----------------------------------------------------------------------------
+//    Begin timing the drawing phase
+// ----------------------------------------------------------------------------
+{
+    if (body)
+    {
+        PerLayoutStatistics *info = body->GetInfo<PerLayoutStatistics>();
+        if (!info)
+        {
+            info = new PerLayoutStatistics;
+            body->SetInfo<PerLayoutStatistics>(info);
+        }
+        info->drawCount++;
+        info->drawTime.restart();
+    }
+}
+
+
+void PerLayoutStatistics::endDraw(XL::Tree *body)
+// ----------------------------------------------------------------------------
+//    End of drawing phase timing
+// ----------------------------------------------------------------------------
+{
+    if (body)
+    {
+        PerLayoutStatistics *info = body->GetInfo<PerLayoutStatistics>();
+        XL_ASSERT(info);
+        info->totalDrawTime += info->drawTime.nsecsElapsed();
+    }
+}
+
+
+
+// ============================================================================
+// 
+//   Global statistics
+// 
+// ============================================================================
+
 void Statistics::reset()
 // ----------------------------------------------------------------------------
 //    Reset statistics and start a new measurement

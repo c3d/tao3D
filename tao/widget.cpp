@@ -11296,7 +11296,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     // as QT fbo functions modify implicitly GL states.
     glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-    Tree_p result = XL::xl_false;
     GLuint maxTextureSize = GL.MaxTextureSize();
     if (w > maxTextureSize) w = maxTextureSize;
     if (h > maxTextureSize) h = maxTextureSize;
@@ -11331,19 +11330,17 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     }
 
     FrameInfo &frame = *pFrame;
-
-    if (!frame.layout || !w_event ||
-        frame.layout->NeedRefresh(w_event, CurrentTime())) 
+    bool forceEval = !w_event;
+    if (!frame.layout)
     {
-        if (frame.layout)
-        {
-            frame.layout->Clear();
-        }
-        else
-        {
-            frame.layout = new SpaceLayout(this);
-        }
+        frame.layout = new SpaceLayout(this);
+        frame.layout->body = prog;
+        frame.layout->ctx  = context;
+        forceEval = true;
+    }
 
+    do
+    {
         GLAllStateKeeper      saveGL;
         XL::Save<Layout *>    saveLayout(layout, frame.layout);
         XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
@@ -11360,19 +11357,32 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         setup(w, h);
 
         // Evaluate the program
-        result = saveAndEvaluate(context, prog);
+        bool draw = false;
+        if (forceEval)
+        {
+            layout->Clear();
+            saveAndEvaluate(context, prog);
+            draw = true;
+        }
+        else if (layout->Refresh(w_event, CurrentTime()))
+        {
+            draw = true;
+        }
 
         // Draw the layout in the frame context
-        stats.end(Statistics::EXEC);
-        stats.begin(Statistics::DRAW);
+        if (draw)
+        {
+            stats.end(Statistics::EXEC);
+            stats.begin(Statistics::DRAW);
+            
+            frame.begin(canvas == false);
+            layout->Draw(saveLayout.saved);
+            frame.end();
 
-        frame.begin(canvas == false);
-        layout->Draw(NULL);
-        frame.end();
-
-        stats.end(Statistics::DRAW);
-        stats.begin(Statistics::EXEC);
-    }
+            stats.end(Statistics::DRAW);
+            stats.begin(Statistics::EXEC);
+        }
+    } while(0);
 
     glPopAttrib();
 
@@ -11462,8 +11472,9 @@ Integer* Widget::thumbnail(Context *context,
 
     // Prohibit recursion on thumbnails
     if (page == pageName || !xlProgram)
-        new XL::Integer((longlong)0);
+        return new XL::Integer((longlong)0);
 
+    Tree *prog = xlProgram->tree;
     double w = width() * s;
     double h = height() * s;
 
@@ -11475,19 +11486,17 @@ Integer* Widget::thumbnail(Context *context,
         self->SetInfo< MultiFrameInfo<text> > (multiframe);
     }
     FrameInfo &frame = multiframe->frame(page);
-
-    if (!frame.layout || !w_event ||
-        frame.layout->NeedRefresh(w_event, CurrentTime())) 
+    bool forceEval = !w_event;
+    if (!frame.layout)
     {
-        if (frame.layout)
-        {
-            frame.layout->Clear();
-        }
-        else
-        {
-            frame.layout = new SpaceLayout(this);
-        }
+        frame.layout = new SpaceLayout(this);
+        frame.layout->body = prog;
+        frame.layout->ctx  = context;
+        forceEval = true;
+    }
 
+    do
+    {
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout,frame.layout);
         XL::Save<Point3> saveCenter(cameraTarget, cameraTarget);
@@ -11512,21 +11521,34 @@ Integer* Widget::thumbnail(Context *context,
         setup(w, h);
 
         // Evaluate the program, not the context files (bug #1054)
-        if (Tree_p prog = xlProgram->tree)
-            saveAndEvaluate(context, prog);
+        bool draw = false;
+        if (forceEval)
+        {
+            layout->Clear();
+            if (prog)
+                saveAndEvaluate(context, prog);
+            draw = true;
+        }
+        else if (layout->Refresh(w_event, CurrentTime()))
+        {
+            draw = true;
+        }
 
         // Draw the layout in the frame context
-        stats.end(Statistics::EXEC);
-        stats.begin(Statistics::DRAW);
-        frame.begin();
-        layout->Draw(NULL);
-        frame.end();
-        stats.end(Statistics::DRAW);
-        stats.begin(Statistics::EXEC);
+        if (draw)
+        {
+            stats.end(Statistics::EXEC);
+            stats.begin(Statistics::DRAW);
+            frame.begin();
+            layout->Draw(NULL);
+            frame.end();
+            stats.end(Statistics::DRAW);
+            stats.begin(Statistics::EXEC);
+        }
 
         // Update refresh time
-        frame.layout->RefreshOn(QEvent::Timer, CurrentTime() + interval);
-    }
+        layout->RefreshOn(QEvent::Timer, CurrentTime() + interval);
+    } while(0);
 
     glPopAttrib();
 
@@ -11539,7 +11561,6 @@ Integer* Widget::thumbnail(Context *context,
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
-
 
     return new Integer(texId, self->Position());
 }

@@ -11334,6 +11334,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     if (!frame.layout)
     {
         frame.layout = new SpaceLayout(this);
+        forceEval = true;
+    }
+    if (frame.layout->body != prog || frame.layout->ctx != context)
+    {
         frame.layout->body = prog;
         frame.layout->ctx  = context;
         forceEval = true;
@@ -11490,6 +11494,10 @@ Integer* Widget::thumbnail(Context *context,
     if (!frame.layout)
     {
         frame.layout = new SpaceLayout(this);
+        forceEval = true;
+    }
+    if (frame.layout->body != prog || frame.layout->ctx != context)
+    {
         frame.layout->body = prog;
         frame.layout->ctx  = context;
         forceEval = true;

@@ -2,7 +2,7 @@ Change log for Tao Presentations 2.x
 
 2.0-alpha12 (10-Oct-2014)
 
-#3528 Optimize frame_textxure evaluation
+#3528 Optimize frame_texture evaluation
 #3527 Added the 'lfps' trace (per-layout timing statistics)
 #3520 WebRemote: Thumbnails not showing up if Tao document runs on Windows
 #3519 Text layout: undue word breaks at punctuations

@@ -11385,6 +11385,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
             IFTRACE(frame_texture)
                 std::cerr << "frame_texture: Evaluating program\n";
             layout->Clear();
+            layout->InheritState(saveLayout.saved);
             saveAndEvaluate(context, prog);
             draw = true;
         }

@@ -912,7 +912,12 @@ void Layout::Inherit(Layout *where)
         return;
 
     // Add offset of parent to the one we have
-    offset = where->Offset();
+    offset       = where->Offset();
+
+    // Inherit parent's transparency and such
+    groupDrag    = where->groupDrag;
+    transparency = where->transparency;
+    blendOrShade = where->blendOrShade;
     LayoutState::InheritState(where);
 }
 
@@ -948,9 +953,6 @@ void LayoutState::InheritState(LayoutState *where)
 
     model            = where->model;
 
-    groupDrag        = where->groupDrag;
-    transparency     = where->transparency;
-    blendOrShade     = where->blendOrShade;
 }
 
 
@@ -966,7 +968,7 @@ void LayoutState::toDebugString(std::ostream &out) const
     out << "\ttop             = " << top << std::endl;
     out << "\tbottom          = " << bottom << std::endl;
     out << "\tvisibility      = " << visibility << std::endl;
-    out << "\extrudeDepth     = " << extrudeDepth << std::endl;
+    out << "\textrudeDepth    = " << extrudeDepth << std::endl;
     out << "\textrudeRadius   = " << extrudeRadius << std::endl;
     out << "\textrudeCount    = " << extrudeCount << std::endl;
     out << "\tlineWidth       = " << lineWidth << std::endl;

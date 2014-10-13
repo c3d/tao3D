@@ -11311,9 +11311,15 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         {
             mf = new MultiFrameInfo<text>();
             self->SetInfo< MultiFrameInfo<text> > (mf);
+            IFTRACE(frame_texture)
+                std::cerr << "frame_texture: Created text frame info for "
+                          << self << "\n";
         }
 
         pFrame = &mf->frame(name);
+        IFTRACE(frame_texture)
+            std::cerr << "frame_texture: Named frame texture " << name
+                      << "=" << pFrame << "\n";
     }
     else
     {
@@ -11323,10 +11329,16 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         {
             mf = new MultiFrameInfo<uint>();
             self->SetInfo< MultiFrameInfo<uint> > (mf);
+            IFTRACE(frame_texture)
+                std::cerr << "frame_texture: Created numeric frame info for "
+                          << self << "\n";
         }
 
         uint id = shapeId();
         pFrame = &mf->frame(id);
+        IFTRACE(frame_texture)
+            std::cerr << "frame_texture: By-ID frame texture " << id
+                      << "=" << pFrame << "\n";
     }
 
     FrameInfo &frame = *pFrame;
@@ -11335,9 +11347,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     {
         frame.layout = new SpaceLayout(this);
         forceEval = true;
+        IFTRACE(frame_texture)
+            std::cerr << "frame_texture: Created new layout\n";
     }
     if (frame.layout->body != prog || frame.layout->ctx != context)
     {
+        IFTRACE(frame_texture)
+            std::cerr << "frame_texture: body changed from "
+                      << frame.layout->body << " to " << prog << "\n";
         frame.layout->body = prog;
         frame.layout->ctx  = context;
         forceEval = true;
@@ -11364,12 +11381,16 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         bool draw = false;
         if (forceEval)
         {
+            IFTRACE(frame_texture)
+                std::cerr << "frame_texture: Evaluating program\n";
             layout->Clear();
             saveAndEvaluate(context, prog);
             draw = true;
         }
         else if (layout->Refresh(w_event, CurrentTime()))
         {
+            IFTRACE(frame_texture)
+                std::cerr << "frame_texture: Refresh event\n";
             draw = true;
         }
 
@@ -11399,6 +11420,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     GL.TextureSize(w, h);
+
+    IFTRACE(frame_texture)
+        std::cerr << "frame_texture: ID " << texId
+                  << " (" << w << "x" << h << ")\n";
 
     if (withDepth.Pointer())
     {

@@ -60,6 +60,35 @@ PREFIX(FrameDepthTexture,  integer,  "frame_texture_with_depth",
        SYNOPSIS("Request depth texture for a frame_texture")
        DESCRIPTION("Ensure that a frame_texture generates a depth texture")
        RETURNS(tree, "The ID of the depth texture"))
+PREFIX(DynamicTexture,  integer,  "dynamic_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(frameTexture(context, self, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A texture with content")
+       DESCRIPTION("Make a texture out of the described content")
+       RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(DynamicTexture2,  integer,  "dynamic_texture",
+       PARM(n,text, "name")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(frameTexture(context, self, w, h, p, n)),
+       GROUP(widget)
+       SYNOPSIS("A texture with content")
+       DESCRIPTION("Make a named texture out of the described content")
+       RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(DynamicDepthTexture,  integer,  "dynamic_texture_with_depth",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(d, integer, "[out] ID of the depth texture")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(frameTexture(context, self, w, h, p, "", d)),
+       GROUP(widget)
+       SYNOPSIS("Request depth texture for a frame_texture")
+       DESCRIPTION("Ensure that a frame_texture generates a depth texture")
+       RETURNS(tree, "The ID of the depth texture"))
 PREFIX(Canvas,  integer,  "canvas",
        PARM(w,real, "width")
        PARM(h,real, "height")

@@ -11354,7 +11354,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     {
         IFTRACE(frame_texture)
             std::cerr << "frame_texture: body changed from "
-                      << frame.layout->body << " to " << prog << "\n";
+                      << XL::ShortTreeForm(frame.layout->body)
+                      << " to " << XL::ShortTreeForm(prog) << "\n";
         frame.layout->body = prog;
         frame.layout->ctx  = context;
         forceEval = true;
@@ -11407,6 +11408,9 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
             stats.end(Statistics::DRAW);
             stats.begin(Statistics::EXEC);
         }
+
+        // Parent layout should refresh when layout would need to
+        saveLayout.saved->RefreshOn(layout);
     } while(0);
 
     glPopAttrib();

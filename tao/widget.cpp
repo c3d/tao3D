@@ -11343,6 +11343,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     FrameInfo &frame = *pFrame;
     bool forceEval = !w_event;
+    bool draw = false;
     if (!frame.layout)
     {
         frame.layout = new SpaceLayout(this);
@@ -11379,7 +11380,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         setup(w, h);
 
         // Evaluate the program
-        bool draw = false;
         if (forceEval)
         {
             IFTRACE(frame_texture)
@@ -11398,11 +11398,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // Draw the layout in the frame context
         if (draw)
         {
+            IFTRACE(frame_texture)
+                std::cerr << "frame_texture: Drawing " << layout << "\n";
+
             stats.end(Statistics::EXEC);
             stats.begin(Statistics::DRAW);
             
             frame.begin(canvas == false);
-            layout->Draw(saveLayout.saved);
+            layout->Draw(NULL);
             frame.end();
 
             stats.end(Statistics::DRAW);

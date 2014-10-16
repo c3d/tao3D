@@ -362,6 +362,8 @@ screenshot "capture2.png"
  * The capture saves the exact content of the application's drawing area,
  * so if a 3D display mode is active (such as anaglyph, interleaved or side
  * by side), the resulting snapshot will be encoded for this mode. @n
+ * The @p scale parameter (default 100%) defines a scaling factor for the
+ * snapshot written to disk. @n
  * If @p withAlpha is @c false, the file will not contain any transparency
  * information.
  * @~french
@@ -382,19 +384,41 @@ screenshot "capture1.png"  // Ignoré
 circle 100, 0, 50
 screenshot "capture2.png"
 @endcode
+ * Le paramètre @p scale (100% par défaut) permet de réduire l'image qui
+ * est enregistrée sur disque. @n
  * Lorsque @p withAlpha est @c false, le fichier ne comporte pas d'information
  * de transparence.
  */
-boolean screenshot(fileName:text, withAlpha:boolean);
+boolean screenshot(fileName:text, scale:real, withAlpha:boolean);
 
 
 /**
  * @~english
  * Saves a screen capture to a file.
- * Same <tt>screenshot fileName, false</tt>.
+ * Equivalent to <tt>screenshot fileName, scale, false</tt>.
  * @~french
  * Enregistre une capture d'écran dans un fichier.
- * Équivalent à : <tt>screenshot fileName, false</tt>.
+ * Équivalent à : <tt>screenshot fileName, scale, false</tt>.
+ */
+boolean screenshot(fileName:text, scale:real);
+
+/**
+ * @~english
+ * Saves a screen capture to a file.
+ * Equivalent to <tt>screenshot fileName, 100%, withAlpha</tt>.
+ * @~french
+ * Enregistre une capture d'écran dans un fichier.
+ * Équivalent à : <tt>screenshot fileName, 100%, withAlpha</tt>.
+ */
+boolean screenshot(fileName:text, withAlpha:boolean);
+
+/**
+ * @~english
+ * Saves a screen capture to a file.
+ * Equivalent to <tt>screenshot fileName, 100%, false</tt>.
+ * @~french
+ * Enregistre une capture d'écran dans un fichier.
+ * Équivalent à : <tt>screenshot fileName, 100%, false</tt>.
  */
 boolean screenshot(fileName:text);
 

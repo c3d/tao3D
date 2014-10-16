@@ -1796,9 +1796,6 @@ schläfli X, Y, W, H, {p:integer,q:integer} -> polygram X, Y, W, H, p, q
 // 
 // ============================================================================
 
-// Capture a screen snapthot with alpha
-screenshot T:text -> screenshot T, false
-
 // Send a status message to the window without a timeout
 status T:text -> status T, 0.0
 

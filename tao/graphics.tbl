@@ -384,8 +384,26 @@ PREFIX(HasDisplayModeText,  boolean,  "has_display_mode",
        RETURNS(boolean, "True if the mode is available, false otherwise.") )
 PREFIX(ScreenShot,  boolean,  "screenshot",
        PARM(name, text, "The name of the file to save to")
+       PARM(scale, real, "Scaling factor for screenshot")
        PARM(with_alpha, boolean, "True to save the alpha channel"),
-       RTAO(screenShot(self, name, with_alpha)),
+       RTAO(screenShot(self, name, scale, with_alpha)),
+       GROUP(misc)
+       SYNOPSIS("Save a snapshot of the draw area into a file."))
+PREFIX(ScreenShot100Pct,  boolean,  "screenshot",
+       PARM(name, text, "The name of the file to save to")
+       PARM(with_alpha, boolean, "True to save the alpha channel"),
+       RTAO(screenShot(self, name, 1.0, with_alpha)),
+       GROUP(misc)
+       SYNOPSIS("Save a snapshot of the draw area into a file."))
+PREFIX(ScreenShotScale,  boolean,  "screenshot",
+       PARM(name, text, "The name of the file to save to")
+       PARM(scale, real, "True to save the alpha channel"),
+       RTAO(screenShot(self, name, scale, true)),
+       GROUP(misc)
+       SYNOPSIS("Save a snapshot of the draw area into a file."))
+PREFIX(ScreenShotBase,  boolean,  "screenshot",
+       PARM(name, text, "The name of the file to save to"),
+       RTAO(screenShot(self, name, 1.0, true)),
        GROUP(misc)
        SYNOPSIS("Save a snapshot of the draw area into a file."))
 

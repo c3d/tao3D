@@ -446,7 +446,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
-      screenShotPath(o.screenShotPath),
+      screenShotPath(o.screenShotPath), screenShotScale(1.0),
       screenShotWithAlpha(o.screenShotWithAlpha),
 #ifdef Q_OS_LINUX
       vsyncState(false),
@@ -2742,6 +2742,9 @@ void Widget::paintGL()
             QImage grabbed = grabFrameBuffer(withAlpha);
             if (screenShotPath != "")
             {
+                scale s = screenShotScale;
+                if (s != 1.0)
+                    QImage scaled = grabbed.scaled(s * grabbed.size());
                 grabbed.save(screenShotPath);
                 screenShotPath = "";
             }
@@ -14295,7 +14298,7 @@ Name_p Widget::openUrl(Tree_p, text url)
 }
 
 
-Name_p Widget::screenShot(Tree_p, text filename, bool withAlpha)
+Name_p Widget::screenShot(Tree_p, text filename, scale sz, bool withAlpha)
 // ----------------------------------------------------------------------------
 // Save current state of current drawing buffer into a file
 // ----------------------------------------------------------------------------
@@ -14307,6 +14310,7 @@ Name_p Widget::screenShot(Tree_p, text filename, bool withAlpha)
         path = QFileInfo(dir, path).absoluteFilePath();
     }
     screenShotPath = path;
+    screenShotScale = sz;
     screenShotWithAlpha = withAlpha;
     return XL::xl_true;
 }

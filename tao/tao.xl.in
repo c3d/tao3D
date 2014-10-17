@@ -200,6 +200,14 @@ display_mode_chooser ->
             display_set line_offset := -2.0/3
             display_set view_skip := 1
             display_set rgb_mix := 1
+        chooser_choice tr "Enable stereoscopy (Ningbo 3D)",
+            enable_stereoscopy united_entertain
+            display_set points_of_view := 8
+            display_set pixel_offset := 3
+            display_set line_offset := -0.83333
+            display_set view_skip := 1
+            display_set view_cover := 10.59
+            display_set rgb_mix := 1
     if has_display_mode "2dplusdepth" then
         chooser_choice tr "Enable stereoscopy (Dimenco 2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"}
         chooser_choice tr "Enable stereoscopy (Dimenco 2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"}
@@ -1795,9 +1803,6 @@ schläfli X, Y, W, H, {p:integer,q:integer} -> polygram X, Y, W, H, p, q
 //    Other user interface aspects
 // 
 // ============================================================================
-
-// Capture a screen snapthot with alpha
-screenshot T:text -> screenshot T, false
 
 // Send a status message to the window without a timeout
 status T:text -> status T, 0.0

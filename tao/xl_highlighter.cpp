@@ -44,12 +44,12 @@ XLHighlighter::XLHighlighter(QTextDocument *parent)
     rule.format = quotationFormat;
     highlightingRules.append(rule);
 
-    singleLineCommentFormat.setForeground(Qt::darkGreen);
+    singleLineCommentFormat.setForeground(Qt::darkRed);
     rule.pattern = QRegExp("//[^\n]*");
     rule.format = singleLineCommentFormat;
     highlightingRules << rule;
 
-    multiLineCommentFormat.setForeground(Qt::darkGreen);
+    multiLineCommentFormat.setForeground(Qt::darkRed);
     commentStartExpression = QRegExp("/\\*");
     commentEndExpression = QRegExp("\\*/");
 

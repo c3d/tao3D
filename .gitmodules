@@ -1,18 +1,15 @@
 [submodule "tao/xlr"]
 	path = tao/xlr
-	url = ssh://io.taodyne.com/volume1/RedmineProjects/xlr.git
+	url = ssh://io.taodyne.com/~ddd/tao/tao/xlr.git
 [submodule "help_viewer"]
 	path = help_viewer
-	url = ssh://io.taodyne.com/volume1/RedmineProjects/tao_help_viewer.git
+	url = ssh://io.taodyne.com/~ddd/tao/help_viewer.git
 [submodule "modules/speech/qt-speech"]
 	path = modules/speech/qt-speech
-	url = ssh://io.taodyne.com/volume1/RedmineProjects/qt-speech.git
+	url = ssh://io.taodyne.com/~/ddd/tao/modules/speech/qt-speech
 [submodule "webui/webui"]
 	path = webui/webui
-	url = ssh://io.taodyne.com/volume1/RedmineProjects/tao-editor-proto.git
-[submodule "modules/DIP"]
-	path = modules/DIP
-	url = ssh://io.taodyne.com/~/tao/modules/DIP
+	url = ssh://io.taodyne.com/~ddd/tao/webui/webui
 [submodule "modules/charts"]
 	path = modules/charts
 	url = ssh://io.taodyne.com/~/tao/modules/charts
@@ -25,33 +22,6 @@
 [submodule "modules/digital_clock"]
 	path = modules/digital_clock
 	url = ssh://io.taodyne.com/~/tao/modules/digital_clock
-[submodule "modules/display_2dplusdepth"]
-	path = modules/display_2dplusdepth
-	url = ssh://io.taodyne.com/~/tao/modules/display_2dplusdepth
-[submodule "modules/display_alioscopy"]
-	path = modules/display_alioscopy
-	url = ssh://io.taodyne.com/~/tao/modules/display_alioscopy
-[submodule "modules/display_anaglyph"]
-	path = modules/display_anaglyph
-	url = ssh://io.taodyne.com/~/tao/modules/display_anaglyph
-[submodule "modules/display_checkerboard"]
-	path = modules/display_checkerboard
-	url = ssh://io.taodyne.com/~/tao/modules/display_checkerboard
-[submodule "modules/display_intstereo"]
-	path = modules/display_intstereo
-	url = ssh://io.taodyne.com/~/tao/modules/display_intstereo
-[submodule "modules/display_quadstereo"]
-	path = modules/display_quadstereo
-	url = ssh://io.taodyne.com/~/tao/modules/display_quadstereo
-[submodule "modules/display_splitstereo"]
-	path = modules/display_splitstereo
-	url = ssh://io.taodyne.com/~/tao/modules/display_splitstereo
-[submodule "modules/display_tridelity"]
-	path = modules/display_tridelity
-	url = ssh://io.taodyne.com/~/tao/modules/display_tridelity
-[submodule "modules/display_united_entertain"]
-	path = modules/display_united_entertain
-	url = ssh://io.taodyne.com/~/tao/modules/display_united_entertain
 [submodule "modules/film_strip"]
 	path = modules/film_strip
 	url = ssh://io.taodyne.com/~/tao/modules/film_strip
@@ -142,9 +112,3 @@
 [submodule "modules/web_remote"]
 	path = modules/web_remote
 	url = ssh://io.taodyne.com/~/tao/modules/web_remote
-[submodule "crypt"]
-	path = crypt
-	url = ssh://io.taodyne.com/~/tao/crypt
-[submodule "keygen"]
-	path = keygen
-	url = ssh://io.taodyne.com/~/tao/keygen

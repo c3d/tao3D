@@ -9,7 +9,7 @@
 	url = ssh://io.taodyne.com/~/ddd/tao/modules/speech/qt-speech
 [submodule "webui/webui"]
 	path = webui/webui
-	url = ssh://io.taodyne.com/~ddd/tao/webui/webui
+	url = https://github.com/c3d/tao-webui.git
 [submodule "modules/charts"]
 	path = modules/charts
 	url = https://github.com/c3d/tao-charts.git

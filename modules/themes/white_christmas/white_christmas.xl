@@ -1,6 +1,26 @@
 // ****************************************************************************
-//   White hristmas - A theme specially designed for the Christmas period
-//   Copyright 2012 Taodyne SAS - See licence at end of file
+//  white_christmas.xl                                             Tao project 
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//   White Christmas - A theme specially designed for the Christmas period
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
+//  (C) 2012-2014 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012-2014 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2012-2014 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//  (C) 2012-2014 Catherine Burvelle <catherine@taodyne.com>
+//  (C) 2012-2014 Taodyne SAS
 // ****************************************************************************
 
 import Slides

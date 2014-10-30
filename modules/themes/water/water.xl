@@ -1,6 +1,26 @@
 // ****************************************************************************
+//  water.xl                                                       Tao project 
+// ****************************************************************************
+// 
+//   File Description:
+// 
 //   Blue Gold - A water-based theme
-//   Copyright 2012 Taodyne SAS - See licence at end of file
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
+//  (C) 2012-2014 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012-2014 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2012-2014 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//  (C) 2012-2014 Catherine Burvelle <catherine@taodyne.com>
+//  (C) 2012-2014 Taodyne SAS
 // ****************************************************************************
 
 import Slides

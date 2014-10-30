@@ -4,11 +4,12 @@
 # File Description:
 # Global project definitions for Tao
 # ******************************************************************************
-# This software is property of Taodyne SAS - Confidential
-# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 # (C) 2010 Jerome Forissier <jerome@taodyne.com>
 # (C) 2010 Taodyne SAS
-# ******************************************************************************
+# *****************************************************************************
+# This software is licensed under the GNU General Public License v3
+# See file COPYING for details.
+# *****************************************************************************
 
 
 include(main_defs.pri)

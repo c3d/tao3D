@@ -1,14 +1,25 @@
-# ******************************************************************************
-# nodejs.pro                                                         Tao project
-# ******************************************************************************
-# File Description:
-# Qt project file to download and install NodeJS
-# ******************************************************************************
-# This software is property of Taodyne SAS - Confidential
-# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-# (C) 2013 Jerome Forissier <jerome@taodyne.com>
-# (C) 2013 Taodyne SAS
-# ******************************************************************************
+# *****************************************************************************
+#  nodejs.pro                                                      Tao project 
+# *****************************************************************************
+# 
+#   File Description:
+# 
+#       Qt project file to download and install NodeJS
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# *****************************************************************************
+# This software is licensed under the GNU General Public License v3
+# See file COPYING for details.
+#  (C) 2013 Jerome Forissier <jerome@taodyne.com>
+#  (C) 2014 Christophe de Dinechin <christophe@taodyne.com>
+#  (C) 2013-2014 Taodyne SAS
+# *****************************************************************************
 
 include(../main_defs.pri)
 

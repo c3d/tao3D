@@ -13,12 +13,13 @@
 # make install
 #    Build and install client-side documention
 # ******************************************************************************
-# This software is property of Taodyne SAS - Confidential
-# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 # (C) 2011 Catherine Burvelle <catherine@taodyne.com>
 # (C) 2011 Jerome Forissier <jerome@taodyne.com>
 # (C) 2011 Taodyne SAS
-# ******************************************************************************
+# *****************************************************************************
+# This software is licensed under the GNU General Public License v3
+# See file COPYING for details.
+# *****************************************************************************
 
 TEMPLATE = subdirs
 

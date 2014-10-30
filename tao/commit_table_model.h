@@ -17,8 +17,8 @@
 //
 //
 // ****************************************************************************
-// This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+// This software is licensed under the GNU General Public License v3.
+// See file COPYING for details.
 //  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************

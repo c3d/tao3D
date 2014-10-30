@@ -16,10 +16,10 @@
 //
 //
 // ****************************************************************************
-// This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Taodyne SAS
+// This software is licensed under the GNU General Public License v3.
+// See file COPYING for details.
+//  (C) 1992-2014 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010-2014 Taodyne SAS
 // ****************************************************************************
 
 #include "base.h"

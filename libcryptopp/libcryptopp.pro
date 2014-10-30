@@ -4,12 +4,12 @@
 # File Description:
 # Qt build file for the Crypto++ library (http://www.cryptopp.com/)
 # ******************************************************************************
-# This software is property of Taodyne SAS - Confidential
-# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 # (C) 2011 Jerome Forissier <jerome@taodyne.com>
 # (C) 2011 Taodyne SAS
-# ******************************************************************************thornin
-
+# *****************************************************************************
+# This software is licensed under the GNU General Public License v3
+# See file COPYING for details.
+# *****************************************************************************
 
 include (../main.pri)
 

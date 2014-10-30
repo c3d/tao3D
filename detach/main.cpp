@@ -39,10 +39,12 @@
 //         3. Start git.exe through detach.exe in order to get rid of the
 //            console.
 //
-// This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
+// ****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
+// ****************************************************************************
 
 #if defined(UNICODE) && !defined(_UNICODE)
 #define _UNICODE 1

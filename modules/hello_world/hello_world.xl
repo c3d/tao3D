@@ -3,6 +3,9 @@
 // This exemple module defines the hello_world primitive
 //
 // Copyright 2010-2011 Taodyne
+//
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
 
 module_description
     id "5336423A-4EEE-45E4-9DEF-0A9D936E60A6"

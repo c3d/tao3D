@@ -1,6 +1,26 @@
 // ****************************************************************************
+//  seasons_greetings.xl                                           Tao project 
+// ****************************************************************************
+// 
+//   File Description:
+// 
 //   Seasons Greetings - A theme specially designed for the Christmas period
-//   Copyright 2012 Taodyne SAS - See licence at end of file
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
+//  (C) 2012-2014 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012-2014 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2012-2014 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//  (C) 2012-2014 Catherine Burvelle <catherine@taodyne.com>
+//  (C) 2012-2014 Taodyne SAS
 // ****************************************************************************
 
 import Slides
@@ -107,42 +127,5 @@ theme_picture "WhiteChristmas", "blank", Body ->
     contents 0,
         theme_color Theme, "blank", "picture"
         Body
-
-
-theme_color "SeasonsGreetings",Master:text,"story"     -> light 0, false; color "white"
-theme_font "SeasonsGreetings",Master:text,"story"     -> font "Dancing Script"
-theme_boxstyle "SeasonsGreetings",Master:text,Style:text  -> color "white",0.2; line_color "black", 0.15
-theme_align "SeasonsGreetings",Master:text,"story", N  -> margins 75+50*N, 0
-
-
-theme_box "SeasonsGreetings",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
-// ----------------------------------------------------------------------------
-//   Draw the background box for text and flows
-// ----------------------------------------------------------------------------
-    contents -10,
-        theme_boxstyle theme, Master, Style
-        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
-            gradient_color 0.0, 1, 1, 1, 0.2
-            gradient_color 0.5, 1, 1, 1, 0.4
-            gradient_color 1.0, 1, 1, 1, 1.0
-        rectangle X, Y, W + 10, H + 10
-        for I in 1..15 loop
-            snowflake_on_box I, X, Y, W, H
-        snowflake_on_box I:integer, X:real, Y:real, W:real, H:real ->
-            locally
-                translate X + W/2*sin(I+W), Y+H/2*cos(I+W), 0
-                rotatez 90 * sin(11.8*I+X)
-                scale3 0.2+0.1*sin(32.2*I+Y)
-                image 0, 0, 1, 1, "Snowfall:snowflake.png"
-
-
-theme_bullet_picture "SeasonsGreetings", Master:text, Level:integer ->
-// ----------------------------------------------------------------------------
-//    Draw a snowflake for the theme bullets
-// ----------------------------------------------------------------------------
-    seasons_greetings_bullet S:real ->
-        color "white", 0.95
-        image_px -30, 15, S*0.8, S*0.8, "Snowfall:snowflake.png"
-    seasons_greetings_bullet theme_size(theme, Master, "bullet", Level)
 
 

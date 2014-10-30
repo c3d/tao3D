@@ -13,6 +13,9 @@
 #  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
 #  (C) 2011 Taodyne SAS
 # *****************************************************************************
+# This software is licensed under the GNU General Public License v3
+# See file COPYING for details.
+# *****************************************************************************
 
 MODINSTDIR = regexp
 

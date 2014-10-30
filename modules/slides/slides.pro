@@ -1,17 +1,25 @@
-# ******************************************************************************
-#  slides.pro                                                       Tao project
-# ******************************************************************************
-# File Description:
-# Qt build file for the Slides module
-#
-# The Slides module defines commands and themes to write presentations 
-#
-# ******************************************************************************
-# This software is property of Taodyne SAS - Confidential
-# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-# (C) 2010 Jerome Forissier <jerome@taodyne.com>
-# (C) 2010 Taodyne SAS
-# ******************************************************************************
+# *****************************************************************************
+#  slides.pro                                                      Tao project 
+# *****************************************************************************
+# 
+#   File Description:
+# 
+#     Qt build file for the Slides module
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# *****************************************************************************
+# This software is licensed under the GNU General Public License v3
+# See file COPYING for details.
+#  (C) 2010-2013 Jerome Forissier <jerome@taodyne.com>
+#  (C) 2014 Christophe de Dinechin <christophe@taodyne.com>
+#  (C) 2010-2014 Taodyne SAS
+# *****************************************************************************
 
 MODINSTDIR = slides
 

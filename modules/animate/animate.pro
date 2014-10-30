@@ -14,7 +14,8 @@
 # 
 # 
 # *****************************************************************************
-# This document is released under the GNU General Public License.
+# This document is released under the GNU General Public License v3.
+# See file COPYING for details.
 #  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 #  (C) 2010 Taodyne SAS
 # *****************************************************************************

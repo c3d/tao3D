@@ -3,6 +3,9 @@
 // Analyze text using regular expressions 
 //
 // Copyright 2012 Taodyne SAS
+//
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
 
 module_description
     id "9CD23F9F-7D50-4E3C-BF56-5FC525218AEB" 

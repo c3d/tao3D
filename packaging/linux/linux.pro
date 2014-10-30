@@ -2,13 +2,16 @@
 # linux.pro                                                        Tao project
 # ******************************************************************************
 # File Description:
-# Qt build file to generate a Linux package
+#
+#    Qt build file to generate a Linux package
+#
+#
 # ******************************************************************************
-# This software is property of Taodyne SAS - Confidential
-# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-# (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+# This software is licensed under the GNU General Public License v3.
+# See file COPYING for details.
+# (C) 2011-2014 Christophe de Dinechin <christophe@taodyne.com>
 # (C) 2011 Jerome Forissier <jerome@taodyne.com>
-# (C) 2011 Taodyne SAS
+# (C) 2011-2014 Taodyne SAS
 # ******************************************************************************
 
 TEMPLATE = subdirs

@@ -26,3 +26,8 @@ doc/output
 Makefile
 doc/Doxyfile
 doc/output
+*.o
+*.dylib
+Makefile
+doc/Doxyfile
+doc/output

@@ -3,7 +3,7 @@
 	url = https://github.com/c3d/XL-programming-language.git
 [submodule "help_viewer"]
 	path = help_viewer
-	url = ssh://io.taodyne.com/~ddd/tao/help_viewer.git
+	url = https://github.com/c3d/tao-help-viewer.git
 [submodule "modules/speech/qt-speech"]
 	path = modules/speech/qt-speech
 	url = ssh://io.taodyne.com/~/ddd/tao/modules/speech/qt-speech

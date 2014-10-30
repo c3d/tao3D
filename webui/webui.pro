@@ -2,7 +2,7 @@
 # webui.pro                                                          Tao project
 # ******************************************************************************
 # File Description:
-# Qt build file for the Tao Presentations Web User Interface
+# Qt build file for the Tao3D Web User Interface
 # ******************************************************************************
 # GNU General Public License Usage
 # This file may be used under the terms of the GNU General Public License

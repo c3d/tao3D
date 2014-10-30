@@ -17,7 +17,7 @@ else
         vertical_align 1
         color "#EEAA11", 0.9
         font "Arial", 20
-        text "Tao Presentations"
+        text "Tao3D"
         color "#3399FF", 0.9
         line_break
         font "Arial", 28

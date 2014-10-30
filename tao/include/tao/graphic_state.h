@@ -16,7 +16,7 @@
 //
 // ****************************************************************************
 // This file may be used in accordance with the terms and conditions contained
-// in the Tao Presentations license agreement, or alternatively, in a signed
+// in the Tao3D license agreement, or alternatively, in a signed
 // license agreement between you and Taodyne SAS.
 //  (C) 2012 Baptiste Soulisse <soulisse.baptiste@taodyne.com>
 //  (C) 2012 Taodyne SAS
@@ -28,7 +28,7 @@
 
 The main goal of GraphicState is to define some wrappers
 for the more usal GL and GLU functions in order to prevent redundant
-OpenGL state changes and improve performances in Tao Presentations.
+OpenGL state changes and improve performances in Tao3D.
 
 In a more technical way, it defines three differents states:
     - The next state: It contains all changes requested by users

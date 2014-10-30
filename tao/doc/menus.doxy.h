@@ -19,7 +19,7 @@
  * Creates and inserts new menus into the Tao application window.
  *
  * With the primitives defined in this group, a document can create and insert
- * new menus in the menu bar of the Tao Presentations application. Specific
+ * new menus in the menu bar of the Tao3D application. Specific
  * code can be executed when the menu is triggered. In addition, stateful menus
  * (with a check mark: enable or disabled) are supported.
  *
@@ -52,7 +52,7 @@
  * Crée des menus et les insère dans la fenêtre de l'application Tao.
  *
  * Les primitives décrites sur cette page permettent de créer des menus et de
- * les insérer dans la barre de menus de l'application Tao Presentations.
+ * les insérer dans la barre de menus de l'application Tao3D.
  * Lorsque le menu est sélectionné, le code Tao associé est exécuté.
  * De plus, il est possible de créer des menus avec une marque de sélection
  * (fonction activée / désactivée).

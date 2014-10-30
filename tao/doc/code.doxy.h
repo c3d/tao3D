@@ -396,7 +396,7 @@ refresh_also (Name:text);
  * @p n is the exit status of the process.
  *
  * @~french
- * Termine l'application Tao Presentations.
+ * Termine l'application Tao3D.
  *
  * @p n est le code de retour du processus.
  *
@@ -416,7 +416,7 @@ exit (n:integer);
  *
  * Renvoie vrai si le document est enregistré dans un dépôt Git,
  * si la fonctionalité Git est incluse dans l'application et n'a pas été
- * désactivée au démarrage de Tao Presentations.
+ * désactivée au démarrage de Tao3D.
  */
 boolean current_repository ();
 
@@ -807,11 +807,11 @@ once (B: block);
 
 /**
  * @~english
- * Returns the version identifier of Tao Presentations.
+ * Returns the version identifier of Tao3D.
  * The version is usually un number such as <tt>1.42</tt>, but special builds may
  * contain other characters such as: <tt>1.0-beta4</tt> or <tt>1.42-22-gec22a39</tt>.
  * @~french
- * Renvoie la version de Tao Presentations sous forme d'une chaîne de caractères.
+ * Renvoie la version de Tao3D sous forme d'une chaîne de caractères.
  * La version est en général un nombre tel que <tt>1.42</tt>, mais certaines
  * distributions du logiciel peuvent contenir d'autres caractères, par exemple :
  * <tt>1.0-beta4</tt> ou encode <tt>1.42-22-gec22a39</tt>.
@@ -820,10 +820,10 @@ text tao_version();
 
 /**
  * @~english
- * Returns the string that identifies the edition of Tao Presentations.
+ * Returns the string that identifies the edition of Tao3D.
  * Possible values are currently:
  * @~french
- * Renvoie une chaîne de caractères qui identifie l'édition de Tao Presentations.
+ * Renvoie une chaîne de caractères qui identifie l'édition de Tao3D.
  * Les valeurs possibles sont actuellement:
  * @~
  * - <tt>Design</tt>

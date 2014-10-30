@@ -6,7 +6,7 @@ Icon=taopresentationsplayer
 MimeType=application/com.taodyne.taopresentationsdoc;x-scheme-handler/tao;x-scheme-handler/taos;
 X-KDE-Protocols=tao,taos
 
-Name=Tao Presentations Player
-Comment=Play Tao Presentations files (.ddd) in 2D and 3D
+Name=Tao3D Player
+Comment=Play Tao3D files (.ddd) in 2D and 3D
 
-Comment[fr]=Jouez des fichiers Tao Presentations (.ddd) en 2D et 3D
+Comment[fr]=Jouez des fichiers Tao3D (.ddd) en 2D et 3D

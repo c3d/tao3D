@@ -6,5 +6,5 @@ Depends: shared-mime-info, libgtk2.0-bin, desktop-file-utils, hicolor-icon-theme
 Installed-Size: @INSTALLED_SIZE@
 Maintainer: Taodyners <contact@taodyne.com>
 Description: $$APP_NAME
- Tao Presentations Player is a program to display 2D and 3D presentations
- created by Tao Presentations.
+ Tao3D Player is a program to display 2D and 3D presentations
+ created by Tao3D.

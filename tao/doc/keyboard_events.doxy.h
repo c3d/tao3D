@@ -18,7 +18,7 @@
  * The two mechanisms are detailed below.
  *
  * When a keyboard event occurs (key pressed or key released):
- * 1. Tao Presentations triggers the execution of any block of code that depends
+ * 1. Tao3D triggers the execution of any block of code that depends
  * on that
  * kind of keyboard event. For instance, the @ref locally blocks in the
  * following example would be re-evaluated on each key press, but not on key
@@ -113,7 +113,7 @@ page "Translation",
  * @include on_keydown.ddd
  * @~french
  * @page refKeyboardEvents Événements clavier
- * Tao Presentations propose deux mécanismes distincts pour exécuter du code
+ * Tao3D propose deux mécanismes distincts pour exécuter du code
  * lors de l'appui ou du relâchement d'une touche.
  * - Le premier est global : il s'agit de définir une ou plusieurs fonctions
  * de la forme <tt>key "X" -> ...</tt>. Ces définitions s'appliquent à
@@ -129,7 +129,7 @@ page "Translation",
  * Les deux mécanismes sont détaillés plus bas.
  *
  * Lorsqu'un événement clavier survient (appui ou relâchement d'une touche) :
- * 1. Tao Presentations déclenche l'exécution de tout bloc de code qui dépend
+ * 1. Tao3D déclenche l'exécution de tout bloc de code qui dépend
  * de cet événement. Par exemple, le bloc @ref locally de l'exemple suivant
  * sera évalué à nouveau à chaque appui sur une touche, mais pas lors du
  * relâchement de la touche, car

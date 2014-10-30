@@ -50,7 +50,7 @@ Assistant * Assistant::assistant = NULL;
 Assistant::Assistant(QWidget *parent)
     : registered(false), proc(NULL), parent(parent)
 {
-    warnTitle = tr("Tao Presentations Help");
+    warnTitle = tr("Tao3D Help");
 }
 
 
@@ -327,8 +327,8 @@ QString Assistant::assistantPath()
 #elif defined(Q_OS_WIN)
     app += QLatin1String("assistant.exe");
 #elif defined(Q_OS_MAC)
-    app += QLatin1String("Tao Presentations Help.app/Contents/MacOS/"
-                         "Tao Presentations Help");
+    app += QLatin1String("Tao3D Help.app/Contents/MacOS/"
+                         "Tao3D Help");
 #else
 #error Please define Assistant path for this platform
 #endif
@@ -465,7 +465,7 @@ bool Assistant::startAssistant()
 
         if (!proc->waitForStarted())
         {
-            QMessageBox::critical(0, QObject::tr("Tao Presentations"),
+            QMessageBox::critical(0, QObject::tr("Tao3D"),
                 QObject::tr("Unable to launch Help Viewer (%1)").arg(app));
             return false;
         }

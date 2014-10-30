@@ -35,6 +35,11 @@
 
 TAO_BEGIN
 
+#ifdef CFG_NO_LICENSE
+static bool returnFalse(text)           { return false; }
+static bool returnFalse2(text, bool)    { return false; }
+#endif // CFG_NO_LICENSE
+
 ModuleApiPrivate::ModuleApiPrivate()
 // ------------------------------------------------------------------------
 //   Set function pointers for all functions exported to modules
@@ -100,10 +105,17 @@ ModuleApiPrivate::ModuleApiPrivate()
     imageFromFrameBufferObject   = FrameInfo::imageFromFrameBufferObject;
 
     // License checking
+#ifndef CFG_NO_LICENSE
     hasLicense = Licenses::Has;
     checkLicense = Licenses::Check;
     checkImpressOrLicense = Licenses::CheckImpressOrLicense;
     hasImpressOrLicense = Licenses::HasImpressOrLicense;
+#else // CFG_NO_LICENSE
+    hasLicense = returnFalse;
+    checkLicense = returnFalse2;
+    checkImpressOrLicense = returnFalse;
+    hasImpressOrLicense = returnFalse;
+#endif // CFG_NO_LICENSE
     blink      = Widget::blink;
 
     // Current document info

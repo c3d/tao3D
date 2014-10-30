@@ -4,7 +4,7 @@
  * @ingroup TaoBuiltins
  *
  * Select display mode and stereoscopic 3D settings.
- * Tao Presentations can take advantage of several display technologies
+ * Tao3D can take advantage of several display technologies
  * to show 3D contents. Depending on the display hardware at your
  * disposal, you may select one of the display modes supported by
  * the application. If you have a 3D-capable screen or projector,
@@ -33,11 +33,11 @@
  *
  * Permet de sélectionner le mode d'affichage et les paramètres de 3D
  * stéréoscopique.
- * Tao Presentations peut tirer parti de différentes technologies pour afficher
+ * Tao3D peut tirer parti de différentes technologies pour afficher
  * du contenu 3D. En fonction du matériel dont vous disposez, vous pouvez
  * sélectionner l'un des modes d'affichage disponibles dans l'application.
  * Si vous avez un écran ou un projecteur capable d'afficher en 3D, il y
- * a de fortes chances que Tao Presentations vous permette de l'exploiter au
+ * a de fortes chances que Tao3D vous permette de l'exploiter au
  * mieux.
  *
  * Voici une illustration des modes actuellement supportés par Tao
@@ -115,9 +115,9 @@ enable_stereoscopy(mode:name);
  *   <a href="http://www.tridelity.com">Tridelity® glass-free 3D Multi-View
  *   displays</a>.
  * @note Display modes are implemented as modules. Some modes may
- * or may not be available, depending on your version of Tao Presentations.
+ * or may not be available, depending on your version of Tao3D.
  * You can obtain a list of all
- * valid mode strings for your configuration by running Tao Presentations
+ * valid mode strings for your configuration by running Tao3D
  * with the @c -tdisplaymode command-line parameter. Look for output
  * similar to:
  * @~french
@@ -152,9 +152,9 @@ enable_stereoscopy(mode:name);
  * - "tridelity": un encodage adapté aux
  *   <a href="http://www.tridelity.com">écrans Multi-Vue 3D Tridelity® sans lunettes</a>.
  * @note Les modes d'affichage sont implémentés sous forme de modules. Certains
- * peuvent ne pas être disponibles, selon votre version de Tao Presentations.
+ * peuvent ne pas être disponibles, selon votre version de Tao3D.
  * Vous pouvez obtenir une liste de tous les modes valides dans votre
- * configuration en démarrant Tao Presentations avec l'option
+ * configuration en démarrant Tao3D avec l'option
  * @c -tdisplaymode :
  * @~
 @code

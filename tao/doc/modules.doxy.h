@@ -54,14 +54,14 @@ import MyModule 1.0
  *        current document.
  *
  * @~french
- * Charge un module Tao Presentations.
+ * Charge un module Tao3D.
  * La syntaxe est :
 @code
 import MonModule 1.0
 @endcode
  * Notez que <tt>MonModule</tt> n'apparaît pas entre guillemets.
  *
- * Quand Tao Presentations rencontre le mot-clé import, il recherche MonModule
+ * Quand Tao3D rencontre le mot-clé import, il recherche MonModule
  * dans la liste des modules connus (et actifs), vérifie que la version
  * demandée est compatible, et rend les définitions du module visible pour
  * le document.

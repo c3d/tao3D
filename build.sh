@@ -1,6 +1,6 @@
 #!/bin/bash -x
 #
-# Convenience script to create the automated builds of Tao Presentations. 
+# Convenience script to create the automated builds of Tao3D
 
 # Fetch the current release tag (default Jenkins does not do it)
 git fetch --tags

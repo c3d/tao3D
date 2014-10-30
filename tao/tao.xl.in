@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  Default definitions and configuration for Tao Presentations
+//  Default definitions and configuration for Tao3D
 //  (C) 2011-2014 Taodyne SAS - See licenses at end of file
 // ****************************************************************************
 
@@ -10,7 +10,7 @@
 //                             CONFIGURATION
 //
 //   Anything in this section can be adjusted to modify the behavior of the
-//   Tao Presentations application when it runs. To create user-specific
+//   Tao3D application when it runs. To create user-specific
 //   modifications to these behaviors, simply copy and modify the definitions
 //   found in this file.
 //
@@ -36,7 +36,7 @@
 //                           Language translations
 //
 //   In this section, you can insert translations for various languages.
-//   If you translated Tao Presentations texts in a different language, please
+//   If you translated Tao3D texts in a different language, please
 //   share it with us so that we can integrate your work in a later release.
 // 
 // ============================================================================
@@ -50,7 +50,7 @@ import "tao_fr.xl"
 // 
 //                            Keyboard shortcuts
 //
-//   These are the default keyboard shortcuts for Tao Presentations.
+//   These are the default keyboard shortcuts for Tao3D.
 //   Feel free to add similar keyboard shortcuts in you application or
 //   in your user configuration.
 // 
@@ -227,7 +227,7 @@ display_mode_chooser ->
 // 
 //                             Menu configuration
 //
-//   This section defines the default menus for the Tao Presentations
+//   This section defines the default menus for the Tao3D
 //   application. You can add user-specfic menus in user.xl, or menus for
 //   a given presentation in theme.xl or the document itself.
 // 
@@ -528,7 +528,7 @@ arrange_menu ->
 // 
 //                          Toolbar configuration
 //
-//   This section defines the default toolbars for Tao Presentations.
+//   This section defines the default toolbars for Tao3D.
 //   You can use similar code to create your own toolbars
 // 
 // ============================================================================
@@ -682,7 +682,7 @@ implement_pan_and_zoom_wheel_event x, y ->
 // 
 //                        Font and shape configuration
 //
-//   When Tao Presentations needs to draw things such as chooser or selection,
+//   When Tao3D needs to draw things such as chooser or selection,
 //   it will invoke the functions below. You can override these functions
 //   for interesting effects, e.g. create your own selection rectangle.
 //
@@ -1373,7 +1373,7 @@ Triangle_Strip_Adjacency   -> 13
 
 old_camera_settings ->
 // ----------------------------------------------------------------------------
-//     Restore old camera settings from earlier version of Tao Presentations
+//     Restore old camera settings from earlier version of Tao3D
 // ----------------------------------------------------------------------------
     oc_settings -> 0
     if oc_settings = 0 then
@@ -1868,7 +1868,7 @@ texture_chooser ->
 // <contact@taodyne.com>
 //
 // This software is a computer program whose purpose is to serve as a
-// configuration for the Tao Presentations application
+// configuration for the Tao3D application
 //
 // This software is governed by the CeCILL license under French law and
 // abiding by the rules of distribution of free software.  You can  use,

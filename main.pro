@@ -128,8 +128,8 @@ greaterThan(QT_MAJOR_VERSION, 4) { cache() }
 include(main.pri)
 
 TEMPLATE = subdirs
-SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen crypt
+SUBDIRS  = libxlr tao modules ssh_ask_pass tests doc templates \
+           packaging libcryptopp
 
 win32:SUBDIRS += detach
 
@@ -145,14 +145,12 @@ isEmpty(NO_WEBUI) {
   !build_pass:message(Will not build web user interface.)
 }
 
-tao.depends = libxlr libcryptopp tao_sign
+tao.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp
-keygen.depends = libcryptopp tao
-modules.depends = tao tao_sign crypt
+modules.depends = tao
 tests.depends = tao
 templates.depends = tao
 xlconv.depends = libxlr
-crypt.depends = libcryptopp
 
 # The following is artificial, it's just so that we don't start building the
 # doc until the main build has actually completed.

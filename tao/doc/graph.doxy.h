@@ -3,9 +3,9 @@
  * @defgroup Graphics Graphics
  * @ingroup TaoBuiltins
  *
- * Tao Presentations relies on OpenGL (http://www.opengl.org/) to provide
+ * Tao3D relies on OpenGL (http://www.opengl.org/) to provide
  * a true 3D drawing environment. Altough some GL functions are directly
- * available through Tao primitives, Tao Presentations also provides more
+ * available through Tao primitives, Tao3D also provides more
  * ready-to-use graphics functions to draw usual geometric objects,
  * whether 2D or 3D.
  *
@@ -13,9 +13,9 @@
  * @defgroup Graphics Graphisme
  * @ingroup TaoBuiltins
  *
- * Tao Presentations utilise OpenGL (http://www.opengl.org/) pour proposer
+ * Tao3D utilise OpenGL (http://www.opengl.org/) pour proposer
  * un environnement graphique 3D. Bien que certaines fonctions GL soient
- * disponibles par l'intermédiaire de primitives, Tao Presentations fournit
+ * disponibles par l'intermédiaire de primitives, Tao3D fournit
  * aussi des fonctions graphiques pour dessiner les formes géométriques
  * usuelles, en deux ou trois dimensions.
  */
@@ -139,7 +139,7 @@
  *
  * Les textures chargés depuis une URL ne sont actuellement pas rechargées
  * automatiquement. Aucun délai de validité n'est associé à une telle image,
- * et Tao Presentations ne vérifie pas si l'image change au cours du temps.
+ * et Tao3D ne vérifie pas si l'image change au cours du temps.
  *
  * @~
  * @{
@@ -283,7 +283,7 @@ line_stipple(pattern:integer, factor:integer);
  *   - a color name from Qt::GlobalColor,
  *   - a color name from the W3C http://www.w3.org/TR/SVG/types.html#ColorKeywords
  *   - a color description in the "#RRGGBB" system
- *   - a color defined by Tao presentations
+ *   - a color defined by Tao3D
  *       - color "transparent"
  *       - color "default"
  *       - color "fill"
@@ -301,7 +301,7 @@ line_stipple(pattern:integer, factor:integer);
  *   - un nom de couleur de Qt::GlobalColor,
  *   - un nom de couleur définit par le W3C : http://www.w3.org/TR/SVG/types.html#ColorKeywords
  *   - une description rouge, vert, bleu sous la forme "#RRGGBB"
- *   - une couleur définie par Tao presentations :
+ *   - une couleur définie par Tao3D :
  *       - color "transparent"
  *       - color "default"
  *       - color "fill"
@@ -599,7 +599,7 @@ no_color ();
  * or @ref canvas block, it sets the clear color for the main drawing area.
  * This color is used to fill the drawing area (screen or window) before
  * anything is drawn. As such it can be considered the background color.
- * The clear color is used only when Tao Presentations reaches the drawing
+ * The clear color is used only when Tao3D reaches the drawing
  * phase. Therefore, the last @ref clear_color that has been executed during
  * the evaluation phase "wins". For instance:
 @code
@@ -665,7 +665,7 @@ rectangle 0, 0, 600, 200
  * définit la couleur de fond pour la zone de dessin principale.
  * Cette couleur est utilisée pour remplir l'écran avant tout tracé (la couleur
  * de fond).
- * Cette couleur n'est utilisée que lorsque Tao Presentations atteint la phase
+ * Cette couleur n'est utilisée que lorsque Tao3D atteint la phase
  * d'affichage. Par conséquent, le dernier appel à @ref clear_color qui a été
  * exécuté "gagne". Par exemple :
 @code
@@ -740,7 +740,7 @@ no_line_color ();
  *   - a color name from Qt::GlobalColor,
  *   - a color name from the W3C http://www.w3.org/TR/SVG/types.html#ColorKeywords
  *   - a color description in the "#RRGGBB" system
- *   - a color defined by Tao presentations
+ *   - a color defined by Tao3D
  *       - line_color "transparent"
  *       - line_color "default"
  *       - line_color "fill"
@@ -762,7 +762,7 @@ no_line_color ();
  *   - un nom de couleur de Qt::GlobalColor,
  *   - un nom de couleur définit par le W3C : http://www.w3.org/TR/SVG/types.html#ColorKeywords
  *   - une description rouge, vert, bleu sous la forme "#RRGGBB"
- *   - une couleur définie par Tao presentations :
+ *   - une couleur définie par Tao3D :
  *       - color "transparent"
  *       - color "default"
  *       - color "fill"

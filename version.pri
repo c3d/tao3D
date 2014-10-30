@@ -9,7 +9,6 @@ MINOR = $$replace(TAO_VERSION, "^[0-9]+\\.", "")
 MINOR = $$replace(MINOR, "\\.[0-9]+\$", "")
 RELEASE = $$replace(TAO_VERSION, "^[0-9]+\\.[0-9]+\\.", "")
 
-greaterThan(MAJOR, 1):MAYBE_MAJOR = " $$MAJOR"
 !isEmpty(TAO_PLAYER):MAYBE_PLAYER = " Player"
-APP_NAME="Tao Presentations$$MAYBE_PLAYER$$MAYBE_MAJOR"
+APP_NAME="Tao3D$$MAYBE_PLAYER"
 

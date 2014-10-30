@@ -1,4 +1,4 @@
-# Main project file for the Tao Presentations SDK
+# Main project file for the Tao3D SDK
 
 include(main.pri)
 TEMPLATE = subdirs

@@ -6,7 +6,7 @@ usage() {
   echo \"Usage:\"
   echo \"  fix_qt_refs_app some/path/to/Foo.app/Contents/MacOS/Foo\"
   echo \"Fix references to Qt libraries and add rpath so that Foo.app\"
-  echo \"works when installed as: Tao Presentations/Contents/MacOS/Foo.app\"
+  echo \"works when installed as: Tao3D/Contents/MacOS/Foo.app\"
   exit 1
 }
 
@@ -19,7 +19,7 @@ doo(){
   \"$@\"
 }
 
-# This is the Frameworks directory of Tao Presentations
+# This is the Frameworks directory of Tao3D
 doo install_name_tool -add_rpath @executable_path/../../../../Frameworks \"$1\"
 
 doo $$TAO_CURRENT_PWD/modules/fix_qt_refs \"$1\" \"$$[QT_INSTALL_LIBS]\"

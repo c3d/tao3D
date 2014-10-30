@@ -36,7 +36,7 @@ slide "Technical information" fr "Informations techniques",
             text quiz_user_code
 
 base_slide "Question 1",
-  quiz "Tao Presentations enables..." fr "Tao presentation permet de...", "http://www.taodyne.com/shop/img/logo.jpg",
+  quiz "Tao3D enables..." fr "Tao presentation permet de...", "http://www.taodyne.com/shop/img/logo.jpg",
     piegraph
     answer "dynamic presentations" fr "faire des présentations dynamiques"
     answer "interactive quizes" fr "faire des quiz interactifs"

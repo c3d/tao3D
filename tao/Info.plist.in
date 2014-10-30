@@ -45,7 +45,7 @@
         <key>CFBundleTypeIconFile</key>
         <string>tao-doc.icns</string>
         <key>CFBundleTypeName</key>
-        <string>Tao Presentations Document</string>
+        <string>Tao3D Document</string>
         <key>CFBundleTypeRole</key>
         <string>Editor</string>
         <key>LSIsAppleDefaultForType</key>

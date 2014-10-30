@@ -12,7 +12,7 @@
  *
  * @par About fonts and font parameters
  *
- * Tao Presentations relies on the QFont class from the Qt library to display
+ * Tao3D relies on the QFont class from the Qt library to display
  * text. Therefore, the terms that are used here to describe fonts and
  * fonts attributes are the same as those used by Qt. You may want to
  * refer to the
@@ -47,7 +47,7 @@ bold { text "Hello" }
  * @ref oblique, @ref bold, @ref thin, @ref underline, @ref overline,
  * @ref overline, @ref strikeout.
  *
- * @par Fonts bundled with Tao Presentations
+ * @par Fonts bundled with Tao3D
  *
  * Tao Presentation comes with pre-installed Open Source fonts you can use in
  * your documents. By using them, you can be sure that your presentation will
@@ -96,7 +96,7 @@ bold { text "Hello" }
 
  * @par À propos des polices de caractères
  *
- * Tao Presentations se repose sur la classe QFont de la bibliothèque Qt pour
+ * Tao3D se repose sur la classe QFont de la bibliothèque Qt pour
  * afficher le texte. Par conséquent les termes utilisés ici pour décrire les
  * polices et les attributs de polices sont les mêmes que ceux utilisés par
  * Qt. Vous pouvez vous référer à
@@ -109,7 +109,7 @@ bold { text "Hello" }
  * Voici une capture d'écran :
  * @image html fonts.png "Utilisation des polices de caractères"
  *
- * @par Polices livrées avec Tao Presentations
+ * @par Polices livrées avec Tao3D
  *
  * Tao Presentation est fourni avec des polices <em>Open Source</em> que vous
  * pouvez utiliser dans vos documents. En les utilisant, vous pouvez être
@@ -117,7 +117,7 @@ bold { text "Hello" }
  * ordinateur, même si le système n'est pas le même (Microsoft Windows, MacOSX,
  * Linux).
  *
- * Voici une liste complète des polices fournies avec Tao Presentations. Les
+ * Voici une liste complète des polices fournies avec Tao3D. Les
  * noms de famille et de style sont sensibles à la casse (majuscules et
  * minuscules). Il faut les copier telles qu'elles apparaîssent dans le
  * tableau (y compris les espaces entre les mots). Par exemple :
@@ -214,9 +214,9 @@ font "Allerta/Stencil"
  * @par Utilisation de polices de caractères additionnelles
  *
  * Toutes les polices installées sur votre ordinateur sont disponibles et
- * peuvent être utilisées par Tao Presentations. Donc, si vous avez besoin
+ * peuvent être utilisées par Tao3D. Donc, si vous avez besoin
  * d'une police de caractères précise, vous pouvez simplement l'installer et
- * redémarrer Tao Presentations pour qu'elle devienne visible.
+ * redémarrer Tao3D pour qu'elle devienne visible.
  *
  * Une autre manière d'utiliser une police spécifique sans l'installer sur
  * votre ordinateur est de copier le fichier de police (TrueType ou OpenType,

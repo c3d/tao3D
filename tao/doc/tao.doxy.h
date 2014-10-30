@@ -1,8 +1,8 @@
 /**
  * @~english
- * @mainpage Tao Presentations Documentation
+ * @mainpage Tao3D Documentation
  *
- * Welcome to the online documentation for Tao Presentations.
+ * Welcome to the online documentation for Tao3D.
  *
  * @section secWhatYouWillFind What is in this manual
  *
@@ -13,13 +13,13 @@
  *
  * The reference pages also contain some examples.
  *
- * You may find more information and the latest news about Tao Presentations on
+ * You may find more information and the latest news about Tao3D on
  * our web site, <a href="http://taodyne.com/">taodyne.com</a>.
  *
  * @~french
- * @mainpage Documentation de Tao Presentations
+ * @mainpage Documentation de Tao3D
  *
- * Bienvenue dans la documentation de Tao Presentations.
+ * Bienvenue dans la documentation de Tao3D.
  *
  * @section secWhatYouWillFind Contenu de ce manuel
  *
@@ -42,7 +42,7 @@
  * @~english
  * @page getting_started Getting started
  *
- * The easiest way to learn Tao Presentations is probably to start with
+ * The easiest way to learn Tao3D is probably to start with
  * sample documents and change them to your liking. This documentation is
  * there to help you understand specific aspects of the document description
  * language as you progress.
@@ -53,7 +53,7 @@
  * @~french
  * @page getting_started Pour bien démarrer
  *
- * La façon la plus simple d'apprendre Tao Presentations est probablement
+ * La façon la plus simple d'apprendre Tao3D est probablement
  * de partir d'exemples, et de les modifier comme vous le souhaitez.
  * Cette documentation vous permettra d'apprendre progressivement le langage
  * de description des documents.
@@ -88,7 +88,7 @@
  * <tt>Fichier > Nouveau à partir d'un mmodèle...</tt> et suivez l'assistant.
  * Ensuite, utilisez <tt>Affichage > Source du document</tt> pour ouvrir un
  * éditeur de code source.
- * Pour modifier un document Tao Presentations, vous pouvez utiliser n'importe
+ * Pour modifier un document Tao3D, vous pouvez utiliser n'importe
  * quel éditeur de texte qui permet de lire et enregistrer le format UTF-8.
  * Assurez-vous que c'est bien ce format qui est sélectionné lorsque vous
  * enregistrez votre document, faute de quoi certains caractères spéciaux ou
@@ -100,7 +100,7 @@
  */
 /**
  * @~english
- * @page tao_documents Tao Presentations documents
+ * @page tao_documents Tao3D documents
  * An introduction to the basics of Tao Presentation documents.
  *
  * A Tao document is a text file with the <tt>.ddd</tt> extension. The
@@ -135,7 +135,7 @@ import "second_part.ddd"
  *
  * @~french
  * @page tao_documents Les documents Tao Presentation
- * Une introduction aux bases des documents Tao Presentations.
+ * Une introduction aux bases des documents Tao3D.
  *
  * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Les
  * caractères sont encodés en 
@@ -309,7 +309,7 @@ mon_cercle Rayon:real ->
  * @section secXLRef Le Langage XL
  *
  * Le langage de programmation XL (ou XLR) est la base des documents
- * Tao Presentations.
+ * Tao3D.
  * Des informations détaillées sont disponibles dans
  * \ref xlref "le guide de référence du langage XLR" (en anglais).
  * Toutefois, une
@@ -323,7 +323,7 @@ mon_cercle Rayon:real ->
  * example, @ref page is a builtin defined by the Tao program.
  *
  * Two categories of builtins can be distinguished:
- *  - @ref TaoBuiltins "Tao builtins" are implemented by the Tao Presentations
+ *  - @ref TaoBuiltins "Tao builtins" are implemented by the Tao3D
  *    program itself, and are imediately available in a document,
  *  - @ref Modules "Module builtins" are defined in @a modules, and require
  *    an @ref import statement before they can be used.
@@ -336,11 +336,11 @@ mon_cercle Rayon:real ->
  *
  * On appelle @a builtin une construction du langage qui n'est pas définie
  * par l'utilisateur. Par exemple, @ref page est un builtin défini par le
- * programme Tao Presentations.
+ * programme Tao3D.
  *
  * On distingue deux catégories de builtins :
  *  - @ref TaoBuiltins "Les builtins Tao" sont définis par le programme
- *    Tao Presentations lui-même, et sont immédiatement disponibles dans
+ *    Tao3D lui-même, et sont immédiatement disponibles dans
  *    un document,
  *  - @ref Modules "Les builtins de modules" sont définis dans des
  *    @a modules, et nécessitent une commande @ref import avant de pouvoir
@@ -369,7 +369,7 @@ size := 10.0 // Initialize it
  * @section secVariables Variables
  *
  * Pour déclarer et initialiser une variable dans la version actuelle de
- * Tao Presentations, utilisez la notation suivante :
+ * Tao3D, utilisez la notation suivante :
  @code
 compteur -> 0  // Crée une variable de type entier (0 est un entier)
 compteur := 1  // Initialise la variable
@@ -527,10 +527,10 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *   folder.
  * - @b system: the application folder.
  *
- * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> on Windows,
- * <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations</tt> on MacOSX,
- * and <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> on Linux.
- * Replace <tt>Tao Presentations</tt> with <tt>Tao Presentations Player</tt>
+ * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao3D</tt> on Windows,
+ * <tt>$HOME/Library/Application Support/Taodyne/Tao3D</tt> on MacOSX,
+ * and <tt>$HOME/.local/share/data/Taodyne/Tao3D</tt> on Linux.
+ * Replace <tt>Tao3D</tt> with <tt>Tao Presentations Player</tt>
  * if you are using the player's edition.
  * The application folder is where Tao Presentation is installed.
  * 
@@ -554,10 +554,10 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * - @b system: le dossier de l'application Tao.
  *
  * Le chemin du dossier utilisateur Tao est
- * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> sous Windows,
- * <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations</tt> sous MacOSX,
- * et <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> sous Linux.
- * Remplacez <tt>Tao Presentations</tt> par <tt>Tao Presentations Player</tt>
+ * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao3D</tt> sous Windows,
+ * <tt>$HOME/Library/Application Support/Taodyne/Tao3D</tt> sous MacOSX,
+ * et <tt>$HOME/.local/share/data/Taodyne/Tao3D</tt> sous Linux.
+ * Remplacez <tt>Tao3D</tt> par <tt>Tao Presentations Player</tt>
  * si vous utilisez le lecteur Tao.
  */
 /**
@@ -568,7 +568,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *
  * @~french
  * @page xlref Guide de référence du language XLR
- * Le language XLR sert de fondation aux documents Tao Presentations.
+ * Le language XLR sert de fondation aux documents Tao3D.
  * @htmlinclude XLRef.html
  */
 /**
@@ -638,7 +638,7 @@ my_highlight T:text ->
  * definitions you need are in one central location, @c my_definitions.xl.
  *
  * @note It is customary to give your files a @c .xl extension when they
- * contain XL code, but are not complete Tao Presentations documents (which
+ * contain XL code, but are not complete Tao3D documents (which
  * preferably take the @c .ddd extension).
  *
  * @section secUserDirectory The Next Step: User Definitions
@@ -661,9 +661,9 @@ import "xl:my_definitions.xl"
  * @section secUserModule User Modules
  *
  * Let's assume that you have written some nice XL definitions for
- * Tao Presentations, and you would like to share them with other users of
+ * Tao3D, and you would like to share them with other users of
  * the program. Then you're ready to create a
- * @ref Modules "Tao Presentations module".
+ * @ref Modules "Tao3D module".
  *
  * There are several advantages to using a module rather than a simple
  * XL file stored in the user's Tao folder:
@@ -691,12 +691,12 @@ import "xl:my_definitions.xl"
  * to "Installed in:" to open a file browser window in the module folder.
  *  - Copy the whole @c tao_visuals folder into the @c modules folder
  * of your user account. More specifically, you should end up with:
- *    - Windows: <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *    - Windows: <tt>%%LOCALAPPDATA%\\Taodyne\\Tao3D\\modules\\tao_visuals</tt>.
  *      To open <tt>%%LOCALAPPDATA%</tt> easily on Windows, just type <tt>%%LOCALAPPDATA%</tt>
  *      in the Start menu.
- *    - MacOSX: <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations/modules/tao_visuals</tt>.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Taodyne/Tao3D/modules/tao_visuals</tt>.
  *     To open <tt>$HOME</tt> on MacOSX, open a new Finder window.
- *    - <tt>$HOME/.local/share/data/Taodyne/Tao Presentations/modules/tao_visuals</tt> on Linux.
+ *    - <tt>$HOME/.local/share/data/Taodyne/Tao3D/modules/tao_visuals</tt> on Linux.
  *  - Rename the module. You must rename the directory
  * as well as the main XL %file: <tt>tao_visuals/tao_visuals.xl</tt> should become
  * <tt>my_module/my_module.xl</tt>.
@@ -708,14 +708,14 @@ import "xl:my_definitions.xl"
  * translations. And, of course, replace all the definitions by your own.
  *  - Provide your own icon (<tt>icon.png</tt>) or just delete the icon file if
  * you don't have an icon handy.
- *  - Restart Tao Presentations and check the module info page: your module
+ *  - Restart Tao3D and check the module info page: your module
  * should normally be in the list. If it isn't, check the troubleshooting
  * instructions below.
  *
  * @subsection secModuleTS Troubleshooting Modules
  *
  * You can check which modules are detected by selecting the Preferences menu
- * (Tao Presentations>Preferences on MacOSX, Help>Preferences on Windows).
+ * (Tao3D>Preferences on MacOSX, Help>Preferences on Windows).
  * In this dialog box you can also disable or enable modules.
  *
  * Modules from the user's home directory are loaded first, followed by
@@ -736,13 +736,13 @@ import "xl:my_definitions.xl"
  * @~french
  * @page imports Importer des fichiers et de modules
  *
- * La nature extensible de Tao Presentations vous aide à définir et organiser
+ * La nature extensible de Tao3D vous aide à définir et organiser
  * vos propres éléments de documents. Il existe plusieurs façons d'organiser
  * vos fichiers.
  *
  * @section secImport L'import de fichiers
  *
- * La manière la plus simple de regrouper vos fichiers Tao Presentations et de
+ * La manière la plus simple de regrouper vos fichiers Tao3D et de
  * les réutiliser est d'utiliser le mot-clé @ref import qui permet de faire
  * référence à un fichier externe depuis n'importe quel document Tao.
  *
@@ -800,7 +800,7 @@ en_évidence T:text ->
  * un seul endroit, @c mes_définitions.xl.
  *
  * @note On utilise en général l'extension @c .xl pour les fichiers qui
- * contiennent du code XL, mais ne sont pas des documents Tao Presentations
+ * contiennent du code XL, mais ne sont pas des documents Tao3D
  * complets (qui ont de préférence l'extension @c .ddd).
  *
  * @section secUserDirectory L'étape suivante : les définitions utilisateur
@@ -824,7 +824,7 @@ import "xl:mes_définitions.xl"
  *
  * Supposons que vous ayez écrit des définitions que vous vouliez partager
  * avec d'autres utilisateurs de Tao. Pour celà vous pouvez créer un
- * @ref Modules "module Tao Presentations".
+ * @ref Modules "module Tao3D".
  *
  * Il y a plusieurs avantages à utiliser un module plutôt qu'un simple
  * fichier XL qui se trouverait dans le dossier utilisateur Tao.
@@ -841,7 +841,7 @@ import "xl:mes_définitions.xl"
  * programme Tao. Les modules natifs ne sont pas présentés en détail dans
  * la présente documentation, mais vous pourrez trouver plus d'informations
  * dans le kit de développement disponible dans le répertoire d'installation
- * de Tao Presentations.
+ * de Tao3D.
  *
  * @subsection secCreatingModule Création d'un module
  *
@@ -854,12 +854,12 @@ import "xl:mes_définitions.xl"
  * d'ouvrir le répertoire du module.
  *  - Copiez le répertoire @c tao_visuals dans le répertoire @c modules de
  * votre compte utilisateur. Plus précisément, vous obtiendrez :
- *    - Windows: <tt>%%APPDATA%\\Taodyne\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *    - Windows: <tt>%%APPDATA%\\Taodyne\\Tao3D\\modules\\tao_visuals</tt>.
  *      Pour ouvrir <tt>%%APPDATA%</tt> facilement, tapez simplement
  *      <tt>%%APPDATA%</tt> dans le menu Démarrer.
- *    - MacOSX: <tt>$HOME/Library/Application Support/Taodyne/Tao Presentations/modules/tao_visuals</tt>.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Taodyne/Tao3D/modules/tao_visuals</tt>.
  *      <tt>$HOME</tt> est votre répertoire utilisateur.
- *    - <tt>$HOME/.local/share/data/Taodyne/Tao Presentations/modules/tao_visuals</tt> sur Linux.
+ *    - <tt>$HOME/.local/share/data/Taodyne/Tao3D/modules/tao_visuals</tt> sur Linux.
  *  - Renommez le module. Vous devez renommer le dossier mais également le
  * fichier XL principal : <tt>tao_visuals/tao_visuals.xl</tt> doit devenir
  * <tt>mon_module/mon_module.xl</tt>.
@@ -874,14 +874,14 @@ import "xl:mes_définitions.xl"
  * bas. Et bien sûr, remplacez le code XL par le vôtre.
  *  - Fournissez une icone (<tt>icon.png</tt>) ou supprimez le fichier si
  * vous n'avez pas d'icône.
- *  - Redémarrez Tao Presentations et vérifiez la page d'information des
+ *  - Redémarrez Tao3D et vérifiez la page d'information des
  * modules. Votre module devrait normalement être dans la liste. Si ce n'est
  * pas le cas, référez-vous aux instructions ci-dessous.
  *
  * @subsection secModuleTS En cas de problème avec les modules
  *
  * Vous pouvez vérifier quels modules sont détectés en ouvrant la fenêtre de
- * préférences des modules : Tao Presentations>Preferences sous MacOSX et
+ * préférences des modules : Tao3D>Preferences sous MacOSX et
  * Aide>Préférences sous Windows. Vous pouvez aussi activer ou désactiver des
  * modules.
  *
@@ -898,7 +898,7 @@ import "xl:mes_définitions.xl"
  *
  * Les traces de debug sont envoyées sur le canal d'erreur standard
  * (@c stderr). Leur destination réelle dépend de la plateforme et du fait
- * que vous ayez  démarré Tao Presentations depuis l'interpréteur de
+ * que vous ayez  démarré Tao3D depuis l'interpréteur de
  * commandes ou en utilisant l'interface graphique, comme expliqué ici @ref platform_notes.
  */
 /**
@@ -917,11 +917,11 @@ import "xl:mes_définitions.xl"
  *  - Messages sent by the write and writeln builtins.
  *
  * The destination of the standard output and standard error are different
- * if you are using Tao Presentations on MacOSX or on Windows.
+ * if you are using Tao3D on MacOSX or on Windows.
  *
  * @subsection secWindows Windows
  *
- * The standard output and standard error channels of Tao Presentations are
+ * The standard output and standard error channels of Tao3D are
  * normally redirected to the file @c tao.log in the @c Tao folder under the
  * current users's document folder. This file is overwritten each time the
  * application is started.
@@ -932,7 +932,7 @@ import "xl:mes_définitions.xl"
  *
  * @subsection secMacOSX MacOSX
  *
- * The standard output and standard error channels of Tao Presentations are
+ * The standard output and standard error channels of Tao3D are
  * normally sent to log files and can be seen with the MacOSX @c console
  * application.
  *
@@ -957,7 +957,7 @@ import "xl:mes_définitions.xl"
  *
  * @subsection secWindows Windows
  *
- * Les canaux de sortie et d'erreur standard de Tao Presentations sont
+ * Les canaux de sortie et d'erreur standard de Tao3D sont
  * normalement redirigés vers le fichier @c tao.log dans le dossier @c Tao
  * sous le dossier des documents de l'utilisateur. Ce fichier est recréé
  * à chaque démarrage de l'application.
@@ -968,7 +968,7 @@ import "xl:mes_définitions.xl"
  *
  * @subsection secMacOSX MacOSX
  *
- * Les canaux de sortie et d'erreur standard de Tao Presentations sont
+ * Les canaux de sortie et d'erreur standard de Tao3D sont
  * normalement redirigés vers des fichiers et peuvent être lu avec l'application
  * MacOSX @c console.
  *
@@ -981,7 +981,7 @@ import "xl:mes_définitions.xl"
  * @page credits Credits/Licenses
  * Legal notices.
  *
- * Tao Presentations uses the following components:
+ * Tao3D uses the following components:
  *
  *   - <b>Qt</b>: Qt is a C++ toolkit for cross-platform application
  *   development. Qt is an open source project. See
@@ -992,11 +992,11 @@ import "xl:mes_définitions.xl"
  *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
  *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
  *   information.
- *   - <b>Qt Solutions</b>: Tao Presentations contains portions of
+ *   - <b>Qt Solutions</b>: Tao3D contains portions of
  *   the Qt Solutions component. These portions are subject to the
  *   following licensing terms:
  * @verbinclude "QtSolutionsLicense.txt"
- *   - <b>Qt Assistant</b>: The Tao Presentations Help application is derived
+ *   - <b>Qt Assistant</b>: The Tao3D Help application is derived
  *   from the Qt Assistant of the Qt Toolkit. This
  *   application is covered by the GNU General Public License version 3.0.
  *   The source code is published as a Gitorious project:
@@ -1006,7 +1006,7 @@ import "xl:mes_définitions.xl"
  * @page credits Remerciements/Licences
  * Informations légales.
  *
- * Tao Presentations utilise les composants suivants :
+ * Tao3D utilise les composants suivants :
  *
  *   - <b>Qt</b>: Qt est une boîte à outils C++ pour le développement
  *   d'applications multi-plateformes. Qt est un logiciel open source. Cf.
@@ -1017,11 +1017,11 @@ import "xl:mes_définitions.xl"
  *   - <b>XLR</b>: XLR est un langage compilé dynamiquement basé sur des
  *   réécritures d'arbres. Cf. <a href="http://xlr.sf.net/">xlr.sf.net</a>
  *   pour plus d'informations.
- *   - <b>Qt Solutions</b>: Tao Presentations contient des portions du
+ *   - <b>Qt Solutions</b>: Tao3D contient des portions du
  *   composant Qt Solutions. Ces portions sont soumises à la license
  *   suivante :
  * @verbinclude "QtSolutionsLicense.txt"
- *   - <b>Qt Assistant</b>: L'application d'aide de Tao Presentations est
+ *   - <b>Qt Assistant</b>: L'application d'aide de Tao3D est
  *   dérivée de <em>Qt Assistant</em> qui fait partie du <em>Qt Toolkit</em>.
  *   Cette application est soumise à la <em>GNU General Public
  *   License</em> version 3.0. Le code source est publié sous le projet Gitorious :
@@ -1031,20 +1031,20 @@ import "xl:mes_définitions.xl"
 
 /**
  * @~english
- * @addtogroup TaoBuiltins Tao Presentations Builtins
+ * @addtogroup TaoBuiltins Tao3D Builtins
  *
- * Core functions for Tao Presentations.
+ * Core functions for Tao3D.
  *
  * Tao documents are written using the XL language. Tao builtins are XL forms
  * that you must use to describe your document. They are further divided into
  * categories as shown above.
  *
  * @~french
- * @addtogroup TaoBuiltins Primitives de Tao Presentations
+ * @addtogroup TaoBuiltins Primitives de Tao3D
  *
- * Fonctions principales de Tao Presentations
+ * Fonctions principales de Tao3D
  *
- * Les documents Tao Presentations sont écrits en utilisant le langage XL.
+ * Les documents Tao3D sont écrits en utilisant le langage XL.
  * Les primitives  de Tao sont des formes XL que vous devez utiliser pour
  * décrire votre document. Elles sont réparties en catégories comme décrit
  * ci-dessus.

@@ -8,7 +8,7 @@ I) Building and installing modules
  0. Prerequisites
 
  - Qt 4 (4.7.4 or later).
- - Tao Presentations
+ - Tao3D
  - [Windows only] MinGW
 
  1. Build and install a local copy of the modules
@@ -19,13 +19,13 @@ $ make install
 
 This will copy the modules under your "Application Support" directory:
  - MacOSX:
-            "~/Library/Application Support/Tao Presentations/modules"
+            "~/Library/Application Support/Tao3D/modules"
  - Windows:
-            "%LOCALAPPDATA%\Tao Presentations\modules"
+            "%LOCALAPPDATA%\Tao3D\modules"
  - Linux:
-            "~/.local/share/data/Taodyne/Tao Presentations/modules"
+            "~/.local/share/data/Taodyne/Tao3D/modules"
 
-Start Tao Presentations: the new modules will be detected automatically.
+Start Tao3D: the new modules will be detected automatically.
 
 
 II) Uninstalling a module
@@ -74,7 +74,7 @@ V) Troubleshooting
    ===============
 
 You can check which modules are detected by selecting the Preferences menu
-(Tao Presentations>Preferences on MacOSX, Help>Preferences on Windows). In this
+(Tao3D>Preferences on MacOSX, Help>Preferences on Windows). In this
 dialog box you can also disable or enable modules.
 
 Modules from the user's home directory are loaded first, followed by

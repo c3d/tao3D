@@ -255,8 +255,8 @@
     </message>
     <message>
         <location filename="assistant.cpp" line="468"/>
-        <source>Tao Presentations</source>
-        <translation>Tao Presentations</translation>
+        <source>Tao3D</source>
+        <translation>Tao3D</translation>
     </message>
     <message>
         <location filename="assistant.cpp" line="469"/>
@@ -392,8 +392,8 @@
     </message>
     <message>
         <location filename="application.cpp" line="268"/>
-        <source>&lt;p&gt;You have been using Tao Presentations, %1 Edition for %2 days.&lt;/p&gt;&lt;p&gt;By purchasing a %1 Pro license, you will:&lt;ul&gt;&lt;li&gt; benefit from additional features and support&lt;li&gt; help us improve our products&lt;/ul&gt;Thank you.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Vous utilisez Tao Presentations, Édition %1 depuis %2 jours.&lt;/p&gt;&lt;p&gt;En achetant une licence %1 Pro :&lt;ul&gt;&lt;li&gt; vous bénéficierez de fonctions supplémentaires et de support technique&lt;li&gt; vous nous aiderez à améliorer nos produits&lt;/ul&gt;Merci.&lt;/p&gt;</translation>
+        <source>&lt;p&gt;You have been using Tao3D, %1 Edition for %2 days.&lt;/p&gt;&lt;p&gt;By purchasing a %1 Pro license, you will:&lt;ul&gt;&lt;li&gt; benefit from additional features and support&lt;li&gt; help us improve our products&lt;/ul&gt;Thank you.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Vous utilisez Tao3D, Édition %1 depuis %2 jours.&lt;/p&gt;&lt;p&gt;En achetant une licence %1 Pro :&lt;ul&gt;&lt;li&gt; vous bénéficierez de fonctions supplémentaires et de support technique&lt;li&gt; vous nous aiderez à améliorer nos produits&lt;/ul&gt;Merci.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="application.cpp" line="610"/>
@@ -493,8 +493,8 @@ Les préférences de l&apos;utilisateur ?</translation>
     <name>Tao::Assistant</name>
     <message>
         <location filename="assistant.cpp" line="53"/>
-        <source>Tao Presentations Help</source>
-        <translation>Aide de Tao Presentations</translation>
+        <source>Tao3D Help</source>
+        <translation>Aide de Tao3D</translation>
     </message>
     <message>
         <location filename="assistant.cpp" line="136"/>
@@ -809,16 +809,16 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::EulaDialog</name>
     <message>
-        <source>Tao Presentations</source>
-        <translation type="obsolete">Tao Presentations</translation>
+        <source>Tao3D</source>
+        <translation type="obsolete">Tao3D</translation>
     </message>
     <message>
         <source>&lt;center&gt;&lt;h3&gt;Tao Presentation End-User License Agreement&lt;/h3&gt;&lt;/center&gt;</source>
         <translation type="obsolete">&lt;center&gt;&lt;h3&gt;Contrat de Licence d&apos;Utilisateur Final&lt;/h3&gt;&lt;/center&gt;</translation>
     </message>
     <message>
-        <source>&lt;p&gt;Thank you for your interest in Tao Presentations.&lt;/p&gt;&lt;p&gt;Please read the terms of the license agreement by clicking the following link: &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;If the link does not open, please copy the address in a web browser.&lt;/p&gt;&lt;p&gt;&lt;b&gt;By clicking on the &quot;I Accept&quot; button, you express your consent to the above terms and conditions.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;You must accept the agreement to use Tao Presentations.&lt;/p&gt;</source>
-        <translation type="obsolete">&lt;p&gt;Merci de l&apos;intérêt que vous portez à Tao Presentations.&lt;/p&gt;&lt;p&gt;Veuillez SVP lire attentivement les termes du contrat de licence en cliquant sur le lien suivant : &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;Si le lien ne s&apos;ouvre pas, merci de le copier dans la barre d&apos;adresse de votre navigateur web.&lt;/p&gt;&lt;p&gt;&lt;b&gt;En cliquant sur le bouton &quot;J&apos;accepte&quot;, vous exprimez votre accord avec les termes et conditions du contrat ci-dessus.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Vou devez accepter le contrat pour utiliser Tao Presentations.&lt;/p&gt;</translation>
+        <source>&lt;p&gt;Thank you for your interest in Tao3D.&lt;/p&gt;&lt;p&gt;Please read the terms of the license agreement by clicking the following link: &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;If the link does not open, please copy the address in a web browser.&lt;/p&gt;&lt;p&gt;&lt;b&gt;By clicking on the &quot;I Accept&quot; button, you express your consent to the above terms and conditions.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;You must accept the agreement to use Tao Presentations.&lt;/p&gt;</source>
+        <translation type="obsolete">&lt;p&gt;Merci de l&apos;intérêt que vous portez à Tao3D.&lt;/p&gt;&lt;p&gt;Veuillez SVP lire attentivement les termes du contrat de licence en cliquant sur le lien suivant : &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;Si le lien ne s&apos;ouvre pas, merci de le copier dans la barre d&apos;adresse de votre navigateur web.&lt;/p&gt;&lt;p&gt;&lt;b&gt;En cliquant sur le bouton &quot;J&apos;accepte&quot;, vous exprimez votre accord avec les termes et conditions du contrat ci-dessus.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Vou devez accepter le contrat pour utiliser Tao Presentations.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>http://taodyne.com/eula</source>
@@ -990,7 +990,7 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     <message>
         <location filename="license_dialog.cpp" line="109"/>
         <source>&lt;h3&gt;Tao Presentation Licenses&lt;/h3&gt;</source>
-        <translation>&lt;h3&gt;Licences Tao Presentations&lt;/h3&gt;</translation>
+        <translation>&lt;h3&gt;Licences Tao3D&lt;/h3&gt;</translation>
     </message>
     <message>
         <location filename="license_dialog.cpp" line="118"/>
@@ -1451,8 +1451,8 @@ Seul le second module sera chargé. Vous devriez sans doute changer l&apos;UUID 
     <name>Tao::NagScreen</name>
     <message>
         <location filename="nag_screen.cpp" line="36"/>
-        <source>Tao Presentations</source>
-        <translation>Tao Presentations</translation>
+        <source>Tao3D</source>
+        <translation>Tao3D</translation>
     </message>
     <message>
         <location filename="nag_screen.cpp" line="37"/>
@@ -1461,8 +1461,8 @@ Seul le second module sera chargé. Vous devriez sans doute changer l&apos;UUID 
     </message>
     <message>
         <location filename="nag_screen.cpp" line="38"/>
-        <source>&lt;p&gt;This is an evaluation copy of Tao Presentations.&lt;p&gt;</source>
-        <translation>&lt;p&gt;Ceci est une version d&apos;évaluation de Tao Presentations.&lt;p&gt;</translation>
+        <source>&lt;p&gt;This is an evaluation copy of Tao3D.&lt;p&gt;</source>
+        <translation>&lt;p&gt;Ceci est une version d&apos;évaluation de Tao3D.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="nag_screen.cpp" line="42"/>
@@ -1933,8 +1933,8 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
     </message>
     <message>
         <location filename="splash_screen.cpp" line="213"/>
-        <source>Tao Presentations - Credits</source>
-        <translation>Tao Presentations - Remerciements</translation>
+        <source>Tao3D - Credits</source>
+        <translation>Tao3D - Remerciements</translation>
     </message>
     <message>
         <location filename="splash_screen.cpp" line="215"/>
@@ -1948,8 +1948,8 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
     </message>
     <message>
         <location filename="splash_screen.cpp" line="282"/>
-        <source>Tao Presentations - What&apos;s new?</source>
-        <translation>Tao Presentations - Quoi de neuf ?</translation>
+        <source>Tao3D - What&apos;s new?</source>
+        <translation>Tao3D - Quoi de neuf ?</translation>
     </message>
 </context>
 <context>
@@ -1979,8 +1979,8 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
     <name>Tao::UpdateApplication</name>
     <message>
         <location filename="update_application.cpp" line="79"/>
-        <source>Tao Presentations Update</source>
-        <translation>Mise à jour de Tao Presentations</translation>
+        <source>Tao3D Update</source>
+        <translation>Mise à jour de Tao3D</translation>
     </message>
     <message>
         <location filename="update_application.cpp" line="209"/>
@@ -2029,8 +2029,8 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
     </message>
     <message>
         <location filename="update_application.cpp" line="378"/>
-        <source>Downloading Tao Presentations %1%2</source>
-        <translation>Téléchargement de Tao Presentations %1%2</translation>
+        <source>Downloading Tao3D %1%2</source>
+        <translation>Téléchargement de Tao3D %1%2</translation>
     </message>
     <message>
         <location filename="update_application.cpp" line="479"/>
@@ -2220,8 +2220,8 @@ Code : %1
     </message>
     <message>
         <location filename="widget.cpp" line="5871"/>
-        <source>&lt;p&gt;This unlicensed version of Tao Presentations has a limit of 5 pages per document.&lt;/p&gt;&lt;p&gt;You may suppress this limitation by purchasing a Pro license.&lt;/p&gt;&lt;p&gt;Thank you.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Cette version d&apos;évaluation de Tao Presentations est limitée à 5 pages par document.&lt;/p&gt;&lt;p&gt;Vous pouvez supprimer cette limitation en achetant une licence Pro.&lt;/p&gt;&lt;p&gt;Merci.&lt;/p&gt;</translation>
+        <source>&lt;p&gt;This unlicensed version of Tao3D has a limit of 5 pages per document.&lt;/p&gt;&lt;p&gt;You may suppress this limitation by purchasing a Pro license.&lt;/p&gt;&lt;p&gt;Thank you.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Cette version d&apos;évaluation de Tao3D est limitée à 5 pages par document.&lt;/p&gt;&lt;p&gt;Vous pouvez supprimer cette limitation en achetant une licence Pro.&lt;/p&gt;&lt;p&gt;Merci.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="5876"/>
@@ -2377,8 +2377,8 @@ Code : %1
     <message>
         <location filename="window.cpp" line="1501"/>
         <location filename="window.cpp" line="1540"/>
-        <source>Tao Presentations/Licenses...</source>
-        <translation>Tao Presentations/Licences...</translation>
+        <source>Tao3D/Licenses...</source>
+        <translation>Tao3D/Licences...</translation>
     </message>
     <message>
         <location filename="window.cpp" line="1503"/>

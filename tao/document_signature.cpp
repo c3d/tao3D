@@ -153,7 +153,7 @@ QString SignatureInfo::signFileWithDocKey()
     QByteArray qpubKeyDoc = BA(pubKeyDoc);
     QByteArray qprivKeyDoc = BA(privKeyDoc);
 
-    QString ident = "; Signed by: Tao Presentations " +
+    QString ident = "; Signed by: Tao3D " +
                        Application::editionStr() + "\n"
                     "; version " + GITREV_ + " (" + GITSHA1_ + ")\n";
 

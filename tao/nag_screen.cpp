@@ -33,10 +33,10 @@ NagScreen::NagScreen(QWidget *parent)
 // ----------------------------------------------------------------------------
     : QMessageBox(parent)
 {
-    setWindowTitle(tr("Tao Presentations"));
+    setWindowTitle(tr("Tao3D"));
     setText(tr("<h3>Reminder</h3>"));
     setInformativeText(tr("<p>This is an evaluation copy of "
-                          "Tao Presentations.<p>"));
+                          "Tao3D.<p>"));
 
     setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     button(QMessageBox::Ok)->setText(tr("Buy now"));

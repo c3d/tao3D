@@ -47,6 +47,8 @@ struct Licenses : public QObject
 {
     Q_OBJECT
 
+#ifndef CFG_NO_LICENSE
+
 public:
     static void AddLicenseFile(kstring lfile)
     {
@@ -213,8 +215,10 @@ private:
     bool verify(LicenseFile &lf, text signature);
     bool publisherMatches(QString name);
     static std::ostream & debug();
+#endif // CFG_NO_LICENSE
 };
 
 }
+
 
 #endif // LICENSE_H

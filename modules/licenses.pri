@@ -5,7 +5,7 @@
 # 2. (Taodyne private build only) If LICENSE_VALIDITY and SIGN_MODULE_LICENSES
 #    are both defined (LICENSE_VALIDITY is a duration in days),
 #    create a temporary license file, sign it and install it into
-#    the Tao Presentations install folder.
+#    the Tao3D install folder.
 #
 # Usage: In module_name/module_name.pro:
 #   LICENSE_FILES = module_name.taokey.notsigned
@@ -27,7 +27,7 @@ isEmpty(MODINSTPATH):error(Please include modules.pri before licenses.pri)
 
   } else {
 
-    # Tao Presentations full build only (Taodyne)
+    # Tao3D full build only (Taodyne)
     # Generate and sign temporary licenses, and install them into the Tao
     # licenses folder
     !exists(../tao_sign/expires.pri):error(Must be in Taodyne internal build environment to sign licenses)

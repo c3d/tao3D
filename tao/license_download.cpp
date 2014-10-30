@@ -468,7 +468,11 @@ QUrl LicenseDownload::Source::makeUrl(QString str)
 {
     QString tmp(str);
     tmp.replace("$bundle", bundle);
+#ifdef CFG_NO_LICENSE
+    tmp.replace("$hostid", "GPL");
+#else
     tmp.replace("$hostid", +Licenses::hostID());
+#endif
     return QUrl(tmp);
 }
 

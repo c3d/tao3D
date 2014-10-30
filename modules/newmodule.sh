@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Interactive script to create a new module for Tao Presentations.
+# Interactive script to create a new module for Tao3D.
 #
 # Usage: ./newmodule.sh
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Convenience script to create the official build of Tao Presentations. 
+# Convenience script to create the official build of Tao3D
 # When done, packages are copied into .. (parent directory).
 #
 # Usage: ./build_all.sh

@@ -23,7 +23,7 @@
 // <contact@taodyne.com>
 //
 // This software is a computer program whose purpose is to serve as a
-// document template for the Tao Presentations application.
+// document template for the Tao3D application.
 //
 // This software is governed by the CeCILL-B license under French law and
 // abiding by the rules of distribution of free software.  You can  use,
@@ -81,7 +81,7 @@ page "Taodyne presents",
         line_width 3
         text "Taodyne Presents"
         paragraph_break
-        text "a Tao Presentations production"
+        text "a Tao3D production"
     after 10,
         text_box 100, -200, 600, 200,
             color "yellow", sin time

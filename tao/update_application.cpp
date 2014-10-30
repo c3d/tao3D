@@ -76,7 +76,7 @@ UpdateApplication::UpdateApplication()
 //    Constructor
 // ----------------------------------------------------------------------------
   : state(Idle), file(NULL), progress(NULL),
-    dialogTitle(QString(tr("Tao Presentations Update"))),
+    dialogTitle(QString(tr("Tao3D Update"))),
     downloadIcon(loadIcon(":/images/download.png")),
     checkmarkIcon(loadIcon(":images/checkmark.png")),
     connectionErrorIcon(loadIcon(":/images/not_connected.png")),
@@ -139,13 +139,13 @@ void UpdateApplication::resetRequest()
 
 QString UpdateApplication::appName()
 // ----------------------------------------------------------------------------
-//    Return "Tao Presentations <EditionName>" or "Tao Presentations"
+//    Return "Tao3D <EditionName>" or "Tao Presentations"
 // ----------------------------------------------------------------------------
 {
     QString ed;
     if (!edition.isEmpty() && edition != "unified")
         ed = " " + edition;
-    return QString("Tao Presentations%1").arg(ed);
+    return QString("Tao3D%1").arg(ed);
 }
 
 
@@ -375,7 +375,7 @@ void UpdateApplication::downloadProgress(qint64 bytesRcvd, qint64 bytesTotal)
             speedTxt = QString(" (%1 %2)").arg(speed, 3, 'f', 1).arg(unit);
 
         // Update progress dialog
-        QString msg = tr("Downloading Tao Presentations %1%2");
+        QString msg = tr("Downloading Tao3D %1%2");
         progress->setLabelText(msg.arg(remoteVer()).arg(speedTxt));
     }
     progress->setMaximum(bytesTotal);

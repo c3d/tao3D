@@ -13,7 +13,9 @@ isEmpty(MODINSTPATH):error(Please include modules.pri before crypt_xl.pri)
   for(file, CRYPT_XL_SOURCES) {
     target = $${file}.crypt
     eval($${target}.path = \$\$MODINSTPATH)
-    eval($${target}.commands = $$TAOTOPSRC/crypt/crypt.sh <$$file >$$target)
+    exists(../crypt/crypt.sh) {
+      eval($${target}.commands = $$TAOTOPSRC/crypt/crypt.sh <$$file >$$target)
+    }
     eval($${target}.files = $$target)
     eval($${target}.depends = $$file)
     eval($${target}.CONFIG = no_check_exist)
@@ -25,4 +27,3 @@ isEmpty(MODINSTPATH):error(Please include modules.pri before crypt_xl.pri)
   }
   include(sign_xl.pri)
 }
-

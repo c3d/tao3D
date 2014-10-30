@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 #else
 #define EDSTR
 #endif
-            std::cout << "Tao Presentations " EDSTR << Tao::GITREV_  <<
+            std::cout << "Tao3D " EDSTR << Tao::GITREV_  <<
                                                " (" << Tao::GITSHA1_ << ")\n";
 #undef EDSTR
 #ifdef CONFIGURE_OPTIONS
@@ -739,6 +739,7 @@ text Main::Decrypt(text file)
     QFileInfo fi(+file);
     if (fi.exists())
     {
+#ifndef CFG_NO_CRYPT
         QFile f(+file);
         if (f.open(QIODevice::ReadOnly))
         {
@@ -747,6 +748,7 @@ text Main::Decrypt(text file)
             in.append(ba.data(), ba.size());
             return Crypto::Decrypt(in);
         }
+#endif
     }
     return "";
 }

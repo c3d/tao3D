@@ -81,7 +81,7 @@ QString HttpUserAgent::userAgent()
 //    HTTP User-Agent string
 // ----------------------------------------------------------------------------
 {
-    QString ua("Tao Presentations/%1 (%2; %3; %4)");
+    QString ua("Tao3D/%1 (%2; %3; %4)");
     return ua.arg(version).arg(Application::editionStr()).arg(edition)
              .arg(target);
 }

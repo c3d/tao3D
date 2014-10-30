@@ -113,7 +113,7 @@ theme_bbox "keyboard", Master:text, X:real, Y:real, W:real, H:real ->
 // <contact@taodyne.com>
 //
 // This software is a computer program whose purpose is to serve as a
-// document template for the Tao Presentations application.
+// document template for the Tao3D application.
 //
 // This software is governed by the CeCILL-B license under French law and
 // abiding by the rules of distribution of free software.  You can  use,

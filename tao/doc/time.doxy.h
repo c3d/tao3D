@@ -458,7 +458,7 @@ every (interval:real, body:tree);
  *
  * However, the refresh rate may be limited on some platforms or under
  * some specific circumstances:
- * - On MacOSX, Tao Presentations uses a
+ * - On MacOSX, Tao3D uses a
  * <a href="http://developer.apple.com/library/mac/#documentation/QuartzCore/Reference/CVDisplayLinkRef/Reference/reference.html">
  * Core Video display link</a> to
  * trigger periodic screen refreshes. This is so that animation are as
@@ -500,7 +500,7 @@ every (interval:real, body:tree);
  *
  * Celà dit, le taux de rafraîchissement peut être réduit sur certaines
  * plateformes ou dans certaines circonstances :
- * - Sur MacOSX, Tao Presentations utilise un
+ * - Sur MacOSX, Tao3D utilise un
  * <a href="http://developer.apple.com/library/mac/#documentation/QuartzCore/Reference/CVDisplayLinkRef/Reference/reference.html">
  * display link Core Video</a> pour déclencher les rafraîchissements
  * périodiques de l'écran. Ce qui assure la meilleure fluidité possible des
@@ -512,7 +512,7 @@ every (interval:real, body:tree);
  * est supportée, default_refresh vaut initialement 0.0. Si VSync est
  * réellement activée, la vitesse de rafraîchissement est alors
  * automatiquement limitée par l'horloge de synchronisation verticale.
- * Mais si VSync est désactivée, Tao Presentations calcule
+ * Mais si VSync est désactivée, Tao3D calcule
  * le plus possible d'images par secondes. Vous pouvez utiliser cette
  * configuration pour tester les performances d'une machine : sélectionnez
  * "Désactiver VSync" dans le menu de commande (touche "Échap"). Par contre,

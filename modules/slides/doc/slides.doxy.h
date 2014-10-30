@@ -689,7 +689,7 @@ base_slide(T:text, Body:code);
 /**
  * @~english
  * Creates a main title slide.
- * @p T corresponds to the page name in Tao Presentations.
+ * @p T corresponds to the page name in Tao3D.
  * Below, an example of a title slide using the default theme.
 @code
 import Slides
@@ -703,7 +703,7 @@ main_title_slide "Main slide",
  *
  * @~french
  * Créer une diapositive de titre principal.
- * @p T correspond au nom de la page dans Tao Presentations.
+ * @p T correspond au nom de la page dans Tao3D.
  * Ci-dessous, un exemple de diapositive de titre utilisant le thème par défaut.
 @code
 import Slides
@@ -760,7 +760,7 @@ main_title_slide(T:text);
 /**
  * @~english
  * Creates a section slide.
- * @p T corresponds to the page name in Tao Presentations.
+ * @p T corresponds to the page name in Tao3D.
  * Below, an example of this type of slide using the default theme.
 @code
 import Slides
@@ -774,7 +774,7 @@ section_slide "Section slide",
  *
  * @~french
  * Créer une diapositive de transition entre sections.
- * @p T correspond au nom de la page dans Tao Presentations.
+ * @p T correspond au nom de la page dans Tao3D.
  * Ci-dessous, un exemple de ce type de diapositive utilisant le thème par défaut.
 @code
 import Slides

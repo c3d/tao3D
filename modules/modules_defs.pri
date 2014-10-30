@@ -22,10 +22,10 @@ isEmpty(MODINSTPATH) {
       # directly into the user's module directory
       win32 {
         LOCALAPPDATA=$$system(bash -c \"cd $LOCALAPPDATA ; pwd\") # convert Win path to Mingw path
-        MODINSTROOT = "$${LOCALAPPDATA}/Taodyne/Tao Presentations/modules"
+        MODINSTROOT = "$${LOCALAPPDATA}/Taodyne/Tao3D/modules"
       }
-      macx:MODINSTROOT = $$(HOME)"/Library/Application Support/Taodyne/Tao Presentations/modules"
-      linux*:MODINSTROOT = $$(HOME)"/.local/share/data/Taodyne/Tao Presentations/modules"
+      macx:MODINSTROOT = $$(HOME)"/Library/Application Support/Taodyne/Tao3D/modules"
+      linux*:MODINSTROOT = $$(HOME)"/.local/share/data/Taodyne/Tao3D/modules"
       isEmpty(MODINSTROOT):error(MODINSTROOT not defined)
     } else {
       # Building full Tao including its bundled modules

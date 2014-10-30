@@ -15,12 +15,12 @@ usage() {
   echo "Please look at the QMake 'Project MESSAGE' output for detailed information on"
   echo "what will be included in the build."
   echo "Modules are installed in a user-specific directory and do NOT overwrite"
-  echo "the modules that come with Tao Presentations (but a user module has priority"
+  echo "the modules that come with Tao3D (but a user module has priority"
   echo "on an application module at runtime). See the Tao documentation for details."
   echo "make install will copy module files to:"
-  echo '  - Windows: %APPDATA%\Taodyne\Tao Presentations\modules'
-  echo '  - MacOSX:  $HOME/Library/Application Support/Taodyne/Tao Presentations/modules'
-  echo '  - Linux: $HOME/.local/share/data/Taodyne/Tao Presentations/modules'
+  echo '  - Windows: %APPDATA%\Taodyne\Tao3D\modules'
+  echo '  - MacOSX:  $HOME/Library/Application Support/Taodyne/Tao3D/modules'
+  echo '  - Linux: $HOME/.local/share/data/Taodyne/Tao3D/modules'
   echo ""
   echo "Options:"
   echo ""

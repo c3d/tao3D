@@ -58,7 +58,7 @@ class Application : public QApplication
 // ----------------------------------------------------------------------------
 {
 public:
-    enum TaoEdition { Unknown, Design, DesignPro, Player, PlayerPro, Other };
+    enum TaoEdition { Unknown,Design,DesignPro,Player,PlayerPro,GPL,Other };
 
 public:
     static QPixmap *padlockIcon;
@@ -94,6 +94,8 @@ public:
             return "Player";
         case Application::PlayerPro:
             return "Player Pro";
+        case Application::GPL:
+            return "Open Source";
         case Application::Other:
             return "Other";
         case Application::Unknown:

@@ -381,6 +381,7 @@ contains(DEFINES, CFG_NO_LICENSE_DOWNLOAD) {
         license_download.cpp \
         login_dialog.cpp
 }
+!exists(../keygen/doc_private_key_dsa.h):DEFINES+=CFG_NO_DOC_SIGNATURE
 contains(DEFINES, CFG_NO_DOC_SIGNATURE) {
     !build_pass:message("[CFG_NO_DOC_SIGNATURE] Document signing and verification is disabled")
 } else {
@@ -389,6 +390,22 @@ contains(DEFINES, CFG_NO_DOC_SIGNATURE) {
     NOWARN_SOURCES += \
         document_signature.cpp
 }
+!exists(../keygen/private_key_rsa.h):DEFINES+=CFG_NO_CRYPT
+contains(DEFINES, CFG_NO_CRYPT) {
+    !build_pass:message("[CFG_NO_CRYPT] Document decryption disabled")
+} else {
+    NOWARN_SOURCES += \
+         crypt.cpp
+}
+
+contains(DEFINES, CFG_NO_CRYPT):DEFINES+=CFG_NO_LICENSE
+contains(DEFINES, CFG_NO_LICENSE) {
+    !build_pass:message("[CFG_NO_LICENSE] License checks are disabled")
+} else {
+    NOWARN_SOURCES += \
+         license.cpp
+}
+
 contains(DEFINES, CFG_NO_WEBUI) {
     !build_pass:message("[CFG_NO_WEBUI] Web-based editor disabled")
 } else {
@@ -398,7 +415,6 @@ contains(DEFINES, CFG_NO_WEBUI) {
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
-NOWARN_SOURCES += crypto.cpp license.cpp
 
 win32 {
     HEADERS += include/tao/GL/glew.h \

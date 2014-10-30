@@ -1,7 +1,7 @@
 # Makefile to build a MacOSX installer (.dmg)
 #
 # The application is distributed as a disk image (.dmg) which
-# contains an application bundle (Tao Presentations*.app).
+# contains an application bundle (Tao3D*.app).
 #
 # To build the package, this Makefile goes through the following
 # steps:
@@ -46,13 +46,13 @@ endif
 ifdef PACKAGE_APPEND
 APPENDSTR=$(PACKAGE_APPEND) # ends with one space - do not remove this comment!
 endif
-VOLNAME=Tao Presentations $(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
+VOLNAME=Tao3D $(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
 DMG=$(VOLNAME).$(ARCH).dmg
 
 kit: .dmg_ts
 
 $(DMG) .dmg_ts: prepare
-	rm -f tao.dmg "Tao Presentations"*.dmg
+	rm -f tao.dmg "Tao3D"*.dmg
 	./create_dmg --volname "$(VOLNAME)" \
 	    --volicon VolumeIcon.icns \
 	    --background-color 35512 44800 65535 \

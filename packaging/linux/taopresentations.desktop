@@ -6,7 +6,7 @@ Icon=taopresentations
 MimeType=application/com.taodyne.taopresentationsdoc;x-scheme-handler/tao;x-scheme-handler/taos;
 X-KDE-Protocols=tao,taos
 
-Name=Tao Presentations
+Name=Tao3D
 Comment=Create and show 2D and 3D presentations
 
 Comment[fr]=Créez et affichez des présentations en 2D et 3D

@@ -230,22 +230,26 @@ void Application::deferredInit()
     padlockIcon = new QPixmap(pm.scaled(64, 64, Qt::IgnoreAspectRatio,
                                         Qt::SmoothTransformation));
 
-    QString designPro = QString("Tao Presentations Design Pro %1").arg(GITREV_);
-    QString impress = QString("Tao Presentations Impress %1").arg(GITREV_);
-    QString creativity = QString("Tao Presentations Creativity %1").arg(GITREV_);
+    QString designPro = QString("Tao3D Design Pro %1").arg(GITREV_);
+    QString impress = QString("Tao3D Impress %1").arg(GITREV_);
+    QString creativity = QString("Tao3D Creativity %1").arg(GITREV_);
 #ifdef TAO_PLAYER
-    QString playerPro = QString("Tao Presentations Player Pro %1").arg(GITREV_);
+    QString playerPro = QString("Tao3D Player Pro %1").arg(GITREV_);
     if (Licenses::Has(+playerPro) || Licenses::Has(+designPro) ||
         Licenses::Has(+impress) || Licenses::Has(+creativity))
         edition = Application::PlayerPro;
     else
         edition = Application::Player;
 #else
+#ifdef CFG_NO_LICENSE
+    edition = Application::GPL;
+#else
     if (Licenses::Has(+designPro) || Licenses::Has(+impress) ||
         Licenses::Has(+creativity))
         edition = Application::DesignPro;
     else
         edition = Application::Design;
+#endif // CFG_NO_LICENSE
 #endif
 
 #ifndef TAO_PLAYER
@@ -265,7 +269,7 @@ void Application::deferredInit()
             if (days > 30)
             {
                 QString info;
-                info = tr("<p>You have been using Tao Presentations, "
+                info = tr("<p>You have been using Tao3D, "
                           "%1 Edition for %2 days.</p>"
                           "<p>By purchasing a %1 Pro license, you will:"
                           "<ul><li> benefit from additional features "
@@ -510,12 +514,14 @@ bool Application::loadLicenses()
         dirs << QDir(info.absoluteFilePath());
     }
 
+#ifndef CFG_NO_LICENSE
     foreach (QDir dir, dirs)
     {
         QFileInfoList licenses = dir.entryInfoList(QStringList("*.taokey"),
                                                    QDir::Files);
         Licenses::AddLicenseFiles(licenses);
     }
+#endif // CFG_NO_LICENSE
     return true;
 }
 

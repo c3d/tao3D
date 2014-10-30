@@ -15,7 +15,7 @@ dirs() {
 
 case `uname` in
   Darwin)
-    INST="install/Tao Presentations.app/Contents/MacOS"
+    INST="install/Tao3D.app/Contents/MacOS"
     ;;
   MINGW*|Linux)
     INST=install

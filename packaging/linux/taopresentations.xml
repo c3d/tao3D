@@ -2,8 +2,8 @@
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
 
   <mime-type type="application/com.taodyne.taopresentationsdoc">
-    <comment xml:lang="en">Tao Presentations document</comment>
-    <comment xml:lang="fr">Document Tao Presentations</comment>
+    <comment xml:lang="en">Tao3D document</comment>
+    <comment xml:lang="fr">Document Tao3D</comment>
     <glob pattern="*.ddd"/>
   </mime-type>
 

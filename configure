@@ -7,7 +7,7 @@ usage() {
   echo "Usage: configure [options] [edition name] [QMake options]"
   echo ""
   echo "Runs QMake to configure the build environment for some pre-defined"
-  echo "configurations of Tao Presentations. configure will:"
+  echo "configurations of Tao3D. configure will:"
   echo ""
   echo "  - Select build options (enabling or disabling some features in the program)"
   echo "  - Select which modules will be built and packaged"
@@ -35,10 +35,10 @@ usage() {
   echo "Edition Name:"
   echo ""
   echo "  design"
-  echo "  <empty>     Configure for Tao Presentations Design and Design Pro."
+  echo "  <empty>     Configure for Tao3D Design and Design Pro."
   echo "              Edition is determined at run time, depending on the available licenses:"
-  echo "                - 'Tao Presentations Design Pro <version>' => Design Pro"
-  echo "                - 'Tao Presentations Impress <version>'    => Design Pro (compatibility)"
+  echo "                - 'Tao3D Design Pro <version>' => Design Pro"
+  echo "                - 'Tao3D Impress <version>'    => Design Pro (compatibility)"
   echo "                - none of the above                        => Design"
   echo "              All default modules except autostereoscopic displays are built and"
   echo "              packaged, with no license. No application license is bundled."
@@ -46,19 +46,19 @@ usage() {
   echo "                - It shows a watermark (Taodyne logo in the corner)."
   echo "                - It shows a 'Buy' reminder on exit."
   echo "              ** Design Pro allows many modules to work without explicit license."
-  echo "  player      Configure for the Tao Presentations Player and Player Pro."
+  echo "  player      Configure for the Tao3D Player and Player Pro."
   echo "              A stripped-down version of the regular build,"
   echo "              with no template, no documentation, no SDK, no Web Editor and some"
   echo "              limitations (see compile options)."
   echo "              installed separately."
   echo "              Edition is determined at run time, depending on the available licenses:"
-  echo "                - 'Tao Presentations Player Pro <version>' => Player Pro"
+  echo "                - 'Tao3D Player Pro <version>' => Player Pro"
   echo "                - otherwise                                => Player"
   echo "              ** Player is an evaluation/demo version."
   echo "                - It shows a watermark (Taodyne logo in the corner)."
   echo "                - It shows a 'Buy' reminder on exit."
   echo "              ** Player Pro removes the watermark if the document is signed by Design Pro."
-  echo "  youactive   Configure for Tao Presentations YouActive. Same as the regular (\"unified\")"
+  echo "  youactive   Configure for Tao3D YouActive. Same as the regular (\"unified\")"
   echo "              build, but includes additional modules used in the YouActive solution (DIP)."
   echo "  internal    Configure for an internal build with most features enabled (including"
   echo "              the less stable ones, not shipped with official Tao editions)".
@@ -160,11 +160,6 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS DEFINES+=CFG_NO_QTWEBKIT"
       FLAGS="$FLAGS templates=none"
       PACKAGE="Player"
-      shift ; done=1
-      ;;
-    youactive)
-      FLAGS="$FLAGS modules+=+DIP"
-      PACKAGE="YouActive"
       shift ; done=1
       ;;
     internal)

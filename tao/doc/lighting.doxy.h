@@ -53,7 +53,7 @@ rectangle 100, 0, 150, 100
  * primitives by the current color (@ref color). @n
  * In other words, the current color affects (filters) the material colors.
  * Use <tt>color "white"</tt> to cancel this effect.
- * @note This has changed from Tao Presentations 1.30.
+ * @note This has changed from Tao3D 1.30.
  * - In version 1.30, @ref color is a synonym for "set the front and back,
  * ambient and diffuse material color".
  * - In this version, @ref color is combined with the various material colors
@@ -142,7 +142,7 @@ rectangle 100, 0, 150, 100
  * Autrement dit, la couleur en cours affecte les couleurs de matériaux.
  * Il suffit d'appeler <tt>color "white"</tt> pour annuler cet effet.
  * @note Ce comportement a changé par rapport à la version 1.30 de
- * Tao Presentations :
+ * Tao3D :
  * - Dans la version 1.30, @ref color est un synonyme de "matériau
  * ambient et diffus sur les deux faces".
  * - Dans cette version, @ref color est combinée avec les différentes
@@ -225,7 +225,7 @@ light(id:integer);
  *
  * By default, per-pixel lighting is disabled.
  *
- * @note Tao Presentations has a global setting for per-pixel lighting, in the
+ * @note Tao3D has a global setting for per-pixel lighting, in the
  * preference dialog. This global setting is used when @c per_pixel_lighting
  * is not used.
  *
@@ -246,7 +246,7 @@ light(id:integer);
  *
  * Par défaut, l'éclairage per-pixel est désactivé.
  *
- * @note Tao Presentations dispose d'un réglage global pour l'éclairage
+ * @note Tao3D dispose d'un réglage global pour l'éclairage
  * par pixel, dans la fenêtre de préférences de l'application. Ce réglage
  * global est utilisé en l'absence d'appel à @c per_pixel_lighting.
  */

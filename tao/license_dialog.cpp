@@ -78,8 +78,10 @@ void LicenseDialog::done(int r)
 {
     if (r == QMessageBox::Apply)
     {
+#ifndef CFG_NO_LICENSE
         // Copy host ID into clipboard and keep dialog open
         QApplication::clipboard()->setText(+Licenses::hostID());
+#endif // CFG_NO_LICENSE
         return;
     }
 
@@ -115,6 +117,8 @@ void LicenseDialog::init()
     prefix = "file://";
 #endif
     QString msg = message;
+
+#ifndef CFG_NO_LICENSE
     msg += tr(
                 "<h3>To add new licenses</h3>"
                 "<p>If you received license files (with the .taokey "
@@ -128,6 +132,15 @@ void LicenseDialog::init()
                 "<center>%3</center>"
                 ).arg(prefix).arg(Application::userLicenseFolderPath())
                  .arg(+Licenses::hostID());
+#else // CFG_NO_LICENSE
+    msg += tr("<h3>GNU General Public License v3</h3>"
+              "<p>This program is licensed to you under the GNU "
+              "General Public License (GPL) version 3.<br/>"
+              "A copy of this license should have been provided to you "
+              "with the software.<br/>"
+              "It is also available "
+              "<a href=\"http://www.gnu.org/copyleft/gpl.html\">on-line</a>.");
+#endif // CFG_NO_LICENSE
 
     setWindowTitle(title);
     setText(caption);
@@ -141,8 +154,11 @@ void LicenseDialog::init()
     if (pm && !pm->isNull())
         setIconPixmap(*pm);
 
+#ifndef CFG_NO_LICENSE
     addButton(QMessageBox::Apply);
     button(QMessageBox::Apply)->setText(tr("Copy host ID to clipboard"));
+#endif
+
     addButton(QMessageBox::Ok);
     setDefaultButton(QMessageBox::Ok);
     setEscapeButton(QMessageBox::Ok);

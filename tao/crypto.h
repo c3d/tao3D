@@ -1,3 +1,5 @@
+#ifndef CRYPTO_H
+#define CRYPTO_H
 // ****************************************************************************
 //  decrypt.h                                                      Tao project
 // ****************************************************************************
@@ -19,6 +21,7 @@
 //  (C) 2011 Taodyne SAS
 // ****************************************************************************
 
+#ifndef CFG_NO_CRYPT
 #include <QString>
 #include <QByteArray>
 #include <string>
@@ -34,3 +37,6 @@ struct Crypto
 };
 
 }
+
+#endif // CFG_NO_CRYPT
+#endif // CRYPTO_H

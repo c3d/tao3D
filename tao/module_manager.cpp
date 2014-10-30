@@ -97,7 +97,9 @@ static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
         if (!needSignature)
         {
             text path = XL::MAIN->SearchFile(name);
+#ifndef CFG_NO_DOC_SIGNATURE
             Widget::Tao()->excludeFromSignature(path);
+#endif
         }
     }
     return ret;

@@ -21,6 +21,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "application.h"
 #include "license.h"
 #include "splash_screen.h"
 #include "tao_utf8.h"
@@ -47,6 +48,8 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 {
     // Read license info
     QString s;
+
+#ifndef CFG_NO_LICENSE
     QString name = +Licenses::Name();
     QString company = +Licenses::Company();
     if (name != "" || company != "")
@@ -57,6 +60,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
                      .arg(name).arg(company));
         licensedTo.setHtml(s);
     }
+#endif // CFG_NO_LICENSE
 
     setMask(QPixmap(":/images/splash.png").mask());
 
@@ -210,7 +214,7 @@ void SplashScreen::showCredits()
     }
 #endif
 
-    QString title = tr("Tao Presentations - Credits");
+    QString title = tr("Tao3D - Credits");
     QString translatedTextCreditsCaption;
     translatedTextCreditsCaption = tr(
         "<h3>Credits</h3>"
@@ -279,7 +283,7 @@ void SplashScreen::showChangelog()
     }
 #endif
 
-    QString title = tr("Tao Presentations - What's new?");
+    QString title = tr("Tao3D - What's new?");
     QString changelogText;
     QFile changelog(":/NEWS");
     if (changelog.open(QFile::ReadOnly | QFile::Text))

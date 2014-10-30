@@ -40,14 +40,14 @@ EulaDialog::EulaDialog(QWidget *parent)
 // ----------------------------------------------------------------------------
     : QMessageBox(parent)
 {
-    QString title = tr("Tao Presentations");
+    QString title = tr("Tao3D");
     QString caption;
     caption = tr("<center><h3>"
                  "Tao Presentation End-User License Agreement"
                  "</h3></center>");
 
     QString msg;
-    msg += tr( "<p>Thank you for your interest in Tao Presentations.</p>"
+    msg += tr( "<p>Thank you for your interest in Tao3D.</p>"
                "<p>Please read the terms of the license agreement "
                "by clicking the following link: </p>"
                "<center><a href=\"%1\">%1</a></center>"
@@ -55,7 +55,7 @@ EulaDialog::EulaDialog(QWidget *parent)
                "address in a web browser.</p>"
                "<p><b>By clicking on the \"I Accept\" button, you express your "
                "consent to the above terms and conditions.</b></p>"
-               "<p>You must accept the agreement to use Tao Presentations.</p>"
+               "<p>You must accept the agreement to use Tao3D.</p>"
                ).arg(tr("http://taodyne.com/eula"));
 
     setWindowTitle(title);

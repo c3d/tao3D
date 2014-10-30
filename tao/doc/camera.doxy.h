@@ -282,7 +282,7 @@ real depth_at(x:real, y:real);
 
 /**
  * @~english
- * Configure the camera as in early versions of Tao Presentations
+ * Configure the camera as in early versions of Tao3D
  * (up to 1.0-beta11).
  * - Camera position is (0, 0, 6000) [now (0, 0, 3000)]
  * - Camera target is (0, 0, 0) [unchanged]
@@ -297,7 +297,7 @@ polygon_offset 0, -0.001, 0, -1
  * [now 0, -0.1, 0, -1]
  *
  * @~french
- * Configure la caméra comme dans les versions anciennes de Tao Presentations
+ * Configure la caméra comme dans les versions anciennes de Tao3D
  * (jusqu'à la version 1.0-beta11).
  * - La position de la caméra est (0, 0, 6000) [maintenant : (0, 0, 3000)]
  * - Le point visé est (0, 0, 0) [inchangé]

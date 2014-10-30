@@ -1498,7 +1498,7 @@ void Window::onNewModuleInstalled(QString path)
     QString title = tr("New module installed");
     QString msg = tr("A new module \"%1\" was installed.").arg(name);
 #if defined (Q_OS_MACX)
-    QString licMsg = tr("Tao Presentations/Licenses...");
+    QString licMsg = tr("Tao3D/Licenses...");
 #else
     QString licMsg = tr("Help/Licenses...");
 #endif
@@ -1537,7 +1537,7 @@ void Window::onModuleUpdated(QString path)
     QString title = tr("Module was updated");
     QString msg = tr("A module update was downloaded for \"%1\".").arg(name);
 #if defined (Q_OS_MACX)
-    QString licMsg = tr("Tao Presentations/Licenses...");
+    QString licMsg = tr("Tao3D/Licenses...");
 #else
     QString licMsg = tr("Help/Licenses...");
 #endif

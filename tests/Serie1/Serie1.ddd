@@ -259,7 +259,7 @@ page "Revolving texts",
     revolving_font "Forte", 16
     revolving_color 227.7, 0.0, 1.0
     highlighting_color 52, 0.9, 1.0
-    revolving_text 1, "Tao Presentations : Freedom to create and animate"
+    revolving_text 1, "Tao3D : Freedom to create and animate"
     revolving_text 2, "Innovation in Presentations"
     revolving_text 3, "Show, Explain, Impress"
     revolving_text 4, "See the power of 3D presentations with Tao Discovery"

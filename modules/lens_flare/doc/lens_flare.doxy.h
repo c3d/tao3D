@@ -65,7 +65,7 @@
  *       pouvez charger vos propres textures si les images par défaut ne vous
  *       conviennent pas.
  * @note Il est également possible d'utiliser l'effet halo avec des textures
- *       générées dynamiquement par Tao Presentations (cf. @p frame_texture,
+ *       générées dynamiquement par Tao3D (cf. @p frame_texture,
  *       @p radial_gradient, etc.).
  *
  * @endtaomoduledescription{LensFlare}

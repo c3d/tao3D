@@ -14,7 +14,9 @@ isEmpty(SIGN_XL_INSTPATH):error(Please define SIGN_XL_INSTPATH or include module
   for(file, SIGN_XL_SOURCES) {
     target = $${file}.sig
     eval($${target}.path = \$\$SIGN_XL_INSTPATH)
-    eval($${target}.commands = $$TAOTOPSRC/tao_sign/tao_sign.sh -r $$file)
+    exists(../tao_sign/tao_sign.sh) {
+      eval($${target}.commands = $$TAOTOPSRC/tao_sign/tao_sign.sh -r $$file)
+    }
     eval($${target}.files = $$target)
     eval($${target}.depends = $$file)
     eval($${target}.CONFIG = no_check_exist)

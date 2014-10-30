@@ -8,7 +8,7 @@ page "Welcome" fr "Bienvenue",
         text_span
             font_size 0.6 * Sz
             text "Welcome to " fr "Bienvenue dans " & cr
-        text " " & cr & "Tao Presentations " & tao_edition & cr & " " & cr
+        text " " & cr & "Tao3D " & tao_edition & cr & " " & cr
         text_span
             font_size 0.6 * Sz
             text  "version " & tao_version & cr

@@ -16,7 +16,7 @@
 //
 // ****************************************************************************
 // This file may be used in accordance with the terms and conditions contained
-// in the Tao Presentations license agreement, or alternatively, in a signed
+// in the Tao3D license agreement, or alternatively, in a signed
 // license agreement between you and Taodyne SAS.
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Jerome Forissier <jerome@taodyne.com>
@@ -213,7 +213,7 @@ struct ModuleApi
     //
     // w and h are the width and height in pixels of the frustum
     // plane at the target point. The total number of cameras is defined by the
-    // display module. It is queried by Tao Presentations immediately after the
+    // display module. It is queried by Tao3D immediately after the
     // use() callback of the module is called--see registerDisplayFunction()
     // above. The module must implement the getopt() callback and respond to
     // the getopt() call with name = "PointsOfView".
@@ -372,7 +372,7 @@ struct ModuleApi
     // main window (see QDesktopWidget::screenNumber()).
     int (*screenNumber)();
 
-    // The main display area of the Tao Presentations window can handle
+    // The main display area of the Tao3D window can handle
     // several widgets (see QStackedWidget).
     // A module can temporarily replace the default display widget with its
     // own using the following functions.

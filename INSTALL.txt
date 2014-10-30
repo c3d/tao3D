@@ -1,9 +1,9 @@
-            How to build Tao Presentations
-            ==============================
+                        How to build Tao3D
+                        ==================
 
 *** Windows 7, Windows Vista ***
 
-Tao Presentations for Windows is built in the MinGW environment with the GCC
+Tao3D for Windows is built in the MinGW environment with the GCC
 compiler. You need to have a number of software packages installed before you
 can build Tao: the Qt SDK, MSYSGit, Python, LLVM, and optionally doxygen and
 NSIS.
@@ -48,8 +48,8 @@ Here is a step-by-tep guide.
   * /c/Python27 is where Python is installed by default. Python is required to
     build LLVM.
   * /c/Qt/2010.05/mingw/bin is the location of the GCC compiler we will use
-    to build Tao Presentations.
-  * /c/Qt/2010.05/qt/bin is for Tao Presentations to find the Qt DLLs
+    to build Tao3D.
+  * /c/Qt/2010.05/qt/bin is for Tao3D to find the Qt DLLs
     (useful to start Tao directly from the command line).
 
 - You can check if all is well Qt-wise with:

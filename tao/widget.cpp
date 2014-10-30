@@ -880,6 +880,7 @@ void Widget::drawActivities()
     // with following taodyne ad. Fixed #2966.
     layout->Clear();
 
+#ifndef CFG_NO_LICENSE
     // Check if something is unlicensed somewhere, if so, show Taodyne ad
     if (contextFilesLoaded &&
         (Licenses::UnlicensedCount() > 0
@@ -888,7 +889,7 @@ void Widget::drawActivities()
          || (TaoApp->edition == Application::PlayerPro
 #ifndef CFG_NO_DOC_SIGNATURE
              && !isDocumentSigned
-#endif
+#endif // CFG_NO_DOC_SIGNATURE
         )))
     {
         GLStateKeeper save;
@@ -915,6 +916,7 @@ void Widget::drawActivities()
         }
         licenseOverlaySpace.Draw(NULL);
     }
+#endif // CFG_NO_LICENSE
 
     GL.DepthFunc(GL_LEQUAL);
 
@@ -5978,7 +5980,7 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
             IFTRACE2(pages, lic)
                 std::cerr << "Maximum number of pages allowed reached\n";
             QString info;
-            info = tr("<p>This unlicensed version of Tao Presentations "
+            info = tr("<p>This unlicensed version of Tao3D "
                       "has a limit of 5 pages per document.</p>"
                       "<p>You may suppress this limitation by purchasing a "
                       "Pro license.</p><p>Thank you.</p>");
@@ -6945,13 +6947,6 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 // ----------------------------------------------------------------------------
 {
     ulong vpts = viewpoints;
-
-    // This primitive really belongs to the StereoDecoder module, but it's
-    // not trivial to move it into the module (due to the StereoLayout class).
-    static bool licensed = Licenses::CheckImpressOrLicense("StereoDecoder 1.0");
-    if (!licensed)
-        vpts = viewpoints;
-
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     Layout *childLayout = new StereoLayout(*layout, vpts);
@@ -12702,7 +12697,11 @@ Name_p Widget::hasLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::Has' as a primitive
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NO_LICENSE
+    return XL::xl_false;
+#else
     return Licenses::Has(feature->value) ? XL::xl_true : XL::xl_false;
+#endif
 }
 
 
@@ -12711,8 +12710,12 @@ Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
 //   Export 'Licenses::Check' as a primitive
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NO_LICENSE
+    return XL::xl_false;
+#else
     bool crit = (critical == XL::xl_true) ? true : false;
     return Licenses::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+#endif
 }
 
 
@@ -12721,8 +12724,12 @@ Name_p Widget::checkImpressOrLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::CheckImpressOrLicense' as a primitive
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NO_LICENSE
+    return XL::xl_false;
+#else
     return Licenses::CheckImpressOrLicense(feature->value) ? XL::xl_true
                                                            : XL::xl_false;
+#endif
 }
 
 
@@ -14447,10 +14454,12 @@ Name_p Widget::runProcess(Tree_p self, text name, QStringList &args)
     if (hashIndex != std::string::npos)
         base = base.substr(0, hashIndex);
 
+#ifndef CFG_NO_LICENSE
     // Check if running this process is allowed by the license file
     text feature = "RunProcess:" + base;
     if (!Licenses::Has(feature))
         return XL::xl_false;
+#endif
 
     // Check if we already have a process by that name
     QString qName = +name;
@@ -14504,10 +14513,13 @@ Text_p Widget::readFromProcess(Tree_p self, text name, uint lines)
     size_t hashIndex = base.find('#');
     if (hashIndex != std::string::npos)
         base = base.substr(0, hashIndex);
+
+#ifndef CFG_NO_LICENSE
     text feature = "RunProcess:" + base;
     if (!Licenses::Has(feature))
         return new Text("<no license for process " + name + ">",
                         "\"", "\"", self->Position());
+#endif
 
     // Other case: report that the process does not exist
     return new Text("<process " + name + " does not exist>",

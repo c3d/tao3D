@@ -11,9 +11,9 @@ import KeyboardTheme
 theme "Keyboard"
 
 
-base_slide "Tao Presentations",
+base_slide "Tao3D",
 // ----------------------------------------------------------------------------
-//   Show the welcome slide for Tao Presentations
+//   Show the welcome slide for Tao3D
 // ----------------------------------------------------------------------------
 
     // Contents of the left column box
@@ -47,7 +47,7 @@ base_slide "Tao Presentations",
 
     // Contents of the title
     title
-        text "Tao Presentations "
+        text "Tao3D "
         show_edition tao_edition
 
         // We adjust the color based on the edition of the software

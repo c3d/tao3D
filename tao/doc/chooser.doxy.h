@@ -68,7 +68,7 @@
  * Seule la touche Entrée permet de valider votre choix.
  *
  * Les primitives décrites dans cette page sont les mêmes utilisées par
- * Tao Presentations pour afficher le menu principal de l'application, qui
+ * Tao3D pour afficher le menu principal de l'application, qui
  * apparaît lorsque vous appuyez sur la touche Échap.
  *
  * Illustrons celà par un exemple,

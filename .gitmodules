@@ -1,18 +1,150 @@
 [submodule "tao/xlr"]
 	path = tao/xlr
 	url = ssh://io.taodyne.com/volume1/RedmineProjects/xlr.git
-[submodule "modules/vlc_audio_video"]
-	path = modules/vlc_audio_video
-	url = ssh://io.taodyne.com/volume1/RedmineProjects/vlc_audio_video.git 
 [submodule "help_viewer"]
 	path = help_viewer
 	url = ssh://io.taodyne.com/volume1/RedmineProjects/tao_help_viewer.git
-[submodule "modules/chroma_key"]
-	path = modules/chroma_key
-	url = ssh://io.taodyne.com/volume1/RedmineProjects/chroma_key.git
 [submodule "modules/speech/qt-speech"]
 	path = modules/speech/qt-speech
 	url = ssh://io.taodyne.com/volume1/RedmineProjects/qt-speech.git
 [submodule "webui/webui"]
 	path = webui/webui
 	url = ssh://io.taodyne.com/volume1/RedmineProjects/tao-editor-proto.git
+[submodule "modules/DIP"]
+	path = modules/DIP
+	url = ssh://io.taodyne.com/~/buddda/modules/DIP
+[submodule "modules/charts"]
+	path = modules/charts
+	url = ssh://io.taodyne.com/~/buddda/modules/charts
+[submodule "modules/chroma_key"]
+	path = modules/chroma_key
+	url = ssh://io.taodyne.com/~/buddda/modules/chroma_key
+[submodule "modules/database"]
+	path = modules/database
+	url = ssh://io.taodyne.com/~/buddda/modules/database
+[submodule "modules/digital_clock"]
+	path = modules/digital_clock
+	url = ssh://io.taodyne.com/~/buddda/modules/digital_clock
+[submodule "modules/display_2dplusdepth"]
+	path = modules/display_2dplusdepth
+	url = ssh://io.taodyne.com/~/buddda/modules/display_2dplusdepth
+[submodule "modules/display_alioscopy"]
+	path = modules/display_alioscopy
+	url = ssh://io.taodyne.com/~/buddda/modules/display_alioscopy
+[submodule "modules/display_anaglyph"]
+	path = modules/display_anaglyph
+	url = ssh://io.taodyne.com/~/buddda/modules/display_anaglyph
+[submodule "modules/display_checkerboard"]
+	path = modules/display_checkerboard
+	url = ssh://io.taodyne.com/~/buddda/modules/display_checkerboard
+[submodule "modules/display_intstereo"]
+	path = modules/display_intstereo
+	url = ssh://io.taodyne.com/~/buddda/modules/display_intstereo
+[submodule "modules/display_quadstereo"]
+	path = modules/display_quadstereo
+	url = ssh://io.taodyne.com/~/buddda/modules/display_quadstereo
+[submodule "modules/display_splitstereo"]
+	path = modules/display_splitstereo
+	url = ssh://io.taodyne.com/~/buddda/modules/display_splitstereo
+[submodule "modules/display_tridelity"]
+	path = modules/display_tridelity
+	url = ssh://io.taodyne.com/~/buddda/modules/display_tridelity
+[submodule "modules/display_united_entertain"]
+	path = modules/display_united_entertain
+	url = ssh://io.taodyne.com/~/buddda/modules/display_united_entertain
+[submodule "modules/film_strip"]
+	path = modules/film_strip
+	url = ssh://io.taodyne.com/~/buddda/modules/film_strip
+[submodule "modules/filters"]
+	path = modules/filters
+	url = ssh://io.taodyne.com/~/buddda/modules/filters
+[submodule "modules/lorem_ipsum"]
+	path = modules/lorem_ipsum
+	url = ssh://io.taodyne.com/~/buddda/modules/lorem_ipsum
+[submodule "modules/mapping"]
+	path = modules/mapping
+	url = ssh://io.taodyne.com/~/buddda/modules/mapping
+[submodule "modules/materials"]
+	path = modules/materials
+	url = ssh://io.taodyne.com/~/buddda/modules/materials
+[submodule "modules/movie_credits"]
+	path = modules/movie_credits
+	url = ssh://io.taodyne.com/~/buddda/modules/movie_credits
+[submodule "modules/network_access"]
+	path = modules/network_access
+	url = ssh://io.taodyne.com/~/buddda/modules/network_access
+[submodule "modules/news_feed"]
+	path = modules/news_feed
+	url = ssh://io.taodyne.com/~/buddda/modules/news_feed
+[submodule "modules/nodejs"]
+	path = modules/nodejs
+	url = ssh://io.taodyne.com/~/buddda/modules/nodejs
+[submodule "modules/object_loader"]
+	path = modules/object_loader
+	url = ssh://io.taodyne.com/~/buddda/modules/object_loader
+[submodule "modules/pan_and_zoom"]
+	path = modules/pan_and_zoom
+	url = ssh://io.taodyne.com/~/buddda/modules/pan_and_zoom
+[submodule "modules/point_cloud"]
+	path = modules/point_cloud
+	url = ssh://io.taodyne.com/~/buddda/modules/point_cloud
+[submodule "modules/prez_at"]
+	path = modules/prez_at
+	url = ssh://io.taodyne.com/~/buddda/modules/prez_at
+[submodule "modules/quiz"]
+	path = modules/quiz
+	url = ssh://io.taodyne.com/~/buddda/modules/quiz
+[submodule "modules/remote_control"]
+	path = modules/remote_control
+	url = ssh://io.taodyne.com/~/buddda/modules/remote_control
+[submodule "modules/revolving_texts"]
+	path = modules/revolving_texts
+	url = ssh://io.taodyne.com/~/buddda/modules/revolving_texts
+[submodule "modules/shaders"]
+	path = modules/shaders
+	url = ssh://io.taodyne.com/~/buddda/modules/shaders
+[submodule "modules/shading"]
+	path = modules/shading
+	url = ssh://io.taodyne.com/~/buddda/modules/shading
+[submodule "modules/slideshow_3d"]
+	path = modules/slideshow_3d
+	url = ssh://io.taodyne.com/~/buddda/modules/slideshow_3d
+[submodule "modules/snowfall"]
+	path = modules/snowfall
+	url = ssh://io.taodyne.com/~/buddda/modules/snowfall
+[submodule "modules/speech"]
+	path = modules/speech
+	url = ssh://io.taodyne.com/~/buddda/modules/speech
+[submodule "modules/stereo_decoder"]
+	path = modules/stereo_decoder
+	url = ssh://io.taodyne.com/~/buddda/modules/stereo_decoder
+[submodule "modules/tao_synchro"]
+	path = modules/tao_synchro
+	url = ssh://io.taodyne.com/~/buddda/modules/tao_synchro
+[submodule "modules/tao_tester"]
+	path = modules/tao_tester
+	url = ssh://io.taodyne.com/~/buddda/modules/tao_tester
+[submodule "modules/tao_visuals"]
+	path = modules/tao_visuals
+	url = ssh://io.taodyne.com/~/buddda/modules/tao_visuals
+[submodule "modules/transitions"]
+	path = modules/transitions
+	url = ssh://io.taodyne.com/~/buddda/modules/transitions
+[submodule "modules/vlc_audio_video"]
+	path = modules/vlc_audio_video
+	url = ssh://io.taodyne.com/~/buddda/modules/vlc_audio_video
+[submodule "modules/water_surface"]
+	path = modules/water_surface
+	url = ssh://io.taodyne.com/~/buddda/modules/water_surface
+[submodule "modules/weather"]
+	path = modules/weather
+	url = ssh://io.taodyne.com/~/buddda/modules/weather
+[submodule "modules/web_remote"]
+	path = modules/web_remote
+	url = ssh://io.taodyne.com/~/buddda/modules/web_remote
+[submodule "crypt"]
+	path = crypt
+	url = ssh://io.taodyne.com/~/buddda/crypt
+[submodule "keygen"]
+	path = keygen
+	url = ssh://io.taodyne.com/~/buddda/keygen

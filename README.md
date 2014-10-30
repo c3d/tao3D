@@ -39,6 +39,15 @@ The software also downloads or includes a few extra packages, including:
 
 Many thanks to all the authors who indirectly made Tao possible
 
+## Build instructions
+
+```
+git clone https://github.com/c3d/tao-3D.git
+cd tao-3D
+git submodule update --init --recursive
+./configure
+make install
+```
 
 ## Free Software (GPLv3) and Commercial License
 

@@ -16,7 +16,8 @@ Tao3D includes support for the following features:
 * Fetch data, pictures or movies directly over HTTP
 
 For a better overview of the software, please watch this YouTube video:
-https://www.youtube.com/watch?v=Fvi29XAo4SI.
+https://www.youtube.com/watch?v=Fvi29XAo4SI and the Taodyne channel
+https://www.youtube.com/Taodyne
 
 ## Prerequisites
 
@@ -32,7 +33,7 @@ To build Tao, you will need:
 
 The software also downloads or includes a few extra packages, including:
 * NodeJS
-* CryptoPP (a somewhat dated)
+* CryptoPP (a somewhat dated set of files)
 * GLC-Lib (a rather old version)
 * VLC (you may need to build it yourself if you want multistream support)
 

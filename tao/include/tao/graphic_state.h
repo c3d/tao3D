@@ -15,9 +15,8 @@
 //
 //
 // ****************************************************************************
-// This file may be used in accordance with the terms and conditions contained
-// in the Tao3D license agreement, or alternatively, in a signed
-// license agreement between you and Taodyne SAS.
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
 //  (C) 2012 Baptiste Soulisse <soulisse.baptiste@taodyne.com>
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************

@@ -95,7 +95,7 @@ public:
         case Application::PlayerPro:
             return "Player Pro";
         case Application::GPL:
-            return "Open Source";
+            return "Libre";
         case Application::Other:
             return "Other";
         case Application::Unknown:

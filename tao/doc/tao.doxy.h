@@ -530,7 +530,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao3D</tt> on Windows,
  * <tt>$HOME/Library/Application Support/Taodyne/Tao3D</tt> on MacOSX,
  * and <tt>$HOME/.local/share/data/Taodyne/Tao3D</tt> on Linux.
- * Replace <tt>Tao3D</tt> with <tt>Tao Presentations Player</tt>
+ * Replace <tt>Tao3D</tt> with <tt>Tao3D Player</tt>
  * if you are using the player's edition.
  * The application folder is where Tao Presentation is installed.
  * 
@@ -557,7 +557,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao3D</tt> sous Windows,
  * <tt>$HOME/Library/Application Support/Taodyne/Tao3D</tt> sous MacOSX,
  * et <tt>$HOME/.local/share/data/Taodyne/Tao3D</tt> sous Linux.
- * Remplacez <tt>Tao3D</tt> par <tt>Tao Presentations Player</tt>
+ * Remplacez <tt>Tao3D</tt> par <tt>Tao3D Player</tt>
  * si vous utilisez le lecteur Tao.
  */
 /**

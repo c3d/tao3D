@@ -139,7 +139,7 @@ void UpdateApplication::resetRequest()
 
 QString UpdateApplication::appName()
 // ----------------------------------------------------------------------------
-//    Return "Tao3D <EditionName>" or "Tao Presentations"
+//    Return "Tao3D <EditionName>" or "Tao3D"
 // ----------------------------------------------------------------------------
 {
     QString ed;

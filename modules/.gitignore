@@ -16,3 +16,8 @@ lib*.so.*
 */doc/output/
 */*/doc/Doxyfile
 */*/doc/output/
+*.o
+*.dylib
+Makefile
+doc/Doxyfile
+doc/output

@@ -15,6 +15,8 @@ isEmpty(MODINSTPATH):error(Please include modules.pri before crypt_xl.pri)
     eval($${target}.path = \$\$MODINSTPATH)
     exists(../crypt/crypt.sh) {
       eval($${target}.commands = $$TAOTOPSRC/crypt/crypt.sh <$$file >$$target)
+    } else {
+      eval($${target}.commands = cp $$file $$target)
     }
     eval($${target}.files = $$target)
     eval($${target}.depends = $$file)

@@ -19,11 +19,7 @@ MODINSTDIR = carousel
 
 include(../modules.pri)
 
-OTHER_FILES = carousel.xl \
-    carousel2.xl \
-
-CRYPT_XL_SOURCES = carousel2.xl
-include(../crypt_xl.pri)
+OTHER_FILES = carousel.xl
 
 INSTALLS    += thismod_icon
 INSTALLS    -= thismod_bin

@@ -35,4 +35,144 @@ module_description "fr",
     name "Carrousel"
     description "Définit un carrousel 3D"
 
-import "carousel2.xl.crypt"
+
+import Animate
+
+
+// ============================================================================
+//
+//   Settings
+//
+// ============================================================================
+// Dynamic variable
+carousel_angle -> 0.0
+carousel_front -> 1
+
+carousel_count -> 0
+
+// Size of menu entries
+carousel_width -> 0
+carousel_depth -> 0
+
+// Position of the big picture
+carousel_z -> 0.0
+
+// Setting of hand
+caro_hand_x -> 0.0
+caro_hand_y -> 0.0
+caro_hand_sx -> 0.0
+caro_hand_sy -> 0.0
+caro_hand_mx -> 0.0
+caro_hand_my -> 0.0
+caro_hand_ts -> 0.0
+caro_hand_dt -> 0.0
+caro_hand_mouse_x -> 0.0
+caro_hand_mouse_y -> 0.0
+caro_hand_wx -> 0.0
+caro_hand_wu -> 0.0
+caro_hand_wz -> 0.0
+
+// ============================================================================
+//
+//   Main command
+//
+// ============================================================================
+
+carousel n:integer, w:integer, d:integer ->
+// ----------------------------------------------------------------------------
+//    Display the carousel
+// ----------------------------------------------------------------------------
+    carousel_width := w
+    carousel_depth := d
+    carousel_count := n
+    carousel_display
+
+
+carousel_hand ->
+// ----------------------------------------------------------------------------
+//    Allow to control carousel with mouse
+// ----------------------------------------------------------------------------
+    locally
+        enable_selection_rectangle false
+        translatey -50
+        if caro_hand_ts <> 0.0 then caro_hand_dt := time - caro_hand_ts
+        caro_hand_ts := time
+        caro_hand_mouse_x := mouse_x
+        caro_hand_mouse_y := mouse_y
+
+        if mouse_buttons <> 0 then
+            color "red", 0.8
+            caro_hand_sx := (caro_hand_mouse_x - caro_hand_mx) * caro_hand_dt
+            caro_hand_sy := (caro_hand_mouse_y - caro_hand_my) * caro_hand_dt
+        else
+            color "white"
+        caro_hand_mx := caro_hand_mouse_x
+        caro_hand_my := caro_hand_mouse_y
+
+        if shift_modifier then
+            world_coordinates caro_hand_mx, caro_hand_my, caro_hand_wx, caro_hand_wu, caro_hand_wz
+            translate caro_hand_wx, caro_hand_wu, caro_hand_wz
+        else
+            translate caro_hand_mx, caro_hand_my, 0
+
+        caro_hand_x := caro_hand_x + caro_hand_sx
+        caro_hand_y := caro_hand_y + caro_hand_sy
+        caro_hand_sx := caro_hand_sx * 0.95
+
+
+carousel_auto_rotate s:real ->
+// ----------------------------------------------------------------------------
+//    Define auto rotation of the carousel
+// ----------------------------------------------------------------------------
+    locally
+        step := (s mod 800000)
+
+// ============================================================================
+//
+//   Private
+//
+// ============================================================================
+
+carousel_a -> 0.0
+carousel_xs -> 0.0
+carousel_zs -> 0.0
+carousel_thr -> 2.0 / carousel_count
+
+
+carousel_display ->
+// ----------------------------------------------------------------------------
+//   Display the rotating menu
+// ----------------------------------------------------------------------------
+    carousel_hand_scale -> 0.1
+    compute_smooth_step
+    carousel_angle := -smooth_step + caro_hand_x * carousel_hand_scale
+    if abs caro_hand_sy < 0.1 and mouse_buttons = 0 then
+        // Encourage adjustment to the next integer position
+        caro_hand_x := (0.95 * caro_hand_x +
+                        0.05 * floor (caro_hand_x * carousel_hand_scale + 0.5) / carousel_hand_scale)
+
+    carousel_front := -1
+    carousel_items with 1 .. carousel_count
+    carousel_front := 1
+    carousel_items with 1 .. carousel_count
+
+// Item at the front of the carousel
+carousel_front_item -> 0
+
+carousel_items N:integer ->
+// ----------------------------------------------------------------------------
+//   Display one entry in the rotating menu
+// ----------------------------------------------------------------------------
+    locally
+        carousel_a := (carousel_angle - N) * 2 * pi / carousel_count
+        carousel_xs := sin carousel_a
+        carousel_zs := cos carousel_a
+        if carousel_zs >= 1.0 - carousel_thr then
+            if abs(carousel_xs) < carousel_thr then
+                carousel_front_item := N
+        if carousel_zs * carousel_front >= 0 then
+            translate carousel_width * carousel_xs, 0, carousel_depth * carousel_zs
+            rotatey -carousel_xs * 80
+            color "white", (2 + carousel_zs) / 3
+            carousel_item N
+

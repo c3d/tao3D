@@ -17,7 +17,9 @@ Tao3D includes support for the following features:
 
 For a better overview of the software, please watch this YouTube video:
 https://www.youtube.com/watch?v=Fvi29XAo4SI and the Taodyne channel
-https://www.youtube.com/Taodyne
+https://www.youtube.com/Taodyne.
+
+A basic tutorial of the language can be found here: http://www.taodyne.com/presentation/tutorial-2.0.html. More tutorials, blogs and forums can be found on the Taodyne developers web site: http://www.taodyne.com/shop/dev/en/.
 
 ## Prerequisites
 

@@ -11,6 +11,10 @@ for(f, LSOUT):exists($${f}/$${f}.pro):DEFAULT_MODULES += $$f
 THEMES=$$system(ls themes)
 for(f, THEMES):exists(themes/$${f}/$${f}.pro):DEFAULT_MODULES += themes/$$f
 
+# Add all shaders
+THEMES=$$system(ls shaders)
+for(f, THEMES):exists(shaders/$${f}/$${f}.pro):DEFAULT_MODULES += shaders/$$f
+
 # No other modules
 OTHER_MODULES =
 

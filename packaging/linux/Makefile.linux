@@ -12,7 +12,7 @@ include Makefile.config
 ifdef PACKAGE_APPEND
 APPENDSTR=$(PACKAGE_APPEND)_
 endif
-TAO=Tao_Presentations_$(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
+TAO=Tao3D_$(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
 
 OS=$(shell lsb_release -is)
 ifeq ($(OS),)
@@ -31,9 +31,9 @@ BZ2=$(TAO).Linux.$(shell uname -m).tar.bz2
 
 # Remove old builds from package to avoid accumulated cruft in automated builds
 clean_tar:
-	rm -rf Tao_Presentations*.tar* Tao_Presentations*.tgz
+	rm -rf Tao3D*.tar* Tao3D*.tgz
 clean_deb:
-	rm -rf Tao_Presentations*.deb
+	rm -rf Tao3D*.deb
 
 tar: clean_tar $(BZ2)
 
@@ -56,7 +56,7 @@ ifndef NO_SDK
 endif
 
 clean: debclean
-	rm -rf $(TAO) Tao_Presentations*.tar.bz2
+	rm -rf $(TAO) Tao3D*.tar.bz2
 
 # Debian package
 
@@ -108,4 +108,4 @@ rdeb: debian
 	$(run-dpkg-deb)
 
 debclean:
-	rm -rf debian Tao_Presentations*.deb
+	rm -rf debian Tao3D*.deb

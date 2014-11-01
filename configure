@@ -113,7 +113,7 @@ while [ $# -ne 0 ] ; do
       ;;
     -O*)
       EXTRA="$EXTRA QMAKE_CFLAGS+=$1 QMAKE_CXXFLAGS+=$1 QMAKE_LDFLAGS+=$1"
-      FLAGS="$FLAGS CONFIG-=release"
+      FLAGS="$FLAGS CONFIG+=release"
       VERSION="$1"
       shift;;
     --with-modlic*)

@@ -470,7 +470,7 @@ every (interval:real, body:tree);
  * default_refresh is initially set to 0.0. If VSync is actually
  * enabled, the refresh rate is then automatically limited by the VSync
  * clock. When VSync is disabled, however, the refresh rate is not
- * limited by the display and Tao Presentation will compute as many
+ * limited by the display and Tao3D will compute as many
  * frames per second as possible. You may use this configuration for
  * benchmarking purposes: simply select "Disable VSync" in the command
  * chooser (escape key). On the other hand, if the platform does not

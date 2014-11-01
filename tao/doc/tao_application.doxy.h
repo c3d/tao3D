@@ -3,7 +3,7 @@
  * @addtogroup TaoGuiInter Tao Interface Interaction
  * @ingroup TaoGui
  * Tao3D interface.
- * Tao Presentation graphical interface can be modified by an XL document.
+ * Tao3D graphical interface can be modified by an XL document.
  *
  * @~french
  * @addtogroup TaoGuiInter Configuration de l'interface Tao

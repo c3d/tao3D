@@ -43,7 +43,7 @@ EulaDialog::EulaDialog(QWidget *parent)
     QString title = tr("Tao3D");
     QString caption;
     caption = tr("<center><h3>"
-                 "Tao Presentation End-User License Agreement"
+                 "Tao3D End-User License Agreement"
                  "</h3></center>");
 
     QString msg;

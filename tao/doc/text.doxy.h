@@ -49,7 +49,7 @@ bold { text "Hello" }
  *
  * @par Fonts bundled with Tao3D
  *
- * Tao Presentation comes with pre-installed Open Source fonts you can use in
+ * Tao3D comes with pre-installed Open Source fonts you can use in
  * your documents. By using them, you can be sure that your presentation will
  * show correctly on someone else's computer even on a different operating
  * system (Microsoft Windows, MacOSX, Linux).
@@ -111,7 +111,7 @@ bold { text "Hello" }
  *
  * @par Polices livrées avec Tao3D
  *
- * Tao Presentation est fourni avec des polices <em>Open Source</em> que vous
+ * Tao3D est fourni avec des polices <em>Open Source</em> que vous
  * pouvez utiliser dans vos documents. En les utilisant, vous pouvez être
  * certain que vos présentations s'afficheront correctement sur un autre
  * ordinateur, même si le système n'est pas le même (Microsoft Windows, MacOSX,

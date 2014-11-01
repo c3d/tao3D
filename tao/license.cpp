@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//     License check for Tao Presentation
+//     License check for Tao3D
 //
 //
 //

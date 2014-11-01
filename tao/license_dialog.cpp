@@ -108,7 +108,7 @@ void LicenseDialog::init()
 {
     QString title = tr("Licensing");
     QString caption;
-    caption = tr("<h3>Tao Presentation Licenses</h3>");
+    caption = tr("<h3>Tao3D Licenses</h3>");
 
     QString prefix;
 #if defined(Q_OS_WIN)

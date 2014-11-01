@@ -6,7 +6,7 @@
 //
 //   File Description:
 //
-//     License check for Tao Presentation
+//     License check for Tao3D
 //
 //     Sources for information:
 //     - http://www.sentientfood.com/display_story.php?articleid=3

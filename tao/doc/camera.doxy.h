@@ -20,7 +20,7 @@
  *    pixels. At this distance there is no stereoscopic parallax.
  * @note When a stereoscopic display mode is active, the viewpoint location
  * and the aiming point are adjusted by the amount of the eye separation.
- * Tao Presentation implements an <em>asymmetric frustum parallel axis</em>
+ * Tao3D implements an <em>asymmetric frustum parallel axis</em>
  * projection method, which allows the creation of comfortable 3D content
  * that minimize eye strain for the viewer.
  * Cameras (eyes) lie on a straight line, not on an arc, and are spaced evenly
@@ -52,7 +52,7 @@
  *    pas de parallaxe stéréoscopique.
  * @note Lorsqu'un mode d'affichage 3D stéréoscopique est activé, la position
  * de la caméra et le point visé sont automatiquement ajustés et décalés de
- * la valeur de l'espace inter-oculaire. Tao Presentation implémente une
+ * la valeur de l'espace inter-oculaire. Tao3D implémente une
  * méthode de projection qui est appelée <em>asymmetric frustum parallel
  * axis</em> (projection à  axes parallèles et cône de vision asymétrique).
  * Cette méthode permet la création de contenu 3D agréable à  regarder, et qui

@@ -2,7 +2,7 @@
  * @~english
  * @page refKeyboardEvents Keyboard events
  *
- * Tao Presentation offers two mechanisms to execute code when a key is
+ * Tao3D offers two mechanisms to execute code when a key is
  * pressed or released.
  * - One is global, and consists in defining one or several forms similar
  * to: <tt>key "X" -> ...</tt>. Being in the global scope, these definitions

@@ -74,7 +74,7 @@
  * document from a template, click <tt>File > New from Template Chooser...</tt>
  * and follow the wizard. When done, click <tt>View > Document Source</tt> to
  * bring up a simple source code editor.
- * You can edit Tao Presentation documents with any text editor that supports
+ * You can edit Tao3D documents with any text editor that supports
  * the UTF-8 encoding. Please make sure you do select this format when saving
  * your file, or non-ASCII characters may not show up correctly in Tao.
  *
@@ -101,7 +101,7 @@
 /**
  * @~english
  * @page tao_documents Tao3D documents
- * An introduction to the basics of Tao Presentation documents.
+ * An introduction to the basics of Tao3D documents.
  *
  * A Tao document is a text file with the <tt>.ddd</tt> extension. The
  * character encoding is <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
@@ -128,13 +128,13 @@ import "second_part.ddd"
  *  - Fonts. TrueType or OpenType fonts may be stored in the @c fonts
  *    subdirectory.
  *
- * When it opens a document, Tao Presentation will automatically import the
+ * When it opens a document, Tao3D will automatically import the
  * files @c xl:user.xl and @c xl:theme.xl, in that order, if they exist
  * (see the @ref secSearchPaths "search paths" section below for details on the
  * meaning of @c xl:).
  *
  * @~french
- * @page tao_documents Les documents Tao Presentation
+ * @page tao_documents Les documents Tao3D
  * Une introduction aux bases des documents Tao3D.
  *
  * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Les
@@ -165,7 +165,7 @@ import "second_part.ddd"
  *  - Des polices de caractères. Des fichiers TrueType ou OpenType peuvent être
  *    stockés dans le sous-répertoire @c fonts.
  *
- * Lorsque Tao Presentation ouvre un document, les fichiers @c xl:user.xl et
+ * Lorsque Tao3D ouvre un document, les fichiers @c xl:user.xl et
  * @c xl:theme.xl sont automatiquement importés, dans cet ordre, s'ils
  * existent (le paragraphe @ref secSearchPaths explique le sens de @c xl:).
  *
@@ -532,7 +532,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * and <tt>$HOME/.local/share/data/Taodyne/Tao3D</tt> on Linux.
  * Replace <tt>Tao3D</tt> with <tt>Tao3D Player</tt>
  * if you are using the player's edition.
- * The application folder is where Tao Presentation is installed.
+ * The application folder is where Tao3D is installed.
  * 
  * @~french
  * @section secSearchPaths Chemins additionnels
@@ -563,7 +563,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
 /**
  * @~english
  * @page xlref XLR Language Reference
- * The foundation for the Tao Presentation documents is the XLR language, described in this page.
+ * The foundation for the Tao3D documents is the XLR language, described in this page.
  * @htmlinclude XLRef.html
  *
  * @~french
@@ -575,7 +575,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * @~english
  * @page imports Importing Files and Modules
  *
- * The extensible nature of Tao Presentation helps you define and organize your
+ * The extensible nature of Tao3D helps you define and organize your
  * own re-usable pieces of documents. There are several ways of organizing your
  * files.
  *

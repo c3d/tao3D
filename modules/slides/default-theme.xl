@@ -117,7 +117,7 @@ theme_title Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
     text_flow "title",
         theme_style Theme, Master, "title"
-        Body
+        render Body
 
 
 theme_subtitle Theme:text, Master:text, Body ->
@@ -126,7 +126,7 @@ theme_subtitle Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
     text_flow "subtitle",
         theme_style Theme, Master, "subtitle"
-        Body
+        render Body
 
 
 
@@ -142,7 +142,7 @@ theme_story Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
     text_flow "story",
         theme_style Theme, Master, "story"
-        Body
+        render Body
 
 
 theme_left_column Theme:text, Master:text, Body ->
@@ -151,7 +151,7 @@ theme_left_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
     text_flow "left",
         theme_style Theme, Master, "left"
-        Body
+        render Body
 
 
 theme_right_column Theme:text, Master:text, Body ->
@@ -160,7 +160,14 @@ theme_right_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
     text_flow "right",
         theme_style Theme, Master, "right"
-        Body
+        render Body
+
+
+theme_picture Theme:text, Master:text, URL:text ->
+// ----------------------------------------------------------------------------
+//   Render a picture from a file name
+// ----------------------------------------------------------------------------
+    theme_picture Theme, Master, { image URL }
 
 
 theme_picture Theme:text, "blank", Body ->
@@ -182,6 +189,13 @@ theme_picture Theme:text, Master:text, Body ->
         Body
 
 
+theme_left_column_picture Theme:text, Master:text, URL:text ->
+// ----------------------------------------------------------------------------
+//   Render a picture from a file name
+// ----------------------------------------------------------------------------
+    theme_left_column_picture Theme, Master, { image URL }
+
+
 theme_left_column_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column picture (keep consistent with layout below)
@@ -190,6 +204,13 @@ theme_left_column_picture Theme:text, Master:text, Body ->
         translate -475, -120, 0
         theme_color Theme, Master, "picture"
         Body
+
+
+theme_right_column_picture Theme:text, Master:text, URL:text ->
+// ----------------------------------------------------------------------------
+//   Render a picture from a file name
+// ----------------------------------------------------------------------------
+    theme_right_column_picture Theme, Master, { image URL }
 
 
 theme_right_column_picture Theme:text, Master:text, Body ->

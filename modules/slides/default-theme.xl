@@ -163,14 +163,7 @@ theme_right_column Theme:text, Master:text, Body ->
         render Body
 
 
-theme_picture Theme:text, Master:text, URL:text ->
-// ----------------------------------------------------------------------------
-//   Render a picture from a file name
-// ----------------------------------------------------------------------------
-    theme_picture Theme, Master, { image URL }
-
-
-theme_picture Theme:text, "blank", Body ->
+theme_picture Theme:text, "blank", Body:block ->
 // ----------------------------------------------------------------------------
 //    Default picture box (keep consistent with layout below)
 // ----------------------------------------------------------------------------
@@ -179,12 +172,29 @@ theme_picture Theme:text, "blank", Body ->
         Body
 
 
-theme_picture Theme:text, Master:text, Body ->
+theme_picture Theme:text, Master:text, Body:block ->
 // ----------------------------------------------------------------------------
 //    Default picture box (keep consistent with layout below)
 // ----------------------------------------------------------------------------
     contents 0,
         translatey -120
+        theme_color Theme, Master, "picture"
+        Body
+
+
+theme_picture Theme:text, Master:text, URL:text ->
+// ----------------------------------------------------------------------------
+//   Render a picture from a file name
+// ----------------------------------------------------------------------------
+    theme_picture Theme, Master, { image URL }
+
+
+theme_left_column_picture Theme:text, Master:text, Body:block ->
+// ----------------------------------------------------------------------------
+//    Default left column picture (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate -475, -120, 0
         theme_color Theme, Master, "picture"
         Body
 
@@ -196,12 +206,12 @@ theme_left_column_picture Theme:text, Master:text, URL:text ->
     theme_left_column_picture Theme, Master, { image URL }
 
 
-theme_left_column_picture Theme:text, Master:text, Body ->
+theme_right_column_picture Theme:text, Master:text, Body:block ->
 // ----------------------------------------------------------------------------
-//    Default left column picture (keep consistent with layout below)
+//    Default right column picture (keep consistent with layout below)
 // ----------------------------------------------------------------------------
     contents 0,
-        translate -475, -120, 0
+        translate 475, -120, 0
         theme_color Theme, Master, "picture"
         Body
 
@@ -212,15 +222,6 @@ theme_right_column_picture Theme:text, Master:text, URL:text ->
 // ----------------------------------------------------------------------------
     theme_right_column_picture Theme, Master, { image URL }
 
-
-theme_right_column_picture Theme:text, Master:text, Body ->
-// ----------------------------------------------------------------------------
-//    Default right column picture (keep consistent with layout below)
-// ----------------------------------------------------------------------------
-    contents 0,
-        translate 475, -120, 0
-        theme_color Theme, Master, "picture"
-        Body
 
 
 

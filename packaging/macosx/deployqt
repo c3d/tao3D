@@ -32,16 +32,27 @@
 # (C) 2011-2014 Taodyne SAS
 # ******************************************************************************
 
-FRAMEWORKS="phonon.framework/Versions/4/phonon \
-           QtDBus.framework/Versions/4/QtDBus \
-           QtXml.framework/Versions/4/QtXml \
-           QtSvg.framework/Versions/4/QtSvg \
-           QtOpenGL.framework/Versions/4/QtOpenGL \
-           QtGui.framework/Versions/4/QtGui \
-           QtNetwork.framework/Versions/4/QtNetwork \
-           QtHelp.framework/Versions/4/QtHelp \
-           QtSql.framework/Versions/4/QtSql \
-           QtCore.framework/Versions/4/QtCore"
+FRAMEWORKS="phonon.framework/Versions/5/phonon \
+           QtCore.framework/Versions/5/QtCore \
+           QtCLucene.framework/Versions/5/QtCLucene \
+           QtDBus.framework/Versions/5/QtDBus \
+           QtGui.framework/Versions/5/QtGui \
+           QtHelp.framework/Versions/5/QtHelp \
+           QtNetwork.framework/Versions/5/QtNetwork \
+           QtOpenGL.framework/Versions/5/QtOpenGL \
+           QtPrintSupport.framework/Versions/5/QtPrintSupport \
+           QtQml.framework/Versions/5/QtQml \
+           QtQuick.framework/Versions/5/QtQuick \
+           QtSensors.framework/Versions/5/QtSensors \
+           QtSql.framework/Versions/5/QtSql \
+           QtSvg.framework/Versions/5/QtSvg \
+           QtV8.framework/Versions/5/QtV8 \
+           QtWebKit.framework/Versions/5/QtWebKit \
+           QtWebKitWidgets.framework/Versions/5/QtWebKitWidgets \
+           QtWidgets.framework/Versions/5/QtWidgets \
+           QtXml.framework/Versions/5/QtXml \
+           "
+
 [ "$PACKAGE_NO_QTWEBKIT" ] || FRAMEWORKS="$FRAMEWORKS QtWebKit.framework/Versions/4/QtWebKit"
 
 if [ $# -ne 2 ] ; then

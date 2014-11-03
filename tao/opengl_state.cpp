@@ -123,6 +123,7 @@ OpenGLState::OpenGLState()
       renderer("Random Bits Pusher"),
       version("Unreleased Internal version pi"),
       extensionsAvailable("None"),
+      polycount(0),
 
       matrixMode(GL_MODELVIEW),
       viewport(0, 0, 0, 0), listBase(0), pointSize(1),
@@ -1150,6 +1151,7 @@ void OpenGLState::DrawArrays(GLenum mode, int first, int count)
 // ----------------------------------------------------------------------------
 {
     Sync();
+    polycount += count * (1 + mode == GL_QUADS);
     glDrawArrays(mode, first, count);
 }
 

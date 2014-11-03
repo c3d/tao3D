@@ -53,6 +53,7 @@ struct GlyphCacheEntry
     uint            outlineCount;
     uint            outline;
     uint            interior;
+    uint            polycount;
 };
 
 

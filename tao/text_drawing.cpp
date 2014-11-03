@@ -473,9 +473,11 @@ void TextSplit::DrawDirect(Layout *where)
                     GL.Scale(1, 1, -1);
                     GL.FrontFace(GL_CCW);
                     GL.CallList(glyph.interior);
+                    GL.polycount += glyph.polycount;
                     GL.Restore(save);
                     GL.FrontFace(GL_CW);
                     GL.CallList(glyph.interior);
+                    GL.polycount += glyph.polycount;
                     GL.FrontFace(GL_CCW);
                 }
 
@@ -490,7 +492,10 @@ void TextSplit::DrawDirect(Layout *where)
             else
             {
                 if (setFillColor(where))
+                {
                     GL.CallList(glyph.interior);
+                    GL.polycount += glyph.polycount;
+                }
                 if (lw > 0.0 && setLineColor(where))
                     GL.CallList(glyph.outline);
             }
@@ -568,9 +573,11 @@ void TextSplitArabic::DrawDirect(Layout *where)
                 GL.Scale(1, 1, -1);
                 GL.FrontFace(GL_CCW);
                 GL.CallList(glyph.interior);
+                GL.polycount += glyph.polycount;
                 GL.Restore(save);
                 GL.FrontFace(GL_CW);
                 GL.CallList(glyph.interior);
+                GL.polycount += glyph.polycount;
                 GL.FrontFace(GL_CCW);
             }
 
@@ -585,7 +592,10 @@ void TextSplitArabic::DrawDirect(Layout *where)
         else
         {
             if (setFillColor(where))
+            {
                 GL.CallList(glyph.interior);
+                GL.polycount += glyph.polycount;
+            }
             if (lw > 0.0 && setLineColor(where))
                 GL.CallList(glyph.outline);
         }

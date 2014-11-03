@@ -926,6 +926,12 @@ void Widget::drawActivities()
 
     if (stats.isEnabled(Statistics::TO_CONSOLE))
         logStatistics();
+
+    IFTRACE(polycount)
+    {
+        std::cout << "Polys=" << GL.polycount << "\n";
+        GL.polycount = 0;
+    }
 }
 
 

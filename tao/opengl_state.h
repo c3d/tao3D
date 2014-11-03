@@ -781,6 +781,7 @@ public:
     ClientTextureUnitsState currentClientTextureUnits;
     LightsState             currentLights;
     ClipPlanesState         currentClipPlanes;
+    ulong                   polycount;
 
 #define GS(type, name)                          \
     type name;

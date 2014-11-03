@@ -415,6 +415,7 @@ bool GlyphCache::Find(const QFont &font,
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
                     entry.interior = GL.GenLists(1);
+                entry.polycount = GL.polycount;
                 if (layout->extrudeDepth > 0.0)
                 {
                     XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
@@ -430,6 +431,7 @@ bool GlyphCache::Find(const QFont &font,
                               GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
                     GL.EndList();
                 }
+                entry.polycount = GL.polycount - entry.polycount;
             }
 
             if (!entry.outline || outlineChange)
@@ -598,7 +600,7 @@ bool GlyphCache::Find(const QFont &font,
                 // Create an OpenGL display list for the glyph
                 if (!entry.interior)
                     entry.interior = GL.GenLists(1);
-
+                entry.polycount = GL.polycount;
                 if (layout->extrudeDepth > 0.0)
                 {
                     XL::Save<scale> saveDepth (layout->extrudeDepth, -1.0);
@@ -614,7 +616,7 @@ bool GlyphCache::Find(const QFont &font,
                               GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
                     GL.EndList();
                 }
-
+                entry.polycount = GL.polycount - entry.polycount;
             }
 
             if (!entry.outline || outlineChange)

@@ -1686,6 +1686,9 @@ vertical_align_center                           -> vertical_align 0.5, 0, 0, 0
 vertical_align_justify                          -> vertical_align   0, 1, 0, 0
 vertical_align_spread                           -> vertical_align   0, 1, 1, 0
 
+// Suggestion from Half-pint HAL - Slashdot
+align_vertically Something                      -> vertical_align Something
+
 
 
 // ============================================================================

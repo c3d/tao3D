@@ -123,7 +123,9 @@ public:
     EndpointStyle       startStyle, endStyle;
     Qt::PenStyle        lineStyle;
     bool                invert;
-    static scale        default_steps;
+    static scale        steps_min;
+    static scale        steps_increase;
+    static scale        steps_max;
 };
 
 

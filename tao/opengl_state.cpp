@@ -1151,7 +1151,7 @@ void OpenGLState::DrawArrays(GLenum mode, int first, int count)
 // ----------------------------------------------------------------------------
 {
     Sync();
-    polycount += count * (1 + mode == GL_QUADS);
+    polycount += count * (1 + (mode == GL_QUADS));
     glDrawArrays(mode, first, count);
 }
 

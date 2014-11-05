@@ -38,7 +38,25 @@ typedef GraphicPath::Vertices           Vertices;
 typedef GraphicPath::DynamicVertices    DynamicVertices;
 typedef GraphicPath::EndpointStyle      EndpointStyle;
 
-scale GraphicPath::default_steps = 12;
+scale GraphicPath::steps_min = 0;
+scale GraphicPath::steps_increase = 2;
+scale GraphicPath::steps_max = 25;
+
+inline int pathSteps(scale length)
+// ----------------------------------------------------------------------------
+//   Compute the number of polygon sides when converting a path
+// ----------------------------------------------------------------------------
+{
+    scale order = log2(length);
+    scale steps = GraphicPath::steps_min
+                + order * GraphicPath::steps_increase;
+    if (steps > GraphicPath::steps_max)
+        steps = GraphicPath::steps_max;
+    if (steps < 1)
+        steps = 1;
+    return (int) ceil(steps);
+}
+            
 
 #ifndef CALLBACK // Needed for Windows
 #define CALLBACK
@@ -1000,8 +1018,7 @@ void GraphicPath::Draw(Layout *layout,
                 // REVISIT: Implement a true optimization of the interpolation
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
-                scale order = log2(length);
-                uint steps = ceil (order + default_steps);
+                uint steps = pathSteps(length);
                 double dt = 1.0 / steps;
                 double lt = 1.0 + dt/2;
 
@@ -1036,8 +1053,7 @@ void GraphicPath::Draw(Layout *layout,
 
                 // Compute a good number of points for approximating the curve
                 scale length = (v2-v0).Length() + 1;
-                scale order = log(length);
-                uint steps = ceil (order + default_steps);
+                uint steps = pathSteps(length);
                 double dt = 1.0 / steps;
                 double lt = 1.0 + dt/2;
 

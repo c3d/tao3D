@@ -2030,6 +2030,29 @@ locally
 extrude_count (ec:integer);
 
 
+/**
+ * @~english
+ * Configure the number of steps when converting curves to polygons
+ *
+ * Path curves are converted to polygons. The number of sides of the
+ * polygon is a function of the size of the curve. The @p min number of
+ * steps defines the number of steps for a 1-pixel curve.
+ * Each time the curve size doubles, the number of steps is increased by
+ * @p incr, until it reaches @p max.
+ *
+ * @~french
+ * Configure le nombre de pas pendant la conversion to courbes en polygones
+ *
+ * Les courbes dans formes 2D sont converties en polygones. Le nombre
+ * de bords du polygone est une fonction de la taille de la courbe.
+ * Le paramètre @p min définit le nombre de cotés pour une courbe de taille 1.
+ * Le paramètre @p incr définit l'augmentation du nombre de cotés à chaque
+ * fois que la taille de la courbe double. Enfin, le nombre de cotés sera
+ * limité à @p max.
+ */
+curve_steps (min:real, incr:real, max:real);
+
+
 #if 0
 /**
  * Add a texture coordinate to the path.

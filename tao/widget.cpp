@@ -815,7 +815,11 @@ void Widget::drawScene()
     }
     else
     {
+        GL.polycount = 0;
         space->Draw(NULL);
+        IFTRACE(polycount)
+            // It's really the number of elements sent to DrawArray
+            std::cout << "Edges=" << GL.polycount << "\n";
     }
 
     if (showingEvaluationWatermark)
@@ -926,12 +930,6 @@ void Widget::drawActivities()
 
     if (stats.isEnabled(Statistics::TO_CONSOLE))
         logStatistics();
-
-    IFTRACE(polycount)
-    {
-        std::cout << "Polys=" << GL.polycount << "\n";
-        GL.polycount = 0;
-    }
 }
 
 
@@ -7372,6 +7370,22 @@ Real_p Widget::refreshTime(Tree_p self)
         refresh = info->refresh;
     }
     return new XL::Real(refresh, self->Position());
+}
+
+
+Real_p Widget::defaultCurveSteps(Tree_p self, scale min, scale incr, scale max)
+// ----------------------------------------------------------------------------
+//   Set the drawing steps, returns previous one
+// ----------------------------------------------------------------------------
+{
+    scale prev = GraphicPath::steps_min;
+    if (min >= 0.0 && min < 20)
+        GraphicPath::steps_min = min;
+    if (incr >= 0.0 && incr < 20)
+        GraphicPath::steps_increase = incr;
+    if (max >= 2.0 && max < 30)
+        GraphicPath::steps_max = max;
+    return new Real(prev, self->Position());
 }
 
 

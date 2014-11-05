@@ -892,6 +892,12 @@ PREFIX(EnableVSync,  boolean,  "enable_vsync",
        DESCRIPTION("Enable or disable VSynx. Enabling VSync prevents tearing, at the price of a lower framerate.")
        RETURNS(boolean, "True if previous state was on."))
 
+PREFIX(SetDefaultCurveSteps, real, "curve_steps",
+       PARM(min,  real, "Min steps for curve (for scale 1)")
+       PARM(incr, real, "Increment for each factor of 2")
+       PARM(max,  real, "Max number of steps"),
+       RTAO(defaultCurveSteps(self, min, incr, max)), )
+
 
 
 // ============================================================================

@@ -462,6 +462,7 @@ public:
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
     Real_p      refreshTime(Tree_p self);
+    Real_p      defaultCurveSteps(Tree_p self,scale min,scale incr,scale max);
     Tree_p      postEvent(int eventType, bool once = false);
     Integer_p   registerUserEvent(text name);
     Name_p      addLayoutName(text name);

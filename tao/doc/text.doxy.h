@@ -436,6 +436,24 @@ text(t:text);
 
 /**
  * @~english
+ * Inserts HTML-formatted text into a text box.
+ * Converts the HTML text into the corresponding statements in Tao3D
+ * and evaluate these statements.
+ * @~french
+ * Ajoute du texte HTML dans une zone de texte.
+ * Convertit le text depuis le format HTML vers des instructions Tao3D, et
+ * évalue ces instructions.
+ * @~
+@code
+text_box 0, 0, 100, 100,
+    html "<b>Hello <i>World</i></b>"
+@endcode
+ * @see text_box @see text.
+ */
+html(t:text);
+
+/**
+ * @~english
  * Sets the current font.
  *
  * The font parameters are given as a comma separated list of arguments, in

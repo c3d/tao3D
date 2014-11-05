@@ -94,8 +94,7 @@ Tree *FontParsingAction::DoText(Text *what)
         }
         else
         {
-            // Font workaround for QTBUG-736 (apparently still not fixed in
-            // 4.6)
+            // Font workaround for QTBUG-736 (apparently still not fixed in 4.6)
             // http://bugreports.qt.nokia.com/browse/QTBUG-736
             family = what->value;
             if (family == "Times")

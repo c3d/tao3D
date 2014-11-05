@@ -84,6 +84,19 @@ PREFIX(TextHeight, integer, "text_height",
        Tao::Box3 bbox = TAO(textSize(self, t));
        return new Integer(bbox.Height(), self->Position()),
        SYNOPSIS("Return the width of a text"))
+PREFIX(TextFromHTMLWithCSS, tree, "html",
+       PARM(htmlText, text, "The HTML source to convert")
+       PARM(cssText, text, "The HTML source to convert"),
+       RTAO(htmlTextUnit(context, self, htmlText, cssText)),
+       GROUP(text)
+       SYNOPSIS("Insert a block of HTML text")
+       DESCRIPTION("Insert a block of text from an HTML source"))
+PREFIX(TextFromHTML, tree, "html",
+       PARM(htmlText, text, "The HTML source to convert"),
+       RTAO(htmlTextUnit(context, self, htmlText, "")),
+       GROUP(text)
+       SYNOPSIS("Insert a block of HTML text")
+       DESCRIPTION("Insert a block of text from an HTML source"))
 PREFIX(TextFormula,  tree, "formula",
        PARM(t, code, "The formula"),
        RTAO(textFormula(self, t)),

@@ -134,7 +134,7 @@ HEADERS +=     activity.h \
     tao_main.h \
     tao_tree.h \
     text_drawing.h \
-    text_edit.h \
+    html_converter.h \
     texture.h \
     texture_cache.h \
     tool_window.h \
@@ -220,7 +220,7 @@ SOURCES +=     activity.cpp \
     table.cpp \
     tao_main.cpp \
     text_drawing.cpp \
-    text_edit.cpp \
+    html_converter.cpp \
     texture.cpp \
     texture_cache.cpp \
     tool_window.cpp \

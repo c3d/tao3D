@@ -68,7 +68,7 @@
 #include "tree_cloning.h"
 #include "documentation.h"
 #include "formulas.h"
-#include "text_edit.h"
+#include "html_converter.h"
 #include "xl_source_edit.h"
 #include "tool_window.h"
 #include "context.h"
@@ -2253,9 +2253,10 @@ void Widget::paste()
                 std::cerr << "Clipboard: pasting HTML:\n";
                 std::cerr << +mimeData->html() <<std::endl;
             }
+            HTMLConverter htmlCvt(xlProgram->tree, space);
             sel->replacement = "";
             sel->replace = true;
-            sel->replacement_tree = text_portability().fromHTML(mimeData->html());
+            sel->replacement_tree = htmlCvt.fromHTML(mimeData->html());
 
             updateGL();
             return;
@@ -2278,18 +2279,27 @@ void Widget::paste()
     {
         Tree * t = NULL;
         if (mimeData->hasHtml())
-            t = text_portability().fromHTML(mimeData->html());
+        {
+            HTMLConverter htmlCvt(xlProgram->tree, space);
+            t = htmlCvt.fromHTML(mimeData->html());
+        }
         else if (mimeData->hasText())
+        {
             t = new XL::Prefix(new XL::Name("text"),
                                new XL::Text(+mimeData->text()));
-        else return;
+        }
+        else
+        {
+            return;
+        }
+
         // Insert a text box with that content at the end of the doc/page.
         TreeList arg_list;
-        arg_list.push_back( new XL::Integer(0LL));
-        arg_list.push_back( new XL::Integer(0LL));
-        arg_list.push_back( new XL::Integer(200));
-        arg_list.push_back( new XL::Integer(200));
-        arg_list.push_back( new XL::Block(t, "I+", "I-"));
+        arg_list.push_back(new XL::Integer(0LL));
+        arg_list.push_back(new XL::Integer(0LL));
+        arg_list.push_back(new XL::Integer(200));
+        arg_list.push_back(new XL::Integer(200));
+        arg_list.push_back(new XL::Block(t, "I+", "I-"));
         XL::Tree *comma = xl_list_to_tree(arg_list, ",");
         XL::Prefix_p tb = new XL::Prefix(new XL::Name("text_box"),
                                          comma);
@@ -10455,6 +10465,41 @@ Tree_p Widget::textUnit(Tree_p self, Text_p contents)
 }
 
 
+struct HTMLTextInfo : Info
+// ----------------------------------------------------------------------------
+//  Records the HTML text tree at the current position
+// ----------------------------------------------------------------------------
+{
+    text        html;
+    text        css;
+    Tree_p      code;
+};
+
+
+Tree_p Widget::htmlTextUnit(Context *context, Tree_p self, text html, text css)
+// ----------------------------------------------------------------------------
+//   Insert a block of text written in HTML
+// ----------------------------------------------------------------------------
+{
+    // Cache the converted code
+    HTMLTextInfo *info = self->GetInfo<HTMLTextInfo>();
+    if (!info)
+    {
+        info = new HTMLTextInfo;
+        self->SetInfo<HTMLTextInfo>(info);
+    }
+    if (info->html != html || info->css != css)
+    {
+        info->code = HTMLConverter(self, layout).fromHTML(+html, +css);
+        info->html = html;
+        info->css = css;
+    }
+
+    // Evaluate the generated code
+    return saveAndEvaluate(context, info->code);
+}
+
+
 Box3 Widget::textSize(Tree_p self, Text_p content)
 // ----------------------------------------------------------------------------
 //   Return the dimensions of a given text
@@ -10523,20 +10568,14 @@ Tree_p Widget::font(Context *context, Tree_p self,
 // ----------------------------------------------------------------------------
 {
     QFont &font = layout->font;
-    font.setStyle(QFont::StyleNormal);
-    font.setWeight(QFont::Normal);
-    font.setStretch(QFont::Unstretched);
-    font.setUnderline(false);
-    font.setStrikeOut(false);
-    font.setOverline(false);
-    FontParsingAction parseFont(context, layout->font);
+    FontParsingAction parseFont(context, font);
     descr1->Do(parseFont);
     if (descr2)
         descr2->Do(parseFont);
-    layout->font = parseFont.font;
-    layout->Add(new FontChange(layout->font));
+    font = parseFont.font;
+    layout->Add(new FontChange(font));
     if (fontFileMgr)
-        fontFileMgr->AddFontFiles(layout->font);
+        fontFileMgr->AddFontFiles(font);
     return XL::xl_true;
 }
 

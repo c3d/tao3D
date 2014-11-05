@@ -31,7 +31,7 @@
 #include "runtime.h"
 #include "application.h"
 #include "apply_changes.h"
-#include "text_edit.h"
+#include "html_converter.h"
 #include "tao_gl.h"
 #include "tree-walk.h"
 #include "demangle.h"

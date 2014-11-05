@@ -288,6 +288,7 @@ public:
     GLuint      selectionCurrentId()    { return id; }
     GLuint      selectionHandleId()     { return handleId; }
     GLuint      selectionCapacity()     { return maxId * (maxIdDepth + 3); }
+    Layout *    currentLayout()         { return layout; }
 
     enum
     {
@@ -426,7 +427,7 @@ public:
     Tree_p      locally(Context *context, Tree_p self, Tree_p t);
     Tree_p      shape(Context *context, Tree_p self, Tree_p t);
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
-    Tree_p      anchor(Context *context, Tree_p self, Tree_p t, bool abs = false);
+    Tree_p      anchor(Context *context, Tree_p self, Tree_p t, bool abs=false);
     Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
     Integer_p   stereoViewpoints();
 
@@ -714,6 +715,7 @@ public:
     Name_p      textFlowExists(Context *context, Tree_p self, Text_p name);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
+    Tree_p      htmlTextUnit(Context *context,Tree_p self,text html,text css);
     Box3        textSize(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
     Tree_p      textValue(Context *, Tree_p self, Tree_p value);
@@ -943,7 +945,7 @@ public:
     Name_p      groupSelection(Tree_p self);
     Name_p      ungroupSelection(Tree_p self);
 
-    //Documentation
+    // Documentation
     Text_p generateDoc(Tree_p self, Tree_p tree, text defGrp = "");
     Text_p generateAllDoc(Tree_p self, text filename);
 

@@ -28,7 +28,7 @@
 #include "application.h"
 #include "apply_changes.h"
 #include "tree_cloning.h"
-#include "text_edit.h"
+#include "html_converter.h"
 #include "widget.h"
 #include <cstring>
 #include <string>
@@ -191,6 +191,7 @@ void WidgetSurface::repaint()
         }
     }
 }
+
 
 
 // ============================================================================
@@ -425,8 +426,8 @@ void TextEditSurface::textChanged()
             if (parent->markChange("Text editor text change"))
             {
                 QTextEdit *textEdit = (QTextEdit *) widget;
-                text_portability p;
-                prog->child = p.docToTree(*textEdit->document());
+                HTMLConverter cvt(tree, parent->currentLayout());
+                prog->child = cvt.docToTree(*textEdit->document());
                 locallyModified = false;
             }
         }

@@ -133,6 +133,9 @@ void LicenseDialog::init()
                 ).arg(prefix).arg(Application::userLicenseFolderPath())
                  .arg(+Licenses::hostID());
 #else // CFG_NO_LICENSE
+#ifndef CFG_LIBRE_EDITION
+#warning "The GPL version should be compiled with CFG_LIBRE_EDITION set"
+#endif
     msg += tr("<h3>GNU General Public License v3</h3>"
               "<p>This program is licensed to you under the GNU "
               "General Public License (GPL) version 3.<br/>"

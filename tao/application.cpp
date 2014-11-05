@@ -241,7 +241,7 @@ void Application::deferredInit()
     else
         edition = Application::Player;
 #else
-#ifdef CFG_NO_LICENSE
+#ifdef CFG_LIBRE_EDITION
     edition = Application::GPL;
 #else
     if (Licenses::Has(+designPro) || Licenses::Has(+impress) ||
@@ -249,7 +249,7 @@ void Application::deferredInit()
         edition = Application::DesignPro;
     else
         edition = Application::Design;
-#endif // CFG_NO_LICENSE
+#endif // CFG_LIBRE_EDITION
 #endif
 
 #ifndef TAO_PLAYER

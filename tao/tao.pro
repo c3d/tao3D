@@ -398,7 +398,7 @@ contains(DEFINES, CFG_NO_CRYPT) {
          crypt.cpp
 }
 
-contains(DEFINES, CFG_NO_CRYPT):DEFINES+=CFG_NO_LICENSE
+contains(DEFINES, CFG_NO_CRYPT):DEFINES+=CFG_NO_LICENSE CFG_LIBRE_EDITION
 contains(DEFINES, CFG_NO_LICENSE) {
     !build_pass:message("[CFG_NO_LICENSE] License checks are disabled")
 } else {

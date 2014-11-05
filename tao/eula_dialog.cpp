@@ -47,6 +47,21 @@ EulaDialog::EulaDialog(QWidget *parent)
                  "</h3></center>");
 
     QString msg;
+#ifdef CFG_LIBRE_EDITION
+    msg += tr( "<p>Thank you for your interest in Tao3D.</p>"
+               "<p>This software is licensed to you under the terms "
+               "of the GNU General Public License v3. Please make "
+               "sure that you agree with these terms before using "
+               "the software. You can read the license by clicking "
+               "on the following link:"
+               "<center><a href=\"%1\">%1</a></center>"
+               "<p>If the link does not open, please copy the "
+               "address in a web browser.</p>"
+               "<p><b>By clicking on the \"I Accept\" button, you express your "
+               "consent to the above terms and conditions.</b></p>"
+               "<p>You must accept the agreement to use Tao3D.</p>"
+               ).arg(tr("http://www.gnu.org/copyleft/gpl.html"));
+#else // !CFG_LIBRE_EDITION
     msg += tr( "<p>Thank you for your interest in Tao3D.</p>"
                "<p>Please read the terms of the license agreement "
                "by clicking the following link: </p>"
@@ -57,6 +72,7 @@ EulaDialog::EulaDialog(QWidget *parent)
                "consent to the above terms and conditions.</b></p>"
                "<p>You must accept the agreement to use Tao3D.</p>"
                ).arg(tr("http://taodyne.com/eula"));
+#endif // CFG_LIBRE_EDITION
 
     setWindowTitle(title);
     setText(caption);

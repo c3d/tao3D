@@ -71,6 +71,12 @@
 #   DEFINES+=CFG_UNLICENSED_MAX_PAGES=<N>
 #     Tao Player and Tao Design (non-Pro editions) will limit the number of
 #     pages in a document to <N>, unless the document has a valid signature.
+#   DEFINES+=CFG_NO_LICENSE
+#     For the Libre edition: Compile without license check code
+#   DEFINES+=CFG_NO_CRYPT
+#     For the Libre edition: Compile without signature/encryption code & keys
+#   DEFINES+=CFG_LIBRE_EDITION
+#     For the Libre edition: Show GPL dialog box at startup
 #
 #   modules=none
 #     Do not build any Tao module

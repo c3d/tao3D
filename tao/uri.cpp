@@ -899,7 +899,7 @@ QString Uri::repoUri()
 {
     QUrl uri(*this);
 #if QT_VERSION >= 0x050000
-    uri.setQuery("");
+    // uri.setQuery("");
 #else
     uri.setEncodedQuery(QByteArray());
 #endif

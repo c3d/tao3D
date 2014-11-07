@@ -141,6 +141,18 @@ static int DisplayLink = -1;
         var = 0;                                \
     else if (var > 255)                         \
         var = 255;
+#define CHECK_0_359_RANGE(var)                  \
+    if (var < 0 || var >= 360)                  \
+    {                                           \
+        var = var % 360;                        \
+        if (var < 0)                            \
+            var += 360;                         \
+    }
+#define CHECK_0_1_RANGE_MODULO(var)             \
+    if (var < 0 || var >= 1)                    \
+    {                                           \
+        var -= floor(var);                      \
+    }
 
 namespace Tao {
 
@@ -8315,12 +8327,14 @@ QColor Widget::colorByName(text name, double alpha)
     int h, s, l, v;
     if (sscanf(cname, "hsv(%d,%d,%d)", &h, &s, &v) == 3)
     {
+        CHECK_0_359_RANGE(h);
         CHECK_0_255_RANGE(s);
         CHECK_0_255_RANGE(v);
         return QColor::fromHsv(h, s, v, int(255 * alpha));
     }
     if (sscanf(cname, "hsva(%d,%d,%d,%d)", &h, &s, &v, &a) == 4)
     {
+        CHECK_0_359_RANGE(h);
         CHECK_0_255_RANGE(s);
         CHECK_0_255_RANGE(v);
         CHECK_0_255_RANGE(a);
@@ -8330,12 +8344,14 @@ QColor Widget::colorByName(text name, double alpha)
     // HSL model
     if (sscanf(cname, "hsl(%d,%d,%d)", &h, &s, &l) == 3)
     {
+        CHECK_0_359_RANGE(h);
         CHECK_0_255_RANGE(s);
         CHECK_0_255_RANGE(l);
         return QColor::fromHsl(h, s, l, int(255 * alpha));
     }
     if (sscanf(cname, "hsla(%d,%d,%d,%d)", &h, &s, &l, &a) == 4)
     {
+        CHECK_0_359_RANGE(h);
         CHECK_0_255_RANGE(s);
         CHECK_0_255_RANGE(l);
         CHECK_0_255_RANGE(a);
@@ -8364,7 +8380,8 @@ QColor Widget::colorHSV(scale h, scale s, scale v, scale a)
 //   Compute an HSV color
 // ----------------------------------------------------------------------------
 {
-    h = fmod(h, 360) / 360;
+    h /= 360;
+    CHECK_0_1_RANGE_MODULO(h);
     CHECK_0_1_RANGE(s);
     CHECK_0_1_RANGE(v);
     CHECK_0_1_RANGE(a);
@@ -8377,7 +8394,8 @@ QColor Widget::colorHSL(scale h, scale s, scale l, scale a)
 //   Compute an HSL color
 // ----------------------------------------------------------------------------
 {
-    h = fmod(h, 360) / 360;
+    h /= 360;
+    CHECK_0_1_RANGE_MODULO(h);
     CHECK_0_1_RANGE(s);
     CHECK_0_1_RANGE(l);
     CHECK_0_1_RANGE(a);

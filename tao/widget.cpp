@@ -14614,6 +14614,7 @@ Name_p Widget::dropProcess(Tree_p self, text name)
     {
         Process *process = processMap[qName];
         processMap.remove(qName);
+        process->kill();
         delete process;
         return XL::xl_true;
     }

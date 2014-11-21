@@ -129,11 +129,13 @@ system(bash -c \"llvm-config-2.9 --version >/dev/null 2>&1\") {
   }
 }
 # LLVM dependencies
-LLVM_VERSION = $$system(bash -c \"$$LLVMCONFIG --version | sed -e 's/[.]//g' \")
+LLVM_VERSION = $$system(bash -c \"$$LLVMCONFIG --version | sed -e 's/[.a-z-]//g' \")
 LLVM_LIBS = $$system(bash -c \"$$LLVMCONFIG --libs\")
 LLVM_LIBS += $$system(bash -c \"$$LLVMCONFIG --ldflags\")
 LLVM_INC = $$system(bash -c \"$$LLVMCONFIG --includedir\")
 LLVM_DEF = $$system(bash -c \"$$LLVMCONFIG --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\") LLVM_VERSION=$$LLVM_VERSION
+
+!build_ass::message(Found LLVM version $$LLVM_VERSION)
 
 INCLUDEPATH += $$LLVM_INC
 LIBS += $$LLVM_LIBS

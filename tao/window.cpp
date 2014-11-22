@@ -122,6 +122,12 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       splashScreen(NULL), aboutSplash(NULL)
 {
     RECORD(ALWAYS, "Window constructor", "this", (intptr_t)this);
+
+    // Set the window attributes
+    setAttribute(Qt::WA_DeleteOnClose);
+    setStyleSheet("background:transparent;");
+    setAttribute(Qt::WA_TranslucentBackground);
+
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
     src = new ToolWindow(tr("Document Source"), this, "Tao::Window::src");
@@ -151,6 +157,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 
     // Create the main widget for displaying Tao stuff
     stackedWidget = new QStackedWidget(this);
+    stackedWidget->setStyleSheet("background:transparent;");
+    stackedWidget->setAttribute(Qt::WA_TranslucentBackground);
+    stackedWidget->setFrameShape(QFrame::NoFrame);
     taoWidget = new Widget(stackedWidget);
     stackedWidget->addWidget(taoWidget);
     setCentralWidget(stackedWidget);
@@ -168,8 +177,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
             this, SLOT(documentWasModified()));
 #endif
 
-    // Set the window attributes
-    setAttribute(Qt::WA_DeleteOnClose);
+    // Read saved attributes
     readSettings();
     // Don't restore error dock
     errorDock->hide();

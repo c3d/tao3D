@@ -94,20 +94,24 @@
 
 namespace Tao {
 
-Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
+Window::Window(XL::Main *xlr,
+               XL::source_names context,
+               QString sourceFile,
                bool ro)
 // ----------------------------------------------------------------------------
 //    Create a Tao window and optionnally open a document
 // ----------------------------------------------------------------------------
-    : isUntitled(sourceFile.isEmpty()), isReadOnly(ro),
-      loadInProgress(false),
-      contextFileNames(context), xlRuntime(xlr),
-      repo(NULL),
-      errorMessages(NULL), errorDock(NULL),
+    : contextFileNames(context), 
 #ifndef CFG_NOSRCEDIT
       srcEdit(NULL), src(NULL),
 #endif
-      stackedWidget(NULL), taoWidget(NULL), curFile(), uri(NULL),
+      stackedWidget(NULL), taoWidget(NULL), 
+      isUntitled(sourceFile.isEmpty()), isReadOnly(ro),
+      loadInProgress(false),
+      xlRuntime(xlr),
+      repo(NULL),
+      errorMessages(NULL), errorDock(NULL),
+      curFile(), uri(NULL),
 #ifndef CFG_NOFULLSCREEN
       slideShowMode(false),
 #endif
@@ -127,7 +131,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_TranslucentBackground);
     if (XL::MAIN->options.nowindow)
-        setWindowFlags(Qt::FramelessWindowHint);
+        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
 
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
@@ -161,6 +165,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     stackedWidget->setStyleSheet("background:transparent;");
     stackedWidget->setAttribute(Qt::WA_TranslucentBackground);
     stackedWidget->setFrameShape(QFrame::NoFrame);
+
     taoWidget = new Widget(stackedWidget);
     stackedWidget->addWidget(taoWidget);
     setCentralWidget(stackedWidget);
@@ -486,6 +491,54 @@ void Window::toggleStereoIdent()
 }
 
 
+void Window::toggleWindowBorders()
+// ----------------------------------------------------------------------------
+//   Toggle window borders
+// ----------------------------------------------------------------------------
+{
+    statusBar()->hide();
+
+    Qt::WindowFlags flags = windowFlags();
+    QPoint windowPos = pos();
+    flags ^= Qt::FramelessWindowHint;
+    if (flags & Qt::FramelessWindowHint)
+        flags |= Qt::NoDropShadowWindowHint;
+    else
+        flags &= ~Qt::NoDropShadowWindowHint;
+    flags |= Qt::WindowTitleHint;
+    setWindowFlags(flags);
+    windowBordersAct->setChecked(~flags & Qt::FramelessWindowHint);
+    setWindowFilePath(curFile);
+    show();
+    move(windowPos);
+    setWindowFilePath("");
+    setWindowFilePath(curFile);
+
+    if (flags & Qt::FramelessWindowHint)
+        statusBar()->hide();
+    else
+        statusBar()->show();
+}
+
+
+void Window::makeWindowTransparent()
+// ----------------------------------------------------------------------------
+//   Make the window transparent if background is
+// ----------------------------------------------------------------------------
+{
+    Qt::WindowFlags flags = windowFlags();
+    QPoint windowPos = pos();
+    flags |= Qt::NoDropShadowWindowHint;
+    flags |= Qt::WindowTitleHint;
+    setWindowFlags(flags);
+    setWindowFilePath(curFile);
+    show();
+    move(windowPos);
+    setWindowFilePath("");
+    setWindowFilePath(curFile);
+}
+
+
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
 
 void Window::newDocument()
@@ -641,7 +694,7 @@ int Window::open(QString fileName, bool readOnly)
             return 0;
     }
     if (fileName == welcomePath())
-            isUntitled = true;  // CHECK
+        isUntitled = true;  // CHECK
     return 1;
 }
 
@@ -1987,6 +2040,15 @@ void Window::createActions()
     connect(stereoIdentAct, SIGNAL(triggered()),
             this, SLOT(toggleStereoIdent()));
 
+    windowBordersAct = new QAction(tr("Window borders"), this);
+    windowBordersAct->setCheckable(true);
+    windowBordersAct->setChecked(~windowFlags() & Qt::FramelessWindowHint);
+    windowBordersAct->setObjectName("windowBorders");
+    connect(windowBordersAct, SIGNAL(triggered()),
+            this, SLOT(toggleWindowBorders()));
+
+
+
 #ifndef CFG_NOEDIT
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
@@ -2121,6 +2183,7 @@ void Window::createMenus()
 #endif
     viewMenu->addAction(viewAnimationsAct);
     viewMenu->addAction(stereoIdentAct);
+    viewMenu->addAction(windowBordersAct);
     displayModeMenu = viewMenu->addMenu(tr("Display mode"));
     displayModes = new QActionGroup(this);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);

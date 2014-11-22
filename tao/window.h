@@ -77,315 +77,315 @@ public:
            QString sourceFile = "", bool ro = false);
     ~Window();
 
-    void addSeparator(QString txt);
-    void addError(QString txt);
+    void        addSeparator(QString txt);
+    void        addError(QString txt);
 #ifndef CFG_NOGIT
-    bool openProject(QString path, QString filename, bool confirm = true);
-    Repository * repository() { return repo.data(); }
+    bool        openProject(QString path, QString filename, bool confirm = true);
+    Repository *repository() { return repo.data(); }
 #else
-    Repository * repository() { return NULL; }
+    Repository *repository() { return NULL; }
 #endif
-    void switchToFullScreen(bool fs = true);
-    bool switchToSlideShow(bool ss = true);
-    void setWindowAlwaysOnTop(bool alwaysOnTop);
+    void        switchToFullScreen(bool fs = true);
+    bool        switchToSlideShow(bool ss = true);
+    void        setWindowAlwaysOnTop(bool alwaysOnTop);
 #ifndef CFG_NOSRCEDIT
-    void setHtml(QString txt);
-    bool showSourceView(bool fs);
-    bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
+    void        setHtml(QString txt);
+    bool        showSourceView(bool fs);
+    bool        loadFileIntoSourceFileView(const QString &fileName,
+                                           bool box=false);
 #endif
-    QString  currentProjectFolderPath();
-    bool     needNewWindow();
-    bool     setStereo(bool on);
-    void     addDisplayModeMenu(QString mode, QString label);
-    QString  welcomePath();
+    QString     currentProjectFolderPath();
+    bool        needNewWindow();
+    bool        setStereo(bool on);
+    void        addDisplayModeMenu(QString mode, QString label);
+    QString     welcomePath();
 #ifndef CFG_NO_DOC_SIGNATURE
-    bool     isDocumentSigned();
+    bool        isDocumentSigned();
 #endif
 
 public:
-    virtual
-    bool eventFilter(QObject *obj, QEvent *evt);
+    virtual bool eventFilter(QObject *obj, QEvent *evt);
 
 public:
-    bool isUntitled;
-    bool isReadOnly;
-    bool loadInProgress;
-
-public:
-    static void        addWidget(void * w);
-    static void        removeWidget(void * w);
-    static void        setCurrentWidget(void * w);
-
-public:
-    QUndoStack       * undoStack;
-    XL::source_names   contextFileNames; // Extra context file names
+    static void addWidget(void * w);
+    static void removeWidget(void * w);
+    static void setCurrentWidget(void * w);
 
 public slots:
-    void markChanged(bool changed = true);
-    void toggleAnimations();
-    bool toggleSlideShow();
-    void toggleStereoIdent();
-    void clearErrors();
+    void        markChanged(bool changed = true);
+    void        toggleAnimations();
+    bool        toggleSlideShow();
+    void        toggleStereoIdent();
+    void        toggleWindowBorders();
+    void        makeWindowTransparent();
+    void        clearErrors();
 #ifndef CFG_NOSRCEDIT
-    void sourceViewBecameVisible(bool visible);
+    void        sourceViewBecameVisible(bool visible);
 #endif
-    int  open(QString fileName = "", bool readOnly = false);
-    int  openReadOnly(QString fileName = "")  { return open(fileName, true); }
+    int         open(QString fileName = "", bool readOnly = false);
+    int         openReadOnly(QString fileName = "") { return open(fileName, true); }
 #ifndef CFG_NONETWORK
-    void openUri();
+    void        openUri();
 #endif
-    void pageSetup();
-    void print();
-    void showMessage(QString message)  { showMessage(message, 2000); }
-    void setReadOnly(bool ro);
-    void renderToFile();
-    void adjustToScreenResolution(int screen);
-    void updateDisplayModeCheckMark(QString mode);
-    void closeDocument();
+    void        pageSetup();
+    void        print();
+    void        showMessage(QString message)  { showMessage(message, 2000); }
+    void        setReadOnly(bool ro);
+    void        renderToFile();
+    void        adjustToScreenResolution(int screen);
+    void        updateDisplayModeCheckMark(QString mode);
+    void        closeDocument();
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    void signDocument(text path = "");
+    void        signDocument(text path = "");
 #endif
 
 signals:
 #ifndef CFG_NOGIT
-    void projectUrlChanged(QString url);
+    void        projectUrlChanged(QString url);
 #endif
-    void projectChanged(Repository *repo);
-    void openFinished(bool success);
-    void appendErrorMsg(QString msg);
-    void setErrorColor(const QColor &color);
-    void showErrorWindow();
+    void        projectChanged(Repository *repo);
+    void        openFinished(bool success);
+    void        appendErrorMsg(QString msg);
+    void        setErrorColor(const QColor &color);
+    void        showErrorWindow();
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void        closeEvent(QCloseEvent *event);
 
 private slots:
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
-    void newDocument();
+    void        newDocument();
 #endif
-    void newFile();
-    void openRecentFile();
-    void clearRecentFileList();
+    void        newFile();
+    void        openRecentFile();
+    void        clearRecentFileList();
 #ifndef CFG_NOEDIT
-    bool save();
-    bool saveAs();
-    bool saveFonts();
-    void consolidate();
-    void cut();
-    void copy();
-    void paste();
-    void onFocusWidgetChanged(QWidget *old, QWidget *now);
-    void checkClipboard();
-    void updateCopyMenuName(bool hasSelection);
+    bool        save();
+    bool        saveAs();
+    bool        saveFonts();
+    void        consolidate();
+    void        cut();
+    void        copy();
+    void        paste();
+    void        onFocusWidgetChanged(QWidget *old, QWidget *now);
+    void        checkClipboard();
+    void        updateCopyMenuName(bool hasSelection);
 #endif
 #ifndef CFG_NOGIT
-    void setPullUrl();
-    void fetch();
-    void push();
-    void merge();
-    void diff();
-    void checkout();
-    void selectiveUndo();
-    void clone();
-    void checkDetachedHead();
-    void reloadCurrentFile();
+    void        setPullUrl();
+    void        fetch();
+    void        push();
+    void        merge();
+    void        diff();
+    void        checkout();
+    void        selectiveUndo();
+    void        clone();
+    void        checkDetachedHead();
+    void        reloadCurrentFile();
 #endif
 #ifndef CFG_NONETWORK
-    void onDocReady(QString path);
-    void onNewTemplateInstalled(QString path);
-    void onTemplateUpToDate(QString path);
-    void onTemplateUpdated(QString path);
-    void onNewModuleInstalled(QString path);
-    void onModuleUpToDate(QString path);
-    void onModuleUpdated(QString path);
-    void onUriGetFailed();
+    void        onDocReady(QString path);
+    void        onNewTemplateInstalled(QString path);
+    void        onTemplateUpToDate(QString path);
+    void        onTemplateUpdated(QString path);
+    void        onNewModuleInstalled(QString path);
+    void        onModuleUpToDate(QString path);
+    void        onModuleUpdated(QString path);
+    void        onUriGetFailed();
 #endif
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    void clearUndoStack();
+    void        clearUndoStack();
 #endif
-    void about();
-    void update();
-    void preferences();
-    void licenses();
-    void onlineDoc();
+    void        about();
+    void        update();
+    void        preferences();
+    void        licenses();
+    void        onlineDoc();
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
-    void tutorialsPage();
-    void forumPage();
+    void        tutorialsPage();
+    void        forumPage();
 #endif
-    void documentWasModified();
-    void displayModeTriggered(bool on);
+    void        documentWasModified();
+    void        displayModeTriggered(bool on);
 #ifdef CFG_TIMED_FULLSCREEN
-    void leaveFullScreen();
-    void restartFullScreenTimer();
+    void        leaveFullScreen();
+    void        restartFullScreenTimer();
 #endif
 #ifndef CFG_NO_WEBUI
-    void launchWebUI();
+    void        launchWebUI();
 #endif
 
 private:
-    void     createActions();
-    void     createMenus();
-    void     createToolBars();
-    void     createStatusBar();
-    void     createUndoView();
+    void        createActions();
+    void        createMenus();
+    void        createToolBars();
+    void        createUndoView();
 
-    void     readSettings();
-    void     writeSettings();
-    bool     maybeSave();
-    bool     loadFile(const QString &fileName, bool openProj = false);
-    bool     saveFile(const QString &fileName);
-    bool     isTutorial(const QString &filePath);
-    void     setCurrentFile(const QString &fileName);
-    QString  findUnusedUntitledFile();
-    Window  *findWindow(const QString &fileName);
-    bool     updateProgram(const QString &filename);
-    void     resetTaoMenus();
+    void        readSettings();
+    void        writeSettings();
+    bool        maybeSave();
+    bool        loadFile(const QString &fileName, bool openProj = false);
+    bool        saveFile(const QString &fileName);
+    bool        isTutorial(const QString &filePath);
+    void        setCurrentFile(const QString &fileName);
+    QString     findUnusedUntitledFile();
+    Window  *   findWindow(const QString &fileName);
+    bool        updateProgram(const QString &filename);
+    void        resetTaoMenus();
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    bool     populateUndoStack();
-    void     enableProjectSharingMenus();
+    bool        populateUndoStack();
+    void        enableProjectSharingMenus();
 #endif
 #ifndef CFG_NOGIT
-    void     warnNoRepo();
+    void        warnNoRepo();
 #endif
-    void     updateRecentFileActions();
-    void     updateContext(QString docPath);
-    void     showMessage(QString message, int timeout);
-    void     showInfoDialog(QString title, QString msg, QString info = "");
-    void     closeToolWindows();
+    void        updateRecentFileActions();
+    void        updateContext(QString docPath);
+    void        showMessage(QString message, int timeout);
+    void        showInfoDialog(QString title, QString msg, QString info = "");
+    void        closeToolWindows();
+
+public:
+    QUndoStack *        undoStack;
+    XL::source_names    contextFileNames; // Extra context file names
+
+#ifndef CFG_NOSRCEDIT
+    XLSourceEdit *      srcEdit;
+    ToolWindow *        src;
+#endif
+    QStackedWidget *    stackedWidget;
+    Widget *            taoWidget;
+
+    bool                isUntitled;
+    bool                isReadOnly;
+    bool                loadInProgress;
 
 private:
-    XL::Main *        xlRuntime;
+    XL::Main *          xlRuntime;
     QSharedPointer<Repository> repo;
-    QList<int>        docFontIds;
+    QList<int>          docFontIds;
     // currentProjectFolder : Used if repo is not used.
-    QString          currentProjectFolder;
-    QTextEdit        *errorMessages;
-    QDockWidget      *errorDock;
-public:
-#ifndef CFG_NOSRCEDIT
-    XLSourceEdit     *srcEdit;
-    ToolWindow       *src;
-#endif
-    QStackedWidget   *stackedWidget;
-    Widget           *taoWidget;
+    QString             currentProjectFolder;
+    QTextEdit *         errorMessages;
+    QDockWidget*        errorDock;
 private:
-    QString           curFile;
-    Uri              *uri;
+    QString             curFile;
+    Uri *               uri;
 #ifndef CFG_NOFULLSCREEN
-    bool              slideShowMode;
+    bool                slideShowMode;
 #ifdef CFG_TIMED_FULLSCREEN
-    QTimer            fullScreenTimer;
+    QTimer              fullScreenTimer;
 #endif
 #endif
-    bool              unifiedTitleAndToolBarOnMac;
+    bool                unifiedTitleAndToolBarOnMac;
 
 #ifndef CFG_NORELOAD
-    QTimer            fileCheckTimer;
+    QTimer              fileCheckTimer;
 #endif
-    QMenu            *fileMenu;
-    QMenu            *openRecentMenu;
+    QMenu *             fileMenu;
+    QMenu *             openRecentMenu;
 #ifndef CFG_NOEDIT
-    QMenu            *editMenu;
+    QMenu *             editMenu;
 #endif
-    QMenu            *viewMenu;
-    QMenu            *displayModeMenu;
-    QActionGroup     *displayModes;
+    QMenu *             viewMenu;
+    QMenu *             displayModeMenu;
+    QActionGroup *      displayModes;
     QMap<QString, QAction *> displayModeToAction;
-    QToolBar         *fileToolBar;
+    QToolBar *          fileToolBar;
 #ifndef CFG_NOEDIT
-    QToolBar         *editToolBar;
+    QToolBar *          editToolBar;
 #endif
-    QToolBar         *viewToolBar;
-    GitToolBar       *gitToolBar;
+    QToolBar *          viewToolBar;
+    GitToolBar *        gitToolBar;
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
-    QAction          *newDocAct;
+    QAction *           newDocAct;
 #endif
-    QAction          *newAct;
-    QAction          *openAct;
+    QAction *           newAct;
+    QAction *           openAct;
 #ifndef CFG_NOEDIT
-    QAction          *saveAct;
-    QAction          *saveAsAct;
-    QAction          *saveFontsAct;
-    QAction          *consolidateAct;
+    QAction *           saveAct;
+    QAction *           saveAsAct;
+    QAction *           saveFontsAct;
+    QAction *           consolidateAct;
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    QAction          *signDocumentAct;
+    QAction *           signDocumentAct;
 #endif
 #endif
-    QAction          *renderToFileAct;
-    QAction          *printAct;
-    QAction          *pageSetupAct;
-    QAction          *closeAct;
-    QAction          *exitAct;
+    QAction *           renderToFileAct;
+    QAction *           printAct;
+    QAction *           pageSetupAct;
+    QAction *           closeAct;
+    QAction *           exitAct;
 #ifndef CFG_NONETWORK
-    QAction          *openUriAct;
+    QAction *           openUriAct;
 #endif
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    QAction          *setPullUrlAct;
-    QAction          *pushAct;
-    QAction          *fetchAct;
-    QAction          *cloneAct;
-    QAction          *mergeAct;
-    QAction          *checkoutAct;
-    QAction          *selectiveUndoAct;
-    QAction          *diffAct;
+    QAction *           setPullUrlAct;
+    QAction *           pushAct;
+    QAction *           fetchAct;
+    QAction *           cloneAct;
+    QAction *           mergeAct;
+    QAction *           checkoutAct;
+    QAction *           selectiveUndoAct;
+    QAction *           diffAct;
 #endif
-    QAction          *aboutAct;
-    QAction          *updateAct;
-    QAction          *preferencesAct;
-    QAction          *licensesAct;
-    QAction          *onlineDocAct;
+    QAction *           aboutAct;
+    QAction *           updateAct;
+    QAction *           preferencesAct;
+    QAction *           licensesAct;
+    QAction *           onlineDocAct;
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
-    QAction          *tutorialsPageAct;
-    QAction          *forumPageAct;
+    QAction *           tutorialsPageAct;
+    QAction *           forumPageAct;
 #endif
 #ifndef CFG_NOFULLSCREEN
-    QAction          *slideShowAct;
+    QAction *           slideShowAct;
 #endif
-    QAction          *clearErrorsAct;
-    QAction          *viewAnimationsAct;
-    QAction          *stereoIdentAct;
-    QUndoView        *undoView;
+    QAction *           clearErrorsAct;
+    QAction *           viewAnimationsAct;
+    QAction *           stereoIdentAct;
+    QAction *           windowBordersAct;
+    QUndoView *         undoView;
 #ifndef CFG_NOEDIT
-    QAction          *cutAct;
-    QAction          *copyAct;
-    QAction          *pasteAct;
-    QAction          *undoAction;
-    QAction          *redoAction;
+    QAction *           cutAct;
+    QAction *           copyAct;
+    QAction *           pasteAct;
+    QAction *           undoAction;
+    QAction *           redoAction;
 #endif
-    QAction          *recentFileActs[MaxRecentFiles];
-    QAction          *clearRecentAct;
-    QAction          *handCursorAct;
-    QAction          *zoomInAct;
-    QAction          *zoomOutAct;
-    QAction          *resetViewAct;
+    QAction *           recentFileActs[MaxRecentFiles];
+    QAction *           clearRecentAct;
+    QAction *           handCursorAct;
+    QAction *           zoomInAct;
+    QAction *           zoomOutAct;
+    QAction *           resetViewAct;
 #ifndef CFG_NO_WEBUI
-    QAction          *launchWebUIAct;
+    QAction *           launchWebUIAct;
 #endif
     struct
     {
-      QByteArray         geometry;
-      QByteArray         state;
-      QList<QToolBar *>  visibleToolBars;
-      QMap<ToolWindow *, QByteArray> visibleTools;
+        QByteArray      geometry;
+        QByteArray      state;
+        QList<QToolBar *>  visibleToolBars;
+        QMap<ToolWindow *, QByteArray> visibleTools;
 
-      void clear()
-      {
-          geometry.clear(); state.clear(); visibleToolBars.clear();
-          visibleTools.clear();
-      }
+        void clear()
+        {
+            geometry.clear(); state.clear(); visibleToolBars.clear();
+            visibleTools.clear();
+        }
     }                 savedState;
 
 public:
 #ifndef CFG_NO_WEBUI
-    WebUI             webui;
+    WebUI               webui;
 #endif
-    QPrinter         *printer;
+    QPrinter *          printer;
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    QMenu            *shareMenu;
+    QMenu *             shareMenu;
 #endif
-    QMenu            *helpMenu;
-    QPointer<SplashScreen>
-                      splashScreen, aboutSplash;
+    QMenu *             helpMenu;
+    QPointer<SplashScreen> splashScreen, aboutSplash;
 
 };
 

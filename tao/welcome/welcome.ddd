@@ -82,10 +82,10 @@ theme_background "keyboard", Master:text ->
 // ----------------------------------------------------------------------------
 //    We override the background picture with a more neutral one
 // ----------------------------------------------------------------------------
-    clear_color 1, 1, 1, 1
+    clear_color 0, 0, 0, 0.0
     background -1500,
         // Slowly shifting background color
-        color_hsv 6 * seconds, 0.05, 1.0
+        color_hsv 6 * seconds, 0.05, 1.0, 0.7
         image 0, 0, 110%, 110%, "background.png"
 
 

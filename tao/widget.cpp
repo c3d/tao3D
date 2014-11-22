@@ -8426,9 +8426,16 @@ Tree_p Widget::clearColor(Tree_p self, QColor c)
 // ----------------------------------------------------------------------------
 {
     if (frameInfo)
+    {
         frameInfo->clearColor.Set(c.redF(), c.greenF(), c.blueF(), c.alphaF());
+    }
     else
+    {
         clearCol = c;
+        if (c.alphaF() < 1.0)
+            taoWindow()->makeWindowTransparent();
+    }
+
     return XL::xl_true;
 }
 

@@ -23,6 +23,10 @@ OPTION(autopull, "Interval for automatic pull in milliseconds",
 
 OPTION(nosplash, "Disable splash screen", ;)
 
+OPTVAR(nowindow, bool, false)
+OPTION(nowindow, "Disable window border (e.g. for transparent contents)",
+       nowindow = true)
+
 OPTVAR(slideshow, bool, false)
 OPTION(slideshow, "Open document in slide show (full screen) mode",
        slideshow = true)

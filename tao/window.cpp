@@ -125,8 +125,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
-    setStyleSheet("background:transparent;");
     setAttribute(Qt::WA_TranslucentBackground);
+    if (XL::MAIN->options.nowindow)
+        setWindowFlags(Qt::FramelessWindowHint);
 
 #ifndef CFG_NOSRCEDIT
     // Create source editor window

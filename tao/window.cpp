@@ -131,7 +131,11 @@ Window::Window(XL::Main *xlr,
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_TranslucentBackground);
     if (XL::MAIN->options.nowindow)
+#if QT_VERSION >= 0x050000
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+#else
+        setWindowFlags(Qt::FramelessWindowHint);
+#endif
 
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
@@ -501,10 +505,12 @@ void Window::toggleWindowBorders()
     Qt::WindowFlags flags = windowFlags();
     QPoint windowPos = pos();
     flags ^= Qt::FramelessWindowHint;
+#if QT_VERSION >= 0x050000
     if (flags & Qt::FramelessWindowHint)
         flags |= Qt::NoDropShadowWindowHint;
     else
         flags &= ~Qt::NoDropShadowWindowHint;
+#endif
     flags |= Qt::WindowTitleHint;
     setWindowFlags(flags);
     windowBordersAct->setChecked(~flags & Qt::FramelessWindowHint);
@@ -528,7 +534,9 @@ void Window::makeWindowTransparent()
 {
     Qt::WindowFlags flags = windowFlags();
     QPoint windowPos = pos();
+#if QT_VERSION >= 0x050000
     flags |= Qt::NoDropShadowWindowHint;
+#endif
     flags |= Qt::WindowTitleHint;
     setWindowFlags(flags);
     setWindowFilePath(curFile);

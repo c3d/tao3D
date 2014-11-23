@@ -22,7 +22,9 @@
 
 #include "vsync_x11.h"
 #include <QWidget>
+#if QT_VERSION < 0x050000
 #include <QX11Info>
+#endif
 #include <GL/glx.h>
 #include <iostream>
 
@@ -38,6 +40,7 @@ bool enableVSyncX11(QWidget *widget, bool enable)
     static setSwapIntervalFunc set_fn = NULL;
     if (!resolved)
     {
+#if QT_VERSION < 0x050000
         const char *ext = glXGetClientString(widget->x11Info().display(),
                                              GLX_EXTENSIONS);
         QString extensions(ext);
@@ -51,6 +54,14 @@ bool enableVSyncX11(QWidget *widget, bool enable)
             set_fn = (setSwapIntervalFunc)
                     glXGetProcAddress((const GLubyte*) "glXSwapIntervalSGI");
         }
+#else // QT5 has no easy access to the X11 dpy
+        (void) widget;
+        set_fn = (setSwapIntervalFunc)
+            glXGetProcAddress((const GLubyte*) "glXSwapIntervalMESA");
+        if (!set_fn)
+            set_fn = (setSwapIntervalFunc)
+                glXGetProcAddress((const GLubyte*) "glXSwapIntervalSGI");
+#endif // QT5
         resolved = true;
     }
     if (set_fn)

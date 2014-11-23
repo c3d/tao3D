@@ -27,6 +27,7 @@
 #include <QStackedWidget>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QPushButton>
 
 #include "preferences_dialog.h"
 #include "preferences_pages.h"

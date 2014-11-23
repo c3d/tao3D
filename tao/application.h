@@ -37,6 +37,10 @@
 #include <QPointer>
 #include <QSharedPointer>
 
+#ifdef CONFIG_LINUX
+typedef struct _XDisplay Display;
+#endif
+
 namespace Tao {
 
 struct Widget;

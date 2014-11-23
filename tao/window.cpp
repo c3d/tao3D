@@ -79,7 +79,9 @@
 #include <QPrintDialog>
 #include <QPageSetupDialog>
 #ifndef Q_OS_MACX
+#if QT_VERSION < 0x050000
 #include <QFSFileEngine>
+#endif
 #endif
 
 #ifdef Q_OS_WIN
@@ -3133,7 +3135,9 @@ void Window::setCurrentFile(const QString &fileName)
         // If file system is case sensitive, we want to keep paths that
         // differ only in character case
         // NOTE: caseSensitive() wrongly returns true on MacOSX
+#if QT_VERSION < 0x050000
         if (QFSFileEngine(curFile).caseSensitive())
+#endif
             cs = Qt::CaseSensitive;
 #endif
         foreach (QString f, files)

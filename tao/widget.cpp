@@ -274,8 +274,11 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 {
     RECORD(ALWAYS, "Widget constructor", "this", (intptr_t) this);
 
-    setStyleSheet("background:transparent;");
-    QGLWidget::setAttribute(Qt::WA_TranslucentBackground);
+    if (XL::MAIN->options.transparent)
+    {
+        setStyleSheet("background:transparent;");
+        QGLWidget::setAttribute(Qt::WA_TranslucentBackground);
+    }
 
 #ifdef MACOSX_DISPLAYLINK
     if (DisplayLink == -1)

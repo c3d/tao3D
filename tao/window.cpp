@@ -131,7 +131,9 @@ Window::Window(XL::Main *xlr,
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
-    setAttribute(Qt::WA_TranslucentBackground);
+    bool transparent = XL::MAIN->options.transparent;
+    if (transparent)
+        setAttribute(Qt::WA_TranslucentBackground);
     if (XL::MAIN->options.nowindow)
 #if QT_VERSION >= 0x050000
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
@@ -168,8 +170,11 @@ Window::Window(XL::Main *xlr,
 
     // Create the main widget for displaying Tao stuff
     stackedWidget = new QStackedWidget(this);
-    stackedWidget->setStyleSheet("background:transparent;");
-    stackedWidget->setAttribute(Qt::WA_TranslucentBackground);
+    if (transparent)
+    {
+        stackedWidget->setStyleSheet("background:transparent;");
+        stackedWidget->setAttribute(Qt::WA_TranslucentBackground);
+    }
     stackedWidget->setFrameShape(QFrame::NoFrame);
 
     taoWidget = new Widget(stackedWidget);

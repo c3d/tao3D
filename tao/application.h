@@ -201,7 +201,6 @@ private:
     DDEWidget    dde;
 #endif
     QtLocalPeer *peer;
-    QSharedPointer<TextureCache> textureCache;
 };
 
 #define DEBUG_TRACES_SETTING_NAME "DebugTraces"

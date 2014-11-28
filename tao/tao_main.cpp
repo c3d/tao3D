@@ -423,7 +423,7 @@ void signal_handler(int sigid)
     kstring renderer = "Unknown";
     kstring version = "Unknown";
 
-    if (OpenGLState *state = OpenGLState::State())
+    if (OpenGLState *state = OpenGLState::Current())
     {
         vendor = state->Vendor().c_str();
         renderer = state->Renderer().c_str();

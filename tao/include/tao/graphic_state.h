@@ -43,17 +43,9 @@ In a more technical way, it defines three differents states:
 
 2. How can it be used in modules?
 
-To use the optimised graphic state in a module, it is necessary add
-the following code in the corresponding .cpp file in order to define
-the GraphicState pointer:
-
-    #include <tao/module_api.h>
-    #include <tao/graphic_state.h>
-    extern "C" DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
-    #define GL (*graphic_state)
-
-Then just use e.g., GL.Viewport() to get the optimized version
-of glViewport().
+To use the optimised graphic state in a module, it sufficient to refer to it
+using the GL macro, e.g. GL.BindTexture(...) or GL.Viewport(...) to get the
+optimized version of glBindTexture and glViewport().
 
 To prevent display problem, you can use GraphicSave to save/restore
 to a correct GL state. It is the equivalent to glPush/glPop routines.
@@ -143,9 +135,16 @@ would used OpenGL ones.
 #include "coords3d.h"
 #include "matrix.h"
 #include "tao_gl.h"
+#include "module_api.h"
+
+
+// Access to the global graphic state (one per module)
+extern "C" DLL_PUBLIC Tao::GraphicState *graphic_state;
+#define GL (*graphic_state)
+#define DEFINE_MODULE_GL Tao::GraphicState *graphic_state = NULL
+
 
 TAO_BEGIN
-
 
 struct GraphicSave
 // ----------------------------------------------------------------------------
@@ -162,8 +161,13 @@ struct GraphicState
 //   Interface to manage graphic states
 // ----------------------------------------------------------------------------
 {
-    GraphicState()              {}
-    virtual ~GraphicState()     {}
+    GraphicState()              { if (!graphic_state) graphic_state = this; }
+    virtual ~GraphicState()     { if (graphic_state == this) graphic_state = NULL; }
+
+    // The graphic state singleton
+    static GraphicState &Singleton()    { return *graphic_state; }
+    static GraphicState *Current()      { return graphic_state; }
+    void         MakeCurrent()          { graphic_state = this; }
 
 
     // Saving and restoring graphic state
@@ -173,6 +177,8 @@ struct GraphicState
     // Apply pending state changes
     virtual void                Sync(uint64 which = ~0ULL) = 0;
     virtual void                Invalidate(uint64 which = ~0ULL) = 0;
+
+    virtual uint                ShowErrors(kstring msg = NULL) = 0;
 
 
     // ========================================================================
@@ -378,6 +384,7 @@ struct GraphicState
     virtual void DeleteTextures(uint n, GLuint *  textures) = 0;
     virtual void BindTexture(GLenum type, GLuint id) = 0;
     virtual void TexParameter(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexUnitParameter(GLenum type, GLenum pname, GLint param) = 0;
     virtual void TexEnv(GLenum type, GLenum pname, GLint param) = 0;
     virtual void TexGen(GLenum coord, GLenum pname, GLint param) = 0;
     virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
@@ -404,9 +411,60 @@ struct GraphicState
                                    GLsizei width, GLsizei height) = 0;
     virtual void GenerateMipmap(GLenum target) = 0;
 
+    virtual void GetTexLevelParameteriv (GLenum target,
+                                         GLint level,
+                                         GLenum pname,
+                                         GLint *params) = 0;
+    virtual void GetCompressedTexImage(GLenum target,GLint lod,GLvoid *img)=0;
+
     // Lighting
     virtual void   Light(GLenum light, GLenum pname, const float* params) = 0;
     virtual void   LightModel(GLenum pname, GLuint param) = 0;
+
+    // Queries
+    virtual void   GenQueries(GLsizei n, GLuint * ids) = 0;
+    virtual void   DeleteQueries(GLsizei n, const GLuint * ids) = 0;
+    virtual void   BeginQuery(GLenum target, GLuint id) = 0;
+    virtual void   EndQuery(GLenum target) = 0;
+    virtual void   GetQueryObject(GLuint id, GLenum nm, GLint *par) = 0;
+    virtual void   GetQueryObject(GLuint id, GLenum nm, GLuint *par) = 0;
+
+    // Point parameters
+    virtual void   PointParameter(GLenum pname, GLfloat param) = 0;
+    virtual void   PointParameter(GLenum pname, GLint param) = 0;
+
+    // Framebuffers
+    virtual bool   HasFramebuffers() = 0;
+    virtual void   GenFramebuffers(GLsizei n, GLuint *ids) = 0;
+    virtual void   DeleteFramebuffers(GLsizei n, GLuint *ids) = 0;
+    virtual void   BindFramebuffer(GLenum type, GLuint id) = 0;
+    virtual GLenum CheckFramebufferStatus(GLenum target) = 0;
+    virtual void   FramebufferTexture(GLenum target, GLenum attachment,
+                                      GLuint texture, GLint level) = 0;
+    virtual void   FramebufferTexture1D(GLenum target, GLenum attachment,
+                                        GLenum textarget, GLuint texture,
+                                        GLint level) = 0;
+    virtual void   FramebufferTexture2D(GLenum target, GLenum attachment,
+                                        GLenum textarget, GLuint texture,
+                                        GLint level) = 0;
+    virtual void   FramebufferTexture3D(GLenum target, GLenum attachment,
+                                        GLenum textarget, GLuint texture,
+                                        GLint level, GLint layer) = 0;
+
+    // Buffers
+    virtual bool   HasBuffers() = 0;
+    virtual void   GenBuffers(GLsizei n, GLuint * buffers) = 0;
+    virtual void   DeleteBuffers(GLsizei n, const GLuint * buffers) = 0;
+    virtual void   BindBuffer(GLenum target, GLuint buffer) = 0;
+    virtual void   BufferData(GLenum target, GLsizeiptr size,
+                              const GLvoid * data, GLenum usage) = 0;
+    virtual void * MapBuffer(GLenum target, GLenum access) = 0;
+    virtual void   UnmapBuffer(GLenum target) = 0;
+
+
+private:
+    // Make it a singleton
+    GraphicState(const GraphicState &) { /* forbidden */ }
 };
 
 TAO_END

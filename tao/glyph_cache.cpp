@@ -22,10 +22,11 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "tao_gl.h"
+#include "tao_glu.h"
 #include "glyph_cache.h"
 #include "tao_utf8.h"
 #include "path3d.h"
-#include "tao_gl.h"
 #include "save.h"
 #include <QFontMetricsF>
 

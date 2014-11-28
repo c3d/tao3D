@@ -1,7 +1,7 @@
-#ifndef PROCESS_H
-#define PROCESS_H
+#ifndef TAO_PROCESS_H
+#define TAO_PROCESS_H
 // ****************************************************************************
-//  process.h                                                       Tao project
+//  tao_process.h                                                  Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -26,11 +26,13 @@
 #include "tao.h"
 #include "base.h"
 
+#include <string>
+#include <iostream>
+
 #include <QString>
 #include <QProcess>
 #include <QTextEdit>
 #include <QTime>
-#include <iostream>
 
 namespace Tao {
 

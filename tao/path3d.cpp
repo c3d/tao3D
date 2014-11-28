@@ -26,6 +26,7 @@
 #include "manipulator.h"
 #include "gl_keepers.h"
 #include "tao_gl.h"
+#include "tao_glu.h"
 #include <QPainterPath>
 #include <QPainterPathStroker>
 #include <iostream>

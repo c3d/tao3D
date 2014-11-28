@@ -15,7 +15,7 @@
 # ******************************************************************************
 
 INSTROOT=\"$$INSTROOT\"
-QMAKE_LIBDIR_QT=\"$$QMAKE_LIBDIR_QT\"
+QMAKE_LIBDIR_QT=\"$$[QT_INSTALL_LIBS]\"
 NO_SDK=$$NO_SDK
 TAO_PLAYER=$$TAO_PLAYER
 PACKAGE_APPEND=$$PACKAGE_APPEND

@@ -15,7 +15,7 @@
 # ******************************************************************************
 
 TARGET_ROOT=$$TARGET_ROOT
-QMAKE_LIBDIR_QT=$$QMAKE_LIBDIR_QT
+QMAKE_LIBDIR_QT=$$[QT_INSTALL_LIBS]
 NO_SDK=$$NO_SDK
 PACKAGE_APPEND=$$PACKAGE_APPEND
 TAO_PLAYER=$$TAO_PLAYER

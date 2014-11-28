@@ -29,6 +29,7 @@
 #include "window.h"
 #include "path3d.h"
 #include "demangle.h"
+#include "tao_glu.h"
 #include <QFontMetrics>
 #include <QFont>
 

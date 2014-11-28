@@ -22,7 +22,7 @@
 //  (C) 2013 Taodyne SAS
 // ****************************************************************************
 
-#include "process.h"
+#include "tao_process.h"
 #include <QByteArray>
 #include <QObject>
 #include <QString>

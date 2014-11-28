@@ -22,7 +22,7 @@
 
 #include "templates.h"
 #include "tao_utf8.h"
-#include "process.h"
+#include "tao_process.h"
 #include "application.h"
 
 #include <QSettings>

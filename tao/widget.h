@@ -45,7 +45,7 @@
 #include "statistics.h"
 #include "file_monitor.h"
 #include "preview.h"
-#include "process.h"
+#include "tao_process.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -1026,6 +1026,7 @@ private:
 
     // Rendering
     OpenGLState           gl;   // Must appear first (ctor and dtor order)
+    QSharedPointer<TextureCache> textureCache;
     QGradient*            gradient;
     QColor                clearCol;
     SpaceLayout *         space;

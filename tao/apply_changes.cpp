@@ -20,6 +20,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#include "tao/tao_gl.h"
 #include "apply_changes.h"
 #include "main.h"
 #include "widget_surface.h"

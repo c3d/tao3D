@@ -37,7 +37,11 @@ public:
     ~DDEWidget();
 
 protected:
+#if QT_VERSION < 0x050000
     virtual bool winEvent(MSG *message, long *result);
+#else
+    virtual bool nativeEvent(const QByteArray &event, void *msg, long *result);
+#endif
     virtual void ddeOpenFile(const QString& filePath);
 
 private:

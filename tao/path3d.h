@@ -27,6 +27,7 @@
 #include "tree.h"
 #include "tao_tree.h"
 #include "tao_gl.h"
+#include <QPen>
 
 class QPainterPath;
 

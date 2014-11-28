@@ -53,6 +53,7 @@ DDEWidget::~DDEWidget()
 }
 
 
+#if QT_VERSION < 0x050000
 bool DDEWidget::winEvent(MSG *message, long *result)
 // ----------------------------------------------------------------------------
 //   Process a Windows DDE message
@@ -62,17 +63,39 @@ bool DDEWidget::winEvent(MSG *message, long *result)
     {
     case WM_DDE_INITIATE:
         return ddeInitiate(message, result);
-        break;
     case WM_DDE_EXECUTE:
         return ddeExecute(message, result);
-        break;
     case WM_DDE_TERMINATE:
         return ddeTerminate(message, result);
-        break;
     }
 
     return QWidget::winEvent(message, result);
 }
+
+
+#else
+bool DDEWidget::nativeEvent(const QByteArray &event, void *msg, long *result)
+// ----------------------------------------------------------------------------
+//   Process a Windows DDE message
+// ----------------------------------------------------------------------------
+{
+    if (event == "windows_generic_MSG")
+    {
+        MSG *message = (MSG *) msg;
+
+        switch(message->message)
+        {
+        case WM_DDE_INITIATE:
+            return ddeInitiate(message, result);
+        case WM_DDE_EXECUTE:
+            return ddeExecute(message, result);
+        case WM_DDE_TERMINATE:
+            return ddeTerminate(message, result);
+        }
+    }
+    return QWidget::nativeEvent(event, msg, result);
+}
+#endif
 
 
 bool DDEWidget::ddeInitiate(MSG* message, long* result)

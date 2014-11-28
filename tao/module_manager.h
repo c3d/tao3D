@@ -330,27 +330,26 @@ public:
             {}
 
         // Configuration attributes
-        bool    enabled;
-
+        bool                    enabled;
         // Runtime attributes
-        double  latest;
+        double                  latest;
         // loaded is set to true when xl file is imported and
         //           set to false when xl file is unloaded
-        bool    loaded;
-        bool    updateAvailable;
+        bool                    loaded;
+        bool                    updateAvailable;
         // hasNative is true when the specified path for native library exists. It is
         // different from native only when specified file is not a compliant library.
-        bool    hasNative;
+        bool                    hasNative;
         // native is the pointer to a compliant library (enter_symbols is present)
-        QLibrary * native;
-        XL::Context_p context;
-        bool    inError;
-        QString source; // .xl content, non-null only after full text search
-        module_preferences_fn show_preferences;
-        QTranslator * translator;
+        QLibrary *              native;
+        XL::Context_p           context;
+        bool                    inError;
+        QString                 source; // .xl content, non-null only after full text search
+        module_preferences_fn   show_preferences;
+        QTranslator *           translator;
         // Module documentation files, may be empty
-        QStringList qchFiles;
-        GraphicState **graphicStatePtr; // May be NULL
+        QStringList             qchFiles;
+        GraphicState          **graphicStatePtr; // May be NULL
 
         bool operator==(const ModuleInfoPrivate &o) const
         {

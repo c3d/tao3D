@@ -26,7 +26,10 @@
 #include "tao.h"
 #include "tao_gl.h"
 #include "coords.h"
+#include <QMap>
 
+
+class QGLContext;
 
 TAO_BEGIN
 

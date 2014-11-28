@@ -2646,11 +2646,6 @@ void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
 //    Set 'always on top' flag for the current window
 // ----------------------------------------------------------------------------
 {
-#ifdef Q_OS_WIN
-    HWND flag = alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
-    SetWindowPos(winId(), flag, 0, 0, 0, 0,
-                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-#else
     Qt::WindowFlags flags = windowFlags();
     bool prev = ((flags & Qt::WindowStaysOnTopHint) ==
                           Qt::WindowStaysOnTopHint);
@@ -2663,7 +2658,6 @@ void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
         setWindowFlags(flags);
         show();
     }
-#endif
 }
 
 

@@ -1167,7 +1167,7 @@ bool ModuleManager::loadNative(Context * /*context*/,
                 {
                     IFTRACE(modules)
                         debug() << "    Setting graphic_state pointer\n";
-                    *m_p->graphicStatePtr = OpenGLState::State();
+                    *m_p->graphicStatePtr = OpenGLState::Current();
                 }
 
                 module_init_fn mi =

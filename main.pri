@@ -15,7 +15,7 @@
 include(main_defs.pri)
 
 CONFIG             += rtti exceptions
-DEFINES            += DEBUG
+DEFINES            += DEBUG=1
 # Make assert() a no-op in release mode
 CONFIG(release, debug|release):DEFINES *= NDEBUG
 macx:DEFINES       += CONFIG_MACOSX
@@ -23,7 +23,7 @@ win32:DEFINES      += CONFIG_MINGW
 linux-g++*:DEFINES += CONFIG_LINUX
 
 QMAKE_CFLAGS           += -Werror
-QMAKE_CXXFLAGS         += -Werror
+QMAKE_CXXFLAGS         += -Werror -Wno-strict-aliasing -Wno-unused-local-typedefs
 QMAKE_CXXFLAGS_DEBUG   += -ggdb
 # Mac: this will store full debug info in .o files.
 # No impact on exe size but allows full debug of release build.

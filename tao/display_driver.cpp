@@ -397,8 +397,6 @@ void * DisplayDriver::backBufferFBOUse()
 //   2D back buffer FBO display is about to be used: allocate context
 // ----------------------------------------------------------------------------
 {
-    // glewInit(); // if module
-
     int w = renderWidth(), h = renderHeight();
     return new BackBufferFBOParams(w, h);
 }

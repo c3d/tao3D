@@ -36,7 +36,8 @@ Tree_p lens_flare(Context *context, Tree_p, Tree_p prog)
 {
     lens = new LensFlare();
     context->Evaluate(prog);
-    LensFlare::tao->addToLayout(LensFlare::render_callback, lens, LensFlare::delete_callback);
+    LensFlare::tao->addToLayout(LensFlare::render_callback, lens,
+                                LensFlare::delete_callback);
 
     return xl_true;
 }
@@ -46,7 +47,7 @@ Tree_p lens_flare_target(Tree_p tree, Real_p tx, Real_p ty, Real_p tz)
 //    Define the lens flare target
 // ----------------------------------------------------------------------------
 {
-    if(! lens)
+    if(!lens)
     {
         Ooops("LensFlare: No lens flare for target in $1 ", tree);
         return xl_false;
@@ -62,7 +63,7 @@ Tree_p lens_flare_source(Tree_p tree, Real_p sx, Real_p sy, Real_p sz)
 //    Define the lens flare source
 // ----------------------------------------------------------------------------
 {
-    if(! lens)
+    if(!lens)
     {
         Ooops("LensFlare: No lens flare for source in $1 ", tree);
         return xl_false;
@@ -78,7 +79,7 @@ Tree_p add_flare(Tree_p tree, GLuint id, Real_p loc, Real_p scale, double r,
 //    Add flares to the current lens flare
 // ----------------------------------------------------------------------------
 {
-    if(! lens)
+    if(!lens)
     {
         Ooops("LensFlare: No lens flare while adding flare in $1 ", tree);
         return xl_false;
@@ -124,9 +125,7 @@ int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
 // ----------------------------------------------------------------------------
 {
     XL_INIT_TRACES();
-    glewInit();
     LensFlare::tao = api;
-
     return 0;
 }
 

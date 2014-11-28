@@ -27,7 +27,7 @@
 #include "tao.h"
 #include "tree.h"
 #include "tao_tree.h"
-#include "process.h"
+#include "tao_process.h"
 #include "main.h"
 #include <QString>
 #include <QProcess>

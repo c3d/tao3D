@@ -1,12 +1,12 @@
-#ifndef TAO_GL_H
-#define TAO_GL_H
+#ifndef TAO_GLU_H
+#define TAO_GLU_H
 // ****************************************************************************
-//  tao_gl.h                                                        Tao project
+//  tao_glu.h                                                       Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Wrapper for OpenGL that adapts it depending on the platform
+//    Wrapper for GLU that adapts it depending on the platform
 //
 //
 //
@@ -22,6 +22,10 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include <qopengl.h>
+#ifdef CONFIG_MACOSX
+#include <OpenGL/glu.h>
+#else
+#include <GL/glu.h>
+#endif
 
-#endif // TAO_GL_H
+#endif // TAO_GLU_H

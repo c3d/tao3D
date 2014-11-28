@@ -27,9 +27,9 @@
 #include "flare.h"
 
 const ModuleApi *LensFlare::tao = NULL;
-
-#define GL (*graphic_state)
 DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
+
+
 
 // ============================================================================
 //
@@ -52,7 +52,7 @@ LensFlare::~LensFlare()
 // ----------------------------------------------------------------------------
 {
     if (query)
-        glDeleteQueries(1, &query);
+        GL.DeleteQueries(1, &query);
 }
 
 
@@ -98,7 +98,7 @@ void LensFlare::enableDephTest(bool enable)
 // ----------------------------------------------------------------------------
 {
     if(!query)
-        glGenQueries(1, &query);
+        GL.GenQueries(1, &query);
     depth_test = enable;
 }
 
@@ -213,7 +213,7 @@ bool LensFlare::isOccluded(Vector3 p)
     {
         GLuint result = 0;
 
-        glBeginQuery(GL_SAMPLES_PASSED, query);
+        GL.BeginQuery(GL_SAMPLES_PASSED, query);
         GL.Begin(GL_QUADS);
 
         // Draw sun flare
@@ -223,8 +223,8 @@ bool LensFlare::isOccluded(Vector3 p)
         GL.Vertex(p.x - test_size, p.y + test_size, p.z);
 
         GL.End();
-        glEndQuery(GL_SAMPLES_PASSED);
-        glGetQueryObjectuiv(query, GL_QUERY_RESULT, &result);
+        GL.EndQuery(GL_SAMPLES_PASSED);
+        GL.GetQueryObject(query, GL_QUERY_RESULT, &result);
 
         if(result <= 0)
             return true;

@@ -151,9 +151,9 @@ TextureCache::TextureCache()
         GLint *fmt, n = 0;
         if (QGLContext::currentContext()->isValid())
         {
-            glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &n);
+            GL.Get(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &n);
             fmt = (GLint*)malloc(n * sizeof(GLint));
-            glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, fmt);
+            GL.Get(GL_COMPRESSED_TEXTURE_FORMATS, fmt);
             for (int i = 0; i < n; ++i)
                 cmpFormats.insert(fmt[i]);
             free(fmt);
@@ -593,7 +593,7 @@ CachedTexture::~CachedTexture()
 {
     purge();
 
-    if(Tao::OpenGLState::State())
+    if(Tao::OpenGLState::Current())
         GL.DeleteTextures(1, &id);
 
     if (networkReply)
@@ -784,21 +784,21 @@ void CachedTexture::transfer()
             copiedSize = width * height * 4;
 
             GLint cmp = GL_FALSE, cmpsz = copiedSize;
-            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED,
-                                     &cmp);
+            GL.GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED,
+                                      &cmp);
             if (cmp)
-                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
-                                         GL_TEXTURE_COMPRESSED_IMAGE_SIZE,
-                                         &cmpsz);
+                GL.GetTexLevelParameteriv(GL_TEXTURE_2D, 0,
+                                          GL_TEXTURE_COMPRESSED_IMAGE_SIZE,
+                                          &cmpsz);
 
             if (cmp && cmpsz)
             {
                 // Cache compressed data for next time
-                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
-                                         GL_TEXTURE_INTERNAL_FORMAT,
-                                         &image.fmt);
-                glGetCompressedTexImage(GL_TEXTURE_2D, 0,
-                                        image.allocateCompressed(cmpsz));
+                GL.GetTexLevelParameteriv(GL_TEXTURE_2D, 0,
+                                          GL_TEXTURE_INTERNAL_FORMAT,
+                                          &image.fmt);
+                GL.GetCompressedTexImage(GL_TEXTURE_2D, 0,
+                                         image.allocateCompressed(cmpsz));
                 image.w = width;
                 image.h = height;
             }
@@ -890,7 +890,7 @@ void CachedTexture::purgeGL()
 {
     Q_ASSERT(id);
 
-    if (Tao::OpenGLState::State())
+    if (Tao::OpenGLState::Current())
     {
         // Assure we restore a correct GL state after purge.
         // (Purge phase is often out of the evaluation phase)

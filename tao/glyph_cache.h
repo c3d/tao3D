@@ -32,6 +32,7 @@
 
 #include <QFont>
 #include <QImage>
+#include <QGLContext>
 #include <map>
 
 TAO_BEGIN

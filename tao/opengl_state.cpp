@@ -22,6 +22,13 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#ifdef CONFIG_MINGW
+#include <tao/GL/glew.h>
+#define QT_NO_OPENGL
+#else
+static inline int glewInit() { return GLEW_OK; }
+#endif
+
 #include "opengl_state.h"
 #include "opengl_save.h"
 #include "application.h"
@@ -30,7 +37,9 @@
 #include "module_manager.h"
 #include "preferences_pages.h"
 #include <cassert>
-#include <ostream>
+#include <iostream>
+
+DEFINE_MODULE_GL;
 
 
 TAO_BEGIN
@@ -45,10 +54,6 @@ text OpenGLState::vendorsList[LAST_VENDOR] =
     "NVIDIA Corporation",
     "Intel"
 };
-
-
-// FIXME: Is there a better place for this than here?
-OpenGLState *OpenGLState::current = NULL;
 
 
 // Test if we need to save a state
@@ -151,13 +156,24 @@ OpenGLState::OpenGLState()
 {}
 
 
+OpenGLState::~OpenGLState()
+// ----------------------------------------------------------------------------
+//    Destructor
+// ----------------------------------------------------------------------------
+{}
+
+
 void OpenGLState::MakeCurrent()
 // ----------------------------------------------------------------------------
 //   Make this object the current OpenGLState
 // ----------------------------------------------------------------------------
 {
-    current = this;
-    ModuleManager::moduleManager()->updateGraphicStatePointers(current);
+    if (glewInit() != GLEW_OK)
+        std::cerr << "GLEW initialization failed. "
+                  << "The application may fail at a later time\n";
+
+    GraphicState::MakeCurrent();
+    ModuleManager::moduleManager()->updateGraphicStatePointers(this);
 
     // Ask graphic card constructor to OpenGL
     vendor = text ((const char*) glGetString (GL_VENDOR));
@@ -2560,6 +2576,26 @@ void OpenGLState::GenerateMipmap(GLenum target)
 }
 
 
+void OpenGLState::GetTexLevelParameteriv (GLenum target, GLint level,
+                                          GLenum pname, GLint *params)
+// ----------------------------------------------------------------------------
+//   Return texture parameters
+// ----------------------------------------------------------------------------
+{
+    glGetTexLevelParameteriv(target, level, pname, params);
+}
+
+
+void OpenGLState::GetCompressedTexImage(GLenum target, GLint lod, GLvoid * img)
+// ----------------------------------------------------------------------------
+//   Return a compressed texture image
+// ----------------------------------------------------------------------------
+{
+    glGetCompressedTexImage(target, lod, img);
+}
+
+
+
 // ============================================================================
 //
 //                       Lighting management functions.
@@ -2753,7 +2789,7 @@ void LightState::Sync(const LightState &ls, bool force)
                     name = ls.name;                     \
                     Code;                               \
                     if (traceErrors)                    \
-                        OpenGLState::ShowErrors(#name); \
+                        GL.ShowErrors(#name);           \
                 }                                       \
             } while(0)
 
@@ -2912,7 +2948,7 @@ void ClipPlaneState::Sync(ClipPlaneState &p, bool force)
                     name = p.name;                      \
                     Code;                               \
                     if (traceErrors)                    \
-                        OpenGLState::ShowErrors(#name); \
+                        GL.ShowErrors(#name);           \
                 }                                       \
             } while(0)
 
@@ -3018,7 +3054,8 @@ void ClientTextureUnitState::Sync(ClientTextureUnitState &ns, bool force)
 }
 
 
-bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns, uint clientActiveUnit)
+bool ClientTextureUnitsState::Sync(ClientTextureUnitsState &ns,
+                                   uint clientActiveUnit)
 // ----------------------------------------------------------------------------
 //   Sync with the new state for all client texture units
 // ----------------------------------------------------------------------------
@@ -3373,7 +3410,7 @@ void TextureState::Sync(TextureState &ts)
             name = ts.name;                     \
             Code;                               \
             if (traceErrors)                    \
-                OpenGLState::ShowErrors(#name); \
+                GL.ShowErrors(#name);           \
         }                                       \
     } while(0)
 
@@ -3418,6 +3455,271 @@ void TextureState::Sync(TextureState &ts)
 }
 
 
+// ============================================================================
+// 
+//    Queries
+// 
+// ============================================================================
+
+void OpenGLState::GenQueries(GLsizei n, GLuint * ids)
+// ----------------------------------------------------------------------------
+//    Generate queries
+// ----------------------------------------------------------------------------
+{
+    glGenQueries(n, ids);
+}
+
+
+void OpenGLState::DeleteQueries(GLsizei n, const GLuint * ids)
+// ----------------------------------------------------------------------------
+//    Delete queries
+// ----------------------------------------------------------------------------
+{
+    glDeleteQueries(n, ids);
+}
+
+
+void OpenGLState::BeginQuery(GLenum target, GLuint id)
+// ----------------------------------------------------------------------------
+//   Begin a query
+// ----------------------------------------------------------------------------
+{
+    glBeginQuery(target, id);
+}
+
+
+void OpenGLState::EndQuery(GLenum target)
+// ----------------------------------------------------------------------------
+//   End a query
+// ----------------------------------------------------------------------------
+{
+    glEndQuery(target);
+}
+
+
+void OpenGLState::GetQueryObject(GLuint id, GLenum pname, GLint *params)
+// ----------------------------------------------------------------------------
+//   Get query object
+// ----------------------------------------------------------------------------
+{
+    glGetQueryObjectiv(id, pname, params);
+}
+
+
+void OpenGLState::GetQueryObject(GLuint id, GLenum pname, GLuint *params)
+// ----------------------------------------------------------------------------
+//   Get query object
+// ----------------------------------------------------------------------------
+{
+    glGetQueryObjectuiv(id, pname, params);
+}
+
+
+
+
+// ============================================================================
+// 
+//   Point parameters
+// 
+// ============================================================================
+
+void OpenGLState::PointParameter(GLenum pname, GLfloat param)
+// ----------------------------------------------------------------------------
+//   Set point floating-point parameter
+// ----------------------------------------------------------------------------
+{
+    glPointParameterf(pname, param);
+}
+
+
+void OpenGLState::PointParameter(GLenum pname, GLint param)
+// ----------------------------------------------------------------------------
+//   Set point integer parameter
+// ----------------------------------------------------------------------------
+{
+    glPointParameteri(pname, param);
+}
+
+
+
+// ============================================================================
+// 
+//     Frame buffers
+// 
+// ============================================================================
+
+bool OpenGLState::HasFramebuffers()
+// ----------------------------------------------------------------------------
+//   Check if we can use framebuffer functions
+// ----------------------------------------------------------------------------
+{
+    return
+        glGenFramebuffers != NULL &&
+        glDeleteFramebuffers != NULL &&
+        glBindFramebuffer != NULL &&
+        glFramebufferTexture != NULL &&
+        glFramebufferTexture1D != NULL &&
+        glFramebufferTexture2D != NULL &&
+        glFramebufferTexture3D != NULL;
+}
+
+
+void OpenGLState::GenFramebuffers(GLsizei n, GLuint *ids)
+// ----------------------------------------------------------------------------
+//   Generate frame buffers
+// ----------------------------------------------------------------------------
+{
+    glGenFramebuffers(n, ids);
+}
+
+
+void OpenGLState::DeleteFramebuffers(GLsizei n, GLuint *ids)
+// ----------------------------------------------------------------------------
+//   Delete frame buffers
+// ----------------------------------------------------------------------------
+{
+    glDeleteFramebuffers(n, ids);
+}
+
+
+void OpenGLState::BindFramebuffer(GLenum type, GLuint texture)
+// ----------------------------------------------------------------------------
+//   Bind a frame buffer (immediate)
+// ----------------------------------------------------------------------------
+{
+    glBindFramebuffer(type, texture);
+}
+
+
+GLenum OpenGLState::CheckFramebufferStatus(GLenum target)
+// ----------------------------------------------------------------------------
+//  Check the completeness status of a framebuffer
+// ----------------------------------------------------------------------------
+{
+    return glCheckFramebufferStatus(target);
+}
+
+
+void OpenGLState::FramebufferTexture(GLenum target, GLenum attachment,
+                                     GLuint texture, GLint level)
+// ----------------------------------------------------------------------------
+//   Attach a texture object as a logical buffer
+// ----------------------------------------------------------------------------
+{
+    glFramebufferTexture(target, attachment, texture, level);
+}
+
+
+void OpenGLState::FramebufferTexture1D(GLenum target, GLenum attachment,
+                                       GLenum textarget, GLuint texture,
+                                       GLint level)
+// ----------------------------------------------------------------------------
+//   Attach a level of a texture object as a logical buffer
+// ----------------------------------------------------------------------------
+{
+    glFramebufferTexture1D(target, attachment, textarget, texture, level);
+}
+
+
+void OpenGLState::FramebufferTexture2D(GLenum target, GLenum attachment,
+                                       GLenum textarget, GLuint texture,
+                                       GLint level)
+// ----------------------------------------------------------------------------
+//   Attach a level of a texture object as a logical buffer
+// ----------------------------------------------------------------------------
+{
+    glFramebufferTexture2D(target, attachment, textarget, texture, level);
+}
+
+
+void OpenGLState::FramebufferTexture3D(GLenum target, GLenum attachment,
+                                       GLenum textarget, GLuint texture,
+                                       GLint level, GLint layer)
+// ----------------------------------------------------------------------------
+//   Attach a level of a texture object as a logical buffer
+// ----------------------------------------------------------------------------
+{
+    glFramebufferTexture3D(target, attachment,textarget,texture,level,layer);
+}
+
+
+
+// ============================================================================
+// 
+//    Buffer objects
+// 
+// ============================================================================
+
+bool OpenGLState::HasBuffers()
+// ----------------------------------------------------------------------------
+//    Check if we have the GL buffer functions
+// ----------------------------------------------------------------------------
+{
+    return
+        glGenBuffers != NULL &&
+        glDeleteBuffers != NULL &&
+        glBindBuffer != NULL &&
+        glBufferData != NULL &&
+        glMapBuffer != NULL &&
+        glUnmapBuffer != NULL;
+}
+
+
+void OpenGLState::GenBuffers(GLsizei n, GLuint * buffers)
+// ----------------------------------------------------------------------------
+//    Generate buffer objects
+// ----------------------------------------------------------------------------
+{
+    glGenBuffers(n, buffers);
+}
+
+
+void OpenGLState::DeleteBuffers(GLsizei n, const GLuint * buffers)
+// ----------------------------------------------------------------------------
+//   Delete buffer objects
+// ----------------------------------------------------------------------------
+{
+    glDeleteBuffers(n, buffers);
+}
+
+
+void OpenGLState::BindBuffer(GLenum target, GLuint buffer)
+// ----------------------------------------------------------------------------
+//    Bind a buffer
+// ----------------------------------------------------------------------------
+{
+    glBindBuffer(target, buffer);
+}
+
+
+void OpenGLState::BufferData(GLenum target, GLsizeiptr size,
+                             const GLvoid * data, GLenum usage)
+// ----------------------------------------------------------------------------
+//   Create and initializes a buffer object's data store
+// ----------------------------------------------------------------------------
+{
+    glBufferData(target, size, data, usage);
+}
+
+
+void *OpenGLState::MapBuffer(GLenum target, GLenum access)
+// ----------------------------------------------------------------------------
+//    Map a buffer object's data store
+// ----------------------------------------------------------------------------
+{
+    return glMapBuffer(target, access);
+}
+
+
+void OpenGLState::UnmapBuffer(GLenum target)
+// ----------------------------------------------------------------------------
+//    Map a buffer object's data store
+// ----------------------------------------------------------------------------
+{
+    glUnmapBuffer(target);
+}
+
+
 TAO_END
 
 
@@ -3426,5 +3728,5 @@ void debugglerrors()
 //   Show GL errors
 // ----------------------------------------------------------------------------
 {
-    Tao::OpenGLState::ShowErrors("From debugger");
+    GL.ShowErrors("From debugger");
 }

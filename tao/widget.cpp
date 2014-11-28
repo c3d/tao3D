@@ -46,6 +46,7 @@
 #endif
 #include "application.h"
 #include "tao_utf8.h"
+#include "tao_glu.h"
 #include "layout.h"
 #include "page_layout.h"
 #include "space_layout.h"
@@ -82,7 +83,7 @@
 #include "tao_info.h"
 #include "preferences_pages.h"
 #include "texture_cache.h"
-#include "process.h"
+#include "tao_process.h"
 
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
@@ -206,7 +207,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), contextFilesLoaded(false),
-      srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
+      srcFileMonitor("XL"),
+      textureCache(NULL),
+      gradient(NULL), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0), devicePixelRatio(1.0),
       currentFlowName(""), prevPageName(""), pageName(""), lastPageName(""),
@@ -303,8 +306,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     makeCurrent();
     gl.MakeCurrent();
 
-    // Initialize GLEW when we use it
-    glewInit();
+    // Initialize the texture cache (GL must have been initialized first)
+    textureCache = TextureCache::instance();
+    textureCache->setSaveCompressed(XL::MAIN->options.tcache_savecomp);
 
     // Sync to VBlank if configured to do so
     enableVSync(NULL, PerformancesPage::VSync());

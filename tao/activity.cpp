@@ -77,7 +77,6 @@ Activity * Activity::Idle(void)
 
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-
 Activity *Activity::Key(text key)
 // ----------------------------------------------------------------------------
 //   The default is to not process keys, leave it to the next activity

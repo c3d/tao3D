@@ -25,7 +25,7 @@
 #include "tao.h"
 #include "tree.h"
 #include "repository.h"
-#include "process.h"
+#include "tao_process.h"
 #include "ansi_textedit.h"
 
 #include <QString>

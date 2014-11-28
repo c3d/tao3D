@@ -30,6 +30,8 @@
 #include <map>
 #include <QImage>
 
+class QGLFramebufferObject;
+
 TAO_BEGIN
 
 struct Layout;

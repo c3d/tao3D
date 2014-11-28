@@ -35,6 +35,7 @@
 #include <QSet>
 #include <QSharedPointer>
 #include <QWeakPointer>
+#include <QImage>
 #include <iostream>
 
 const quint64 CACHE_KB = 1024LL;

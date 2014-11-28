@@ -23,7 +23,7 @@
 #include "application.h"
 #include "base.h"
 #include "preferences_pages.h"
-#include "process.h"
+#include "tao_process.h"
 #include "tao_utf8.h"
 #include "webui.h"
 #include <QCoreApplication>

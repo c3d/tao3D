@@ -25,7 +25,7 @@
 #include "opengl_state.h"
 #include <stdarg.h>
 #include <iostream>
-
+#include <QGLContext>
 
 TAO_BEGIN
 

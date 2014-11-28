@@ -53,6 +53,9 @@
 #include "flight_recorder.h"
 #include "tao_gl.h"
 
+#include <stdlib.h>
+#include <string>
+
 #include <QString>
 #include <QSettings>
 #include <QInputDialog>
@@ -68,8 +71,8 @@
 #include <QProcessEnvironment>
 #include <QStringList>
 #include <QDesktopServices>
+#include <QGLFramebufferObject>
 
-#include <stdlib.h>
 
 
 #if defined(CONFIG_MINGW)
@@ -102,7 +105,7 @@ Application::Application(int & argc, char ** argv)
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), win(NULL), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), peer(NULL), textureCache(NULL)
+      moduleManager(NULL), peer(NULL)
 {
 #if defined(Q_OS_WIN32)
     installDDEWidget();
@@ -207,12 +210,6 @@ void Application::deferredInit()
         exit(1);
         return;
     }
-
-    // Texture cache may only be instantiated after setOrganizationName
-    // and setOrganizationDomain because it reads default values from
-    // the user's preferences
-    textureCache = TextureCache::instance();
-    textureCache->setSaveCompressed(xlr->options.tcache_savecomp);
 
     // Create and start garbage collection thread
     gcThread = new GCThread;
@@ -562,8 +559,9 @@ static text getGLText(GLenum name)
 //   Helper function. Return a GL string value as a QString.
 // ----------------------------------------------------------------------------
 {
-    return +QString::fromLocal8Bit((const char*)glGetString(name));
+    return +QString::fromLocal8Bit((const char*) glGetString(name));
 }
+
 
 bool Application::checkGL()
 // ----------------------------------------------------------------------------
@@ -583,14 +581,12 @@ bool Application::checkGL()
 
         if (QGLContext::currentContext()->isValid())
         {
-            glewInit();
-
             GLVendor   = getGLText(GL_VENDOR);
             GLRenderer = getGLText(GL_RENDERER);
             GLVersionAvailable = getGLText(GL_VERSION);
             GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
 
-#ifdef Q_OS_WIN32
+#if defined(Q_OS_WIN32) && QT_VERSION <= 0x050000
             hasMipmap = (glGenerateMipmap != NULL);
 #else
             hasMipmap = true;
@@ -1618,6 +1614,7 @@ bool Application::singleInstanceClientTalkedToServer()
     return false;
 }
 }
+
 
 void pqs(const QString &qs)
 // ----------------------------------------------------------------------------

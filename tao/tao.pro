@@ -63,7 +63,7 @@ macx {
 }
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
-    RC_FILE  = tao.rc
+    RC_FILE = tao.rc
     LIBS += -limagehlp -lws2_32 # ws2_32 for ntohs()
 }
 linux-g++* {
@@ -116,7 +116,7 @@ HEADERS +=     activity.h \
     preferences_dialog.h \
     preferences_pages.h \
     preview.h \
-    process.h \
+    tao_process.h \
     qtlocalpeer.h \
     qtlockedfile.h \
     raster_text.h \
@@ -158,7 +158,10 @@ HEADERS +=     activity.h \
     include/tao/tao_utf8.h \
     include/tao/graphic_state.h
 
-SOURCES +=     activity.cpp \
+SOURCES += \
+    opengl_state.cpp \
+    opengl_save.cpp \
+    activity.cpp \
     application.cpp \
     apply_changes.cpp \
     assistant.cpp \
@@ -196,14 +199,12 @@ SOURCES +=     activity.cpp \
     module_renderer.cpp \
     nag_screen.cpp \
     normalize.cpp \
-    opengl_state.cpp \
-    opengl_save.cpp \
     page_layout.cpp \
     path3d.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
     preview.cpp \
-    process.cpp \
+    tao_process.cpp \
     qtlocalpeer.cpp \
     qtlockedfile.cpp \
     raster_text.cpp \
@@ -417,6 +418,7 @@ CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
 
 win32 {
+    !build_pass:message("Using GLEW")
     HEADERS += include/tao/GL/glew.h \
         include/tao/GL/glxew.h \
         include/tao/GL/wglew.h

@@ -21,7 +21,7 @@
 //  (C) 2010-2014 Taodyne SAS
 // ****************************************************************************
 
-#include "process.h"
+#include "tao_process.h"
 #include "tao_utf8.h"
 #include "errors.h"
 #include "options.h"

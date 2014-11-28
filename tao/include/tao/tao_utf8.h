@@ -27,6 +27,7 @@
 
 #include "tao.h"
 #include "utf8.h"
+#include <string>
 #include <QString>
 
 TAO_BEGIN

@@ -26,6 +26,7 @@
 #include "application.h"
 #include "tao_utf8.h"
 #include "preferences_pages.h"
+#include <QGLFramebufferObject>
 
 
 TAO_BEGIN
@@ -432,10 +433,10 @@ void FrameInfo::copyToDepthTexture()
     GraphicSave* save = GL.Save();
 
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
-    glBindFramebuffer(GL_FRAMEBUFFER, textureFBO->handle());
+    GL.BindFramebuffer(GL_FRAMEBUFFER, textureFBO->handle());
     GL.BindTexture(GL_TEXTURE_2D, depthTextureID);
     GL.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbname);
+    GL.BindFramebuffer(GL_FRAMEBUFFER, fbname);
 
     GL.Restore(save);
 }

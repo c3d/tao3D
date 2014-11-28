@@ -25,7 +25,7 @@
 #define ASSISTANT_H
 
 #include "tao.h"
-#include "QObject"
+#include <QObject>
 #include <QString>
 #include <QStringList>
 

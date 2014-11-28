@@ -29,6 +29,7 @@
 #include "matrix.h"
 #include "graphic_state.h"
 #include <stack>
+#include <vector>
 
 TAO_BEGIN
 
@@ -211,7 +212,7 @@ struct TextureUnitState
         case GL_TEXTURE_2D:             tex2D = enabled; break;
         case GL_TEXTURE_3D:             tex3D = enabled; break;
         case GL_TEXTURE_CUBE_MAP:       texCube = enabled; break;
-        default:                        Q_ASSERT(!"Invalid enum");
+        default:                        XL_ASSERT(!"Invalid texture unit enum");
         }
     }
 
@@ -295,7 +296,7 @@ struct ClientTextureUnitState
         switch (cap)
         {
         case GL_TEXTURE_COORD_ARRAY:    texCoordArray = enabled; break;
-        default:                        Q_ASSERT(!"Invalid enum");
+        default:                        XL_ASSERT(!"Invalid client unit enum");
         }
     }
 
@@ -489,10 +490,18 @@ struct OpenGLState : GraphicState
 // ----------------------------------------------------------------------------
 {
     OpenGLState();
-    virtual ~OpenGLState()              { if (current == this) current = NULL; }
+    virtual ~OpenGLState();
 
     // Return the current graphic state (one per widget)
-    static OpenGLState *State()         { return current; }
+    static OpenGLState *Current()
+    {
+        return (OpenGLState *) GraphicState::Current();
+    }
+    static OpenGLState &Singleton()
+    {
+        return *Current();
+    }
+
     void   MakeCurrent();
     uint   VendorID()                   { return vendorID; }
     bool   IsATIOpenGL()                { return vendorID == ATI; }
@@ -729,11 +738,56 @@ struct OpenGLState : GraphicState
     virtual void HasPixelBlur(bool enable);
     virtual void GenerateMipmap(GLenum target);
 
+    virtual void GetTexLevelParameteriv (GLenum target,
+                                         GLint level,
+                                         GLenum pname,
+                                         GLint *params);
+    virtual void GetCompressedTexImage(GLenum target, GLint lod, GLvoid * img);
+
     // Lighting
     void           SetLight(GLenum light, bool active);
     virtual void   Light(GLenum light, GLenum pname, const float* params);
     virtual void   LightModel(GLenum pname, GLuint param);
     virtual uint64 LightsMask();
+
+    // Queries
+    virtual void   GenQueries(GLsizei n, GLuint * ids);
+    virtual void   DeleteQueries(GLsizei n, const GLuint * ids);
+    virtual void   BeginQuery(GLenum target, GLuint id);
+    virtual void   EndQuery(GLenum target);
+    virtual void   GetQueryObject(GLuint id, GLenum pname, GLint *params);
+    virtual void   GetQueryObject(GLuint id, GLenum pname, GLuint *params);
+
+    // Point parameters
+    virtual void   PointParameter(GLenum pname, GLfloat param);
+    virtual void   PointParameter(GLenum pname, GLint param);
+
+    // Framebuffers
+    virtual bool   HasFramebuffers();
+    virtual void   GenFramebuffers(GLsizei n, GLuint *ids);
+    virtual void   DeleteFramebuffers(GLsizei n, GLuint *ids);
+    virtual void   BindFramebuffer(GLenum type, GLuint id);
+    virtual GLenum CheckFramebufferStatus(GLenum target);
+    virtual void   FramebufferTexture(GLenum target, GLenum attachment,
+                                      GLuint texture, GLint level);
+    virtual void   FramebufferTexture1D(GLenum target, GLenum attachment,
+                                        GLenum textarget, GLuint texture,
+                                        GLint level);
+    virtual void   FramebufferTexture2D(GLenum target, GLenum attachment,
+                                        GLenum textarget, GLuint texture,
+                                        GLint level);
+    virtual void   FramebufferTexture3D(GLenum target, GLenum attachment,
+                                        GLenum textarget, GLuint texture,
+                                        GLint level, GLint layer);
+    // Buffers
+    virtual bool   HasBuffers();
+    virtual void   GenBuffers(GLsizei n, GLuint * buffers);
+    virtual void   DeleteBuffers(GLsizei n, const GLuint * buffers);
+    virtual void   BindBuffer(GLenum target, GLuint buffer);
+    virtual void   BufferData(GLenum target, GLsizeiptr size,
+                              const GLvoid * data, GLenum usage);
+    virtual void * MapBuffer(GLenum target, GLenum access);
+    virtual void   UnmapBuffer(GLenum target);
 
 public:
 #define GS(type, name)                          \
@@ -793,7 +847,6 @@ public:
 
 public:
     static text          vendorsList[LAST_VENDOR];
-    static uint ShowErrors(kstring msg = NULL);
 
 public:
     // Return the current client texture unit state
@@ -805,6 +858,9 @@ public:
 
     // Return the corresponding clip plane state
     ClipPlaneState &    ClipPlane(GLenum plane);
+
+    uint                ShowErrors(kstring msg = NULL);
+
 
 private:
     // Structure used to push/pop state
@@ -819,12 +875,11 @@ private:
 
     // Singleton
     OpenGLState(const OpenGLState &other);
-    static OpenGLState *        current;
 };
 
-// Shortcut to the current state
-#define GL  (*Tao::OpenGLState::State())
-
 TAO_END
+
+#undef GL
+#define GL (Tao::OpenGLState::Singleton())
 
 #endif // GRAPHIC_STATE_H

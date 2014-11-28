@@ -22,8 +22,8 @@ macx:DEFINES       += CONFIG_MACOSX
 win32:DEFINES      += CONFIG_MINGW
 linux-g++*:DEFINES += CONFIG_LINUX
 
-QMAKE_CFLAGS           += -Werror
-QMAKE_CXXFLAGS         += -Werror -Wno-strict-aliasing -Wno-unused-local-typedefs
+QMAKE_CFLAGS           += -Wall
+QMAKE_CXXFLAGS         += -Wall
 QMAKE_CXXFLAGS_DEBUG   += -ggdb
 # Mac: this will store full debug info in .o files.
 # No impact on exe size but allows full debug of release build.

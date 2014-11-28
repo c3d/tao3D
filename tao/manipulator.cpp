@@ -66,7 +66,7 @@ void Manipulator::DrawSelection(Layout *layout)
 {
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if (sel)
+    if (sel && layout->transparency)
     {
         widget->selectionTrees.insert(self);
         GL.PushName(layout->id);

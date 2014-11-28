@@ -220,7 +220,7 @@ void Layout::Clear()
 
     // When clearing, we should have no cached information left anywhere
     assert(caches.size() == 0);
-    
+
     // Remove items now that they are no longer referenced elsewhere
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
@@ -282,13 +282,17 @@ void Layout::Draw(Layout *where)
 {
     IFTRACE(lfps)
         PerLayoutStatistics::beginDraw(body);
+
+    // Save polygon offset for transparency
+    int savePolygonOffset = polygonOffset;
+
     if (true)
     {
         // Inherit offset from our parent layout if there is one
         XL::Save<Point3> save(offset, offset);
         GLAllStateKeeper glSave;
         Inherit(where);
-        
+
         // Display all items
         PushLayout();
         for (Drawings::iterator i = items.begin(); i != items.end(); i++)
@@ -302,7 +306,7 @@ void Layout::Draw(Layout *where)
     // Two passes for transparency, see #2199
     if (!where && !transparency)
     {
-        ClearPolygonOffset();
+        polygonOffset = savePolygonOffset;
         ClearAttributes();
         GL.DepthMask(GL_FALSE);
         transparency = true;
@@ -322,13 +326,17 @@ void Layout::DrawSelection(Layout *where)
 {
     IFTRACE(lfps)
         PerLayoutStatistics::beginDraw(body);
+
+    // Save polygon offset for transparency
+    int savePolygonOffset = polygonOffset;
+
     if (true)
     {
         // Inherit offset from our parent layout if there is one
         XL::Save<Point3> save(offset, offset);
         GLAllStateKeeper glSave;
         Inherit(where);
-        
+
         PushLayout();
         for (Drawings::iterator i = items.begin(); i != items.end(); i++)
         {
@@ -341,7 +349,7 @@ void Layout::DrawSelection(Layout *where)
     // Two passes for transparency, see #2199
     if (!where && !transparency)
     {
-        ClearPolygonOffset();
+        polygonOffset = savePolygonOffset;
         ClearAttributes();
         GL.DepthMask(GL_FALSE);
         transparency = true;
@@ -361,6 +369,10 @@ void Layout::Identify(Layout *where)
 {
     IFTRACE(lfps)
         PerLayoutStatistics::beginDraw(body);
+
+    // Save polygon offset for transparency
+    int savePolygonOffset = polygonOffset;
+
     if (true)
     {
         // Remember that we are in Identify mode
@@ -383,7 +395,7 @@ void Layout::Identify(Layout *where)
     // Two passes for transparency, see #2199
     if (!where && !transparency)
     {
-        ClearPolygonOffset();
+        polygonOffset = savePolygonOffset;
         ClearAttributes();
         GL.DepthMask(GL_FALSE);
         transparency = true;
@@ -635,7 +647,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         changed |= RefreshChildren(e, now, dbg);
     }
     IFTRACE(justify)
-        std::cerr << "<-Layout::Refresh[" << this << "]  \n";    
+        std::cerr << "<-Layout::Refresh[" << this << "]  \n";
     IFTRACE(lfps)
         PerLayoutStatistics::endExec(body);
 
@@ -990,7 +1002,7 @@ void Layout::PushLayout()
         uint groupId = id;
         Widget *widget = Display();
         widget->selectionContainerPush();
-        
+
         uint open = widget->selected(id);
         if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
             groupId = (groupId & ~Widget::SELECTION_MASK)

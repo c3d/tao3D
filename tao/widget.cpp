@@ -1246,7 +1246,7 @@ bool Widget::refreshNow(QEvent *event)
         // for instance: from Window::loadFile()
         TaoSave saveCurrent(current, this);
 
-        runProgram();
+        runProgramOnce();
 
         changed = true;
     }

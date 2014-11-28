@@ -26,18 +26,22 @@
 #include <tao/GL/glew.h>
 #define QT_NO_OPENGL
 #else
+#define GLEW_OK 0
 static inline int glewInit() { return GLEW_OK; }
 #endif
 
 #include "opengl_state.h"
+
+#include <cassert>
+#include <iostream>
+
 #include "opengl_save.h"
+#include "tao_glu.h"
 #include "application.h"
 #include "texture_cache.h"
 #include "tao_main.h"
 #include "module_manager.h"
 #include "preferences_pages.h"
-#include <cassert>
-#include <iostream>
 
 DEFINE_MODULE_GL;
 

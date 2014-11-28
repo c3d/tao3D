@@ -18,10 +18,11 @@
 //  (C) 2013 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2013 Taodyne SAS
 // ****************************************************************************
+
 #include "http_ua.h"
 #include <QRegExp>
 #include "application.h"
-
+#include "tao_process.h"
 
 namespace Tao {
 

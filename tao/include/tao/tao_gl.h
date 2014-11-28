@@ -22,6 +22,12 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+#ifdef CONFIG_LINUX
+# ifndef GL_GLEXT_PROTOTYPES
+#  define GL_GLEXT_PROTOTYPES 1
+# endif
+#endif
+
 #include <qopengl.h>
 
 #endif // TAO_GL_H

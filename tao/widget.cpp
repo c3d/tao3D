@@ -3009,7 +3009,8 @@ bool Widget::forwardEvent(QEvent *event)
     if (QObject *focus = focusWidget)
     {
         IFTRACE(widgets)
-            std::cerr << "forwardEvent::Event type " << event->type() << std::endl;
+            std::cerr << "forwardEvent::Event type " << event->type()
+                      << std::endl;
         return focus->event(event);
     }
     return false;
@@ -13698,9 +13699,22 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 {
     // Check if blocked because the source code window was edited
-    if (!xlProgram || !markChange(msg))
+    if (!xlProgram)
+    {
+        QMessageBox::warning(this, tr("Insert"),
+                             tr("Current document has no associated program. "
+                                "Use \"Save as...\" to save it first."));
         return XL::xl_false;
+    }
 
+    if (!markChange(msg))
+    {
+        QMessageBox::warning(this, tr("Insert"),
+                             tr("There are unsaved source code changes. "
+                                "Use \"Save\" to save changes first."));
+        return XL::xl_false;
+    }
+    
     if (isReadOnly())
     {
         QMessageBox::warning(this, tr("Insert"),

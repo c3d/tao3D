@@ -82,11 +82,7 @@ theme_background "keyboard", Master:text ->
 // ----------------------------------------------------------------------------
 //    We override the background picture with a more neutral one
 // ----------------------------------------------------------------------------
-    if is_available windows then
-        // Until I can figure out transparency on Windows
-        background_color "white"
-    else
-        background_color "transparent"
+    background_color "white"
     background -1500,
         // Slowly shifting background color
         color_hsv 6 * seconds, 0.05, 1.0, 0.7

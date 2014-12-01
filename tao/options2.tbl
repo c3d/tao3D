@@ -23,11 +23,7 @@ OPTION(autopull, "Interval for automatic pull in milliseconds",
 
 OPTION(nosplash, "Disable splash screen", ;)
 
-#if QT_VERSION <= 0x050000 || CONFIG_MINGW
-OPTVAR(transparent, bool, false)
-#else
 OPTVAR(transparent, bool, true)
-#endif
 OPTION(transparent, "Make window transparent", transparent = true)
 OPTION(opaque, "Make window opaque", transparent = false)
 OPTVAR(nowindow, bool, false)

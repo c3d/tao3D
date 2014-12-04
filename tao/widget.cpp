@@ -1250,7 +1250,7 @@ bool Widget::refreshNow(QEvent *event)
         // for instance: from Window::loadFile()
         TaoSave saveCurrent(current, this);
 
-        runProgramOnce();
+        runProgram();
 
         changed = true;
     }
@@ -3913,6 +3913,7 @@ void Widget::sendTimerEvent()
     timerEvent(&e);
 }
 #endif
+
 
 bool Widget::event(QEvent *event)
 // ----------------------------------------------------------------------------

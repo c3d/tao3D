@@ -28,6 +28,31 @@
 # endif
 #endif
 
-#include <qopengl.h>
+#include <qglobal.h>
+
+#if QT_VERSION >= 0x050000
+
+# include <qopengl.h>
+
+#else
+
+# ifdef CONFIG_MINGW
+#  include <tao/GL/glew.h>
+# else
+#  define GLEW_OK 0
+#  define GLEW_VERSION 0
+#  define glewGetString(V) "GLEW: not used"
+#  define glewGetErrorString(err) "GLEW: not used"
+static inline int glewInit() { return GLEW_OK; }
+# endif
+# if defined(CONFIG_MACOSX)
+#  include <OpenGL/glu.h>
+# elif defined (CONFIG_LINUX)
+#  include <GL/glu.h>
+# else
+   // glu.h included by glew.h
+# endif
+
+#endif
 
 #endif // TAO_GL_H

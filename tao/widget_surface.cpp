@@ -138,13 +138,14 @@ GLuint WidgetSurface::bind ()
     {
         QImage image(widget->width(), widget->height(),
                      QImage::Format_ARGB32);
+        image.fill(0);
         widget->setAutoFillBackground(false);
         widget->render(&image);
 
         // Generate the GL texture
         image = QGLWidget::convertToGLFormat(image);
         GL.BindTexture(GL_TEXTURE_2D, textureId);
-        GL.TexImage2D(GL_TEXTURE_2D, 0, 3,
+        GL.TexImage2D(GL_TEXTURE_2D, 0, 4,
                      image.width(), image.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, image.bits());
 

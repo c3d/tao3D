@@ -52,7 +52,11 @@ uint Identify::ObjectAtPoint(coord x, coord y)
 // ----------------------------------------------------------------------------
 {
     Box rectangle(x, y, 2, 2);
-    return ObjectInRectangle(rectangle);
+    uint child = 0;
+    uint selected = ObjectInRectangle(rectangle, NULL, NULL, &child, NULL);
+    if (selected < child)
+        selected = child;
+    return selected;
 }
 
 

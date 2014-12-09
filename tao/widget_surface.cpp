@@ -263,7 +263,7 @@ void WebViewSurface::loadProgress(int progressPercent)
     if (url.Pointer() &&
         url->value != currentUrl &&
         !IsMarkedConstant(url) &&
-        !parent->markChange("URL change"))
+        parent->markChange("URL change"))
     {
         // Record the change
         url->value = currentUrl;

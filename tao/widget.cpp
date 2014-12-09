@@ -12121,6 +12121,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
     return new Integer(texId, self->Position());
 }
 
+
 Tree_p Widget::radioButton(Tree_p self,
                            Real_p x,Real_p y, Real_p w,Real_p h,
                            Text_p name, text_p lbl, Text_p  sel, Tree_p act)
@@ -12134,8 +12135,9 @@ Tree_p Widget::radioButton(Tree_p self,
 }
 
 
-Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
-                                  Text_p lbl, Text_p  sel, Tree_p act)
+Integer* Widget::radioButtonTexture(Tree_p self, double w, double h,
+                                    Text_p name, Text_p lbl,
+                                    Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given radio button
 // ----------------------------------------------------------------------------

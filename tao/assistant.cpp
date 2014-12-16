@@ -134,8 +134,8 @@ QStringList Assistant::registeredFiles(QString collectionFile)
     {
         QMessageBox::warning(parent, warnTitle,
                              tr("Could not open file '%1': %2").
-                                 arg(collectionFile).
-                                 arg(collection.error()));
+                             arg(collectionFile).
+                             arg(collection.error()));
         return QStringList();
     }
 
@@ -168,8 +168,8 @@ QStringList Assistant::registeredNamespaces(QString collectionFile)
     {
         QMessageBox::warning(parent, warnTitle,
                              tr("Could not open file '%1': %2").
-                                 arg(collectionFile).
-                                 arg(collection.error()));
+                             arg(collectionFile).
+                             arg(collection.error()));
         return QStringList();
     }
 

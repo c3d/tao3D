@@ -202,8 +202,10 @@ private slots:
     void        licenses();
     void        onlineDoc();
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
+    void        introductionPage();
     void        tutorialsPage();
     void        forumPage();
+    void        reportBugPage();
 #endif
     void        documentWasModified();
     void        displayModeTriggered(bool on);
@@ -335,8 +337,10 @@ private:
     QAction *           licensesAct;
     QAction *           onlineDocAct;
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
+    QAction *           introPageAct;
     QAction *           tutorialsPageAct;
     QAction *           forumPageAct;
+    QAction *           bugPageAct;
 #endif
 #ifndef CFG_NOFULLSCREEN
     QAction *           slideShowAct;

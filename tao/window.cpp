@@ -1738,6 +1738,16 @@ void Window::onlineDoc()
 
 
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
+void Window::introductionPage()
+// ----------------------------------------------------------------------------
+//    Open the Tao3D introduction page on the web
+// ----------------------------------------------------------------------------
+{
+    QString url(tr("http://tao3d.sourceforge.net"));
+    QDesktopServices::openUrl(url);
+}
+
+
 void Window::tutorialsPage()
 // ----------------------------------------------------------------------------
 //    Open the tutorials page on the web
@@ -1754,6 +1764,16 @@ void Window::forumPage()
 // ----------------------------------------------------------------------------
 {
     QString url(tr("http://taodyne.com/taopresentations/2.0/forum/en/"));
+    QDesktopServices::openUrl(url);
+}
+
+
+void Window::reportBugPage()
+// ----------------------------------------------------------------------------
+//    Report a bug using SourceForge
+// ----------------------------------------------------------------------------
+{
+    QString url(tr("https://sourceforge.net/p/tao3d/tickets/"));
     QDesktopServices::openUrl(url);
 }
 #endif
@@ -2023,13 +2043,21 @@ void Window::createActions()
     }
 
 #if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
-    tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
+    introPageAct = new QAction(tr("&Product web site"), this);
+    introPageAct->setObjectName("introductionPage");
+    connect(introPageAct, SIGNAL(triggered()), this,SLOT(introductionPage()));
+
+    tutorialsPageAct = new QAction(tr("&Tutorials blog"), this);
     tutorialsPageAct->setObjectName("tutorialsPage");
     connect(tutorialsPageAct, SIGNAL(triggered()), this,SLOT(tutorialsPage()));
 
-    forumPageAct = new QAction(tr("&Forums (taodyne.com)"), this);
+    forumPageAct = new QAction(tr("&Forums"), this);
     forumPageAct->setObjectName("forumPageAct");
     connect(forumPageAct, SIGNAL(triggered()), this,SLOT(forumPage()));
+
+    bugPageAct = new QAction(tr("&Report bug"), this);
+    bugPageAct->setObjectName("reportBugAct");
+    connect(bugPageAct, SIGNAL(triggered()), this,SLOT(reportBugPage()));
 #endif
 
 #ifndef CFG_NOFULLSCREEN
@@ -2221,9 +2249,13 @@ void Window::createMenus()
 #if defined(TAO_PLAYER) && defined(CFG_NONETWORK)
     // A player with no download capabilities has no need for a tutorials/forum menu
 #else
+    helpMenu->addSeparator();
+    helpMenu->addAction(introPageAct);
     helpMenu->addAction(tutorialsPageAct);
     helpMenu->addAction(forumPageAct);
+    helpMenu->addAction(bugPageAct);
 #endif
+    helpMenu->addSeparator();
 
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
     ExamplesMenu * themesMenu = NULL;

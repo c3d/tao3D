@@ -250,21 +250,6 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
                   << std::endl;
 
     uint current = ObjectAtPoint(x, widget->height() - y);
-
-    if (current != previous)
-    {
-        if (previous > 0)
-        {
-            // Forward 'focus-out' to previous item
-            widget->focusId = 0;
-            widget->focusWidget = NULL;
-        }
-        if (current > 0)
-        {
-            // Forward 'focus-in' to current item
-            widget->focusId = current;
-        }
-    }
     widget->shapeAction("mouseover", current, x, y);
 
     previous = current;
@@ -280,20 +265,21 @@ Activity *MouseFocusTracker::Click(uint /*button*/,
 // ----------------------------------------------------------------------------
 {
     uint current = ObjectAtPoint(x, widget->height() - y);
+
     IFTRACE(widgets)
         std::cerr << "MouseFocusTracker::Click Focus " << current << std::endl;
+
     if (current != previous)
     {
-        if (previous > 0)
-        {
-            // Forward 'focus-out' to previous item
-            widget->focusId = 0;
-            widget->focusWidget = NULL;
-        }
         if (current > 0)
         {
             // Forward 'focus-in' to current item
             widget->focusId = current;
+        }
+        else if (previous > 0)
+        {
+            // Forward 'focus-out' to previous item
+            widget->focusId = 0;
         }
         widget->updateGL();
     }
@@ -361,7 +347,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(widgets)
-            std::cerr << "Selection::Click\n";
+        std::cerr << "Selection::Click\n";
     bool firstClick = false;
     bool doneWithSelection = false;
     bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;
@@ -433,6 +419,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         {
             // Other cases: start with a fresh selection
             savedSelection.clear();
+            widget->requestFocus(NULL, x, y);
+
 
             // Clicking in some other child of a parent: select parent again
             if (parentId != selected)

@@ -266,7 +266,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
-      inRunPageExitHandlers(false), pageHasExitHandler(false), editCursor(NULL),
+      inRunPageExitHandlers(false), pageHasExitHandler(false),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
     , isDocumentSigned(false)
@@ -531,7 +531,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pendingEvents(), // Nothing transferred from o's event queue
       inDraw(o.inDraw), inRunPageExitHandlers(o.inRunPageExitHandlers),
       pageHasExitHandler(o.pageHasExitHandler), changeReason(o.changeReason),
-      editCursor(o.editCursor),
       isInvalid(false)
 #ifndef CFG_NO_DOC_SIGNATURE
     , isDocumentSigned(o.isDocumentSigned)
@@ -1436,7 +1435,6 @@ void Widget::runProgramOnce()
     flows.clear();
 
     // Reset the selection id for the various elements being drawn
-    focusWidget = NULL;
     id = idDepth = 0;
     selectionRectangleEnabled = true;
 
@@ -2087,14 +2085,15 @@ void Widget::updateSelection()
 }
 
 
-static void printWidget(QWidget *w)
+static std::ostream &operator<<(std::ostream &out, QWidget *w)
 // ----------------------------------------------------------------------------
 //   Print a widget for debugging purpose
 // ----------------------------------------------------------------------------
 {
-    printf("%p", w);
+    out << (void *) w;
     if (w)
-        printf(" (%s)", w->metaObject()->className());
+        out << " (" << w->metaObject()->className() << ")";
+    return out;
 }
 
 
@@ -2106,16 +2105,13 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 {
     IFTRACE(focus)
     {
-        printf("Focus "); printWidget(prev); printf ("->"); printWidget(next);
+        std::cerr << "Focus " << prev << "->" << next << "\n";
         const QObjectList &children = this->children();
         QObjectList::const_iterator it;
-        printf("\nChildren:");
         for (it = children.begin(); it != children.end(); it++)
-        {
-            printf(" ");
-            printWidget((QWidget *) *it);
-        }
-        printf("\n");
+            std::cerr << (it == children.begin() ? "Children: " : " ")
+                      << (QWidget *) *it;
+        std::cerr << "\n";
     }
 }
 
@@ -5638,20 +5634,70 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
 {
-    if (!focusWidget)
+    if (focusWidget != widget)
     {
-        IFTRACE(widgets)
-                std::cerr << "Widget::requestFocus name "
-                          << +(widget->objectName()) << std::endl;
-        GLMatrixKeeper saveGL;
-        Vector3 v = layout->Offset() + Vector3(x, y, 0);
+        IFTRACE2(widgets, focus)
+            std::cerr << "Widget::requestFocus from "
+                      << (QWidget *) focusWidget
+                      << " to "
+                      << (QWidget *) widget
+                      << std::endl;
+        if (focusWidget)
+        {
+            QFocusEvent focusOut(QEvent::FocusOut, Qt::ActiveWindowFocusReason);
+            QObject *fout = focusWidget;
+            IFTRACE(focus)
+                std::cerr << "Focus out " << focusWidget << "\n";
+            fout->event(&focusOut);
+            focusWidget->clearFocus();
+        }
         focusWidget = widget;
-        GL.Translate(v.x, v.y, v.z);
-        recordProjection();
-        QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
-        QObject *fin = focusWidget;
-        fin->event(&focusIn);
+        if (widget)
+        {
+            GLMatrixKeeper saveGL;
+            Vector3 v = layout->Offset() + Vector3(x, y, 0);
+            GL.Translate(v.x, v.y, v.z);
+            recordProjection();
+            QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
+            QObject *fin = focusWidget;
+            QApplication::focusWidget()->clearFocus();
+            IFTRACE(focus)
+                std::cerr << "Focus in " << widget << "\n";
+            fin->event(&focusIn);
+            focusWidget->setFocus();
+            IFTRACE(focus)
+                std::cerr << "Focus widget " << QApplication::focusWidget()
+                          << " focus: "
+                          << focusWidget->hasFocus() << "\n";
+        }
+        IFTRACE(focus)
+        {
+            if (focusWidget && focusWidget->hasFocus())
+                std::cerr << "Focus widget has focus\n";
+            else
+                std::cerr << "No focus?\n";
+        }
     }
+
+    if (focusWidget)
+    {
+        if (QApplication::focusWidget() &&
+            QApplication::focusWidget() != focusWidget)
+            QApplication::focusWidget()->clearFocus();
+        focusWidget->setFocus();
+    }
+
+    IFTRACE(focus)
+    {
+        std::cerr << "Focus widget=" << focusWidget
+                  << " app=" << QApplication::focusWidget()
+                  << "\n";
+        if (focusWidget && focusWidget->hasFocus())
+            std::cerr << "V2 Focus widget has focus\n";
+        else
+            std::cerr << "V2 No focus?\n";
+    }
+
     return focusWidget == widget;
 }
 
@@ -10302,14 +10348,15 @@ bool Widget::addControlBox(Real *x, Real *y, Real *z,
 // ============================================================================
 
 Tree_p  Widget::textEdit(Context *context, Tree_p self,
-                        Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog)
+                         Real_p x, Real_p y, Real_p w, Real_p h,
+                         Text_p html)
 // ----------------------------------------------------------------------------
 //   Create a new text edit widget and render text in it
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    Tree * result = textEditTexture(context, self, w, h, prog);
-    TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
+    Tree * result = textEditTexture(context, self, w, h, html);
+    TextEditSurface *surface = html->GetInfo<TextEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
@@ -10318,7 +10365,7 @@ Tree_p  Widget::textEdit(Context *context, Tree_p self,
 
 
 Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
-                                double w, double h, Tree_p prog)
+                                double w, double h, Text_p html)
 // ----------------------------------------------------------------------------
 //   Create a new text edit widget and render text in it
 // ----------------------------------------------------------------------------
@@ -10326,54 +10373,21 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
-    // Update document with prog
-    editCursor = new QTextCursor(new QTextDocument(""));
-    QTextDocument *doc = editCursor->document()->clone();
-    Context *currentContext = context;
-    ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    Tree_p result = currentContext->Evaluate(prog);
-
     // Get or build the current frame if we don't have one
-    TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
+    TextEditSurface *surface = html->GetInfo<TextEditSurface>();
     if (!surface)
     {
-        surface = new TextEditSurface(doc,
-                                      prog->AsBlock(), this);
-        prog->SetInfo<TextEditSurface> (surface);
+        surface = new TextEditSurface(html, this);
+        html->SetInfo<TextEditSurface> (surface);
     }
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    uint texId = surface->bind(doc);
+    uint texId = surface->bindHTML(html);
     layout->Add(new FillTexture(texId));
     GL.TextureSize(w, h);
 
-    delete editCursor;
-    editCursor = NULL;
-
-    return result;
-}
-
-
-void Widget::updateCursor(Text_p t)
-// ----------------------------------------------------------------------------
-//   Update the cursor with the current layout info and text.
-// ----------------------------------------------------------------------------
-{
-    if (!editCursor)
-        return;
-
-    QTextBlockFormat copyBF = editCursor->blockFormat();
-    QTextCharFormat copyCF = editCursor->charFormat();
-    // 1- check if paragraph format has changed
-    if (modifyBlockFormat(copyBF, layout))
-        editCursor->insertBlock(copyBF);
-
-    // 2- check if character format has changed
-    if (modifyCharFormat(copyCF, layout))
-        editCursor->insertText(+t->value, copyCF);
-    else
-        editCursor->insertText(+t->value);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -10493,8 +10507,6 @@ Tree_p Widget::textUnit(Tree_p self, Text_p contents)
 {
     if (path)
         TextUnit(contents).Draw(*path, layout);
-    else if (editCursor)
-        updateCursor(contents);
     else
         layout->Add(new TextUnit(contents));
 
@@ -12069,7 +12081,7 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize (w,h);
-    uint texId = surface->bind(url, progress);
+    uint texId = surface->bindURL(url, progress);
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
 
@@ -12114,7 +12126,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 
     // Resize to requested size, bind texture and save current infos
     surface->resize (w, h);
-    uint texId = surface->bind(txt);
+    uint texId = surface->bindText(txt);
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
 
@@ -12155,7 +12167,7 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize (w, h);
-    uint texId = surface->bind(lbl, act, sel);
+    uint texId = surface->bindButton(lbl, act, sel);
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
 
@@ -12196,7 +12208,7 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize (w, h);
-    uint texId = surface->bind(lbl, act, sel);
+    uint texId = surface->bindButton(lbl, act, sel);
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
 
@@ -12237,7 +12249,7 @@ Integer* Widget::pushButtonTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize (w, h);
-    uint texId = surface->bind(lbl, act, NULL);
+    uint texId = surface->bindButton(lbl, act, NULL);
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
 
@@ -12739,7 +12751,7 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 
     // Resize to requested size, and bind texture
     surface->resize (w, h);
-    uint texId = surface->bind(lbl);
+    uint texId = surface->bindButton(lbl);
     layout->Add(new FillTexture(texId));
     GL.TextureSize (w, h);
 

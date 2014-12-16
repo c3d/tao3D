@@ -53,7 +53,7 @@ struct WidgetSurface : QObject, Tao::Info, InfoTrashCan
 public:
     typedef WidgetSurface * data_t;
 
-    WidgetSurface(Tree *t, QWidget *widget);
+    WidgetSurface(Tree *t, QWidget *widget, Widget *display);
     virtual ~WidgetSurface();
     virtual void Delete() { trash.push_back(this); }
 
@@ -63,9 +63,12 @@ public:
     virtual bool        requestFocus(Layout *l, coord x, coord y);
     int                 width()         { return widget->width(); }
     int                 height()        { return widget->height(); }
-    Tree               *evaluate(Tree * t);
+    Tree *              evaluate(Tree * t);
+    Widget *            display()       { return parentDisplay; }
 
+public:
     QWidget *           widget;
+    Widget *            parentDisplay;
     GLuint              textureId;
     bool                dirty;
     XL::Tree_p          tree;
@@ -87,8 +90,7 @@ public:
     typedef WebViewSurface * data_t;
     WebViewSurface(XL::Tree *t, Widget *parent);
     operator data_t() { return this; }
-    virtual GLuint bind() { return WidgetSurface::bind(); }
-    virtual GLuint bind(XL::Text *url, XL::Integer_p progress=NULL);
+    virtual GLuint bindURL(XL::Text *url, XL::Integer_p progress=NULL);
 
 private:
     XL::Text_p    url;
@@ -109,16 +111,13 @@ struct LineEditSurface : WidgetSurface
 {
     Q_OBJECT;
 public:
-    typedef LineEditSurface * data_t;
-    LineEditSurface(XL::Tree *t, Widget *parent, bool immed=false);
-    operator data_t() { return this; }
-    virtual GLuint bind() { return WidgetSurface::bind(); }
-    virtual GLuint bind(XL::Text *contents);
+    LineEditSurface(XL::Text *t, Widget *parent);
+    GLuint bindText(XL::Text *text);
 
+    typedef LineEditSurface * data_t;
+    operator data_t() { return this; }
 private:
     XL::Text_p contents;
-    bool      immediate;
-    bool      locallyModified;
 
 public slots:
     void textChanged(const QString &text);
@@ -133,16 +132,14 @@ struct TextEditSurface : WidgetSurface
 {
     Q_OBJECT;
 public:
+    TextEditSurface(XL::Text *html, Widget *parent);
+    GLuint bindHTML(XL::Text *html);
+    
     typedef TextEditSurface * data_t;
-    TextEditSurface(QTextDocument *doc, XL::Block *prog,
-                    Widget *parent, bool immed=false);
     operator data_t() { return this; }
-    virtual GLuint bind() { return WidgetSurface::bind(); }
-    virtual GLuint bind(QTextDocument *doc);
 
 private:
-    bool      immediate;
-    bool      locallyModified;
+    XL::Text_p contents;
 
 public slots:
     void textChanged();
@@ -158,8 +155,7 @@ struct AbstractButtonSurface : WidgetSurface
 public:
 //    typedef AbstractButtonSurface * data_t;
     AbstractButtonSurface(XL::Tree *t, QAbstractButton *button, QString name);
-    virtual GLuint bind() { return WidgetSurface::bind(); }
-    virtual GLuint bind(XL::Text *lbl, XL::Tree *action, XL::Text *sel);
+    virtual GLuint bindButton(XL::Text *lbl, XL::Tree *action, XL::Text *sel);
     virtual operator data_t() { return this; }
 
 private:
@@ -232,8 +228,7 @@ public:
     virtual ~GroupBoxSurface();
 
     operator data_t() { return this; }
-    virtual GLuint bind() { return WidgetSurface::bind(); }
-    virtual GLuint bind(XL::Text *lbl);
+    virtual GLuint bindButton(XL::Text *lbl);
     QGridLayout *grid(){
         return (QGridLayout*)widget->layout();
      }
@@ -271,7 +266,6 @@ public:
     typedef AbstractSliderSurface * data_t;
     AbstractSliderSurface(XL::Tree *t, QAbstractSlider *parent);
     operator data_t() { return this; }
-//    virtual GLuint bind();
 
 private:
     int min, max;

@@ -52,19 +52,18 @@ TAO_BEGIN
 //
 // ============================================================================
 
-WidgetSurface::WidgetSurface(Tree * t, QWidget *widget)
+WidgetSurface::WidgetSurface(Tree * t, QWidget *widget, Widget *display)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
-    : widget(widget), textureId(0), dirty(true), tree(t)
+    : widget(widget), parentDisplay(display),
+      textureId(0), dirty(true), tree(t)
 {
     IFTRACE(widgets)
-    {
         std::cerr << "WidgetSurface CONSTRUCTOR this : "<< this
                   << "  --- Widget : " << widget
                   << "  --- Widget class : \""
                   << widget->metaObject()->className()<< "\"\n";
-    }
 
     widget->hide();
     GL.GenTextures(1, &textureId);
@@ -79,15 +78,12 @@ WidgetSurface::~WidgetSurface()
     if (widget)
     {
         IFTRACE(widgets)
-        {
             std::cerr << "WidgetSurface DESTRUCTOR this : "<< this
                       << " --- Widget : "
                       << widget << "\n";
-        }
 
-        Widget *parent = dynamic_cast<Widget *>(widget->parent());
-        if (parent)
-            parent->deleteFocus(widget);
+        if (Widget *disp = display())
+            disp->deleteFocus(widget);
         delete widget;
         widget = NULL;
     }
@@ -104,14 +100,13 @@ Tree* WidgetSurface::evaluate(Tree * t)
         return XL::MAIN->context->Evaluate(t);
 
     // Set the environment
-    Widget* w = dynamic_cast<Widget*>(widget->parent());
-    if (!w)
-        return XL::xl_nil;
-
-    Widget::TaoSave saveCurrent(Widget::current, w);
-    // Evaluate the input tree
-    return XL::MAIN->context->Evaluate(t);
-
+    if (Widget *disp = display())
+    {
+        // Evaluate the input tree within saved Tao widget
+        Widget::TaoSave saveCurrent(Widget::current, disp);
+        return XL::MAIN->context->Evaluate(t);
+    }
+    return XL::xl_nil;
 }
 
 
@@ -136,8 +131,7 @@ GLuint WidgetSurface::bind ()
 {
     if (dirty)
     {
-        QImage image(widget->width(), widget->height(),
-                     QImage::Format_ARGB32);
+        QImage image(widget->width(), widget->height(), QImage::Format_ARGB32);
         image.fill(0);
         widget->setAutoFillBackground(false);
         widget->render(&image);
@@ -169,9 +163,9 @@ bool WidgetSurface::requestFocus(Layout *layout, coord x, coord y)
 // ----------------------------------------------------------------------------
 {
     // Request focus for this widget
-    Widget *parent = (Widget *) widget->parent();
-    if (parent && parent->focused(layout))
-        return parent->requestFocus(widget, x, y);
+    if (Widget *disp = display())
+        if (disp->focused(layout))
+            return disp->requestFocus(widget, x, y);
     return false;
 }
 
@@ -182,13 +176,12 @@ void WidgetSurface::repaint()
 // ----------------------------------------------------------------------------
 {
     dirty = true;
-
     if (widget)
     {
-        if (Widget *parent = dynamic_cast<Widget *>(widget->parent()))
+        if (Widget *disp = display())
         {
-            //parent->updateGL();
-            parent->refreshNow();
+            // disp->updateGL();
+            disp->refreshNow();
         }
     }
 }
@@ -203,11 +196,11 @@ void WidgetSurface::repaint()
 
 #ifndef CFG_NO_QTWEBKIT
 
-WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
+WebViewSurface::WebViewSurface(XL::Tree *self, Widget *display)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
 // ----------------------------------------------------------------------------
-    : WidgetSurface(self, new QWebView(parent)),
+    : WidgetSurface(self, new QWebView(NULL), display),
       url(NULL), progress(0), inputUrl(""), currentUrl("")
 {
     QWebView *webView = (QWebView *) widget;
@@ -221,7 +214,7 @@ WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
 }
 
 
-GLuint WebViewSurface::bind(XL::Text *urlTree, XL::Integer_p progressTree)
+GLuint WebViewSurface::bindURL(XL::Text *urlTree, XL::Integer_p progressTree)
 // ----------------------------------------------------------------------------
 //    Update depending on URL changes, then bind texture
 // ----------------------------------------------------------------------------
@@ -259,14 +252,16 @@ void WebViewSurface::loadProgress(int progressPercent)
     if (webView->url().isValid() && progressPercent >= 20)
         currentUrl = +webView->url().toString();
 
-    Widget *parent = (Widget *) widget->parent();
-    if (url.Pointer() &&
-        url->value != currentUrl &&
-        !IsMarkedConstant(url) &&
-        parent->markChange("URL change"))
+    if (Widget *disp = display())
     {
-        // Record the change
-        url->value = currentUrl;
+        if (url.Pointer() &&
+            url->value != currentUrl &&
+            !IsMarkedConstant(url) &&
+            disp->markChange("URL change"))
+        {
+            // Record the change
+            url->value = currentUrl;
+        }
     }
 
     if (progress.Pointer())
@@ -282,16 +277,16 @@ void WebViewSurface::loadProgress(int progressPercent)
 //
 // ============================================================================
 
-LineEditSurface::LineEditSurface(XL::Tree *t, Widget *parent, bool immed)
+LineEditSurface::LineEditSurface(XL::Text *text, Widget *display)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new QLineEdit(parent)),
-      contents(NULL), immediate(immed), locallyModified(false)
+    : WidgetSurface(text, new QLineEdit(NULL), display), contents(text)
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
     lineEdit->setFrame(true);
     lineEdit->setReadOnly(false);
+    lineEdit->setText(+text->value);
     lineEdit->selectAll();
     connect(lineEdit, SIGNAL(textChanged(const QString &)),
             this,     SLOT(textChanged(const QString &)));
@@ -306,48 +301,28 @@ LineEditSurface::LineEditSurface(XL::Tree *t, Widget *parent, bool immed)
 }
 
 
-GLuint LineEditSurface::bind(XL::Text *textTree)
+GLuint LineEditSurface::bindText(XL::Text *newText)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
-    if (contents != textTree ||
-        (!locallyModified && textTree->value != +lineEdit->text()))
+    if (newText && newText != contents && newText->value != contents->value)
     {
         contents = NULL;
-        lineEdit->setText(+textTree->value);
-        contents = textTree;
+        lineEdit->setText(+newText->value);
+        contents = newText;
     }
 
     return WidgetSurface::bind();
 }
 
 
-void LineEditSurface::textChanged(const QString &text)
+void LineEditSurface::textChanged(const QString &)
 // ----------------------------------------------------------------------------
-//    If the text changed, update the associated XL::Text
+//    If the text changed, repaint the widget (update XL text on validation)
 // ----------------------------------------------------------------------------
 {
-    if (contents)
-    {
-        if (immediate)
-        {
-            // Record the change
-            Widget *parent = (Widget *) widget->parent();
-            if (parent->markChange("Line editor text change"))
-            {
-                contents->value = +text;
-                locallyModified = false;
-            }
-        }
-        else
-        {
-            locallyModified = true;
-        }
-
-    }
-
     repaint();
 }
 
@@ -357,14 +332,22 @@ void LineEditSurface::inputValidated()
 //    If the text changed, update the associated XL::Text
 // ----------------------------------------------------------------------------
 {
-    if (contents)
+    QLineEdit *lineEdit = (QLineEdit *) widget;
+    text validated = +lineEdit->text();
+    if (Widget *disp = display())
     {
-        QLineEdit *lineEdit = (QLineEdit *) widget;
-        contents->value = +lineEdit->text();
-        locallyModified = false;
+        if (contents &&
+            contents->value != validated &&
+            !IsMarkedConstant(contents) &&
+            disp->markChange("Line editor text change"))
+        {
+            contents->value = validated;
+        }
     }
     repaint();
 }
+
+
 
 // ============================================================================
 //
@@ -372,17 +355,16 @@ void LineEditSurface::inputValidated()
 //
 // ============================================================================
 
-TextEditSurface::TextEditSurface(QTextDocument *doc, XL::Block *t,
-                                 Widget *parent, bool immed)
+TextEditSurface::TextEditSurface(XL::Text *html, Widget *display)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new QTextEdit(parent)), immediate(immed),
-    locallyModified(false)
+    : WidgetSurface(html, new QTextEdit(NULL), display), contents(html)
 {
     QTextEdit *textEdit = (QTextEdit *) widget;
-    textEdit->setDocument(doc);
     textEdit->setReadOnly(false);
+    textEdit->setHtml(+html->value);
+    textEdit->selectAll();
 
     connect(textEdit, SIGNAL(textChanged()),
             this,     SLOT(textChanged()));
@@ -395,18 +377,17 @@ TextEditSurface::TextEditSurface(QTextDocument *doc, XL::Block *t,
 }
 
 
-GLuint TextEditSurface::bind(QTextDocument * doc)
+GLuint TextEditSurface::bindHTML(XL::Text *html)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
 {
     QTextEdit *textEdit = (QTextEdit *) widget;
-    QTextDocument *tmp = textEdit->document();
-    if (!locallyModified && tmp != doc)
+    if (html && html != contents && html->value != contents->value)
     {
-        textEdit->setDocument(doc);
-        textEdit->textCursor().clearSelection();
-        delete tmp;
+        contents = NULL;
+        textEdit->setHtml(+html->value);
+        contents = html;
     }
 
     return WidgetSurface::bind();
@@ -418,29 +399,23 @@ void TextEditSurface::textChanged()
 //    If the text changed, update the associated XL::Text
 // ----------------------------------------------------------------------------
 {
-    if (XL::Block * prog = tree->AsBlock())
+    // Record the change
+    if (Widget *disp = display())
     {
-        if (immediate)
+        QTextEdit *textEdit = (QTextEdit *) widget;
+        text html = +textEdit->toHtml();
+        
+        if (contents &&
+            contents->value != html &&
+            !IsMarkedConstant(contents) &&
+            disp->markChange("Text editor text change"))
         {
-            // Record the change
-            Widget *parent = (Widget *) widget->parent();
-            if (parent->markChange("Text editor text change"))
-            {
-                QTextEdit *textEdit = (QTextEdit *) widget;
-                HTMLConverter cvt(tree, parent->currentLayout());
-                prog->child = cvt.docToTree(*textEdit->document());
-                locallyModified = false;
-            }
+            contents->value = html;
         }
-        else
-        {
-            locallyModified = true;
-        }
-
     }
-
     repaint();
 }
+
 
 
 // ============================================================================
@@ -455,7 +430,8 @@ AbstractButtonSurface::AbstractButtonSurface(Tree *t,
 // ----------------------------------------------------------------------------
 //    Create the Abstract Button surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, button), label(), action(XL::xl_false), isMarked(NULL)
+    : WidgetSurface(t, button, NULL),
+      label(), action(XL::xl_false), isMarked(NULL)
 {
     button->setObjectName(name);
     connect(button, SIGNAL(toggled(bool)),
@@ -469,9 +445,9 @@ AbstractButtonSurface::AbstractButtonSurface(Tree *t,
 }
 
 
-GLuint AbstractButtonSurface::bind(XL::Text *lbl,
-                                   XL::Tree *act,
-                                   XL::Text *sel)
+GLuint AbstractButtonSurface::bindButton(XL::Text *lbl,
+                                         XL::Tree *act,
+                                         XL::Text *sel)
 // ----------------------------------------------------------------------------
 //    If the label or associated action changes
 // ----------------------------------------------------------------------------
@@ -567,11 +543,13 @@ void AbstractButtonSurface::toggled(bool checked)
 //
 // ============================================================================
 
-GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *parent)
+GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *display)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new GridGroupBox(parent)){}
+    : WidgetSurface(t, new GridGroupBox(NULL), display)
+{}
+
 
 GroupBoxSurface::~GroupBoxSurface()
 // ----------------------------------------------------------------------------
@@ -579,14 +557,15 @@ GroupBoxSurface::~GroupBoxSurface()
 // ----------------------------------------------------------------------------
 {
     QLayoutItem *child;
-    while ((child = grid()->takeAt(0)) != 0) {
+    while ((child = grid()->takeAt(0)) != 0)
+    {
         child->widget()->setParent(NULL);
         delete child;
     }
 }
 
 
-GLuint GroupBoxSurface::bind(XL::Text *lbl)
+GLuint GroupBoxSurface::bindButton(XL::Text *lbl)
 // ----------------------------------------------------------------------------
 //   Display the group box
 // ----------------------------------------------------------------------------
@@ -674,7 +653,7 @@ bool GridGroupBox::event(QEvent *event)
 
 AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t,
                                              QAbstractSlider *slide) :
-    WidgetSurface(t, slide), min(0), max(0), value(NULL)
+    WidgetSurface(t, slide, NULL), min(0), max(0), value(NULL)
 {
 
 }

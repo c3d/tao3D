@@ -82,7 +82,7 @@ PREFIX(TextEdit,  tree,  "text_edit",
        PARM(y,real, "y-coordinate")
        PARM(w,real, "width")
        PARM(h,real, "height")
-       PARM(p, code, "The description of the text"),
+       PARM(p, text, "The HTML description of the text"),
        RTAO(textEdit(context, self, x, y, w, h, p)),
        GROUP(widget)
        SYNOPSIS("Draw a text editor in the current frame")
@@ -90,7 +90,7 @@ PREFIX(TextEdit,  tree,  "text_edit",
 PREFIX(TextEditTexture,  tree,  "text_edit_texture",
        PARM(w,real, "width")
        PARM(h,real, "height")
-       PARM(p, code, "The text to insert in the text edit widget."),
+       PARM(p, text, "The HTML text to insert in the text edit widget."),
        RTAO(textEditTexture(context, self, w, h, p)),
        GROUP(widget)
        SYNOPSIS("Make a texture out of a given editor")

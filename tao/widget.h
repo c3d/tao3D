@@ -815,9 +815,9 @@ public:
     Integer*    lineEditTexture(Tree_p self, double x, double y, Text_p s);
 
     Tree_p      textEdit(Context *context, Tree_p self,
-                         Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
+                         Real_p x, Real_p y, Real_p w, Real_p h, Text_p html);
     Tree_p      textEditTexture(Context *context, Tree_p self,
-                                double w, double h, Tree_p prog);
+                                double w, double h, Text_p html);
 
     Tree_p      abstractButton(Tree_p self, Text_p name,
                                Real_p x, Real_p y, Real_p w, Real_p h);
@@ -1219,9 +1219,6 @@ private:
     void                  setCurrentTime();
     bool                  inDraw, inRunPageExitHandlers, pageHasExitHandler;
     text                  changeReason;
-
-    QTextCursor          * editCursor;
-    void                  updateCursor(Text_p t);
 
     std::map<text, text>  xlTranslations;
     bool                  isInvalid;

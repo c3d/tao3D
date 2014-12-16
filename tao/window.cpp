@@ -1259,11 +1259,15 @@ void Window::paste()
 }
 
 
-void Window::onFocusWidgetChanged(QWidget */*old*/, QWidget *now)
+void Window::onFocusWidgetChanged(QWidget *old, QWidget *now)
 // ----------------------------------------------------------------------------
 //    Enable or disable copy/cut/paste actions when current widget changes
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(focus)
+        std::cerr << "onFocusWidgetChanged from "
+                  << old << " to " << now << "\n";
+
     bool enable;
 #ifndef CFG_NOSRCEDIT
     if (now == srcEdit)

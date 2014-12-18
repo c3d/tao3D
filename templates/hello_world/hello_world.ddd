@@ -59,12 +59,10 @@
 //
 // ============================================================================
 
-
 page "Hello World",
 // -------------------------------------------------
 //    Main scene
 // -------------------------------------------------
-    color "white"
     milkyway 10000
     rotatez -23
     earth 400
@@ -83,6 +81,7 @@ milkyway R ->
 //    Draw milkyway
 // -------------------------------------------------
     locally
+        color "white"
         texture_wrap true, true
         texture_transform {scale 5, 5, 5}
         texture "milkyway.jpg"
@@ -95,6 +94,7 @@ earth R ->
 //    Draw earth
 // -------------------------------------------------
     locally
+        color "white"
         texture "earth.jpg"
         rotatey 5 * page_time + 250
         sphere 0, 0, 0, R

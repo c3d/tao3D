@@ -40,6 +40,8 @@ QT_END_NAMESPACE
 
 namespace Tao {
 
+class CachedTexture;
+
 class NewDocumentWizard : public QWizard
 {
     Q_OBJECT
@@ -75,6 +77,7 @@ protected:
 protected slots:
     void updateDescription();
     void filterItems();
+    void thumbnailChanged(CachedTexture *tex);
 
 private:
     QListWidget *templateListWidget;

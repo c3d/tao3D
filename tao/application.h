@@ -141,6 +141,7 @@ protected:
     bool           installTranslators();
     bool           checkGL();
     void           checkModules();
+    void           checkExamples();
     virtual bool   event(QEvent *e);
     QString        getFileOrUriFromCommandLine();
     bool           singleInstanceClientTalkedToServer();
@@ -159,11 +160,12 @@ protected:
     static bool    createDefaultProjectFolder();
 
 public:
-    Window *     window() { Q_ASSERT(win); return win; }
-    QWidget *    windowWidget() { return (QWidget*)window(); }
-    void         updateSearchPaths(QString path = "");
-    static bool  createDefaultTaoPrefFolder();
-    static bool  recursiveDelete(QString path);
+    Window *       window()             { Q_ASSERT(win); return win; }
+    QWidget *      windowWidget()       { return (QWidget*)window(); }
+    void           updateSearchPaths(QString path = "");
+    void           updateHelpMenu();
+    static bool    createDefaultTaoPrefFolder();
+    static bool    recursiveDelete(QString path);
 
 public:
     bool               hasGLMultisample, hasFBOMultisample;

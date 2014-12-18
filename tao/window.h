@@ -39,6 +39,7 @@
 #ifndef CFG_NO_WEBUI
 #include "webui.h"
 #endif
+#include "examples_menu.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -98,6 +99,7 @@ public:
     bool        needNewWindow();
     bool        setStereo(bool on);
     void        addDisplayModeMenu(QString mode, QString label);
+    void        createHelpMenus();
     QString     welcomePath();
 #ifndef CFG_NO_DOC_SIGNATURE
     bool        isDocumentSigned();
@@ -388,7 +390,7 @@ public:
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     QMenu *             shareMenu;
 #endif
-    QMenu *             helpMenu;
+    ExamplesMenu *      helpMenu;
     QPointer<SplashScreen> splashScreen, aboutSplash;
 
 };

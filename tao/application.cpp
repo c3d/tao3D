@@ -43,6 +43,7 @@
 #include "license.h"
 #include "preferences_pages.h"
 #include "update_application.h"
+#include "examples_menu.h"
 #if defined (CFG_WITH_EULA)
 #include "eula_dialog.h"
 #endif
@@ -286,10 +287,13 @@ void Application::deferredInit()
     RECORD(ALWAYS, "Creating main window");
     win = new Window (xlr, contextFiles);
 
+    // Update the help menu
+    checkExamples();
+
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this
     // version
-    if (! EulaDialog::previouslyAccepted())
+    if (!EulaDialog::previouslyAccepted())
     {
         EulaDialog eula;
 #if defined (Q_OS_MACX)
@@ -715,6 +719,25 @@ void Application::updatingModule(QString name)
         QString msg = QString(tr("Updating modules [%1]")).arg(name);
         splash->showMessage(msg);
     }
+}
+
+
+void Application::checkExamples()
+// ----------------------------------------------------------------------------
+//   Download examples from 
+// ----------------------------------------------------------------------------
+{
+    QUrl url("http://www.taodyne.com/tao-examples-list");
+    static ExamplesMenuUpdater examplesMenuUpdater(url);
+}
+
+
+void Application::updateHelpMenu()
+// ----------------------------------------------------------------------------
+//   Update the examples menu after downloaded from the web
+// ----------------------------------------------------------------------------
+{
+    window()->createHelpMenus();
 }
 
 

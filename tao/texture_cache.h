@@ -136,6 +136,10 @@ public:
     bool            transferred() { return (GLsize != 0); }
 
     void            reload();
+    QImage          loadedImage() { return image.raw; }
+
+signals:
+    void            textureUpdated(CachedTexture *tex);
 
 public slots:
     void            onFileCreated(const QString &path,
@@ -170,9 +174,6 @@ private:
 
     bool            inLoad;
 };
-
-
-
 
 
 class TextureCache : public QObject

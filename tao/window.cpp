@@ -602,18 +602,22 @@ void Window::closeDocument()
 }
 
 
-int Window::open(QString fileName, bool readOnly)
+int Window::open(QString url, bool readOnly)
 // ----------------------------------------------------------------------------
 //   Open a file or a directory.
 // ----------------------------------------------------------------------------
 //   0: error
 //   1: success
-//   2: don't know yet (asynchronous opening of an URI)
+//   2: don't know yet (asynchronous opening of an URL)
 {
-    if (fileName == curFile)
+    if (url.startsWith("tao:") || url.startsWith("taos:"))
+        if (!(url.startsWith("tao://") || url.startsWith("taos://")))
+            url.replace("tao:", "tao:///").replace("taos", "taos:///");
+
+    if (url == curFile)
         return 1;
 
-    if (fileName == welcomePath())
+    if (url == welcomePath())
         readOnly = true;
 
     bool  isDir = false;
@@ -623,20 +627,20 @@ int Window::open(QString fileName, bool readOnly)
         dir = Application::defaultProjectFolderPath();
     else
         dir = currentProjectFolderPath();
-    if (!fileName.isEmpty())
+    if (!url.isEmpty())
     {
         // Process 'file://' like a regular path because: (1) it is simpler,
         // and (2) we want to be able to open 'file://' even if CFG_NOGIT is
         // defined (MacOSX uses 'file://' when a file is double clicked)
-        if (fileName.startsWith("file://"))
-            fileName = fileName.mid(7);
+        if (url.startsWith("file://"))
+            url = url.mid(7);
 
 #ifndef CFG_NONETWORK
-        bool fileExists = QFileInfo(fileName).exists();
-        if (!fileExists && fileName.contains("://"))
+        bool fileExists = QFileInfo(url).exists();
+        if (!fileExists && url.contains("://"))
         {
-            // No local file with this name: try to parse as an URI
-            uri = new Uri(fileName);
+            // No local file with this name: try to parse as an URL
+            uri = new Uri(url);
             if (uri->isValid())
             {
                 connect(uri, SIGNAL(progressMessage(QString)),
@@ -663,26 +667,26 @@ int Window::open(QString fileName, bool readOnly)
             }
         }
 #endif
-        if (QFileInfo(fileName).isDir())
+        if (QFileInfo(url).isDir())
         {
             isDir = true;
-            dir = fileName;
+            dir = url;
         }
     }
-    bool showDialog = fileName.isEmpty() || isDir;
+    bool showDialog = url.isEmpty() || isDir;
     if (showDialog)
     {
-        fileName = QFileDialog::getOpenFileName
+        url = QFileDialog::getOpenFileName
                            (this,
                             tr("Open Tao Document"),
                             dir,
                             tr(TAO_FILESPECS));
 
-        if (fileName.isEmpty())
+        if (url.isEmpty())
             return 0;
     }
 
-    Window *existing = findWindow(fileName);
+    Window *existing = findWindow(url);
     if (existing)
     {
         existing->show();
@@ -691,11 +695,11 @@ int Window::open(QString fileName, bool readOnly)
         return 0;
     }
 
-    if (!QFileInfo(fileName).exists())
+    if (!QFileInfo(url).exists())
     {
         QMessageBox::warning(this->isVisible() ? this : NULL,
                              tr("Error"),
-                             tr("%1: File not found").arg(fileName));
+                             tr("%1: File not found").arg(url));
         return 0;
     }
     if (maybeSave())
@@ -703,12 +707,12 @@ int Window::open(QString fileName, bool readOnly)
         if (readOnly)
             isReadOnly = true;
         else
-            isReadOnly = !QFileInfo(fileName).isWritable();
+            isReadOnly = !QFileInfo(url).isWritable();
 
-        if (!loadFile(fileName, !isReadOnly))
+        if (!loadFile(url, !isReadOnly))
             return 0;
     }
-    if (fileName == welcomePath())
+    if (url == welcomePath())
         isUntitled = true;  // CHECK
     return 1;
 }
@@ -1495,9 +1499,6 @@ void Window::openUri()
     QString uri = dialog.uri;
     if (uri.isEmpty())
         return;
-    if (uri.startsWith("tao:") || uri.startsWith("taos:"))
-        if (!(uri.startsWith("tao://") || uri.startsWith("taos://")))
-            uri.replace("tao:", "tao:///").replace("taos", "taos:///");
     open(uri);
 }
 
@@ -2238,7 +2239,20 @@ void Window::createMenus()
 
     menuBar()->addSeparator();
 
-    helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu = NULL;
+    createHelpMenus();
+}
+
+
+void Window::createHelpMenus()
+// ----------------------------------------------------------------------------
+//   Create the help menus
+// ----------------------------------------------------------------------------
+{
+    delete helpMenu;
+
+    helpMenu = new ExamplesMenu(tr("&Help"), menuBar());
+    menuBar()->addMenu(helpMenu);
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(updateAct);
@@ -2258,9 +2272,7 @@ void Window::createMenus()
     helpMenu->addSeparator();
 
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
-    ExamplesMenu * themesMenu = NULL;
-    ExamplesMenu * examplesMenu = NULL;
-
+    // Inserts everything from within the 'templates' menu
     QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
     Templates templates = Templates(tdir);
     foreach (Template t, templates)
@@ -2270,32 +2282,38 @@ void Window::createMenus()
         QString name(t.name);
         // Strip "(Demo) " or "(Démo) "
         name.replace(QRegExp("^\\([^)]+\\) "), "");
-        if (t.type == "theme")
+
+        // Add the prefix as required
+        QString prefix(t.type == "theme" ? tr("Themes") : tr("Examples"));
+        name = prefix + "/" + name;
+
+        // Insert menu entry
+        QString url(t.mainFileFullPath());
+        QString tip(t.description);
+        if (ExamplesMenu *submenu = helpMenu->addExample(name, url, tip))
         {
-            if (!themesMenu)
-            {
-                themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
-                connect(themesMenu, SIGNAL(openDocument(QString)),
-                        this, SLOT(openReadOnly(QString)));
-            }
-            themesMenu->addExample(name, t.mainFileFullPath(), t.description);
-        }
-        else
-        {
-            if (!examplesMenu)
-            {
-                examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
-                connect(examplesMenu, SIGNAL(openDocument(QString)),
-                        this, SLOT(openReadOnly(QString)));
-            }
-            examplesMenu->addExample(name, t.mainFileFullPath(), t.description);
+            connect(submenu, SIGNAL(openDocument(QString)),
+                    this,    SLOT  (openReadOnly(QString)));
         }
     }
 
-    if (themesMenu)
-        helpMenu->addMenu(themesMenu);
-    if (examplesMenu)
-        helpMenu->addMenu(examplesMenu);
+    // Insert entries from the settings
+    QSettings settings;
+    int size = settings.beginReadArray("examples");
+    for (int i = 0; i < size; i++)
+    {
+        settings.setArrayIndex(i);
+        QString caption = settings.value("caption").toString();
+        QString url = settings.value("url").toString();
+        QString tip = settings.value("description").toString();
+
+        if (ExamplesMenu *submenu = helpMenu->addExample(caption, url, tip))
+        {
+            connect(submenu, SIGNAL(openDocument(QString)),
+                    this,    SLOT  (open(QString)));
+        }
+    }
+    settings.endArray();
 #endif
 }
 

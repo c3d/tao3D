@@ -981,6 +981,8 @@ void CachedTexture::checkReply(QNetworkReply *reply)
         // A simple update is not enough here: the texture id has not yet been
         // returned, so a XL refresh is needed
         Widget::postEventAPI(cache.textureChangedEvent());
+
+        emit textureUpdated(this);
     }
 }
 

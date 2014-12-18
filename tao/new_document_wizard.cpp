@@ -25,7 +25,9 @@
 
 #include "new_document_wizard.h"
 #include "application.h"
+#include "window.h"
 #include "repository.h"
+#include "texture_cache.h"
 
 #include <QPushButton>
 #include <QMessageBox>
@@ -37,6 +39,16 @@
 #include <QFileDialog>
 
 namespace Tao {
+
+
+static inline QString exampleThumbnail(QString name)
+// ----------------------------------------------------------------------------
+//   Return the URL for a thumbnail picture
+// ----------------------------------------------------------------------------
+{
+    return "http://www.taodyne.com/tao-examples-thumbnails/" + name + ".png";
+}
+
 
 NewDocumentWizard::NewDocumentWizard(QWidget *parent)
 // ----------------------------------------------------------------------------
@@ -76,7 +88,7 @@ void NewDocumentWizard::openWebPage()
 //   Open the templates web page in a browser window and close the wizard
 // ----------------------------------------------------------------------------
 {
-    QString url(tr("http://taodyne.com/taopresentations/2.0/templates/"));
+    QString url(tr("http://tao3d.sourceforge.net#samples"));
     QDesktopServices::openUrl(url);
     reject();
 }
@@ -124,10 +136,10 @@ void NewDocumentWizard::accept()
     if (!ok)
     {
         QMessageBox::warning(this, tr("Error"),
-            tr("Failed to copy document template."));
+                             tr("Failed to copy document template."));
         return;
     }
-
+    
     docPath = dstPath;
     if (t.mainFile != "")
     {
@@ -144,12 +156,11 @@ void NewDocumentWizard::accept()
             docPath = dstDir.filePath(newName + ".ddd");
         }
     }
-
+    
 #if !defined(CFG_NOGIT)
     // Create project to avoid prompt when document is first opened
     RepositoryFactory::repository(dstPath, RepositoryFactory::Create);
 #endif
-
     QDialog::accept();
 }
 
@@ -164,11 +175,12 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
 
     search = new QLineEdit;
     search->setPlaceholderText(tr("Search"));
-    connect(search, SIGNAL(textChanged(QString)), this, SLOT(filterItems()));
+    connect(search, SIGNAL(textChanged(QString)),
+            this,   SLOT(filterItems()));
 
     showAll = new QCheckBox(tr("Show all examples"));
     connect(showAll, SIGNAL(toggled(bool)),
-            this, SLOT(filterItems()));
+            this,    SLOT(filterItems()));
     showAll->setChecked(false);
 
     QHBoxLayout *searchLayout = new QHBoxLayout;
@@ -211,18 +223,51 @@ void TemplateChooserPage::initializePage()
 // ----------------------------------------------------------------------------
 {
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+    QDir appPath(TaoApp->applicationDirPath() + "/templates");
+    QDir userPath(TaoApp->defaultTaoPreferencesFolderPath() + "/templates");
     QList<QDir> dirs;
-    dirs << QDir(TaoApp->applicationDirPath() + "/templates")
-         << QDir(TaoApp->defaultTaoPreferencesFolderPath() + "/templates");
+    dirs << appPath << userPath;
     wiz->templates = Templates(dirs);
+
+    // Insert entries from the settings (remote menus)
+    QSharedPointer<TextureCache> tc = TextureCache::instance();
+    QString docPath = TaoApp->window()->currentProjectFolderPath();
+    QSettings settings;
+    int size = settings.beginReadArray("examples");
+    for (int i = 0; i < size; i++)
+    {
+        settings.setArrayIndex(i);
+        QString caption = settings.value("caption").toString();
+        QString url = settings.value("url").toString();
+        QString tip = settings.value("description").toString();
+
+        Template tmpl(userPath);
+        tmpl.name = caption;
+        tmpl.description = tip;
+        tmpl.type = "url";
+        tmpl.mainFile = url;
+
+        QString thumbPath = exampleThumbnail(caption);
+
+        CachedTexture *tex = tc->load(thumbPath, docPath);
+        tmpl.thumbnail = QPixmap::fromImage(tex->loadedImage());
+        if (tmpl.thumbnail.isNull())
+        {
+            connect(tex,    SIGNAL(textureUpdated(CachedTexture *)),
+                    this,   SLOT(thumbnailChanged(CachedTexture *)));
+        }
+            
+        wiz->templates.append(tmpl);
+    }
+    settings.endArray();
+
     foreach (Template tmpl, wiz->templates)
     {
         QListWidgetItem *t = new QListWidgetItem(templateListWidget);
-        QPixmap pm(tmpl.thumbnail);
-        if (pm.isNull())
-            pm = QPixmap(":/images/default_image.svg");
-        t->setIcon(QIcon(pm));
-        t->setText(tmpl.name);
+        QPixmap        pm   = tmpl.thumbnail;
+        if (!pm.isNull())
+            t->setIcon(QIcon(pm));
+        t->setText(tmpl.name.mid(tmpl.name.lastIndexOf('/')+1));
         t->setTextAlignment(Qt::AlignHCenter);
         t->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
@@ -234,20 +279,47 @@ void TemplateChooserPage::initializePage()
 }
 
 
+void TemplateChooserPage::thumbnailChanged(CachedTexture *)
+// ----------------------------------------------------------------------------
+//    Update the thumbnail once loaded from the network
+// ----------------------------------------------------------------------------
+{
+    NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+    QString docPath = TaoApp->window()->currentProjectFolderPath();
+    QSharedPointer<TextureCache> tc = TextureCache::instance();
+    int idx = 0;
+    
+    foreach (Template tmpl, wiz->templates)
+    {
+        QListWidgetItem *item = templateListWidget->item(idx++);
+        QPixmap          pm = tmpl.thumbnail;
+        if (pm.isNull())
+        {
+            QString thumbPath = exampleThumbnail(tmpl.name);
+            CachedTexture *  tex  = tc->load(thumbPath, docPath);
+            QPixmap          pm   = QPixmap::fromImage(tex->loadedImage());
+            if (!pm.isNull())
+                item->setIcon(QIcon(pm));
+        }
+    }
+}
+
+
 void TemplateChooserPage::updateDescription()
 // ----------------------------------------------------------------------------
-//   Set the description text for the currently slected item
+//   Set the description text for the currently selected item
 // ----------------------------------------------------------------------------
 {
     QString desc;
-    NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+    NewDocumentWizard * wiz = (NewDocumentWizard *) wizard();
     int idx = field("templateIdx").toInt();
+
     if (idx != -1)
     {
         Template t = wiz->templates.at(idx);
         desc = t.description;
+        description->setText(desc);
     }
-    description->setText(desc);
 }
 
 
@@ -256,15 +328,19 @@ void TemplateChooserPage::filterItems()
 //   Show or hide items, depending on wether they match current search string
 // ----------------------------------------------------------------------------
 {
-    NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+    NewDocumentWizard * wiz = (NewDocumentWizard *) wizard();
     QString searchString = search->text();
     int firstShown = -1;
+    bool themeOnly = !showAll->isChecked();
+    bool searching = !searchString.isEmpty();
+
     for (int idx = 0; idx < templateListWidget->count(); idx++)
     {
         QListWidgetItem *item = templateListWidget->item(idx);
+        bool hide = false;
         Template t = wiz->templates.at(idx);
-        bool hide = (!searchString.isEmpty() && !t.contains(searchString))
-                 || (!showAll->isChecked() && (t.type != "theme"));
+        hide = ((searching && !t.contains(searchString)) ||
+                (themeOnly && t.type != "theme"));
         item->setHidden(hide);
         if (firstShown == -1 && !hide)
             firstShown = idx;
@@ -323,18 +399,25 @@ void DocumentNameAndLocationPage::initializePage()
     int idx = field("templateIdx").toInt();
     if (idx != -1)
     {
-        QString name;
         NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+        QString name;
         Template t = wiz->templates.at(idx);
         if (t.mainFile != "")
         {
             name = t.mainFile;
             name.replace(QRegExp("\\.ddd$"), "");
+            name.replace(QRegExp("^[A-Za-z]+:/*"), "");
         }
         if (name != "")
         {
             docNameLineEdit->setText(name);
             docNameLineEdit->selectAll();
+        }
+
+        if (t.type == "url")
+        {
+            TaoApp->window()->open(t.mainFile);
+            wiz->reject();
         }
     }
 }

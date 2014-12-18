@@ -104,7 +104,7 @@ UpdateApplication::UpdateApplication()
    progress = new QProgressDialog(TaoApp->windowWidget());
    progress->setFixedSize(500, 100);
    connect(progress, SIGNAL(canceled()),
-           this, SLOT(cancel()));
+           this,     SLOT(cancel()));
    progress->setWindowTitle(dialogTitle);
 
    IFTRACE(update)

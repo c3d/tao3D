@@ -20,6 +20,7 @@
 //  (C) 2012 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
+
 #include "http_ua.h"
 #include "repository.h"
 #include "tao_process.h"

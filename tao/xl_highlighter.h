@@ -67,26 +67,26 @@ private:
 
     struct HighlightingRule
     {
-        QRegExp         pattern;
+        HighlightingRule(): begin(), end(), format() {}
+        HighlightingRule(const HighlightingRule &o)
+            : begin(o.begin), end(o.end), format(o.format) {}
+        HighlightingRule(QBrush brush, QString begin, QString end="")
+            : begin(begin), end(end), format()
+        {
+            format.setForeground(brush);
+        }
+       
+        QRegExp         begin;
+        QRegExp         end;
         TextCharFormat  format;
     };
 
-    bool   applyRule(const HighlightingRule &rule, const QString &txt);
     bool   showSelectionInFragment(QTextFragment fragment);
 
 
+    // Highlighting rules, the last one is for the names
     QVector<HighlightingRule>   highlightingRules;
-    HighlightingRule            nameRule;
-
-    QRegExp                     commentStartExpression;
-    QRegExp                     commentEndExpression;
-
-    TextCharFormat              floatFormat;
-    TextCharFormat              quotationFormat;
-    TextCharFormat              singleLineCommentFormat;
-    TextCharFormat              multiLineCommentFormat;
     TextCharFormat              selectedFormat;
-
     XL::stream_ranges           selected;
 };
 

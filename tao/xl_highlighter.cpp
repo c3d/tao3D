@@ -27,34 +27,37 @@
 TAO_BEGIN
 
 XLHighlighter::XLHighlighter(QTextDocument *parent)
-    : QSyntaxHighlighter(parent)
 // ----------------------------------------------------------------------------
 //    Define the patterns and formats for the XL syntax
 // ----------------------------------------------------------------------------
+    : QSyntaxHighlighter(parent)
 {
-    HighlightingRule rule;
+    QColor selectedColor("#FFE0D0");
+    QColor namesColor("#7F007F");
 
-    floatFormat.setForeground(Qt::darkBlue);
-    rule.pattern = QRegExp("\\d*\\.?\\d+");
-    rule.format = floatFormat;
-    highlightingRules << rule;
+    // Build the highlighting rules
+    highlightingRules
 
-    quotationFormat.setForeground(Qt::darkGreen);
-    rule.pattern = QRegExp("\".*\"");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
+        // Digits
+        << HighlightingRule(Qt::darkBlue,       "\\d*\\.?\\d+")
 
-    singleLineCommentFormat.setForeground(Qt::darkRed);
-    rule.pattern = QRegExp("//[^\n]*");
-    rule.format = singleLineCommentFormat;
-    highlightingRules << rule;
+        // Text
+        << HighlightingRule(Qt::darkGreen,      "\"[^\"]*\"")
+        << HighlightingRule(Qt::darkCyan,       "'[^']*'")
 
-    multiLineCommentFormat.setForeground(Qt::darkRed);
-    commentStartExpression = QRegExp("/\\*");
-    commentEndExpression = QRegExp("\\*/");
+        // Multiline text
+        << HighlightingRule(Qt::darkYellow,     "<<", ">>")
 
-    selectedFormat.setBackground(QColor("#D0D0D0"));
-    nameRule.format.setForeground(QColor("#7F007F"));
+        // Single line comment
+        << HighlightingRule(Qt::darkRed,        "//[^\n]*")
+
+        // Multi-line comment
+        << HighlightingRule(Qt::darkRed,        "/\\*", "\\*/")
+
+        // Names
+        << HighlightingRule(namesColor,         "", "");
+
+    selectedFormat.setBackground(selectedColor);
 }
 
 
@@ -63,16 +66,18 @@ void XLHighlighter::setXLNames(const QStringList &words)
 //    Set the words to highlight as XL names
 // ----------------------------------------------------------------------------
 {
+    HighlightingRule &nameRule = highlightingRules.back();
     if (words.isEmpty())
     {
-        nameRule.pattern = QRegExp("");
+        nameRule.begin = QRegExp("");
         return;
     }
     QStringList w(words);
     w.replaceInStrings("*", "\\*");
     w.replaceInStrings("+", "\\+");
     QString exp = QString("\\b(%1)\\b").arg(words.join("|"));
-    nameRule.pattern = QRegExp(exp);
+    std::cerr << "Rule for names is " << +exp << "\n";
+    nameRule.begin = QRegExp(exp);
 }
 
 
@@ -81,46 +86,77 @@ void XLHighlighter::highlightBlock(const QString &txt)
 //    Parse a block of text and apply formatting
 // ----------------------------------------------------------------------------
 {
-    TextCharFormat fontFormat;
-    setFormat(0, txt.length(), fontFormat);
+    // State is index in highlightingRules
+    int currentState = previousBlockState();
+    int pos = 0;
 
-    // Deal with single-line patterns
-
-    if (!nameRule.pattern.isEmpty())
-        applyRule(nameRule, txt);
-    foreach (const HighlightingRule &rule, highlightingRules)
-        applyRule(rule, txt);
-
-    // Deal with multi-line comments
-
-    setCurrentBlockState(0);
-
-    int startIndex = 0;
-    if (previousBlockState() != 1)
-        startIndex = commentStartExpression.indexIn(txt);
-
-    while (startIndex >= 0)
+    // Check which rules apply and apply them
+    while (pos >= 0 && pos < txt.length())
     {
-        int endIndex = commentEndExpression.indexIn(txt, startIndex);
-        int commentLength;
-        if (endIndex == -1)
+        // Check if we are still in a multi-line comment or text
+        if (currentState >= 0)
         {
-            setCurrentBlockState(1);
-            commentLength = txt.length() - startIndex;
+            HighlightingRule &rule = highlightingRules[currentState];
+            int endIndex = rule.end.indexIn(txt, pos);
+            if (endIndex == -1)
+            {
+                // Remain in the same block state
+                setFormat(pos, txt.length()-pos, rule.format);
+                pos = txt.length();
+                break;
+            }
+            else
+            {
+                // Highlight until end
+                endIndex += rule.end.matchedLength();
+                setFormat(pos, endIndex-pos, rule.format);
+
+                // Return to default state at end of match
+                currentState = -1;
+                pos = endIndex;
+            }
+        }
+
+        // Find the earliest match amongst possible rules
+        int bestIndex = txt.length();
+        for (int r = 0; r < highlightingRules.size(); r++)
+        {
+            HighlightingRule &rule = highlightingRules[r];
+            int index = rule.begin.indexIn(txt, pos);
+            if (index >= 0 && index < bestIndex)
+            {
+                currentState = r;
+                bestIndex = index;
+            }
+        }
+
+        // If nothing else matches, we are done with this line
+        if (currentState < 0)
+            break;
+
+        // Apply the best rule
+        HighlightingRule &rule = highlightingRules[currentState];
+        if (rule.end.isEmpty())
+        {
+            // No end: simply highlight what we match
+            int startIndex = rule.begin.indexIn(txt, pos);
+            int endIndex = startIndex + rule.begin.matchedLength();
+            setFormat(startIndex, endIndex-startIndex, rule.format);
+            pos = endIndex;
+            currentState = -1;
         }
         else
         {
-            commentLength = endIndex - startIndex
-                            + commentEndExpression.matchedLength();
+            // There is an end: we deal with it at beginning of loop
+            pos = rule.begin.indexIn(txt, pos);
         }
-        setFormat(startIndex, commentLength, multiLineCommentFormat);
-        startIndex = commentStartExpression.indexIn(txt, startIndex +
-                                                    commentLength);
     }
 
+    // Remember current block state for next blocks
+    setCurrentBlockState(currentState);
+    
     // Objects that are selected in the graphical view are shown in a special
     // way in the source code, too
-
      QTextBlock::iterator it;
      for (it = currentBlock().begin(); !(it.atEnd()); ++it)
      {
@@ -129,7 +165,7 @@ void XLHighlighter::highlightBlock(const QString &txt)
              showSelectionInFragment(currentFragment);
      }
 }
-
+     
 
 static XL::stream_range
 intersect(const XL::stream_range a, const XL::stream_range b)
@@ -182,25 +218,6 @@ bool XLHighlighter::showSelectionInFragment(QTextFragment fragment)
             setFormat(hstart, hcount, selectedFormat);
             matched = true;
         }
-    }
-    return matched;
-}
-
-
-bool XLHighlighter::applyRule(const HighlightingRule &rule, const QString &txt)
-// ----------------------------------------------------------------------------
-//    Apply one highlighting rule to a block of text
-// ----------------------------------------------------------------------------
-{
-    bool matched;
-    QRegExp expression(rule.pattern);
-    int index = expression.indexIn(txt);
-    while (index >= 0)
-    {
-        int length = expression.matchedLength();
-        setFormat(index, length, rule.format);
-        index = expression.indexIn(txt, index + length);
-        matched = true;
     }
     return matched;
 }

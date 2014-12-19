@@ -1569,6 +1569,41 @@ static TextSplit *NewSplit(QChar::Direction dir,
 }
 
 
+static inline int writingDirection(QChar::Direction dir)
+// ----------------------------------------------------------------------------
+//    Return the writing direction as far as layout is concerned
+// ----------------------------------------------------------------------------
+{
+    switch (dir)
+    {
+    case QChar::DirAL:
+    case QChar::DirAN:
+        return -2;              // Right to left, packed
+
+    case QChar::DirR:
+    case QChar::DirRLE:
+    case QChar::DirRLO:
+        return -1;              // Right to left, char-by-char
+
+    default:
+        return 1;               // Left to right, char-by-char
+    }
+}
+
+
+static inline bool changingDirection(QChar::Direction from, QChar::Direction to)
+// ----------------------------------------------------------------------------
+//    Check if we are changing directions between 'from' and 'to'
+// ----------------------------------------------------------------------------
+{
+    // Whitespace and direction-neutral chars don't change direction
+    if (to == QChar::DirWS || to == QChar::DirS ||
+        to == QChar::DirB || to == QChar::DirON)
+        return false;
+    return writingDirection(from) != writingDirection(to);
+}
+
+
 bool TextUnit::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   If the text span contains a word or line break, cut there
@@ -1610,10 +1645,10 @@ bool TextUnit::Paginate(PageLayout *page)
             else if (c == '\f')
                 charOrder = SentenceBreak;
         }
-        else if (!c.isPunct())
+        else
         {
             QChar::Direction d = c.direction();
-            if (d != dir)
+            if (changingDirection(dir, d))
             {
                 if (size)
                 {

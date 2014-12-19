@@ -1055,7 +1055,7 @@ bool Window::saveFile(const QString &fileName)
         updateProgram(fileName);
     }
 #ifndef CFG_NOSRCEDIT
-    srcEdit->setXLNames(taoWidget->listNames());
+    taoWidget->listNames(srcEdit);
 #endif
     taoWidget->refreshNow();
     isReadOnly = false;
@@ -2592,7 +2592,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     updateContext(docPath);
     bool hadError = updateProgram(fileName);
 #ifndef CFG_NOSRCEDIT
-    srcEdit->setXLNames(taoWidget->listNames());
+    taoWidget->listNames(srcEdit);
 #endif
 
     // Update list of monitored files

@@ -29,6 +29,7 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 #include <QVector>
+#include <set>
 
 QT_BEGIN_NAMESPACE
 class QTextDocument;
@@ -46,7 +47,7 @@ class XLHighlighter : public QSyntaxHighlighter
 public:
     XLHighlighter(QTextDocument *parent);
 
-    void   setXLNames(const QStringList &words);
+    void   highlightNames(int index, std::set<text> &set);
     void   setSelectedRanges(const XL::stream_ranges &selected);
     bool   hasSelectedObjects()    { return !selected.empty(); }
     void   clearSelectedRanges();

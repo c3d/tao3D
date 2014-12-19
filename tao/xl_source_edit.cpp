@@ -25,6 +25,7 @@
 #include "xl_highlighter.h"
 #include "tao_utf8.h"
 #include "assistant.h"
+#include "context.h"
 #include <QScrollBar>
 #include <QEvent>
 #include <QKeyEvent>
@@ -33,10 +34,10 @@
 namespace Tao {
 
 XLSourceEdit::XLSourceEdit(QWidget *parent)
-    : QTextEdit(parent)
 // ----------------------------------------------------------------------------
 //   Create a source editor
 // ----------------------------------------------------------------------------
+    : QTextEdit(parent)
 {
     QFont font("unifont");
     font.setPixelSize(16);
@@ -89,12 +90,12 @@ void XLSourceEdit::setPlainTextKeepCursor(const QString &txt)
 }
 
 
-void XLSourceEdit::setXLNames(const QStringList &names)
+void XLSourceEdit::highlightNames(int index, std::set<text> &set)
 // ----------------------------------------------------------------------------
 //   Define the list of XL names for syntax highlighting
 // ----------------------------------------------------------------------------
 {
-    highlighter->setXLNames(names);
+    highlighter->highlightNames(index, set);
 }
 
 

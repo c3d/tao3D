@@ -90,6 +90,7 @@ struct MouseFocusTracker;
 struct DisplayDriver;
 struct OpenGLState;
 struct ShaderProgramInfo;
+struct XLSourceEdit;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -265,7 +266,7 @@ public:
     bool        get(Tree *shape, text n, attribute_args &a,
                     text sh = "group,shape");
     bool        isReadOnly();
-    QStringList listNames();
+    void        listNames(XLSourceEdit *editor);
 #ifndef CFG_NO_DOC_SIGNATURE
 #ifndef TAO_PLAYER
     QString      signDocument(text path);

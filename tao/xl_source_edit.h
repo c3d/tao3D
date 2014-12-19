@@ -25,6 +25,7 @@
 #include "renderer.h"
 #include <QTextEdit>
 #include <sstream>
+#include <set>
 
 namespace Tao {
 
@@ -43,7 +44,7 @@ public:
     XLSourceEdit(QWidget *parent = 0);
     virtual ~XLSourceEdit();
 
-    void   setXLNames(const QStringList &names);
+    void   highlightNames(int index, std::set<text> &set);
     void   render(XL::Tree_p prog, std::set<XL::Tree_p>* selected = NULL);
 
 protected:

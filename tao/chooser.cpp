@@ -393,23 +393,20 @@ void Chooser::AddItem(text caption, Tree *function)
 }
 
 
-void Chooser::AddCommands(Context *ctx, text prefix, text label)
+void Chooser::AddCommands(text begin, text label)
 // ----------------------------------------------------------------------------
 //   Add chooser commands from the symbols table
 // ----------------------------------------------------------------------------
 {
     // Add all the commands that begin with the prefix in the current context
-    rewrite_list list;
-    ctx->ListNames(prefix, list);
+    XL::name_set names, infix, prefix, postfix;
+    XL::MAIN->ListNames(begin, names, infix, prefix, postfix);
     
     // Loop over all rewrites that match
-    uint first = prefix.length();
-    rewrite_list::iterator i;
-    for (i = list.begin(); i != list.end(); i++)
+    uint first = begin.length();
+    for (XL::name_set::iterator n = names.begin(); n != names.end(); n++)
     {
-        Rewrite *rw = *i;
-        Name *name = rw->from->AsName();
-        text symname = name->value;
+        text symname = *n;
         text caption = "";
         kstring data = symname.data();
         uint c, maxc = symname.length();
@@ -430,7 +427,7 @@ void Chooser::AddCommands(Context *ctx, text prefix, text label)
         }
         
         // Create a closure from the resulting commands to remember context
-        Tree *command = ctx->CreateCode(rw->to);
+        Tree *command = new XL::Name(symname);
         caption = widget->xlTr(NULL, caption);
         AddItem(label + caption, command);
     }

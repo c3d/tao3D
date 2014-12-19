@@ -33,50 +33,60 @@ XLHighlighter::XLHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {
     QColor selectedColor("#FFE0D0");
-    QColor namesColor("#7F007F");
+    QColor longTextColor("#005500");
+
+    HighlightingRule definitions(Qt::black, ".+->", "");
+    definitions.format.setFontItalic(true);
 
     // Build the highlighting rules
     highlightingRules
+
+        // Definitions (must come first)
+        << definitions
+
+        // Infix, postfix, prefix and names
+        << HighlightingRule(Qt::darkCyan,       "", "")
+        << HighlightingRule(Qt::darkYellow,     "", "")
+        << HighlightingRule(Qt::darkMagenta,    "", "")
+        << HighlightingRule(Qt::darkGray,       "", "")
 
         // Digits
         << HighlightingRule(Qt::darkBlue,       "\\d*\\.?\\d+")
 
         // Text
         << HighlightingRule(Qt::darkGreen,      "\"[^\"]*\"")
-        << HighlightingRule(Qt::darkCyan,       "'[^']*'")
+        << HighlightingRule(Qt::darkGreen,      "'[^']*'")
 
         // Multiline text
-        << HighlightingRule(Qt::darkYellow,     "<<", ">>")
+        << HighlightingRule(Qt::darkGreen,      "<<", ">>")
 
         // Single line comment
         << HighlightingRule(Qt::darkRed,        "//[^\n]*")
 
         // Multi-line comment
-        << HighlightingRule(Qt::darkRed,        "/\\*", "\\*/")
-
-        // Names
-        << HighlightingRule(namesColor,         "", "");
+        << HighlightingRule(Qt::darkRed,        "/\\*", "\\*/");
 
     selectedFormat.setBackground(selectedColor);
 }
 
 
-void XLHighlighter::setXLNames(const QStringList &words)
+void XLHighlighter::highlightNames(int index, std::set<text> &names)
 // ----------------------------------------------------------------------------
-//    Set the words to highlight as XL names
+//    Set the words to highlight as XL names or symbols
 // ----------------------------------------------------------------------------
 {
-    HighlightingRule &nameRule = highlightingRules.back();
-    if (words.isEmpty())
+    HighlightingRule &nameRule = highlightingRules[index+1];
+    if (names.empty())
     {
         nameRule.begin = QRegExp("");
         return;
     }
-    QStringList w(words);
-    w.replaceInStrings("*", "\\*");
-    w.replaceInStrings("+", "\\+");
-    QString exp = QString("\\b(%1)\\b").arg(words.join("|"));
-    std::cerr << "Rule for names is " << +exp << "\n";
+    QStringList w;
+    for (std::set<text>::iterator n = names.begin(); n != names.end(); n++)
+        w << QRegExp::escape(+*n);
+    QString exp = w.join("|");
+    if (index != 1)
+        exp = QString("\\b(%1)\\b").arg(exp);
     nameRule.begin = QRegExp(exp);
 }
 
@@ -122,11 +132,14 @@ void XLHighlighter::highlightBlock(const QString &txt)
         for (int r = 0; r < highlightingRules.size(); r++)
         {
             HighlightingRule &rule = highlightingRules[r];
-            int index = rule.begin.indexIn(txt, pos);
-            if (index >= 0 && index < bestIndex)
+            if (!rule.begin.isEmpty())
             {
-                currentState = r;
-                bestIndex = index;
+                int index = rule.begin.indexIn(txt, pos);
+                if (index >= 0 && index < bestIndex)
+                {
+                    currentState = r;
+                    bestIndex = index;
+                }
             }
         }
 

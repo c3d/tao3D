@@ -72,7 +72,6 @@
 #include "html_converter.h"
 #include "xl_source_edit.h"
 #include "tool_window.h"
-#include "context.h"
 #include "tree-walk.h"
 #include "raster_text.h"
 #include "dir.h"
@@ -4398,35 +4397,22 @@ void Widget::updateProgramSource(bool notWhenHidden)
 }
 
 
-QStringList Widget::listNames()
+void Widget::listNames(XLSourceEdit *editor)
 // ----------------------------------------------------------------------------
 //   Return list of names in current program
 // ----------------------------------------------------------------------------
 {
-    if (!xlProgram)
-        return QStringList();
-    QStringList names;
-    XL::Context_p context = xlProgram->context;
-    XL::rewrite_list rlist;
-    context->ListNames("", rlist, XL::Context::SCOPE_LOOKUP, true);
-    XL::rewrite_list::iterator i;
-    for (i = rlist.begin(); i != rlist.end(); i++)
-    {
-        XL::Tree_p tree = (*i)->from;
-        Name * n = tree->AsName();
-        if (!n)
-            if (Prefix * p = tree->AsPrefix())
-                n = p->left->AsName();
-        if (n)
-        {
-            QString name = +n->value;
-            if (name == "++" || name == "--")
-                continue;
-            if (!names.contains(name))
-                names << name;
-        }
-    }
-    return names;
+    XL::name_set names, infix, prefix, postfix;
+    XL::MAIN->ListNames("", names, infix, prefix, postfix);
+    infix.erase("\n");
+    prefix.insert("if");
+    prefix.insert("while");
+    prefix.insert("until");
+    prefix.insert("for");
+    editor->highlightNames(0, infix);
+    editor->highlightNames(1, postfix);
+    editor->highlightNames(2, prefix);
+    editor->highlightNames(3, names);
 }
 
 
@@ -13007,7 +12993,7 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
 
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
-        chooser->AddCommands(xlProgram->context, prefix, label);
+        chooser->AddCommands(prefix, label);
         return XL::xl_true;
     }
     return XL::xl_false;

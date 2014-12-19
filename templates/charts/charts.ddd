@@ -39,7 +39,7 @@ main_title_slide "Charts samples" fr "Exemples de diagrammes",
 // ----------------------------------------------------------------------------
 //   Intro slide
 // ----------------------------------------------------------------------------
-    title text "Charts samples" fr "Exemples de diagrammes"
+    title "Charts samples" fr "Exemples de diagrammes"
     subtitle
         text "Utilisez les touches 'flèche gauche' et 'flèche droite' pour changer le thème." en <<Use "left" and "right" key to change theme.>>
 

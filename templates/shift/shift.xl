@@ -182,8 +182,8 @@ story Subtitle:text, Bullet:text ->
 // ----------------------------------------------------------------------------
      story_box
         if Subtitle <> "" then
-            subtitle text Subtitle
-        bullet text Bullet
+            subtitle Subtitle
+        bullet Bullet
 
 
 bullet Body ->

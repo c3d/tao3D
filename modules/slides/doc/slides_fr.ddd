@@ -13,8 +13,8 @@ main_title_slide "Titre principal",
 //   Creation d'une diapositive principale avec un titre et un sous titre
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    title text "Titre principal" // Ajoute le titre principal sur la diapositive
-    subtitle text "Sous-titre" // Ajoute le sous-titre sur la diapositive
+    title "Titre principal" // Ajoute le titre principal sur la diapositive
+    subtitle "Sous-titre" // Ajoute le sous-titre sur la diapositive
 
 
 section_slide "Section 1",
@@ -22,7 +22,7 @@ section_slide "Section 1",
 //   Creation d'une diapositive de section simple
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    title text "Section 1" // Ajoute le titre de la section sur la diapositive
+    title "Section 1" // Ajoute le titre de la section sur la diapositive
 
 
 picture_slide "Diapositive avec une image",
@@ -56,7 +56,7 @@ section_slide "Section 2",
 //   Creation d'une diapositive de section simple
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    title text "Section 2" // Ajoute le titre de la section sur la diapositive
+    title "Section 2" // Ajoute le titre de la section sur la diapositive
 
 
 title_slide "Diapositive avec deux images",

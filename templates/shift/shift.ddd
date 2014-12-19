@@ -129,13 +129,13 @@ panel "Phoenix canariensis", 2 ->
 // ----------------------------------------------------------------------------
 //   Second pane
 // ----------------------------------------------------------------------------
-    title text "Phoenix canariensis"
+    title "Phoenix canariensis"
 
     story_box
-        subtitle text "Description"
-        bullet text trn "Native from the Canary Islands"
-        bullet text trn "Large (10-20m), solitary palm"
-        bullet text trn "Long pinnate leaves (4-6m)"
+        subtitle "Description"
+        bullet trn "Native from the Canary Islands"
+        bullet trn "Large (10-20m), solitary palm"
+        bullet trn "Long pinnate leaves (4-6m)"
 
 trn "fr", "Native from the Canary Islands" -> "Originaire des îles Canaries"
 trn "fr", "Large (10-20m), solitary palm" -> "Palmier solitaire, de grande taille (10 à 20m)"
@@ -146,13 +146,13 @@ panel "Phoenix canariensis", 3 ->
 // ----------------------------------------------------------------------------
 //   Third pane
 // ----------------------------------------------------------------------------
-    title text "Phoenix canariensis"
+    title "Phoenix canariensis"
 
     story_box
-        subtitle text trn "Main uses"
-        bullet text trn "Ornemental"
-        bullet text trn "Building (trunk, leaves)"
-        bullet text trn "Palm syrup (made from the sap)"
+        subtitle trn "Main uses"
+        bullet trn "Ornemental"
+        bullet trn "Building (trunk, leaves)"
+        bullet trn "Palm syrup (made from the sap)"
 
 trn "fr", "Main uses" -> "Utilisations principales"
 trn "fr", "Ornemental" -> "Ornementale"
@@ -170,18 +170,18 @@ panel "Phoenix canariensis", 4 ->
         color "#DDD", 0.15
         line_width 1
         rounded_rectangle -20, 0, 620, 560, 20
-    title text trn "Other species"
+    title trn "Other species"
     story_box
-        subtitle text "P. dactylifera"
-        bullet text trn "The ""true"" date palm"
+        subtitle "P. dactylifera"
+        bullet  trn "The ""true"" date palm"
         sep
 
-        subtitle text "P. acaulis"
-        bullet text trn "The dwarf date palm"
+        subtitle "P. acaulis"
+        bullet trn "The dwarf date palm"
         sep
 
-        subtitle text "P. atlantica"
-        bullet text trn "Endangered species from Cape Verde"
+        subtitle "P. atlantica"
+        bullet trn "Endangered species from Cape Verde"
         sep
 
 trn "fr", "Other species" -> "Autres espèces"
@@ -204,12 +204,12 @@ panel "Washingtonia robusta", 2 ->
 // ----------------------------------------------------------------------------
 //   Second pane
 // ----------------------------------------------------------------------------
-    title text "Washingtonia robusta"
+    title "Washingtonia robusta"
 
     story_box
-        bullet text trn "Large tree, 25 to 30m (82 to 98ft)"
-        bullet text trn "Commonly grown for ornamental purposes"
-        bullet text trn "Introduced to Los Angeles to beautify the town for the 1932 Summer Olympics"
+        bullet trn "Large tree, 25 to 30m (82 to 98ft)"
+        bullet trn "Commonly grown for ornamental purposes"
+        bullet trn "Introduced to Los Angeles to beautify the town for the 1932 Summer Olympics"
 
 trn "fr", "Large tree, 25 to 30m (82 to 98ft)" ->
           "Peut mesurer jusqu'à 30 m (25 m en général)"

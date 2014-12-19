@@ -22,8 +22,8 @@ theme "Default"
 
 // Show a main title slide with the default theme
 main_title_slide "My presentation slide",
-    title text "My presentation title"
-    subtitle text "Default theme"
+    title "My presentation title"
+    subtitle "Default theme"
 
 // Change theme to "Keyboard"
 theme "Keyboard"
@@ -85,8 +85,8 @@ theme "Default"
 
 // Diapositive avec un titre, style par défaut
 main_title_slide "Titre de la présentation",
-    title text "Mon titre de présentation"
-    subtitle text "Thème par défaut"
+    title "Mon titre de présentation"
+    subtitle "Thème par défaut"
 
 // Activation du thème "Keyboard"
 theme "Keyboard"
@@ -696,7 +696,7 @@ import Slides
 
 // Show only title and nothing else
 main_title_slide "Main slide",
-    title text "My Presentation title"  // Main titre
+    title "My Presentation title"  // Main titre
 @endcode
  *
  * @image html main_title_slide_en.png "Screenshot of the previous example"
@@ -710,7 +710,7 @@ import Slides
 
 // Affiche le titre principal et rien d'autre
 main_title_slide "Diapositive principal",
-    title text "Mon titre de présentation" // Titre principale
+    title "Mon titre de présentation" // Titre principale
 @endcode
  *
  * @image html main_title_slide_fr.png "Capture d'écran de l'exemple précédent"
@@ -733,7 +733,7 @@ main_title_slide "Diapositive principal"
 import Slides
 
 main_title_slide T,
-    title text T
+    title T
 @endcode
  *
  * @~french
@@ -750,7 +750,7 @@ main_title_slide "Diapositive principal"
  * Il s'agit d'un raccourci au code suivant :
 @code
 main_title_slide T,
-    title text T
+    title T
 @endcode
  *
  */
@@ -767,7 +767,7 @@ import Slides
 
 // Show a slide with a section title
 section_slide "Section slide",
-    title text "First section" // Section title
+    title "First section" // Section title
 @endcode
  *
  * @image html section_slide_en.png "Screenshot of the previous example"
@@ -781,7 +781,7 @@ import Slides
 
 // Affiche une diapositive avec un titre de section
 section_slide "Diapositive de section",
-    title text "Section 1"  // Titre de la section
+    title "Section 1"  // Titre de la section
 @endcode
  *
  * @image html section_slide_fr.png "Capture d'écran de l'exemple précédent"
@@ -804,7 +804,7 @@ section_slide "Section slide"
  * It is a shortcut to the following code :
 @code
 section_slide T,
-    title text T
+    title T
 @endcode
  *
  * @~french
@@ -819,7 +819,7 @@ section_slide "Diapositive de section"
  * Il s'agit d'un raccourci au code suivant :
 @code
 section_slide T,
-    title text T
+    title T
 @endcode
  *
  */

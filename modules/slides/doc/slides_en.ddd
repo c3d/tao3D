@@ -17,8 +17,8 @@ main_title_slide "Main title",
 //   Create a main slide with title and subtitle
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    title text "Main title" // Add main title on the slide
-    subtitle text "Subtitle"   // Add subtitle on the slide
+    title "Main title" // Add main title on the slide
+    subtitle "Subtitle"   // Add subtitle on the slide
 
 
 section_slide "First Section",
@@ -26,7 +26,7 @@ section_slide "First Section",
 //   Create a simple slide with section title
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    title text "First section" // Add section title on the slide
+    title "First section" // Add section title on the slide
 
 
 picture_slide "Slide with image",
@@ -60,7 +60,7 @@ section_slide "Second Section",
 //   Create a simple slide with section title
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    title text "Second section" // Add section title on the slide
+    title "Second section" // Add section title on the slide
 
 
 title_slide "Slide with two images",

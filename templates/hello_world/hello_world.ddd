@@ -4,11 +4,11 @@
 //
 //   File Description:
 //
-//    Original hello world with Tao3D.
+//    Original "hello world" program with Tao3D.
 //
-//
-//
-//
+//    This shows "Hello World" spinning over the surface of Earth
+//    It demonstrates how to generate a dynamic texture containing text
+//    that can then be mapped over any surface, e.g. a sphere
 //
 //
 //
@@ -19,8 +19,122 @@
 //   Christophe de Dinechin <christophe@taodyne.com>
 //   Jerome Forissier <jerome@taodyne.com>
 //   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//  See license at end of file
+// ****************************************************************************
+
+
+page "Hello World",
+// ----------------------------------------------------------------------------
+//    The document contains a single page that draws the following scene:
+// ----------------------------------------------------------------------------
+    // A starry background of radius 10000 pixels
+    milkyway 10000
+    
+    // Tilt the Earth on the side
+    rotatez -23
+    
+    // Draw the Earth, radius 400 pixels
+    earth 400
+    
+    // Draw "Hello World", slightly larger radius
+    hello_world 440
+
+
+
+// ============================================================================
 //
-// <contact@taodyne.com>
+//                            SUPPORT FUNCTIONS
+//
+// ============================================================================
+
+
+milkyway R ->
+// ----------------------------------------------------------------------------
+//    Draw a starry background using an inside-out sphere
+// ----------------------------------------------------------------------------
+
+    // Changes below are local
+    locally
+        // Change color to "white", preserve original colors of texture
+        color "white"
+
+        // Repeat texture 5x along each axis, wrapping it around at edges
+        texture_wrap true, true
+        texture_transform { scale 5 }
+
+        // Use the 'milkyway.jpg' as texture, which we will map on a sphere
+        texture "milkyway.jpg"
+
+        // Rotate very slowly over time (0.02 degrees per second)
+        rotatey 0.02 * page_time + 100
+
+        // We are inside the sphere, flip Y axis to avoid "culling"
+        scale 1, -1, 1
+
+        // Draw (large) sphere with texture as our background
+        sphere R
+
+
+earth R ->
+// ----------------------------------------------------------------------------
+//    Draw the Earth surface
+// ----------------------------------------------------------------------------
+
+    // Keep all changes below local
+    locally
+        // Enable light 0, put it in top-right-front
+        light 0
+        light_position 1000, 1000, 1000
+
+        // Use the 'earth.jpg' texture, color it in white (default is black)
+        color "white"
+        texture "earth.jpg"
+
+        // Rotate 5 degrees per second, start at 250 degrees (over Europe)
+        rotatey 5 * page_time + 250
+
+        // Draw a sphere
+        sphere R
+        
+
+hello_world R ->
+// ----------------------------------------------------------------------------
+//    Draw Hello World text in multiple languages
+// ----------------------------------------------------------------------------
+
+    locally
+        // Create a 1900x600 pixels dynamic texture
+        frame_texture 1900, 600,
+            // Inside the texture, we'll draw everything in white
+            color "white"
+
+            // Prefer 'Arial Unicode MS' font, default to 'unifont' otherwise
+            font "Arial Unicode MS","unifont",72
+
+            // Move to the left of the texture, slightly down
+            move_to -800, -9, 0
+
+            // Draw the text from this cursor position
+            text "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
+
+        // Once here, we have a 1900x600 pixels texture containing the text
+        // in white over a transparent background.
+
+            
+        // Spin 11 degrees per second, start at 180 degrees to reveal "Hello"
+        rotatey -11 * page_time + 180
+
+        // Draw the shadow, a dark gray rendering of the text with 70% opacity
+        color 20% , 20% , 20% , 70%             // Darker for the shadow
+        sphere R - 30
+
+        // Draw the text itself, a bright yellow rendering with 90% opacity
+        color 100% , 90% , 20% , 90%
+        sphere R
+
+
+
+// ****************************************************************************
 //
 // This software is a computer program whose purpose is to serve as a
 // document template for the Tao3D application.
@@ -50,71 +164,7 @@
 //
 // The fact that you are presently reading this means that you have had
 // knowledge of the CeCILL-B license and that you accept its terms.
+//
 // ****************************************************************************
 
 
-// ============================================================================
-//
-//                                   PAGES
-//
-// ============================================================================
-
-page "Hello World",
-// -------------------------------------------------
-//    Main scene
-// -------------------------------------------------
-    milkyway 10000
-    rotatez -23
-    earth 400
-    hello_world 440
-
-
-// ============================================================================
-//
-//                                 FUNCTIONS
-//
-// ============================================================================
-
-
-milkyway R ->
-// -------------------------------------------------
-//    Draw milkyway
-// -------------------------------------------------
-    locally
-        color "white"
-        texture_wrap true, true
-        texture_transform {scale 5, 5, 5}
-        texture "milkyway.jpg"
-        rotatey 0.02 * page_time + 100
-        scale 1, -1, 1
-        sphere R
-
-earth R ->
-// -------------------------------------------------
-//    Draw earth
-// -------------------------------------------------
-    locally
-        color "white"
-        texture "earth.jpg"
-        rotatey 5 * page_time + 250
-        sphere 0, 0, 0, R
-
-hello_world R ->
-// -------------------------------------------------
-//    Draw hello world text
-// -------------------------------------------------
-    locally
-        frame_texture 1900, 600,
-            color 1, 1, 1, 1
-            reset_transform
-            // If font Arial Unicode installed, it will be used.
-            // Otherwise, unifont will be used (unifont is packaged
-            // with Tao3D).
-            font "Arial Unicode MS", "unifont", 72
-            move_to -800, -9, 0
-            text "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
-        rotatey -11 * page_time + 180
-        color 20% , 20% , 20% , 70%
-        sphere 0, 0, 0, R - 30
-        color 100% , 90% , 20% , 90%
-        sphere 0, 0, 0, R

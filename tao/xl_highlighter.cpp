@@ -32,17 +32,11 @@ XLHighlighter::XLHighlighter(QTextDocument *parent)
 // ----------------------------------------------------------------------------
     : QSyntaxHighlighter(parent)
 {
-    QColor selectedColor("#FFE0D0");
+    QColor selectedColor("#FFFF30");
     QColor longTextColor("#005500");
-
-    HighlightingRule definitions(Qt::black, ".+->", "");
-    definitions.format.setFontItalic(true);
 
     // Build the highlighting rules
     highlightingRules
-
-        // Definitions (must come first)
-        << definitions
 
         // Infix, postfix, prefix and names
         << HighlightingRule(Qt::darkCyan,       "", "")
@@ -75,7 +69,7 @@ void XLHighlighter::highlightNames(int index, std::set<text> &names)
 //    Set the words to highlight as XL names or symbols
 // ----------------------------------------------------------------------------
 {
-    HighlightingRule &nameRule = highlightingRules[index+1];
+    HighlightingRule &nameRule = highlightingRules[index];
     if (names.empty())
     {
         nameRule.begin = QRegExp("");
@@ -100,6 +94,9 @@ void XLHighlighter::highlightBlock(const QString &txt)
     int currentState = previousBlockState();
     int pos = 0;
 
+    // Check if we have a definition
+    int defIndex = txt.indexOf("->");
+
     // Check which rules apply and apply them
     while (pos >= 0 && pos < txt.length())
     {
@@ -113,6 +110,8 @@ void XLHighlighter::highlightBlock(const QString &txt)
                 // Remain in the same block state
                 setFormat(pos, txt.length()-pos, rule.format);
                 pos = txt.length();
+                if (pos <= defIndex)
+                    defIndex = -1;
                 break;
             }
             else
@@ -120,6 +119,8 @@ void XLHighlighter::highlightBlock(const QString &txt)
                 // Highlight until end
                 endIndex += rule.end.matchedLength();
                 setFormat(pos, endIndex-pos, rule.format);
+                if (pos <= defIndex && endIndex > defIndex)
+                    defIndex = -1;
 
                 // Return to default state at end of match
                 currentState = -1;
@@ -155,6 +156,8 @@ void XLHighlighter::highlightBlock(const QString &txt)
             int startIndex = rule.begin.indexIn(txt, pos);
             int endIndex = startIndex + rule.begin.matchedLength();
             setFormat(startIndex, endIndex-startIndex, rule.format);
+            if (startIndex <= defIndex && endIndex > defIndex)
+                defIndex = -1;
             pos = endIndex;
             currentState = -1;
         }
@@ -167,6 +170,23 @@ void XLHighlighter::highlightBlock(const QString &txt)
 
     // Remember current block state for next blocks
     setCurrentBlockState(currentState);
+
+    // Highlight definitions
+    if (defIndex >= 0)
+    {
+        QColor highlight("#F1FFE5");
+        int begin = 0, end = defIndex-1;
+        while (begin < defIndex && txt[begin] == ' ')
+            begin++;
+        while (end > begin && txt[end] == ' ')
+            end--;
+        for (int c = begin; c <= end; c++)
+        {
+            QTextCharFormat background = format(c);
+            background.setBackground(highlight);
+            setFormat(c, 1, background);
+        }
+    }
     
     // Objects that are selected in the graphical view are shown in a special
     // way in the source code, too

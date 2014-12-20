@@ -95,10 +95,17 @@ slide "Palm Trees",
         font "Verdana", 80
         vertical_align_center
         align_center
-        text trn "Palm Trees"
+        paragraph trn "Palm Trees"
+        font_size 40
+        paragraph trn "Use up/down to change topic"
+        paragraph trn "left/right to animate"
+        paragraph trn "Use 'f' for French"
     at_step 1
 
 trn "fr", "Palm Trees" -> "Les palmiers"
+trn "fr", "Use up/down to change topic" -> "Haut/bas pour changer de sujet"
+trn "fr", "left/right to animate" -> "gauche/droite pour animer"
+trn "fr", "Use 'f' for French" -> "Tapez 'e' pour voir en Anglais"
 
 
 slide "Phoenix canariensis",

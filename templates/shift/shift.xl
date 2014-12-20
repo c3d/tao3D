@@ -173,7 +173,7 @@ story_box Body ->
     text_box 0, 0, 580, 700,
         vertical_align 0.5
         align 0, 0
-        Body
+        render Body
 
 
 story Subtitle:text, Bullet:text ->
@@ -197,7 +197,7 @@ bullet Body ->
     rectangle 0, 12, 10, 10
     color "black"
     text "  "
-    Body
+    render Body
 
 
 // ============================================================================

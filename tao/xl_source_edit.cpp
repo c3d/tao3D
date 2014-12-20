@@ -30,6 +30,7 @@
 #include <QEvent>
 #include <QKeyEvent>
 #include <QFileInfo>
+#include <QTextDocumentFragment>
 
 namespace Tao {
 
@@ -156,6 +157,10 @@ bool XLSourceEdit::event(QEvent *e)
             else
                 done = handleTabKey(ke);
         }
+        else if (ke->key() == Qt::Key_Backtab)
+        {
+            done = handleShiftTabKey(ke);
+        }
         else if (ke->key() == Qt::Key_F1)
         {
             done = handleF1Key(ke);
@@ -169,21 +174,111 @@ bool XLSourceEdit::event(QEvent *e)
 
 bool XLSourceEdit::handleTabKey(QKeyEvent *)
 // ----------------------------------------------------------------------------
-//   Replace tab with 4 spaces
+//   Indent everything in the selection by 4 spaces
 // ----------------------------------------------------------------------------
 {
-    textCursor().insertText(QString(4, ' '));
+    QTextCursor cur = textCursor();
+    int a = cur.anchor();
+    int p = cur.position();
+    int newA = a + 4;
+
+    cur.beginEditBlock();
+    
+    // Save a new anchor at the beginning of the line of the selected text
+    cur.setPosition(a);
+    cur.movePosition(QTextCursor::StartOfBlock,QTextCursor::MoveAnchor);
+    a = cur.position();
+
+    // Set a new selection with the new beginning
+    cur.setPosition(a);
+    cur.setPosition(p, QTextCursor::KeepAnchor);
+
+    // Get the selected text and split into lines, insert spaces
+    QString str = cur.selection().toPlainText();
+    QStringList list = str.split("\n");
+    int last = list.count();
+    if (last > 1 && cur.atBlockStart())
+        --last;
+    for (int i = 0; i < last; i++)
+    {
+        list[i].insert(0, "    ");
+        p += 4;
+    }
+ 
+    // Put the text with indents back
+    str = list.join("\n");
+    cur.removeSelectedText();
+    cur.insertText(str);
+    
+    // Reselect the text for more indents
+    cur.setPosition(newA);
+    cur.setPosition(p, QTextCursor::KeepAnchor);
+
+    setTextCursor(cur);
+
+    cur.endEditBlock();
+    
     return true;
 }
 
 
 bool XLSourceEdit::handleShiftTabKey(QKeyEvent *)
 // ----------------------------------------------------------------------------
-//   Insert a real tab
+//   Unindent by 4 spaces
 // ----------------------------------------------------------------------------
 {
-    textCursor().insertText("\t");
-    return true;
+    QTextCursor cur = textCursor();
+    int a = cur.anchor();
+    int p = cur.position();
+    int newA = a - 4;
+
+    cur.beginEditBlock();
+    
+    // Save a new anchor at the beginning of the line of the selected text
+    cur.setPosition(a);
+    cur.movePosition(QTextCursor::StartOfBlock,QTextCursor::MoveAnchor);
+    a = cur.position();
+
+    // Set a new selection with the new beginning
+    cur.setPosition(a);
+    cur.setPosition(p, QTextCursor::KeepAnchor);
+
+    // Get the selected text and split into lines, insert spaces
+    QString str = cur.selection().toPlainText();
+    QStringList list = str.split("\n");
+    int last = list.count();
+    if (last > 1 && cur.atBlockStart())
+        --last;
+
+    // Check if we can actually unindent
+    bool ok = true;
+    for (int i = 0; ok && i < last; i++)
+        if (list[i].left(4) != "    ")
+            ok = false;
+
+    if (ok)
+    {
+        for (int i = 0; i < last; i++)
+        {
+            list[i] = list[i].mid(4);
+            p -= 4;
+        }
+ 
+        // Put the text with indents back
+        str = list.join("\n");
+        cur.removeSelectedText();
+        cur.insertText(str);
+    
+        // Reselect the text for more indents
+        cur.setPosition(newA);
+        cur.setPosition(p, QTextCursor::KeepAnchor);
+
+        setTextCursor(cur);
+    }
+    
+    cur.endEditBlock();
+    
+    return ok;
 }
 
 

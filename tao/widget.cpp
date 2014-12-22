@@ -1382,7 +1382,7 @@ bool Widget::RenderingTransparencyAPI()
 // ----------------------------------------------------------------------------
 {
     Widget *widget = findTaoWidget();
-    return widget->space->transparency;
+    return widget->layout->transparency;
 }
 
 

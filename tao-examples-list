@@ -1,196 +1,188 @@
-Movies/YouTube movie
-tao:2DMovie
-Load a 2D movie directly from YouTube and present it in a page
+Features/Tao language overview
+tao:TaoLanguageIntro
+An overview of the Tao language: shapes, loops, colors, movies
+
+Features/Shapes
+tao:Shapes
+A catalog of available 2D and 3D shapes
+
+Features/Transforms
+tao:Transforms
+Geometric transforms
+
+Features/Colors
+tao:Colors
+Changing colors and color spaces
+
+Features/Interactivity
+tao:Interactivity
+Simple interactivity with mouse, keyboard, menus
+
+Features/Lighting
+tao:Lighting
+Shows how lighting works with multiple lights
+
+Features/Materials
+tao:Materials
+A catalog of procedural materials
+
+Features/Textures
+tao:Textures
+Using static and dynamic textures
+
+Features/Themes with menu selection
+tao:Themes2
+List of themes which can be selected from a menu
+
+Text/Text effects
+tao:TextEffects
+Various text effects: fonts, layout, textures
+
+Text/Text justification
+tao:TextJustification
+Horizontal and vertical alignment and justification
+
+Text/Text layout
+tao:TextLayout
+Text layout control: line height, word spacing, etc
 
 Animations/3D menu
 tao:3DMenu
 A 3D interactive menu with back-and-forth transitions
 
-Simple/3DMovie
-tao:3DMovie
-description for 3DMovie
-
-Simple/Animations
+Animations/Sphere snake
 tao:Animations
-description for Animations
+A simple animation with 16 colored spheres creating a snake
 
-Simple/Bloggie3D
-tao:Bloggie3D
-description for Bloggie3D
-
-Simple/Breakout
-tao:Breakout
-description for Breakout
-
-Simple/Car
-tao:Car
-description for Car
-
-Simple/Cartoons
+Animations/Cartoons
 tao:Cartoons
-description for Cartoons
+A simple cartoon character and town
 
-Simple/Colors
-tao:Colors
-description for Colors
+Animations/YouTube movie
+tao:2DMovie
+Load a 2D movie directly from YouTube and present it in a page
 
-Simple/Cubes
-tao:Cubes
-description for Cubes
-
-Simple/DaliClock
-tao:DaliClock
-description for DaliClock
-
-Simple/Geonpi
-tao:Geonpi
-description for Geonpi
-
-Simple/Interactivity
-tao:Interactivity
-description for Interactivity
-
-Simple/LLVM
-tao:LLVM
-description for LLVM
-
-Simple/Landscapes
-tao:Landscapes
-description for Landscapes
-
-Simple/Language
-tao:Language
-description for Language
-
-Simple/Lighting
-tao:Lighting
-description for Lighting
-
-Simple/Lorenz
-tao:Lorenz
-description for Lorenz
-
-Simple/Materials
-tao:Materials
-description for Materials
-
-Simple/Multilingual
-tao:Multilingual
-description for Multilingual
-
-Simple/MultilingualSlides
-tao:MultilingualSlides
-description for MultilingualSlides
-
-Simple/NE3D
-tao:NE3D
-description for NE3D
-
-Simple/News
-tao:News
-description for News
-
-Simple/RadioHead
-tao:RadioHead
-description for RadioHead
-
-Simple/Raytrace
-tao:Raytrace
-description for Raytrace
-
-Simple/SAPStars
-tao:SAPStars
-description for SAPStars
-
-Simple/Shaders
-tao:Shaders
-description for Shaders
-
-Simple/Shapes
-tao:Shapes
-description for Shapes
-
-Simple/Shift
-tao:Shift
-description for Shift
-
-Simple/SimpleSlides
-tao:SimpleSlides
-description for SimpleSlides
-
-Simple/SpaceShuttle
-tao:SpaceShuttle
-description for SpaceShuttle
-
-Simple/SpaceShuttleTransp
-tao:SpaceShuttleTransp
-description for SpaceShuttleTransp
-
-Simple/StarMap
-tao:StarMap
-description for StarMap
-
-Simple/TEDx
-tao:TEDx
-description for TEDx
-
-Simple/TaoLanguageIntro
-tao:TaoLanguageIntro
-description for TaoLanguageIntro
-
-Simple/TextEffects
-tao:TextEffects
-description for TextEffects
-
-Simple/TextJustification
-tao:TextJustification
-description for TextJustification
-
-Simple/TextLayout
-tao:TextLayout
-description for TextLayout
-
-Simple/Textures
-tao:Textures
-description for Textures
-
-Simple/Themes
-tao:Themes
-description for Themes
-
-Simple/Themes2
-tao:Themes2
-description for Themes2
-
-Simple/ThisIsNotAUniverse
-tao:ThisIsNotAUniverse
-description for ThisIsNotAUniverse
-
-Simple/Transforms
-tao:Transforms
-description for Transforms
-
-Simple/Voeux2012
-tao:Voeux2012
-description for Voeux2012
-
-Simple/YouCube
+Animations/YouCube
 tao:YouCube
-description for YouCube
+Six YouTube movies playing simultaneously on a cube
 
-Simple/car_configurator
-tao:car_configurator
-description for car_configurator
-
-Simple/movie_player
+Animations/Movie player
 tao:movie_player
-description for movie_player
+A simple movie player
 
-Simple/stereo-errors
+Stereoscopy/3D movie player
+tao:3DMoviePlayer
+A simple 3D movie player that reads files from a directory
+
+Stereoscopy/3D movie from YouTube
+tao:3DMovie
+Decoding a 3D movie from YouTube (stereo only in Pro version)
+
+Models/Car
+tao:Car
+Interactive presentation of a 3D car model on a pedestal
+
+Models/Space shuttle
+tao:SpaceShuttle
+A very simple space shuttle visualization
+
+Models/Space shuttle with transparency
+tao:SpaceShuttleTransp
+A space shuttle visualization with transparency
+
+Models/Car configurator
+tao:car_configurator
+A simple car configurator
+
+Games/Breakout
+tao:Breakout
+A simple 3D breakout game in 300 lines of code
+
+Storytelling/Simple slides
+tao:SimpleSlides
+How to create simple slides with Tao
+
+Storytelling/Panel shifting
+tao:Shift
+Shifting panels on the side to reveal steps
+
+Storytelling/Text and images on a cube
+tao:Cubes
+Show text and images on the faces of a cube
+
+Storytelling/Using a programming language
+tao:Language
+Programming helps you create "smart" presentations
+
+Storytelling/Integrating real-time news
+tao:News
+Putting real-time news in a presentation
+
+Multilingual/Multilingual slides
+tao:Multilingual
+Simple multi-lingual slides (English, German, French)
+
+Multilingual/Multilingual slides with Language menu
+tao:MultilingualSlides
+How to use icons or menus to change languages
+
+Presentations/Themes
+tao:Themes
+An overview of the themes available in Tao3D
+
+Presentations/Low-Level Virtual Machine (LLVM)
+tao:LLVM
+An introduction to LLVM (in French)
+
+Presentations/NE3D
+tao:NE3D
+Presentation combining 3D models, YouTube 3D video, text
+
+Presentations/TEDx
+tao:TEDx
+Presentation given at the first TEDx in Nice
+
+Presentations/Voeux 2012
+tao:Voeux2012
+Taodyne's New Year Wishes for 2012
+
+Presentations/This Is Not A Universe
+tao:ThisIsNotAUniverse
+This is not a Universe - Is our universe virtual?
+
+Presentations/stereo-errors
 tao:stereo-errors
-description for stereo-errors
+A demonstration of various common stereoscopic errors
 
-Simple/time_for_taodyne
+Presentations/Time for Taodyne
 tao:time_for_taodyne
-description for time_for_taodyne
+Taodyne gives you the time and gives you more time
+
+Shaders/Real-time raytracing
+tao:Raytrace
+Using GLSL for real-time raytracing
+
+Shaders/Dali-style Clock
+tao:DaliClock
+A Dali-style melting clock that gives actual time
+
+Shaders/Shader catalog
+tao:Shaders
+A collection of shaders adapted from ShaderToy
+
+Science and visualization/Lorenz
+tao:Lorenz
+Show interactive Lorenz attractors in 3D
+
+Science and visualization/StarMap
+tao:StarMap
+A simple 3D star map based on Hipparcos data
+
+Science and visualization/Travel through the stars
+tao:SAPStars
+Travelling through the stars with real-time information
+
+Science and visualization/RadioHead "House of Cards" video
+tao:RadioHead
+Using point clouds to recreate the "House of Cards" video clip
 

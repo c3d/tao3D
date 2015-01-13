@@ -44,8 +44,8 @@ PLUGINS_DIR="${LIBDIR_QT}/../plugins/"
 EXCL=/tmp/tao_excl.$$.txt
 echo '*.a' >$EXCL
 if [ "$RELEASE" ] ; then
-  # Exclude *d4.dll when there exists *4.dll
-  (cd "${PLUGINS_DIR}" ; find * -name \*d4.dll) | while read d ; do r=$(echo $d | sed s/d4\.dll/4.dll/) ; [ -e "${PLUGINS_DIR}/$r" ] && echo "$d">>$EXCL ; done
+  # Exclude *d[45].dll when there exists *[45].dll
+  (cd "${PLUGINS_DIR}" ; find * -name \*d[45].dll) | while read d ; do r=$(echo $d | sed s/d4\.dll/4.dll/ | sed s/d5\.dll/5.dll/ ) ; [ -e "${PLUGINS_DIR}/$r" ] && echo "$d">>$EXCL ; done
   echo \# Excluding:
   cat $EXCL
 fi
@@ -57,7 +57,8 @@ rm -f $EXCL
 
 if [ -z "$PACKAGE_NORSYNC" ] ; then
 
-ssh io.taodyne.com "cat rsync-windows.tar.gz" | ( cd build_root ; tar xvfz - )
+curl 'http://www.taodyne.com/downloads/windows-files.tar.gz' -o windows-files.tar.gz
+(cd build_root; tar xvfz ../windows-files.tar.gz)
 
 fi # -z "$PACKAGE_NORSYNC"
 

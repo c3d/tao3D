@@ -4306,7 +4306,8 @@ void Widget::updateProgram(XL::SourceFile *source)
     if (xlProgram != NULL && sourceChanged())
         return;
     IFTRACE(justify)
-        std::cerr << "--Widget::updateProgram Clears layout " << space << std::endl;
+        std::cerr << "--Widget::updateProgram Clears layout "
+                  << space << std::endl;
     space->Clear();
     dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
@@ -6334,12 +6335,13 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
         XL::Save<Tree_p> savePageTree(pageTree, pageTree);
 
         for (uint p = 0; p < pageNames.size(); p++)
+        {
             if (pageNames[p] == pageName)
             {
                 pageShown = p + 1;
                 break;
             }
-
+        }
         clearColor(self, QColor::fromRgbF(1, 1, 1, 1));
         return context->Evaluate(xlProgram->tree);
     }
@@ -6367,12 +6369,13 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
         XL::Save<double> savePageTime(pageStartTime, transitionStartTime);
 
         for (uint p = 0; p < pageNames.size(); p++)
+        {
             if (pageNames[p] == pageName)
             {
                 pageShown = p + 1;
                 break;
             }
-
+        }
         clearColor(self, QColor::fromRgbF(1, 1, 1, 1));
         return context->Evaluate(xlProgram->tree);
     }

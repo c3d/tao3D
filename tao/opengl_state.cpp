@@ -136,7 +136,7 @@ OpenGLState::OpenGLState()
 
       matrixMode(GL_MODELVIEW),
       viewport(0, 0, 0, 0), listBase(0), pointSize(1),
-      polygonOffset(0, 0), color(1,1,1,1), clearColor(0,0,0,1),
+      polygonOffset(0, 0), color(1,1,1,1), clearColor(-1,-1,-1,-1),
       frontAmbient(0.2,0.2,0.2,1.0), frontDiffuse(0.8,0.8,0.8,1.0),
       frontSpecular(0,0,0,1), frontEmission(0,0,0,1), frontShininess(0),
       backAmbient(0.2,0.2,0.2,1.0), backDiffuse(0.8,0.8,0.8,1.0),

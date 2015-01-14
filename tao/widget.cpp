@@ -4546,7 +4546,7 @@ bool Widget::checkDocumentSigned()
         QDir          pubDir(taoWindow()->currentProjectFolderPath());
         QString       pubFileName(pubDir.filePath("publisher.info"));
         SignatureInfo si(+pubFileName);
-        
+
         IFTRACE(lic)
             std::cerr << "Player publisher info is " << +pubFileName << "\n";
 
@@ -4751,11 +4751,20 @@ void Widget::checkEditorInstructionsFile()
                 if (pnum < pageNames.size())
                 {
                     gotoPageName = pageNames[pnum];
-                    QString previewScreenShot = QString("%1-preview-%2.png")
-                        .arg(+xlProgram->name).arg(pid);
+
+                    QDir dir = instrsInfo.dir();
+                    dir.mkdir(".thumbnails");
+
+                    QFileInfo sourceInfo(+xlProgram->name);
+                    QString base(sourceInfo.fileName());
+                    QString pattern(".thumbnails/%1-%2.png");
+                    QString preview = pattern.arg(base).arg(pid);
+                    preview = dir.absoluteFilePath(preview);
+
                     savePreviewThread.setMaxSize(800, 600);
                     savePreviewThread.setInterval(533);
-                    savePreviewThread.setPath(previewScreenShot);
+                    savePreviewThread.setPath(preview);
+
                     refresh(0);
                 }
             }
@@ -5421,7 +5430,7 @@ void Widget::printPerLayoutStatistics()
     {
         const PerLayoutStatisticsWrapper &top = queue.top();
         PerLayoutStatistics *stats = top.stats;
-        
+
         if (stats->sourceLine == 0)
             XL::MAIN->positions.GetInfo(top.layoutBody->Position(),
                                         &stats->sourceFile,
@@ -5432,7 +5441,7 @@ void Widget::printPerLayoutStatistics()
                     stats->sourceFile.c_str(), stats->sourceLine,
                     stats->totalExecTime, stats->execCount,
                     stats->totalExecTime/(stats->execCount|!stats->execCount),
-                    stats->totalDrawTime, stats->drawCount, 
+                    stats->totalDrawTime, stats->drawCount,
                     stats->totalDrawTime/(stats->drawCount|!stats->drawCount));
         stats->reset();
         queue.pop();
@@ -7427,7 +7436,7 @@ Real_p Widget::refreshTime(Tree_p self)
         info = new LastRefreshInfo(current);
         self->SetInfo<LastRefreshInfo>(info);
     }
-    
+
     double refresh = current - info->last;
     if (refresh > 0)
     {
@@ -11561,7 +11570,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
             stats.end(Statistics::EXEC);
             stats.begin(Statistics::DRAW);
-            
+
             frame.begin(canvas == false);
             layout->Draw(NULL);
             frame.end();
@@ -13718,7 +13727,7 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
                                 "Use \"Save\" to save changes first."));
         return XL::xl_false;
     }
-    
+
     if (isReadOnly())
     {
         QMessageBox::warning(this, tr("Insert"),
@@ -14530,9 +14539,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
 
 
 // ============================================================================
-// 
+//
 //   Running external processes
-// 
+//
 // ============================================================================
 
 Name_p Widget::runProcess(Tree_p self, text name, text args)

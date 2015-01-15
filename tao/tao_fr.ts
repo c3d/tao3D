@@ -1453,8 +1453,8 @@ Seul le second module sera chargé. Vous devriez sans doute changer l&apos;UUID 
     </message>
     <message>
         <location filename="nag_screen.cpp" line="61"/>
-        <source>http://taodyne.com/taopresentations/buynow</source>
-        <translation>http://taodyne.com/taopresentations/acheter</translation>
+        <source>http://www.taodyne.com/taopresentations/buynow</source>
+        <translation>http://www.taodyne.com/taopresentations/acheter</translation>
     </message>
 </context>
 <context>

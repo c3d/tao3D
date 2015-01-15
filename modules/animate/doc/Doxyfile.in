@@ -1,5 +1,5 @@
 @INCLUDE = ../../Doxyfile
 PROJECT_NAME = \"Animate\"
 PROJECT_NUMBER = 1.04
-QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.Animate.1.04
+QHP_NAMESPACE = com.Taodyne.Tao3D.modules.Animate.1.04
 QHP_VIRTUAL_FOLDER = Animate

@@ -220,15 +220,15 @@ Function RegisterFileExtension
   Exch $0
   DetailPrint $(reg_fileext)
   DeleteRegKey HKCR "$0"
-  WriteRegStr HKCR "$0" "" "TaoPresentations.Document"
-  DeleteRegKey HKCR "TaoPresentations.Document"
-  WriteRegStr HKCR "TaoPresentations.Document" "" $(tao_document) 
-  WriteRegStr HKCR "TaoPresentations.Document\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
-  WriteRegStr HKCR "TaoPresentations.Document\shell" "" ""
-  WriteRegStr HKCR "TaoPresentations.Document\shell\Open" "" ""
-  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\command" "" "$INSTDIR\Tao.exe"
-  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\ddeexec" "" "[open($\"%1$\")]"
-  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\ddeexec\Application" "" "Tao"
+  WriteRegStr HKCR "$0" "" "Tao3D.Document"
+  DeleteRegKey HKCR "Tao3D.Document"
+  WriteRegStr HKCR "Tao3D.Document" "" $(tao_document) 
+  WriteRegStr HKCR "Tao3D.Document\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
+  WriteRegStr HKCR "Tao3D.Document\shell" "" ""
+  WriteRegStr HKCR "Tao3D.Document\shell\Open" "" ""
+  WriteRegStr HKCR "Tao3D.Document\shell\Open\command" "" "$INSTDIR\Tao.exe"
+  WriteRegStr HKCR "Tao3D.Document\shell\Open\ddeexec" "" "[open($\"%1$\")]"
+  WriteRegStr HKCR "Tao3D.Document\shell\Open\ddeexec\Application" "" "Tao"
   Pop $R0
 
 FunctionEnd

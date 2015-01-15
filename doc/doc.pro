@@ -39,7 +39,7 @@ equals(HAS_DOXYGEN, 1) {
   !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
   QMAKE_SUBSTITUTES = Doxyfile.in \
                       DoxyfileWebdoc.in \
-                      TaoPresentations.qhcp.in
+                      Tao3D.qhcp.in
   QMAKE_DISTCLEAN += $$replace(QMAKE_SUBSTITUTES, .in, )
 
   include (../modules/module_list.pri)
@@ -92,14 +92,14 @@ equals(HAS_DOXYGEN, 1) {
 
   INSTALLS += install_doc
 
-  qhc.commands = qcollectiongenerator TaoPresentations.qhcp -o TaoPresentations.qhc
+  qhc.commands = qcollectiongenerator Tao3D.qhcp -o Tao3D.qhc
   qhc.depends = doc
   QMAKE_EXTRA_TARGETS += qhc
-  QMAKE_CLEAN += TaoPresentations.qhc
-  QMAKE_DISTCLEAN += TaoPresentations.qhc
+  QMAKE_CLEAN += Tao3D.qhc
+  QMAKE_DISTCLEAN += Tao3D.qhc
 
   install_qhc.path = $$APPINST/doc
-  install_qhc.commands = mkdir -p \"$$APPINST/doc\" ; cp TaoPresentations.qhc \"$$APPINST/doc/\"
+  install_qhc.commands = mkdir -p \"$$APPINST/doc\" ; cp Tao3D.qhc \"$$APPINST/doc/\"
   install_qhc.depends = qhc
   QMAKE_EXTRA_TARGETS += install_qhc
   INSTALLS += install_qhc

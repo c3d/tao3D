@@ -962,19 +962,19 @@ GENERATE_QHP           = NO
 # be used to specify the file name of the resulting .qch file.
 # The path specified is relative to the HTML output folder.
 
-QCH_FILE               = ../qch/TaoPresentations.qch
+QCH_FILE               = ../qch/Tao3D.qch
 
 # The QHP_NAMESPACE tag specifies the namespace to use when generating
 # Qt Help Project output. For more information please see
 # http://doc.trolltech.com/qthelpproject.html#namespace
 
-QHP_NAMESPACE          = com.taodyne.TaoPresentations.$$TAO_VERSION 
+QHP_NAMESPACE          = com.Taodyne.Tao3D.$$TAO_VERSION 
 
 # The QHP_VIRTUAL_FOLDER tag specifies the namespace to use when generating
 # Qt Help Project output. For more information please see
 # http://doc.trolltech.com/qthelpproject.html#virtual-folders
 
-QHP_VIRTUAL_FOLDER     = TaoPresentations
+QHP_VIRTUAL_FOLDER     = Tao3D
 
 # If QHP_CUST_FILTER_NAME is set, it specifies the name of a custom filter to
 # add. For more information please see

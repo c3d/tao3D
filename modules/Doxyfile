@@ -1046,7 +1046,7 @@ QCH_FILE               =
 # Qt Help Project output. For more information please see
 # http://doc.trolltech.com/qthelpproject.html#namespace
 
-QHP_NAMESPACE          = com.taodyne.TaoPresentations.modules
+QHP_NAMESPACE          = com.taodyne.Tao3d.modules
 
 # The QHP_VIRTUAL_FOLDER tag specifies the namespace to use when generating
 # Qt Help Project output. For more information please see

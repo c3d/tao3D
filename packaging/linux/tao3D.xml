@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
 
-  <mime-type type="application/com.taodyne.taopresentationsdoc">
+  <mime-type type="application/com.Taodyne.tao3Ddoc">
     <comment xml:lang="en">Tao3D document</comment>
     <comment xml:lang="fr">Document Tao3D</comment>
     <glob pattern="*.ddd"/>

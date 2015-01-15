@@ -64,10 +64,10 @@ ifneq (1,$(MAJOR))
 MAYBE_MAJOR=$(MAJOR)
 endif
 ifndef TAO_PLAYER
-PACKAGE_NAME = taopresentations
+PACKAGE_NAME = tao3D
 CONTROL = control
 else
-PACKAGE_NAME = taopresentationsplayer
+PACKAGE_NAME = tao3Dplayer
 CONTROL = control_player
 endif
 
@@ -81,9 +81,9 @@ debian:
 	cp $(PACKAGE_NAME).desktop debian/usr/share/applications/$(DEBPACKAGE).desktop
 	chmod 0644 debian/usr/share/applications/$(DEBPACKAGE).desktop
 	mkdir -p debian/usr/share/icons/hicolor/scalable/apps
-	cp taopresentations.svg debian/usr/share/icons/hicolor/scalable/apps/$(DEBPACKAGE).svg
+	cp tao3D.svg debian/usr/share/icons/hicolor/scalable/apps/$(DEBPACKAGE).svg
 	mkdir -p debian/usr/share/mime/packages
-	cp taopresentations.xml debian/usr/share/mime/packages/$(DEBPACKAGE).xml
+	cp tao3D.xml debian/usr/share/mime/packages/$(DEBPACKAGE).xml
 
 prepare: debian
 	$(MAKE) -C ../../ install && cp -Rp ../../install/* $(DEBTAO)

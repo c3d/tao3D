@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
 Categories=Graphics;Office;Development;Presentation;
-Exec=/opt/Taodyne/TaoPresentations/tao --one-instance %u
-Icon=taopresentations
-MimeType=application/com.taodyne.taopresentationsdoc;x-scheme-handler/tao;x-scheme-handler/taos;
+Exec=/opt/Taodyne/Tao3D/tao --one-instance %u
+Icon=tao3D
+MimeType=application/com.Taodyne.tao3Ddoc;x-scheme-handler/tao;x-scheme-handler/taos;
 X-KDE-Protocols=tao,taos
 
 Name=Tao3D

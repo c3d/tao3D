@@ -58,7 +58,7 @@ void NagScreen::processDialogStatus(int st)
 {
     if (st == QMessageBox::Ok)
     {
-        QUrl url(tr("http://taodyne.com/taopresentations/buynow"));
+        QUrl url(tr("http://www.taodyne.com/taopresentations/buynow"));
         QDesktopServices::openUrl(url);
     }
 }

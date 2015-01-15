@@ -87,12 +87,12 @@ void Assistant::showDocumentation(const QString &page)
         helpFiles.sort();
         // Show main Tao help file always first
         QString taoMainHelp = Application::applicationDirPath()
-                + "/doc/" + TaoApp->lang + "/qch/TaoPresentations-"
+                + "/doc/" + TaoApp->lang + "/qch/Tao3D-"
                 VERSION ".qch";
         // Load english doc if localized one is not available
         if (!QFileInfo(taoMainHelp).exists())
             taoMainHelp = Application::applicationDirPath()
-                    + "/doc/en/qch/TaoPresentations-"
+                    + "/doc/en/qch/Tao3D-"
                     VERSION ".qch";
         helpFiles.prepend(taoMainHelp);
         registerQchFiles(helpFiles);
@@ -352,7 +352,7 @@ QString Assistant::taoCollectionFilePath()
 {
     QString sep = QDir::separator();
     return Application::applicationDirPath()
-            + sep + "doc" + sep + "TaoPresentations.qhc";
+            + sep + "doc" + sep + "Tao3D.qhc";
 }
 
 
@@ -362,7 +362,7 @@ QString Assistant::userCollectionFilePath()
 // ----------------------------------------------------------------------------
 {
     return Application::defaultTaoPreferencesFolderPath()
-            + QDir::separator() + "TaoPresentations.qhc";
+            + QDir::separator() + "Tao3D.qhc";
 }
 
 

@@ -5,7 +5,7 @@
 	<!-- We keep default title wich is correctly translated by tr() in ../assistant -->
 	<!-- <title>Tao3D Help</title> -->
         <cacheDirectory>Taodyne/$$APP_NAME</cacheDirectory>
-        <startPage>qthelp://com.Taodyne.tao3d.$$TAO_VERSION/Tao3D/index.html</startPage>
+        <startPage>qthelp://com.taodyne.tao3d.$$TAO_VERSION/Tao3D/index.html</startPage>
         <aboutDialog>
             <file>about_help.html</file>
             <file language=\"fr\">about_help_fr.html</file>

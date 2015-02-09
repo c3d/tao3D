@@ -396,7 +396,7 @@ contains(DEFINES, CFG_NO_CRYPT) {
     !build_pass:message("[CFG_NO_CRYPT] Document decryption disabled")
 } else {
     NOWARN_SOURCES += \
-         crypt.cpp
+         crypto.cpp
 }
 
 contains(DEFINES, CFG_NO_CRYPT):DEFINES+=CFG_NO_LICENSE CFG_LIBRE_EDITION

@@ -9747,6 +9747,10 @@ static GraphicPath::EndpointStyle endpointStyle(text name)
     {
         return GraphicPath::HOLLOW_SQUARE;
     }
+    else if (name == "ROUNDED")
+    {
+        return GraphicPath::ROUNDED;
+    }
     else
     {
         // Others...

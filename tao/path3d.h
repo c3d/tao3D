@@ -82,7 +82,7 @@ public:
     enum EndpointStyle  { NONE,
                           ARROWHEAD, TRIANGLE, POINTER, DIAMOND, CIRCLE,
                           SQUARE, BAR, CUP, FLETCHING,
-                          HOLLOW_CIRCLE, HOLLOW_SQUARE };
+                          HOLLOW_CIRCLE, HOLLOW_SQUARE, ROUNDED };
     struct Element
     {
         Element(Kind k, const Point3 &p): kind(k), position(p) {}

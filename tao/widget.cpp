@@ -9692,12 +9692,11 @@ Tree_p Widget::closePath(Tree_p self)
 }
 
 
-static GraphicPath::EndpointStyle endpointStyle(symbol_r n)
+static GraphicPath::EndpointStyle endpointStyle(text name)
 // ----------------------------------------------------------------------------
 //   Translates XL name into endpoint style enum
 // ----------------------------------------------------------------------------
 {
-    text name = n.value;
     std::transform(name.begin(), name.end(), name.begin(), ::toupper);
 
     if (name == "NONE")
@@ -9755,7 +9754,26 @@ static GraphicPath::EndpointStyle endpointStyle(symbol_r n)
     }
 }
 
+
 Tree_p Widget::endpointsStyle(Tree_p self, symbol_r s, symbol_r e)
+// ----------------------------------------------------------------------------
+//   Specify the style of the path endpoints
+// ----------------------------------------------------------------------------
+{
+    if (!path)
+    {
+        Ooops("No path for $1", self);
+        return XL::xl_false;
+    }
+
+    path->startStyle = endpointStyle(s.value);
+    path->endStyle   = endpointStyle(e.value);
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::endpointsStyle(Tree_p self, text s, text e)
 // ----------------------------------------------------------------------------
 //   Specify the style of the path endpoints
 // ----------------------------------------------------------------------------
@@ -9771,6 +9789,7 @@ Tree_p Widget::endpointsStyle(Tree_p self, symbol_r s, symbol_r e)
 
     return XL::xl_true;
 }
+
 
 static Qt::PenStyle lineStyle(text name)
 // ----------------------------------------------------------------------------

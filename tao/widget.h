@@ -642,7 +642,8 @@ public:
     Tree_p      lineToRel(Tree_p self, Real_p x, Real_p y, Real_p z);
     Tree_p      pathTextureCoord(Tree_p self, Real_p x, Real_p y, Real_p r);
     Tree_p      closePath(Tree_p self);
-    Tree_p      endpointsStyle(Tree_p self,symbol_r s,symbol_r e);
+    Tree_p      endpointsStyle(Tree_p self, symbol_r s, symbol_r e);
+    Tree_p      endpointsStyle(Tree_p self, text s, text e);
 
     // 2D primitive that can be in a path or standalone
     Tree_p      fixedSizePoint(Tree_p self, coord x,coord y,coord z, coord s);

@@ -133,7 +133,7 @@ PREFIX(DoubleArrow,  tree,  "double_arrow",
        RTAO(doubleArrow(self, x, y, w, h, ax, ay)),
        GROUP(graph:path:shape)
        SYNOPSIS("Double arraw")
-       DESCRIPTION("Draw a symetric double arraw"))
+       DESCRIPTION("Draw a symetric double arrow"))
 PREFIX(StarPolygon,  tree,  "star_polygon",
        PARM(x, real, "center x-coordinate")
        PARM(y, real, "center y-coordinate")
@@ -299,5 +299,13 @@ PREFIX(EndpointsStyle,  tree,  "endpoints_style",
        RTAO(endpointsStyle(self, s, e)),
        GROUP(graph:path)
        SYNOPSIS("style of the path endpoints")
-       DESCRIPTION("Specify the style of the path endpoints. Supported values are : ARROWHEAD, ARROWHEAD, POINTER, DIAMOND, CIRCLE, SQUARE, BAR, CUP, FLETCHING, HOLLOW_CIRCLEHOLLOW_SQUARE.")
+       DESCRIPTION("Specify the style of the path endpoints. Supported values are : ARROWHEAD, ARROWHEAD, POINTER, DIAMOND, CIRCLE, SQUARE, BAR, CUP, FLETCHING, HOLLOW_CIRCLE, HOLLOW_SQUARE, ROUNDED.")
+       RETURNS(tree, ""))
+PREFIX(EndpointsStyleText,  tree,  "endpoints_style",
+       PARM(s, text, "start endpoint style")
+       PARM(e, text, "end endpoint style"),
+       RTAO(endpointsStyle(self, s, e)),
+       GROUP(graph:path)
+       SYNOPSIS("style of the path endpoints")
+       DESCRIPTION("Specify the style of the path endpoints. Supported values are : ARROWHEAD, ARROWHEAD, POINTER, DIAMOND, CIRCLE, SQUARE, BAR, CUP, FLETCHING, HOLLOW_CIRCLE, HOLLOW_SQUARE, ROUNDED.")
        RETURNS(tree, ""))

@@ -461,8 +461,8 @@ static scale getShortenByStyle(EndpointStyle style, scale lw)
         case GraphicPath::SQUARE:
             return 1.5 * lw;
         case GraphicPath::CUP:
-        case GraphicPath::ROUNDED:
             return 1.0 * lw;
+        case GraphicPath::ROUNDED:
         case GraphicPath::BAR:
             return 0.5 * lw;
         case GraphicPath::NONE:
@@ -704,7 +704,7 @@ static void addEndpointToPath(EndpointStyle style,
         Point3 c = endpoint + heading;
         scale r = heading.Length();
         QPainterPath circle;
-        circle.addEllipse(c.x-r*0.5, c.y-r*0.5, r, r);
+        circle.addEllipse(c.x-r, c.y-r, 2*r, 2*r);
         outline.addQtPath(circle);
     }
     break;        

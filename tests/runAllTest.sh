@@ -1,6 +1,6 @@
 #!/bin/bash
-INST_DIR="../install/Tao\ Presentations.app/Contents"
-TAO="$INST_DIR/MacOS/Tao\ Presentations -nogit "
+INST_DIR="../install/Tao3D.app/Contents"
+TAO="$INST_DIR/MacOS/Tao3D -nogit "
 MODE=$1
 
 function findLastRun()

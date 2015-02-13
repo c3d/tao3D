@@ -72,7 +72,7 @@ new_slide T:text ->
         + "The lazy dog"
 
 new_title_only_slide T:text ->
-    title_only_slide "Title only (" & T & ")",
+    title_slide "Title only (" & T & ")",
         nil
 
 do_test T:text ->
@@ -95,7 +95,7 @@ page "filters",
         texture "noImage"
         rectangle -400, 0, 500, 500
         //Detect outlines
-        laplacian 1
+        laplacian
         //Add some blur
         gaussian 5
         rectangle 400, 0, 500, 500

@@ -36,3 +36,4 @@ doc/doc
 /.qmake.cache
 *.xcodeproj
 builds/
+packaging/win/

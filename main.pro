@@ -184,6 +184,14 @@ kit.commands = \$(MAKE) -C packaging kit
 kit.depends = FORCE
 QMAKE_EXTRA_TARGETS += kit
 
+# Run sanity tests after build in release mode
+test.commands = \$(MAKE) -C tests/sanity check
+test.depends = tao modules templates
+ref.commands = \$(MAKE) -C tests/sanity ref
+ref.depends = tao modules templates
+
+QMAKE_EXTRA_TARGETS += test ref
+
 TAO_CURRENT_PWD = $$PWD
 QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 

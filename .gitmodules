@@ -112,3 +112,6 @@
 [submodule "modules/web_remote"]
 	path = modules/web_remote
 	url = https://github.com/c3d/tao-web-remote.git
+[submodule "tests/sanity"]
+	path = tests/sanity
+	url = https://github.com/c3d/tao-tests.git

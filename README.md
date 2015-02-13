@@ -21,6 +21,35 @@ https://www.youtube.com/Taodyne.
 
 A basic tutorial of the language can be found here: http://www.taodyne.com/presentation/tutorial-2.0.html. More tutorials, blogs and forums can be found on the Taodyne developers web site: http://www.taodyne.com/shop/dev/en/.
 
+
+## Change log since 2.0-libre
+
+* 72: Added sanity tests in the test directory
+* 71: Add ROUNDED enpoint style
+* 70: Add ability to specify endpoint styles using text
+* 69: Fixed typo in source files for Pro version
+* 68: Removed a few remaining references to TaoPresentations with Tao3D
+* 67: Put web UI thumbnails in a separate hidden directory
+* 66: Fix launch error on Linux - Replaced TaoPresentations with Tao3D
+* 65: Put web editor thumbnails in hidden .thumbnails directory
+* 64: Update background color even if it's black (ticket #26)
+* 63: Update example list
+* 62: Fix messages about QSslSocket on Windows with old OpenSSL
+* 61: Fix rendering of 3D models with transparent colors, ticket #24
+* 60: Implement indent and unindent with 'tab/shift-tab', ticket #23
+* 59: Add explanation to "Shift" template
+* 58: Fine-tune highlighting in text editor, ticket #21
+* 57: Fix highlighting mechanism for overlapping regions, ticket #22
+* 56: Fix highlighter for comments within string, ticket #22
+* 55: Added missing French translations
+* 54: Avoid splitting text when there's no writing direction change, ticket #21
+* 53: Remove references to 'title text X', ticket #20
+* 52: Added comments to Hello World example, ticket #20
+* 51: Updated Hello World to make it easier to copy-paste smaller sections
+* 50: Fetch examples directly from Taodyne web site, ticket #20
+* 49: Disable transparent windows on Windows, it's broken, ticket #18
+
+
 ## Prerequisites
 
 The software can be built on Windows, MacOSX and Linux.

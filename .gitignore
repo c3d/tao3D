@@ -36,6 +36,6 @@ doc/doc
 /.qmake.cache
 *.xcodeproj
 builds/
-packaging/win/
+packaging/*/
 tests/**/run-*/
 modules/**/sample_slide.ddd

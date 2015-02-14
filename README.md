@@ -24,6 +24,7 @@ A basic tutorial of the language can be found here: http://www.taodyne.com/prese
 
 ## Change log since 2.0-libre
 
+* 81: Merge Libre edition and Pro code for Tao3D 1.60
 * 72: Added sanity tests in the test directory
 * 71: Add ROUNDED enpoint style
 * 70: Add ability to specify endpoint styles using text

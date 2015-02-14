@@ -1,4 +1,37 @@
-Change log for Tao3D 2.x
+Change log for Tao3D
+
+1.60 (15-Feb-2015)
+
+#SF indicates SourceForge tickets (public)
+
+#3549 Add "ROUNDED" endpoint style
+#3548 Make it possible to specify endpoints using text
+#3544 Build Pro edition with the same source code as Libre edition
+#SF26 Update the background color even if it's black
+#SF24 Fix rendering of 3D models when a transparent color is applied
+#SF23 Implement Indent and Unindent in the Tao text editor
+#SF22 Fix issues with higlighting, e.g. comments inside text
+#SF21 Avoid splitting sentences at punctuations
+#SF20 Fetch examples in Help menu directly from the web
+#SF17 Fix display of widgets when building with Qt5
+#SF16 Fix bug with page reload
+#SF15 Show an error if trying to move a shape and source code was changed
+#SF14 Bug with selection drag (moving too far)
+#SF13 Build with Qt5
+#SF12 Add support for truly transparent background
+#SF11 Build with various versions of LLVM
+#SF10 Fix crash with array-like rewrite
+#SF09 Avoid error message when hue is negative
+#SF08 Add html to render HTML-formatted text in a text box
+#SF07 Libre edition with GPL license
+#SF06 Optimize number of polygons rendered for glyphs, add polycount trace
+#     Added align_vertically
+#3538 Rename application from "Tao Presentations" to "Tao3D"
+#3535 Add ability to write "picture X" where X is a text
+#3531 Preliminary support for Ningbo 3D displays
+#3530 Scale down screen snapshots in WebRemote for performance
+#3529 Add 'scale' option to screenshot
+#3528 Add dynamic_texture alias for frame_texture
 
 2.0-alpha12 (10-Oct-2014)
 

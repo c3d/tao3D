@@ -1844,7 +1844,8 @@ close_path ();
  * @~english
  * Sets the style of the path endpoints.
  *
- * @p s is the start point and @p e is the end point.
+ * @p s is the start point and @p e is the end point. The style can be
+ * specified either as symbols or as text.
  *
  * Only very beginning and very end of the path can be styled. If a
  * text is added at the end of the path, the end style won't be applied
@@ -1854,7 +1855,8 @@ close_path ();
  * @~french
  * Définit le style des extrémités d'un chemin graphique.
  *
- * @p s est le point de départ et @p e est le point terminal.
+ * @p s est le point de départ et @p e est le point terminal. Le style
+ * peut être donné sous forme de texte ou avec un symbole.
  *
  * Seuls les véritables débuts et fins d'un chemin peuvent recevoir un
  * symbole. Si du texte est ajouté à la fin du chemin, le style de fin n'est
@@ -1873,11 +1875,13 @@ close_path ();
  *   - FLETCHING
  *   - HOLLOW_CIRCLE
  *   - HOLLOW_SQUARE
+ *   - ROUNDED
  *
  * @image html endpoints_style.png
  *
  */
-endpoints_style (s:symbol, e:symbol);
+endpoints_style (s:text, e:text);
+
 
 /**
  * @~english

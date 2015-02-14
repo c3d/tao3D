@@ -37,3 +37,5 @@ doc/doc
 *.xcodeproj
 builds/
 packaging/win/
+tests/**/run-*/
+modules/**/sample_slide.ddd

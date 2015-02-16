@@ -4403,6 +4403,7 @@ void Widget::listNames(XLSourceEdit *editor)
 //   Return list of names in current program
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     XL::name_set names, infix, prefix, postfix;
     XL::MAIN->ListNames("", names, infix, prefix, postfix);
     infix.erase("\n");
@@ -4414,6 +4415,9 @@ void Widget::listNames(XLSourceEdit *editor)
     editor->highlightNames(1, postfix);
     editor->highlightNames(2, prefix);
     editor->highlightNames(3, names);
+#else
+    Q_UNUSED(editor);
+#endif
 }
 
 

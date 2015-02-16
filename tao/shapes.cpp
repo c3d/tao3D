@@ -21,8 +21,8 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "tao_glu.h"
 #include "shapes.h"
+#include "tao_glu.h"
 #include "layout.h"
 #include "attributes.h"
 #include "path3d.h"

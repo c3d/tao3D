@@ -595,6 +595,7 @@ int Licenses::licenseRemainingDays(text feature)
 {
     QDate today = QDate::currentDate();
     QString qfun = +feature;
+    QString qold = QString(qfun).replace("Tao3D", "Tao Presentations");
     int result = 0;
 
     // Cache request during 1 day for performance and less verbose logging
@@ -611,7 +612,8 @@ int Licenses::licenseRemainingDays(text feature)
     for (l = licenses.begin(); l != licenses.end(); l++)
     {
         License &license = *l;
-        if (license.features.exactMatch(qfun))
+        if (license.features.exactMatch(qfun) ||
+            license.features.exactMatch(qold))
         {
             if (license.expiry.isValid())
             {

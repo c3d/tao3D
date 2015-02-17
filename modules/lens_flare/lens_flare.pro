@@ -17,10 +17,6 @@ INCLUDEPATH += $${TAOTOPSRC}/tao/include/tao/
 HEADERS      = flare.h \
     lens_flare.h
 SOURCES      = lens_flare.cpp flare.cpp
-win32 {
-  DEFINES     += GLEW_STATIC
-  SOURCES     += $${TAOTOPSRC}/tao/include/tao/GL/glew.c
-}
 TBL_SOURCES  = lens_flare.tbl
 OTHER_FILES  = lens_flare.xl lens_flare.tbl traces.tbl
 QT          += core \

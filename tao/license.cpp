@@ -103,13 +103,14 @@ void Licenses::addLicenseFile(kstring licfname)
     LicenseFile additional;
 
     // Now analyze what we got from the input text
-    XL::Syntax syntax;
+    XL::Syntax    syntax;
     XL::Positions positions;
-    XL::Errors errors;
-    XL::Scanner scanner(licfname, syntax, positions, errors);
-    License license;
-    bool had_features = false, had_signature = false;
-    int day = 0, month = 0, year = 0;
+    XL::Errors    errors;
+    XL::Scanner   scanner(licfname, syntax, positions, errors);
+    License       license;
+    bool          had_features = false, had_signature = false;
+    int           day          = 0, month = 0, year = 0;
+    QDate         expiryDate;
     enum
     {
         // REVISIT: We may want to add host, ip, MAC, display type, ...
@@ -136,7 +137,7 @@ void Licenses::addLicenseFile(kstring licfname)
         case START:
             license = License();
             had_features = false;
-            license.expiry = QDate();
+            license.expiry = expiryDate;
             state = TAG;
             // Fall through on purpose
 
@@ -249,11 +250,7 @@ void Licenses::addLicenseFile(kstring licfname)
 #endif
                 additional.hostid = item;
             }
-            // CAUTION: There should be a 'break' here, but adding it would
-            // break backward compatibility: license files signed with a
-            // previous version of tao_sign would not work with a new Tao.
-            // This missing 'break' just adds the host id as an additional
-            // feature -- cf. tao -tlic
+            break;
 
         case FEATURES:
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
@@ -362,7 +359,15 @@ void Licenses::addLicenseFile(kstring licfname)
                     licenseError(licfname, tr("Invalid year"));
                     state = ERR;
                 }
-                license.expiry = QDate(year, month, day);
+                expiryDate = QDate(year, month, day);
+                uint max = additional.licenses.size();
+                for (uint a = 0; a < max; a++)
+                {
+                    QDate &expiry = additional.licenses[a].expiry;
+                    if (expiry.isNull())
+                        expiry = expiryDate;
+                }
+                license.expiry = expiryDate;
                 state = TAG;
             }
             else

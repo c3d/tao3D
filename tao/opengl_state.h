@@ -656,6 +656,7 @@ struct OpenGLState : GraphicState
 
     // Shader functions
     virtual void UseProgram(uint prg);
+    virtual uint CurrentProgram();
     virtual void GetProgram(uint prg, GLenum pname, int* params);
     virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
                                   GLsizei* size, GLenum* type, char *name);

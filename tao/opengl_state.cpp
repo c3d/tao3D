@@ -1816,6 +1816,15 @@ void OpenGLState::UseProgram(uint prg)
 }
 
 
+uint OpenGLState::CurrentProgram()
+// ----------------------------------------------------------------------------
+//    Return current shader program
+// ----------------------------------------------------------------------------
+{
+    return shaderProgram;
+}
+
+
 void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
 // ----------------------------------------------------------------------------
 //   Returns a parameter from a program object
@@ -1852,7 +1861,8 @@ int OpenGLState::GetUniformLocation(uint program, const char* name)
 // ----------------------------------------------------------------------------
 {
     Sync(STATE_shaderProgram);
-    return glGetUniformLocation(program, name);
+    int result = glGetUniformLocation(program, name);
+    return result;
 }
 
 

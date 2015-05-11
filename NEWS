@@ -1,5 +1,14 @@
 Change log for Tao3D
 
+1.62 (11-May-2015)
+
+#3566 Allow cube_map to work when a shader program is active
+
+1.61 (29-April-2015)
+
+#3557 Better implementation of side-by-side to multiscopic conversion
+#3564 New build tools and related fixes
+
 2.0 (17-Feb-2015)
 
 #SF indicates SourceForge tickets (public)

@@ -45,6 +45,8 @@ static inline int glewInit() { return GLEW_OK; }
 
 DEFINE_MODULE_GL;
 
+// Silence comparisons on glFunctions (which are GLEW only)
+#pragma GCC diagnostic ignored "-Wtautological-pointer-compare"
 
 TAO_BEGIN
 

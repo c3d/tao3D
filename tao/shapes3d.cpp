@@ -52,7 +52,7 @@ void Shape3::enableCulling(Layout *where)
 //    Enable culling if shape is not transparent
 // ----------------------------------------------------------------------------
 {
-    if (where->transparency)
+    if (where->transparency || where->blendOrShade)
         GL.Disable(GL_CULL_FACE);
     else
         GL.Enable(GL_CULL_FACE);

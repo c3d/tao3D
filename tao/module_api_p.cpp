@@ -128,6 +128,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     setCurrentWidget    = Window::setCurrentWidget;
 
     // Texture cache
+    textureImage = TextureCacheAPI::textureImage;
+    textureID = TextureCacheAPI::textureID;
     textureCacheBind = TextureCacheAPI::bind;
     textureCacheSetMinMagFilters = TextureCacheAPI::setMinMagFilters;
 

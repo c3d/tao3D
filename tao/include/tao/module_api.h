@@ -48,7 +48,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   33
+#define TAO_MODULE_API_CURRENT   34
 #define TAO_MODULE_API_AGE       0
 
 
@@ -58,6 +58,8 @@
 //   Tao runtime interface
 //
 // ========================================================================
+
+class QImage;
 
 namespace XL
 {
@@ -412,6 +414,11 @@ struct ModuleApi
     //   Texture cache
     // ------------------------------------------------------------------------
 
+    // Load an image in the texture cache and return either an image or
+    // a texture ID
+    QImage (*textureImage)(text path);
+    uint (*textureID)(text path);
+    
     // Bind a texture previously allocated by the Tao texture cache (texture
     // or image_* primitives).
     // Do not just use glBindTexture, because there is no guarrantee that the

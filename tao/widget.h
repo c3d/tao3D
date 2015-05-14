@@ -269,11 +269,12 @@ public:
     void        listNames(XLSourceEdit *editor);
 #ifndef CFG_NO_DOC_SIGNATURE
 #ifndef TAO_PLAYER
-    QString      signDocument(text path);
+    QString     signDocument(text path);
 #endif
-    bool         checkDocumentSigned();
-    void         excludeFromSignature(text path);
+    bool        checkDocumentSigned();
+    void        excludeFromSignature(text path);
 #endif
+    QString     documentPath();
 
     // Timing
     ulonglong   now();
@@ -461,6 +462,7 @@ public:
     Name_p      blendEquation(Tree_p self, text eq);
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);
+    void        refreshOn(int type, double nextRefresh = DBL_MAX);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
     Real_p      refreshTime(Tree_p self);
@@ -1181,13 +1183,14 @@ private:
     Window *              taoWindow();
     StereoIdentTexture    newStereoIdentTexture(int i);
     void                  updateStereoIdentPatterns(int nb);
-    void        runPurgeAction(XL::Action &action);
-    void        updateFileDialog(Tree *properties, Tree *context);
-    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
-    bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
+    void                  runPurgeAction(XL::Action &action);
+    void                  updateFileDialog(Tree *properties, Tree *context);
+    Tree_p                updateParentWithGroupInPlaceOfChild(Tree *parent,
+                                                              Tree *child,
+                                                              Tree_p sel);
+    bool                  updateParentWithChildrenInPlaceOfGroup(Tree *parent,
+                                                                 Prefix *group);
 
-    void                  refreshOn(int type,
-                                    double nextRefresh = DBL_MAX);
     void                  commitPageChange(bool afterTransition);
     bool                  runPageExitHandlers();
 

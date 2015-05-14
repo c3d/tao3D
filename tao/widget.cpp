@@ -4596,6 +4596,15 @@ void Widget::excludeFromSignature(text path)
 #endif // CFG_NO_DOC_SIGNATURE
 
 
+QString Widget::documentPath()
+// ----------------------------------------------------------------------------
+//   Return the document path
+// ----------------------------------------------------------------------------
+{
+    return taoWindow()->currentProjectFolderPath();
+}
+
+
 void Widget::refreshProgram()
 // ----------------------------------------------------------------------------
 //   Check if any of the source files we depend on changed

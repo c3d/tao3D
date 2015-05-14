@@ -204,6 +204,7 @@ public:
     virtual ~TextureCache() { clear(); }
 
     CachedTexture * load(const QString &img, const QString &docPath);
+    CachedTexture * load(text img);
     CachedTexture * bind(GLuint id);
     void            setMinMagFilters(GLuint id);
     void            setMinFilter(GLuint id, GLenum filter);
@@ -296,6 +297,16 @@ struct TextureCacheAPI
     static void setMinMagFilters(GLuint id)
     {
         TextureCache::instance()->setMinMagFilters(id);
+    }
+    static QImage textureImage(text img)
+    {
+        CachedTexture *t = TextureCache::instance()->load(img);
+        return t->loadedImage();
+    }
+    static uint textureID(text img)
+    {
+        CachedTexture *t = TextureCache::instance()->load(img);
+        return t->bind();
     }
 };
 

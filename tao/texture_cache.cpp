@@ -179,7 +179,7 @@ QSharedPointer<TextureCache> TextureCache::instance()
     else
     {
         ptr = textureCache.toStrongRef();
-        Q_ASSERT(ptr);
+        XL_ASSERT(ptr);
     }
     return ptr;
 }
@@ -206,8 +206,8 @@ void TextureCache::doPrintStatistics()
         checkMemSize += tex->image.byteCount();
         checkGLSize += tex->GLsize;
     }
-    Q_ASSERT(checkMemSize == memSize);
-    Q_ASSERT(checkGLSize == GLSize);
+    XL_ASSERT(checkMemSize == memSize);
+    XL_ASSERT(checkGLSize == GLSize);
 #endif
 }
 
@@ -267,6 +267,16 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
     }
 
     return cached;
+}
+
+
+CachedTexture * TextureCache::load(text img)
+// ----------------------------------------------------------------------------
+//    Load texture in the doc path
+// ----------------------------------------------------------------------------
+{
+    TAO(refreshOn(TextureCache::instance()->textureChangedEvent()));
+    return load(+img, TAO(documentPath()));
 }
 
 
@@ -353,7 +363,7 @@ void TextureCache::setMinFilter(GLuint id, GLenum filter)
 // ----------------------------------------------------------------------------
 {
     CachedTexture * cached = fromId[id];
-    Q_ASSERT(cached);
+    XL_ASSERT(cached);
 
     if ( !cached->mipmap &&
          (filter == GL_NEAREST_MIPMAP_NEAREST ||
@@ -377,7 +387,7 @@ void TextureCache::purgeMem()
     while (memSize > (maxMemSize * purgeRatio))
     {
         printStatistics();
-        Q_ASSERT(memLRU.last);
+        XL_ASSERT(memLRU.last);
 
         CachedTexture * tex = memLRU.last->tex;
         unlink(tex, memLRU);
@@ -394,7 +404,7 @@ void TextureCache::purgeGLMem()
     while (GLSize > (maxGLSize * purgeRatio))
     {
         printStatistics();
-        Q_ASSERT(GL_LRU.last);
+        XL_ASSERT(GL_LRU.last);
 
         CachedTexture * tex = GL_LRU.last->tex;
         unlink(tex, GL_LRU);
@@ -415,20 +425,20 @@ void TextureCache::clear()
     foreach (GLuint id, ids)
     {
         CachedTexture * tex = fromId.take(id);
-        Q_ASSERT(tex);
+        XL_ASSERT(tex);
         fromName.remove(tex->path);
         unlink(tex, memLRU);
         unlink(tex, GL_LRU);
         delete tex;
     }
-    Q_ASSERT(fromId.isEmpty());
-    Q_ASSERT(fromName.isEmpty());
-    Q_ASSERT(memSize == 0);
-    Q_ASSERT(GLSize == 0);
-    Q_ASSERT(memLRU.first == NULL);
-    Q_ASSERT(memLRU.last == NULL);
-    Q_ASSERT(GL_LRU.first == NULL);
-    Q_ASSERT(GL_LRU.last == NULL);
+    XL_ASSERT(fromId.isEmpty());
+    XL_ASSERT(fromName.isEmpty());
+    XL_ASSERT(memSize == 0);
+    XL_ASSERT(GLSize == 0);
+    XL_ASSERT(memLRU.first == NULL);
+    XL_ASSERT(memLRU.last == NULL);
+    XL_ASSERT(GL_LRU.first == NULL);
+    XL_ASSERT(GL_LRU.last == NULL);
 }
 
 
@@ -472,7 +482,7 @@ CachedTexture::Links *TextureCache::texLinksForLRU(CachedTexture *tex,
     else if (&lru == &GL_LRU)
         return &tex->GLmemLRU;
 
-    Q_ASSERT(!"Invalid LRU pointer");
+    XL_ASSERT(!"Invalid LRU pointer");
     return NULL;  // not reached
 }
 
@@ -486,7 +496,7 @@ void TextureCache::insert(CachedTexture *tex, LRU &lru)
 
 #ifndef QT_NO_DEBUG
     for (CachedTexture::Links *cur = lru.first; cur; cur = cur->next)
-        Q_ASSERT(tex != cur->tex);
+        XL_ASSERT(tex != cur->tex);
 #endif
 
     if (lru.first) lru.first->prev = t;
@@ -494,9 +504,9 @@ void TextureCache::insert(CachedTexture *tex, LRU &lru)
     lru.first = t;
     if (!lru.last) lru.last = lru.first;
 
-    Q_ASSERT(lru.first);
-    Q_ASSERT(lru.last);
-    Q_ASSERT(lru.last->next == NULL);
+    XL_ASSERT(lru.first);
+    XL_ASSERT(lru.last);
+    XL_ASSERT(lru.last->next == NULL);
 }
 
 
@@ -517,9 +527,9 @@ void TextureCache::relink(CachedTexture *tex, LRU &lru)
         lru.first->prev = t;
         lru.first = t;
     }
-    Q_ASSERT(lru.first);
-    Q_ASSERT(lru.last);
-    Q_ASSERT(lru.last->next == NULL);
+    XL_ASSERT(lru.first);
+    XL_ASSERT(lru.last);
+    XL_ASSERT(lru.last->next == NULL);
 }
 
 
@@ -608,7 +618,7 @@ bool CachedTexture::load()
 //   Load file into memory and update cached size. Return true if loaded.
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!loaded());
+    XL_ASSERT(!loaded());
 
     // Update load parameters (in case cache settings changed)
     mipmap = cache.mipmap;
@@ -699,7 +709,7 @@ void CachedTexture::unload()
 //   Remove image data from memory and update cached size
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(loaded());
+    XL_ASSERT(loaded());
 
     int purged = image.byteCount();
     image.clear();
@@ -740,9 +750,9 @@ void CachedTexture::transfer()
     if (networked && !loaded())
         return;
 
-    Q_ASSERT(loaded());
-    Q_ASSERT(!transferred());
-    Q_ASSERT(id);
+    XL_ASSERT(loaded());
+    XL_ASSERT(!transferred());
+    XL_ASSERT(id);
 
     int before = image.byteCount();
 
@@ -828,7 +838,7 @@ void CachedTexture::transfer()
     {
         // Want uncompressed texture
 
-        Q_ASSERT(!image.compressed);
+        XL_ASSERT(!image.compressed);
 
         QImage texture = QGLWidget::convertToGLFormat(image.raw);
         bool hasAlpha = image.raw.hasAlphaChannel();
@@ -844,7 +854,7 @@ void CachedTexture::transfer()
                      width, height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
 
-        Q_ASSERT(GLsize == 0);
+        XL_ASSERT(GLsize == 0);
         GLsize = width * height * bytesPerPixel;
         copiedSize = width * height * 4;
         ADJUST_FOR_MIPMAP_OVERHEAD(GLsize);
@@ -888,7 +898,7 @@ void CachedTexture::purgeGL()
 //   Remove texture data from GL memory, keep texture ID, update cached size
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(id);
+    XL_ASSERT(id);
 
     if (Tao::OpenGLState::Current())
     {
@@ -921,8 +931,8 @@ GLuint CachedTexture::bind()
     if (networked && !transferred())
         return 0;
 
-    Q_ASSERT(id);
-    Q_ASSERT(transferred());
+    XL_ASSERT(id);
+    XL_ASSERT(transferred());
     GL.BindTexture(GL_TEXTURE_2D, id);
 
     return id;
@@ -1073,7 +1083,7 @@ bool Image::isNull()
 {
     // We never keep both compressed and uncompressed versions of the
     // same image
-    Q_ASSERT(!(!raw.isNull() && compressed));
+    XL_ASSERT(!(!raw.isNull() && compressed));
 
     return (raw.isNull() && !compressed);
 }
@@ -1118,7 +1128,7 @@ int Image::byteCount()
 {
     if (compressed)
     {
-        Q_ASSERT(sz);
+        XL_ASSERT(sz);
         return sz;
     }
     return raw.byteCount();
@@ -1155,7 +1165,7 @@ void * Image::allocateCompressed(int len)
 // ----------------------------------------------------------------------------
 {
     // Used when converting uncompressed to compressed.
-    Q_ASSERT(!compressed);
+    XL_ASSERT(!compressed);
     raw = QImage();
     return (compressed = malloc(sz = len));
 }
@@ -1189,7 +1199,7 @@ bool Image::loadCompressed(const QString &path)
 //   Load pre-compressed file if it exists and is more recent than uncompressed
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!compressed);
+    XL_ASSERT(!compressed);
 
     QFileInfo uncmp(path), cmp(toCompressedPath(path));
     if (!cmp.exists() || !uncmp.exists())
@@ -1229,8 +1239,8 @@ bool Image::saveCompressed(const QString &compressedPath)
 //   Save (cache) compressed texture to specified path
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(compressed);
-    Q_ASSERT(sz);
+    XL_ASSERT(compressed);
+    XL_ASSERT(sz);
 
     bool ok = false;
     QFile cmpfile(compressedPath);

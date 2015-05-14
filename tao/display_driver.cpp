@@ -90,7 +90,7 @@ void DisplayDriver::display()
     // loop to be re-entered, and thus display may be called again.
     if (useInProgress)
         return;
-    Q_ASSERT(current.fn || !"No display function selected");
+    XL_ASSERT(current.fn || !"No display function selected");
     return current.fn(current.obj);
 }
 
@@ -319,7 +319,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     Tao::GraphicSave *save = GL.Save();
 
     BackBufferFBOParams * o = (BackBufferFBOParams *)obj;
-    Q_ASSERT(obj || !"Back buffer FBO display routine received NULL object");
+    XL_ASSERT(obj || !"Back buffer FBO display routine received NULL object");
 
     // Read output resolution
     int w = renderWidth();

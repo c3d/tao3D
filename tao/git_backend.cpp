@@ -349,7 +349,7 @@ bool GitRepository::initialize()
 //    Initialize a git repository if we need to
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -367,7 +367,7 @@ bool GitRepository::initialCommit()
 //    Commit an empty file. Required after init or "git branch" fails
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -390,7 +390,7 @@ text GitRepository::branch()
 // ----------------------------------------------------------------------------
 {
     text    output, result;
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return result;
 
@@ -420,7 +420,7 @@ QStringList GitRepository::branches()
 {
     text    output;
     QStringList result;
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return result;
 
@@ -452,7 +452,7 @@ bool GitRepository::addBranch(QString name, bool force)
 // ----------------------------------------------------------------------------
 //    If force == false, Git will refuse to change an existing branch
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -473,7 +473,7 @@ bool GitRepository::delBranch(QString name, bool force)
 //    If force == false, the branch to delete must be fully merged into
 //    HEAD of the current branch
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -501,7 +501,7 @@ bool GitRepository::renBranch(QString oldName, QString newName, bool force)
 // ----------------------------------------------------------------------------
 //    If force == true, rename event if the new branch name already exists
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -522,7 +522,7 @@ bool GitRepository::isRemoteBranch(text branch)
 //    Return true if branch is remote, false otherwise
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -535,7 +535,7 @@ bool GitRepository::checkout(text branch)
 //    Checkout a given branch
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -551,7 +551,7 @@ bool GitRepository::branch(text name)
 //    Create a new branch
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -571,7 +571,7 @@ bool GitRepository::add(text name)
 //   Add a new file to the repository. If name == "", add all untracked filed.
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -592,7 +592,7 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -610,7 +610,7 @@ bool GitRepository::remove(text name)
 //   Remove a file from the repository
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -627,7 +627,7 @@ bool GitRepository::rename(text from, text to)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -643,7 +643,7 @@ bool GitRepository::commit(text message, bool all)
 //   Record pending changes to the repository
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -685,7 +685,7 @@ bool GitRepository::revert(text id)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -710,7 +710,7 @@ bool GitRepository::cherryPick(text id)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -793,7 +793,7 @@ void GitRepository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
     (void)exitCode; (void)st;
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.first());
+    XL_ASSERT(cmd == pQueue.first());
     QString op = cmd->args.first();
     if (op == "clone")
     {
@@ -950,7 +950,7 @@ bool GitRepository::merge(text branch, ConflictResolution how)
 //   Merge another branch into the current one
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -968,7 +968,7 @@ bool GitRepository::reset(text commit)
 //   Reset a branch to normal state or to a given commit
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -988,7 +988,7 @@ bool GitRepository::pull()
 //   Pull from remote branch, if remote is set
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -1036,7 +1036,7 @@ bool GitRepository::fetch(QString url)
 //   Fetch (download objects and refs) from a remote repository
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -1054,7 +1054,7 @@ QStringList GitRepository::remotes()
     QStringList result;
     text        output;
 
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return result;
 
@@ -1074,7 +1074,7 @@ QString GitRepository::remoteFetchUrl(QString name)
 //   Return the pull/fetch URL for the specified remote
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return "";
 
@@ -1093,7 +1093,7 @@ QString GitRepository::remotePushUrl(QString name)
 //   Return the push URL for the specified remote
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return "";
 
@@ -1114,7 +1114,7 @@ QString GitRepository::remoteWithFetchUrl(QString url)
 //   Return the name of the remote with specified fetch URL
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return "";
 
@@ -1131,7 +1131,7 @@ bool GitRepository::addRemote(QString name, QString url)
 //   Add a remote, giving its pull URL
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -1145,7 +1145,7 @@ bool GitRepository::setRemote(QString name, QString url)
 //   Set a new pull URL for a remote
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -1160,7 +1160,7 @@ bool GitRepository::delRemote(QString name)
 //   Delete a remote
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -1175,7 +1175,7 @@ bool GitRepository::renRemote(QString oldName, QString newName)
 //   Rename a remote
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -1195,7 +1195,7 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 //   one (the commits of merged branches are not interspersed)
 {    
     QList<Commit>       result;
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return result;
 
@@ -1226,7 +1226,7 @@ QString GitRepository::diff(QString a, QString b, bool symetric)
 //   Return source code difference between version a and version b (commit ids)
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return "";
 
@@ -1382,7 +1382,7 @@ QStringList GitRepository::tags()
 {
     QStringList tags;
     text    output;
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return tags;
 
@@ -1404,7 +1404,7 @@ text GitRepository::version()
         return cachedDocVersion;
 
     text    output, result = +QString(tr("Unknown"));
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return result;
 
@@ -1426,7 +1426,7 @@ text GitRepository::versionTag()
 // ----------------------------------------------------------------------------
 {
     text    output, result = +QString(tr("Unknown"));
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return result;
 
@@ -1449,7 +1449,7 @@ text GitRepository::head()
 {
     text output, result;
 
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return result;
 
@@ -1473,7 +1473,7 @@ bool GitRepository::isClean()
 //    been modified or deleted and not committed, or a file not tracked by Git
 //    is found in the directory.
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 
@@ -1497,7 +1497,7 @@ QString GitRepository::url()
 //    Return a valid URL for the current repository
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return "";
 
@@ -1515,7 +1515,7 @@ bool GitRepository::gc()
 //    Run garbage collection
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!noLocal);
+    XL_ASSERT(!noLocal);
     if(noLocal)
         return false;
 

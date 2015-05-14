@@ -64,7 +64,7 @@ NewDocumentWizard::NewDocumentWizard(QWidget *parent)
 
     QPushButton *next =
             dynamic_cast<QPushButton *>(button(QWizard::NextButton));
-    Q_ASSERT(next);
+    XL_ASSERT(next);
     next->setDefault(true);
 
     addPage(new TemplateChooserPage(this));

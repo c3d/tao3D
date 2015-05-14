@@ -103,9 +103,9 @@ public:
         case Application::Other:
             return "Other";
         case Application::Unknown:
-            Q_ASSERT(!"Edition not set");
+            XL_ASSERT(!"Edition not set");
         default:
-            Q_ASSERT(!"Unexpected edition value");
+            XL_ASSERT(!"Unexpected edition value");
             return "Unknown";
         }
     }
@@ -160,7 +160,7 @@ protected:
     static bool    createDefaultProjectFolder();
 
 public:
-    Window *       window()             { Q_ASSERT(win); return win; }
+    Window *       window()             { XL_ASSERT(win); return win; }
     QWidget *      windowWidget()       { return (QWidget*)window(); }
     void           updateSearchPaths(QString path = "");
     void           updateHelpMenu();

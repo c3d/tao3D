@@ -278,7 +278,7 @@ void Repository::asyncProcessFinished(int exitCode, QProcess::ExitStatus st)
 
     ProcQueueConsumer p(*this);
     Process *cmd = (Process *)sender();
-    Q_ASSERT(cmd == pQueue.head()); (void)cmd;
+    XL_ASSERT(cmd == pQueue.head()); (void)cmd;
 }
 
 

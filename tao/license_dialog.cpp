@@ -89,7 +89,7 @@ void LicenseDialog::done(int r)
     // NB: A dialog shown by exec() rather than showDialog() is NOT in dialogs
     if (dialogs.contains(this))
     {
-        Q_ASSERT(dialogs.first() == this);
+        XL_ASSERT(dialogs.first() == this);
         dialogs.removeFirst();
         if (!dialogs.isEmpty())
         {

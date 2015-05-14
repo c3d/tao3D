@@ -198,7 +198,7 @@ void LicenseDownload::replyFinished()
 
     if (code == 200)
     {
-        Q_ASSERT(current);
+        XL_ASSERT(current);
         QString path(current->targetFile().absoluteFilePath());
         QByteArray data(reply->readAll());
         QByteArray invalid("signature \"INVALID-TESTING-ONLY\"");
@@ -243,7 +243,7 @@ void LicenseDownload::provideAuthentication(QNetworkReply *reply,
 // ----------------------------------------------------------------------------
 {
     Q_UNUSED(reply);
-    Q_ASSERT(current);
+    XL_ASSERT(current);
 
     QString & user = current->user;
     QString & password = current->password;

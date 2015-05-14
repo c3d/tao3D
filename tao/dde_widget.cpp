@@ -112,17 +112,17 @@ bool DDEWidget::ddeInitiate(MSG* message, long* result)
         wchar_t atomName[_MAX_PATH];
         bool ok;
         ok = (::GlobalGetAtomNameW(appAtom, atomName, _MAX_PATH-1) != 0);
-        Q_ASSERT(ok);
+        XL_ASSERT(ok);
         if (ok)
             ok = (::GlobalAddAtomW(atomName) == appAtom);
-        Q_ASSERT(ok);
+        XL_ASSERT(ok);
         if (ok)
             ok = (::GlobalGetAtomNameW(systemTopicAtom, atomName, _MAX_PATH-1)
                   != 0);
-        Q_ASSERT(ok);
+        XL_ASSERT(ok);
         if (ok)
             ok = (::GlobalAddAtomW(atomName) == systemTopicAtom);
-        Q_ASSERT(ok);
+        XL_ASSERT(ok);
 
         if (!ok)
             return false;
@@ -148,7 +148,7 @@ bool DDEWidget::ddeExecute(MSG* message, long* result)
     //IA64: Assume DDE LPARAMs are still 32-bit
     ok = (::UnpackDDElParam(WM_DDE_EXECUTE, message->lParam, &unused,
                             (UINT_PTR*)&hData) != 0);
-    Q_ASSERT(ok);
+    XL_ASSERT(ok);
     if (!ok)
         return false;
 

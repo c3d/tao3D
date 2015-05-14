@@ -151,7 +151,7 @@ RasterText::~RasterText()
 {
     QGLContext *current = (QGLContext *)QGLContext::currentContext();
     QGLContext *context = (QGLContext *)instances.key(this, NULL);
-    Q_ASSERT(context || !"Delete RasterText instance not in map");
+    XL_ASSERT(context || !"Delete RasterText instance not in map");
     context->makeCurrent();
     GL.DeleteLists(32+fontOffset, 95);
     current->makeCurrent();

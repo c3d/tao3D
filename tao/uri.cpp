@@ -584,7 +584,7 @@ bool Uri::fetchAndCheckout()
 //    Display a progress dialog and use Repository to fetch remote project
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!project.isEmpty());
+    XL_ASSERT(!project.isEmpty());
 
     // Prepare Repository object to fetch project
     repo = RepositoryFactory::repository(project,
@@ -651,7 +651,7 @@ bool Uri::cloneAndCheckout()
 //    Clone new URI into a new project
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!project.isEmpty());
+    XL_ASSERT(!project.isEmpty());
 
     repo = RepositoryFactory::repository(project, RepositoryFactory::Clone);
     if (!repo)
@@ -770,8 +770,8 @@ void Uri::abortDownload()
 //    Abort current download
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(proc);
-    Q_ASSERT(repo);
+    XL_ASSERT(proc);
+    XL_ASSERT(repo);
     aborted = true;
     repo->abort(proc);
     emit getFailed();
@@ -789,7 +789,7 @@ bool Uri::checkout()
     IFTRACE(uri)
         debug() << "Checking out " << +rev << " (locally: " << +co << ")\n";
 
-    Q_ASSERT(repo);
+    XL_ASSERT(repo);
     bool ok = (repo && repo->checkout(+co));
     if (!ok)
     {
@@ -881,7 +881,7 @@ QString Uri::localRev(QString rev)
 
     // We have fetch()'ed the remote, we want to checkout the remote branch into
     // an anonymous local branch.
-    Q_ASSERT(repo);
+    XL_ASSERT(repo);
     QString uri = repoUri();
     QString remote = repo->remoteWithFetchUrl(uri);
     QString branch = QString("remotes/%1/%2").arg(remote).arg(rev);

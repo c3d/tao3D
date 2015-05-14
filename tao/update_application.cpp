@@ -256,8 +256,8 @@ void UpdateApplication::startDownload()
     IFTRACE(update)
         debug() << "Downloading: '" << +url.toString() << "'\n";
 
-    Q_ASSERT(!reply);
-    Q_ASSERT(!url.isEmpty());
+    XL_ASSERT(!reply);
+    XL_ASSERT(!url.isEmpty());
 
     progress->setLabelText(tr("Downloading %1 %2...").arg(appName())
                                                      .arg(remoteVer()));
@@ -280,7 +280,7 @@ void UpdateApplication::readIniFile()
 //    Get version, name and path of latest update from received .ini file
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(file);
+    XL_ASSERT(file);
 
     IFTRACE(update)
     {
@@ -512,7 +512,7 @@ void UpdateApplication::downloadFinished()
 
         progress->hide();
 
-        Q_ASSERT(!file);
+        XL_ASSERT(!file);
         pid = QCoreApplication::applicationPid();
         name = QString("tao_update.%1").arg(pid);
         file = new QFile(QDir::temp().filePath(name));
@@ -625,7 +625,7 @@ void UpdateApplication::saveDownloadedData()
 //    Finish download: write data to file, show confirmation, cleanup
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(file);
+    XL_ASSERT(file);
 
     file->write(reply->readAll());
     file->close();
@@ -647,7 +647,7 @@ bool UpdateApplication::createFile()
 //    Create the update file
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!file);
+    XL_ASSERT(!file);
 
     // Keep the name of the remote file in the URL
     QString fileName = QFileInfo(url.path()).fileName();

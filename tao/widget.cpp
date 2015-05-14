@@ -4651,7 +4651,7 @@ void Widget::refreshProgram()
         }
         else
         {
-            Q_ASSERT(XL::MAIN->files.count(fname));
+            XL_ASSERT(XL::MAIN->files.count(fname));
             XL::SourceFile &sf = XL::MAIN->files[fname];
             if (!sf.tree)
             {
@@ -7798,11 +7798,11 @@ Window * Widget::taoWindow()
 // ----------------------------------------------------------------------------
 {
     QWidget * p = parentWidget();
-    Q_ASSERT(p || !"Widget has no parent widget");
+    XL_ASSERT(p || !"Widget has no parent widget");
     QWidget *pp = p->parentWidget();
-    Q_ASSERT(pp || !"Widget has no grandparent widget");
+    XL_ASSERT(pp || !"Widget has no grandparent widget");
     Window * w = dynamic_cast<Window *>(pp);
-    Q_ASSERT(w || !"Widget grandparent is not QMainWindow");
+    XL_ASSERT(w || !"Widget grandparent is not QMainWindow");
     return w;
 }
 
@@ -9222,7 +9222,7 @@ Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
     }
 
     QGLShader::ShaderType shaderType = ShaderType(kind);
-    Q_ASSERT(shaderType < ShaderProgramInfo::SHADER_TYPES);
+    XL_ASSERT(shaderType < ShaderProgramInfo::SHADER_TYPES);
     if (source != currentShaderProgram->shaderSource[shaderType])
     {
         QGLShaderProgram *prog = currentShaderProgram->program;

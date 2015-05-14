@@ -179,7 +179,7 @@ void WebUI::launchBrowser()
 //   Open a web browser window, connected to the Node.js server
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(port);
+    XL_ASSERT(port);
     QString url = QString("http://localhost:%1/?lang=%2").arg(port)
                     .arg(TaoApp->lang);
     if (!token.isEmpty())

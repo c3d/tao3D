@@ -39,7 +39,7 @@ struct Int64Timer
 {
     Int64Timer() : startTime(-1) {}
     void   start()   { startTime = now(); }
-    qint64 elapsed() { Q_ASSERT(startTime > 0); return now() - startTime; }
+    qint64 elapsed() { XL_ASSERT(startTime > 0); return now() - startTime; }
     qint64 now()   { return QDateTime::currentDateTime().toMSecsSinceEpoch(); }
     qint64 startTime;
 };

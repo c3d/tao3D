@@ -82,7 +82,7 @@ EulaDialog::EulaDialog(QWidget *parent)
 
     button(QMessageBox::Ok)->setText(tr("I Accept"));
     QPushButton *rej = dynamic_cast<QPushButton*>(button(QMessageBox::Cancel));
-    Q_ASSERT(rej);
+    XL_ASSERT(rej);
     setDefaultButton(rej);
 
     // Icons by LazyCrazy http://lazycrazy.deviantart.com/

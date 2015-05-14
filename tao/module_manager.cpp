@@ -1139,7 +1139,7 @@ bool ModuleManager::loadNative(Context * /*context*/,
         debug() << "  Looking for native library\n";
 
     ModuleInfoPrivate * m_p = moduleById(m.id);
-    Q_ASSERT(m_p);
+    XL_ASSERT(m_p);
     bool ok;
 
     if (m_p->hasNative)

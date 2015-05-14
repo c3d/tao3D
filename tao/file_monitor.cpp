@@ -121,7 +121,7 @@ void FileMonitor::removePath(const QString &path)
             debug() << "Removing: '" << +path << "'\n";
 
         files.remove(path);
-        Q_ASSERT(!files.contains(path));
+        XL_ASSERT(!files.contains(path));
         thread->removePath(path);
     }
 }
@@ -272,9 +272,9 @@ void FileMonitorThread::removePath(const QString &path)
 // ----------------------------------------------------------------------------
 {
     QMutexLocker locker(&mutex);
-    Q_ASSERT(files.contains(path));
+    XL_ASSERT(files.contains(path));
     FileInfo &info = files[path];
-    Q_ASSERT(info.refs > 0);
+    XL_ASSERT(info.refs > 0);
     if (--info.refs == 0)
         files.remove(path);
 }
@@ -286,7 +286,7 @@ void FileMonitorThread::addMonitor(FileMonitor *monitor)
 // ----------------------------------------------------------------------------
 {
     QMutexLocker locker(&mutex);
-    Q_ASSERT(!monitors.contains(monitor));
+    XL_ASSERT(!monitors.contains(monitor));
     monitors.append(monitor);
 
     IFTRACE(filemon)
@@ -301,9 +301,9 @@ void FileMonitorThread::removeMonitor(FileMonitor *monitor)
 // ----------------------------------------------------------------------------
 {
     QMutexLocker locker(&mutex);
-    Q_ASSERT(monitors.contains(monitor));
+    XL_ASSERT(monitors.contains(monitor));
     monitors.removeOne(monitor);
-    Q_ASSERT(!monitors.contains(monitor));
+    XL_ASSERT(!monitors.contains(monitor));
 
     IFTRACE(filemon)
         debug() << "FileMonitor '" << +monitor->id() << "' removed (count="
@@ -325,7 +325,7 @@ QSharedPointer<FileMonitorThread> FileMonitorThread::instance()
     else
     {
         ptr = inst.toStrongRef();
-        Q_ASSERT(ptr);
+        XL_ASSERT(ptr);
     }
     return ptr;
 }

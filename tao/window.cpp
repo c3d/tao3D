@@ -1135,7 +1135,7 @@ bool Window::setStereo(bool on)
     newFormat.setStereo(on);
     IFTRACE(displaymode)
         std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
-    Q_ASSERT(stackedWidget->indexOf(taoWidget) == 0);
+    XL_ASSERT(stackedWidget->indexOf(taoWidget) == 0);
     stackedWidget->removeWidget(taoWidget);
     taoWidget->deleteLater();
     taoWidget = new Widget(*taoWidget, newFormat);
@@ -1579,7 +1579,7 @@ void Window::onNewModuleInstalled(QString path)
     QString name = QDir(path).dirName();
     QString title = tr("New module installed");
     QString msg = tr("A new module \"%1\" was installed.").arg(name);
-#if defined (Q_OS_MACX)
+#if defined (XL_OS_MACX)
     QString licMsg = tr("Tao3D/Licenses...");
 #else
     QString licMsg = tr("Help/Licenses...");
@@ -1618,7 +1618,7 @@ void Window::onModuleUpdated(QString path)
     QString name = QDir(path).dirName();
     QString title = tr("Module was updated");
     QString msg = tr("A module update was downloaded for \"%1\".").arg(name);
-#if defined (Q_OS_MACX)
+#if defined (XL_OS_MACX)
     QString licMsg = tr("Tao3D/Licenses...");
 #else
     QString licMsg = tr("Help/Licenses...");

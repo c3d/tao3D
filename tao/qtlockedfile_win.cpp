@@ -84,7 +84,7 @@ Qt::HANDLE QtLockedFile::getMutexHandle(int idx, bool doCreate)
 
 bool QtLockedFile::waitMutex(Qt::HANDLE mutex, bool doBlock)
 {
-    Q_ASSERT(mutex);
+    XL_ASSERT(mutex);
     DWORD res = WaitForSingleObject(mutex, doBlock ? INFINITE : 0);
     switch (res) {
     case WAIT_OBJECT_0:
@@ -151,7 +151,7 @@ bool QtLockedFile::lock(LockMode mode, bool block)
             return false;
     }
     else {
-        Q_ASSERT(rmutexes.isEmpty());
+        XL_ASSERT(rmutexes.isEmpty());
         for (int i = 0; i < MAX_READERS; i++) {
             Qt::HANDLE mutex = getMutexHandle(i, false);
             if (mutex)

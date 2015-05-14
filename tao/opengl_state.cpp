@@ -1141,8 +1141,8 @@ ClientTextureUnitState &OpenGLState::ClientActiveTexture()
 //   Return current client active texture state
 // ----------------------------------------------------------------------------
 {
-     Q_ASSERT(clientActiveTexture >= GL_TEXTURE0);
-     Q_ASSERT(clientActiveTexture < GL_TEXTURE0+MAX_TEXTURE_COORDS);
+     XL_ASSERT(clientActiveTexture >= GL_TEXTURE0);
+     XL_ASSERT(clientActiveTexture < GL_TEXTURE0+MAX_TEXTURE_COORDS);
      uint at = clientActiveTexture - GL_TEXTURE0;
      if (at >= clientTextureUnits.units.size())
          clientTextureUnits.units.resize(at + 1);
@@ -2159,8 +2159,8 @@ TextureUnitState &OpenGLState::ActiveTextureUnitState(bool isDirty)
 //    Return the state of the active texture unit
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(activeTexture >= GL_TEXTURE0);
-    Q_ASSERT(activeTexture < GL_TEXTURE0+MAX_TEXTURE_UNITS);
+    XL_ASSERT(activeTexture >= GL_TEXTURE0);
+    XL_ASSERT(activeTexture < GL_TEXTURE0+MAX_TEXTURE_UNITS);
     uint at = activeTexture - GL_TEXTURE0;
 
     // Avoid to flag a texture unit as dirty if not needed
@@ -2275,7 +2275,7 @@ void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
 // ----------------------------------------------------------------------------
 {
     TextureState &ts = ActiveTextureState();
-    Q_ASSERT (ts.type == type);
+    XL_ASSERT (ts.type == type);
     switch(pname)
     {
     case GL_TEXTURE_MIN_FILTER:

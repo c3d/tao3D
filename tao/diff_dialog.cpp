@@ -34,7 +34,7 @@ DiffDialog::DiffDialog(Repository *repo, QWidget *parent)
 // ----------------------------------------------------------------------------
     : QDialog(parent), repo(repo)
 {
-    Q_ASSERT(repo);
+    XL_ASSERT(repo);
 
     setupUi(this);
     setupEditor();

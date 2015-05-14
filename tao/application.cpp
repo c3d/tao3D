@@ -383,7 +383,7 @@ void Application::deferredInit()
 
 #if defined (CONFIG_LINUX)
     xDisplay = XOpenDisplay(NULL);
-    Q_ASSERT(xDisplay);
+    XL_ASSERT(xDisplay);
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     ssHeartBeatCommand = env.value("TAO_SS_HEARTBEAT_CMD");
 #endif
@@ -770,7 +770,7 @@ void Application::processCommandLineFile()
 // ----------------------------------------------------------------------------
 {
     RECORD(ALWAYS, "processCommandLineFile");
-    Q_ASSERT(win);
+    XL_ASSERT(win);
 
     // Find file or URI
     QString toOpen = getFileOrUriFromCommandLine();
@@ -794,7 +794,7 @@ void Application::processCommandLineFile()
     }
     if (toOpen.isEmpty())
         toOpen = win->welcomePath();
-    Q_ASSERT(!toOpen.isEmpty());
+    XL_ASSERT(!toOpen.isEmpty());
 
     // This code makes size() and geometry() valid for the main window
     // its Tao widget, respectively, so that these dimensions may be used
@@ -1576,7 +1576,7 @@ QString Application::getFileOrUriFromCommandLine()
 //    Return first path or URI given on command line
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(xlr);
+    XL_ASSERT(xlr);
 
     XL::source_names &names = xlr->file_names;
     XL::source_names::iterator it;

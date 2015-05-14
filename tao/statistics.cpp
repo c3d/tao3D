@@ -162,7 +162,7 @@ void Statistics::begin(Operation op)
     if (!enabled)
         return;
 
-    Q_ASSERT(op >= 0 && op < LAST_OP);
+    XL_ASSERT(op >= 0 && op < LAST_OP);
 
     running[op] = true;
     timer[op].start();
@@ -177,7 +177,7 @@ void Statistics::end(Operation op)
     if (!enabled)
         return;
 
-    Q_ASSERT(op >= 0 && op < LAST_OP);
+    XL_ASSERT(op >= 0 && op < LAST_OP);
 
     if (!running[op])
         return;
@@ -228,7 +228,7 @@ int Statistics::averageTime(Operation op)
 //    Average duration of specified operation during last 'interval' seconds
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(op >= 0 && op < LAST_OP);
+    XL_ASSERT(op >= 0 && op < LAST_OP);
 
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
@@ -245,7 +245,7 @@ int Statistics::averageTimePerFrame(Operation op)
 //    Average duration of operation, per frame, during last 'interval' seconds
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(op >= 0 && op < LAST_OP);
+    XL_ASSERT(op >= 0 && op < LAST_OP);
 
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
@@ -262,7 +262,7 @@ int Statistics::maxTime(Operation op)
 //    Maximum duration of specified operation during last 'interval' seconds
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(op >= 0 && op < LAST_OP);
+    XL_ASSERT(op >= 0 && op < LAST_OP);
 
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1;

@@ -158,6 +158,10 @@ Presentations/Time for Taodyne
 tao:time_for_taodyne
 Taodyne gives you the time and gives you more time
 
+Shaders/Dancing Script
+tao:DancingScript
+Using shaders to animate text
+
 Shaders/Real-time raytracing
 tao:Raytrace
 Using GLSL for real-time raytracing

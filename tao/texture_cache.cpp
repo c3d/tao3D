@@ -1008,6 +1008,16 @@ void CachedTexture::reload()
 }
 
 
+QImage CachedTexture::loadedImage()
+// ----------------------------------------------------------------------------
+//    Return the image as it was loaded, reload if necessary
+// ----------------------------------------------------------------------------
+{
+    bind();
+    return image.raw;
+}
+
+
 void CachedTexture::onFileCreated(const QString &path,
                                   const QString &canonicalPath)
 // ----------------------------------------------------------------------------

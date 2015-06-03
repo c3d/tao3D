@@ -136,7 +136,7 @@ public:
     bool            transferred() { return (GLsize != 0); }
 
     void            reload();
-    QImage          loadedImage() { return image.raw; }
+    QImage          loadedImage();
 
 signals:
     void            textureUpdated(CachedTexture *tex);

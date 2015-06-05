@@ -747,21 +747,24 @@ void Widget::dawdle()
     }
 
 #ifndef CFG_NOGIT
-    // Check if it's time to commit
-    longlong commitDelay = longlong (nextCommit - tick);
-    if (repo && commitDelay < 0 &&
-        repo->state == Repository::RS_NotClean &&
-        !dragging)
+    if (GeneralPage::gitEnabled())
     {
-        doCommit(tick);
-    }
+        // Check if it's time to commit
+        longlong commitDelay = longlong (nextCommit - tick);
+        if (repo && commitDelay < 0 &&
+            repo->state == Repository::RS_NotClean &&
+            !dragging)
+        {
+            doCommit(tick);
+        }
 
-    // Check if it's time to merge from the remote repository
-    // REVISIT: sync: what if several widgets share the same repository?
-    longlong pullDelay = longlong (nextPull - tick);
-    if (repo && pullDelay < 0 && repo->state == Repository::RS_Clean)
-    {
-        doPull(tick);
+        // Check if it's time to merge from the remote repository
+        // REVISIT: sync: what if several widgets share the same repository?
+        longlong pullDelay = longlong (nextPull - tick);
+        if (repo && pullDelay < 0 && repo->state == Repository::RS_Clean)
+        {
+            doPull(tick);
+        }
     }
 #endif
 
@@ -2660,7 +2663,8 @@ void Widget::saveAndCommit()
     doSave(tick);
 #else
     if (doSave(tick))
-        doCommit(tick);
+        if (GeneralPage::gitEnabled())
+            doCommit(tick);
 #endif
 }
 
@@ -4929,7 +4933,6 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 
 
 #ifndef CFG_NOGIT
-
 void Widget::commitSuccess(QString id, QString msg)
 // ----------------------------------------------------------------------------
 //   Document was succesfully committed to repository (see doCommit())
@@ -4951,7 +4954,7 @@ bool Widget::doCommit(ulonglong tick)
         return false;
 
     IFTRACE(filesync)
-            std::cerr << "Commit\n";
+        std::cerr << "Commit\n";
     bool done;
     done = repo->commit();
     if (done)
@@ -13091,10 +13094,6 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         QStringList branches = repo->branches();
         foreach (QString branch, branches)
         {
-
-
-
-
             Tree *action = new Prefix(prefix, new Text(+branch));
             action->SetSymbols(self->Symbols());
             chooser->AddItem(label + +branch + "...", action);
@@ -13525,16 +13524,13 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         {
             before = menuItems[menuCount]->p_action;
         }
-        else
+        else if (par == currentMenuBar)
         {
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-            if (par == currentMenuBar)
-                before = taoWindow()->shareMenu->menuAction();
+            before = taoWindow()->shareMenu->menuAction();
 #else
-            if (par == currentMenuBar)
-                before = taoWindow()->helpMenu->menuAction();
+            before = taoWindow()->helpMenu->menuAction();
 #endif
-//            par->addAction(currentMenu->menuAction());
         }
         par->insertAction(before, currentMenu->menuAction());
 

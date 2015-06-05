@@ -36,6 +36,7 @@
 #include "clone_dialog.h"
 #include "diff_dialog.h"
 #include "git_toolbar.h"
+#include "preferences_pages.h"
 #include "undo.h"
 #endif
 #ifndef CFG_NONETWORK
@@ -2143,8 +2144,8 @@ void Window::createActions()
     resetViewAct = new QAction(QIcon(":/images/view-restore.png"),
                                     tr("Restore default view"), this);
     resetViewAct->setObjectName("resetView");
-    connect(resetViewAct, SIGNAL(triggered()), taoWidget,
-            SLOT(resetView()));
+    connect(resetViewAct, SIGNAL(triggered()),
+            taoWidget, SLOT(resetView()));
 }
 
 
@@ -2206,19 +2207,6 @@ void Window::createMenus()
     editMenu->addAction(launchWebUIAct);
 #endif
 
-#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    shareMenu = menuBar()->addMenu(tr("&Share"));
-    shareMenu->setObjectName(SHARE_MENU_NAME);
-    shareMenu->addAction(cloneAct);
-    shareMenu->addAction(fetchAct);
-    shareMenu->addAction(setPullUrlAct);
-    shareMenu->addAction(pushAct);
-    shareMenu->addAction(mergeAct);
-    shareMenu->addAction(checkoutAct);
-    shareMenu->addAction(selectiveUndoAct);
-    shareMenu->addAction(diffAct);
-#endif
-
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->setObjectName(VIEW_MENU_NAME);
 #ifndef CFG_NOSRCEDIT
@@ -2236,12 +2224,36 @@ void Window::createMenus()
     displayModes = new QActionGroup(this);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
 
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
+    shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->setObjectName(SHARE_MENU_NAME);
+    shareMenu->addAction(cloneAct);
+    shareMenu->addAction(fetchAct);
+    shareMenu->addAction(setPullUrlAct);
+    shareMenu->addAction(pushAct);
+    shareMenu->addAction(mergeAct);
+    shareMenu->addAction(checkoutAct);
+    shareMenu->addAction(selectiveUndoAct);
+    shareMenu->addAction(diffAct);
+    shareMenu->menuAction()->setVisible(GeneralPage::gitEnabled());
+#endif
 
     menuBar()->addSeparator();
 
     helpMenu = NULL;
     createHelpMenus();
 }
+
+
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
+void Window::showShareMenu(bool on)
+// ----------------------------------------------------------------------------
+//   Show or hide Share menu depending on Git preferences
+// ----------------------------------------------------------------------------
+{
+    shareMenu->menuAction()->setVisible(on);
+}
+#endif  // GIT
 
 
 void Window::createHelpMenus()

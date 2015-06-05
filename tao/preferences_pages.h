@@ -49,38 +49,51 @@ class GeneralPage : public QWidget
 public:
     GeneralPage(QWidget *parent = 0);
 
-    static bool    checkForUpdateOnStartup();
-    static bool    webUISecurityTokenEnabled();
-    static QString taoUriScheme();
+    static bool         checkForUpdateOnStartup();
+    static bool         webUISecurityTokenEnabled();
+    static QString      taoUriScheme();
+
+#ifndef CFG_NOGIT
+    static bool         gitEnabled();
+#endif
 
 #ifndef CFG_NO_WEBUI
 signals:
-    void           webUISecurityChanged();
+    void                webUISecurityChanged();
+#endif
+
+#ifndef CFG_NOGIT
+signals:
+    void                gitEnabledChanged(bool on);
 #endif
 
 protected:
-    static bool    checkForUpdateOnStartupDefault();
+    static bool         checkForUpdateOnStartupDefault();
 #ifndef CFG_NO_WEBUI
-    static bool    webUISecurityTokenEnabledDefault();
+    static bool         webUISecurityTokenEnabledDefault();
 #endif
-    static QString taoUriSchemeDefault();
+    static QString      taoUriSchemeDefault();
 
 private:
-    QStringList  installedLanguages();
+    QStringList         installedLanguages();
 
 private slots:
-    void         setLanguage(int index);
-    void         setCheckForUpdateOnStartup(bool on);
+    void                setLanguage(int index);
+    void                setCheckForUpdateOnStartup(bool on);
 #ifndef CFG_NO_WEBUI
-    void         setWebUISecurityTokenEnabled(bool on);
+    void                setWebUISecurityTokenEnabled(bool on);
 #endif
-    void         setTaoUriScheme(int index);
+#ifndef CFG_NOGIT
+    void                setGitEnabled(bool on);
+#endif
+    void                setTaoUriScheme(int index);
 
 private:
-    QComboBox *  combo;
-    QLabel *     message;
-    QComboBox *  uriCombo;
+    QComboBox *         languageCombo;
+    QLabel *            message;
+    QComboBox *         uriCombo;
 };
+
 
 class DebugPage : public QWidget
 // ----------------------------------------------------------------------------

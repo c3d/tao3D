@@ -197,6 +197,7 @@ private slots:
 #endif
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     void        clearUndoStack();
+    void        showShareMenu(bool show);
 #endif
     void        about();
     void        update();

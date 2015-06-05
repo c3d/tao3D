@@ -63,10 +63,10 @@ GeneralPage::GeneralPage(QWidget *parent)
     QGroupBox *group = new QGroupBox(tr("General"));
     QGridLayout *grid = new QGridLayout;
     grid->addWidget(new QLabel(tr("User interface language:")), 1, 1);
-    combo = new QComboBox;
-    grid->addWidget(combo, 1, 2);
+    languageCombo = new QComboBox;
+    grid->addWidget(languageCombo, 1, 2);
     QStringList languages = installedLanguages();
-    combo->addItem(tr("(System Language)"));
+    languageCombo->addItem(tr("(System Language)"));
     foreach (QString lang, languages)
     {
         QString langName;
@@ -77,17 +77,17 @@ GeneralPage::GeneralPage(QWidget *parent)
             langName = QString::fromUtf8("Fran\303\247ais");
 
         if (langName != "")
-            combo->addItem(langName,
+            languageCombo->addItem(langName,
                            lang);
     }
     QString saved = QSettings().value("uiLanguage", "C").toString();
     if (saved != "C")
     {
-        int index = combo->findData(saved);
+        int index = languageCombo->findData(saved);
         if (index != -1)
-            combo->setCurrentIndex(index);
+            languageCombo->setCurrentIndex(index);
     }
-    connect(combo, SIGNAL(currentIndexChanged(int)),
+    connect(languageCombo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(setLanguage(int)));
 
     // Menu for automatic check for update
@@ -128,6 +128,17 @@ GeneralPage::GeneralPage(QWidget *parent)
     connect(this, SIGNAL(webUISecurityChanged()),
             &TaoApp->window()->webui, SLOT(securitySettingChanged()));
     grid->addWidget(secure, 5, 1);
+#endif
+
+#ifndef CFG_NOGIT
+    // Activating all the Git stuff
+    QCheckBox *useGit = new QCheckBox(tr("Activate version control features"));
+    useGit->setChecked(gitEnabled());
+    connect(useGit, SIGNAL(toggled(bool)),
+            this, SLOT(setGitEnabled(bool)));
+    connect(this, SIGNAL(gitEnabledChanged(bool)),
+            TaoApp->window(), SLOT(showShareMenu(bool)));
+    grid->addWidget(useGit, 6, 1);
 #endif
 
     group->setLayout(grid);
@@ -174,7 +185,7 @@ void GeneralPage::setLanguage(int index)
         QSettings().remove("uiLanguage");
         return;
     }
-    QString lang = combo->itemData(index).toString();
+    QString lang = languageCombo->itemData(index).toString();
     QSettings().setValue("uiLanguage", lang);
 }
 
@@ -248,6 +259,32 @@ bool GeneralPage::webUISecurityTokenEnabledDefault()
     return true;
 }
 #endif // CFG_NO_WEBUI
+
+
+#ifndef CFG_NOGIT
+void GeneralPage::setGitEnabled(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting about git
+// ----------------------------------------------------------------------------
+{
+   QSettings settings;
+   if (!on)
+       settings.remove("GitEnabled");
+   else
+       settings.setValue("GitEnabled", QVariant(on));
+   emit gitEnabledChanged(on);
+}
+
+
+bool GeneralPage::gitEnabled()
+// ----------------------------------------------------------------------------
+//   Read setting about security token for WebUI
+// ----------------------------------------------------------------------------
+{
+    bool dflt = false;
+    return QSettings().value("GitEnabled", QVariant(dflt)).toBool();
+}
+#endif // CFG_NOGIT
 
 
 void GeneralPage::setTaoUriScheme(int index)

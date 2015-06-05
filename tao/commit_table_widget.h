@@ -25,6 +25,7 @@
 
 #include "repository.h"
 #include <QtGui>
+#include <QTableView.h>
 
 
 namespace Tao {

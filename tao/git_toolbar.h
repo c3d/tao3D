@@ -36,7 +36,7 @@ namespace Tao {
 
 struct Repository;
 
-class GitToolBar : public QToolBar
+struct GitToolBar : public QToolBar
 {
     Q_OBJECT
 

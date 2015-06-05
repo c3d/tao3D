@@ -31,7 +31,7 @@ QT_END_NAMESPACE
 
 namespace Tao {
 
-class Repository;
+struct Repository;
 class HistoryPlayback;
 
 class HistoryPlaybackTool : public ToolWindow

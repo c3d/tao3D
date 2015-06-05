@@ -104,6 +104,7 @@ while [ $# -ne 0 ] ; do
     -release|--release)
       FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
       FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
+      FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
       shift
       ;;
     -debug|--debug)
@@ -158,6 +159,7 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS DEFINES+=CFG_NONETWORK DEFINES+=CFG_NOEDIT"
       FLAGS="$FLAGS DEFINES+=CFG_NO_NEW_FROM_TEMPLATE"
       FLAGS="$FLAGS DEFINES+=CFG_NO_QTWEBKIT"
+      FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
       FLAGS="$FLAGS templates=none"
       PACKAGE="Player"
       shift ; done=1
@@ -180,12 +182,6 @@ done
 FLAGS="$FLAGS PACKAGE_APPEND=$PACKAGE$VERSION"
 
 [ "$with_modlic" ] && FLAGS="$FLAGS SIGN_MODULE_LICENSES=1 LICENSE_VALIDITY=120"
-
-if [ "$EDITION" = "Internal" ] ; then
-  :
-else
-  FLAGS="$FLAGS DEFINES+=CFG_NOGIT DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
-fi
 
 # Default QMake flags for each OS
 osflags() {

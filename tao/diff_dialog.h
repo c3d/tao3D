@@ -26,7 +26,7 @@
 
 namespace Tao {
 
-class Repository;
+struct Repository;
 class DiffHighlighter;
 
 class DiffDialog : public QDialog, protected Ui::DiffDialog

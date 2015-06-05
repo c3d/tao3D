@@ -70,6 +70,10 @@ Animations/Movie player
 tao:movie_player
 A simple movie player
 
+Animations/Controlling refresh rate
+tao:RefreshRate
+Control refresh rate in frame textures
+
 Stereoscopy/3D movie player
 tao:3DMoviePlayer
 A simple 3D movie player that reads files from a directory
@@ -77,6 +81,10 @@ A simple 3D movie player that reads files from a directory
 Stereoscopy/3D movie from YouTube
 tao:3DMovie
 Decoding a 3D movie from YouTube (stereo only in Pro version)
+
+Stereoscopy/Common stereoscopy errors
+tao:stereo-errors
+A demonstration of various common stereoscopic errors
 
 Models/Car
 tao:Car
@@ -150,10 +158,6 @@ Presentations/This Is Not A Universe
 tao:ThisIsNotAUniverse
 This is not a Universe - Is our universe virtual?
 
-Presentations/stereo-errors
-tao:stereo-errors
-A demonstration of various common stereoscopic errors
-
 Presentations/Time for Taodyne
 tao:time_for_taodyne
 Taodyne gives you the time and gives you more time
@@ -173,6 +177,10 @@ A Dali-style melting clock that gives actual time
 Shaders/Shader catalog
 tao:Shaders
 A collection of shaders adapted from ShaderToy
+
+Shaders/3D Interactive Visual Art (3DIVART)
+tao:3DIVART
+A collection of shaders adapted for stereo and autostereo displays
 
 Science and visualization/Lorenz
 tao:Lorenz

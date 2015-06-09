@@ -2252,6 +2252,7 @@ void Window::showShareMenu(bool on)
 // ----------------------------------------------------------------------------
 {
     shareMenu->menuAction()->setVisible(on);
+    RepositoryFactory::no_repo = !on;
 }
 #endif  // GIT
 

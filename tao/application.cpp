@@ -175,8 +175,12 @@ void Application::deferredInit()
 #endif
 
     if (cmdLineArguments.contains("-norepo") ||
-        cmdLineArguments.contains("-nogit"))
+        cmdLineArguments.contains("-nogit")  ||
+        !GeneralPage::gitEnabled())
+    {
+        std::cerr << "No Git repository\n";
         RepositoryFactory::no_repo = true;
+    }
 
     // Setup the XL runtime environment
     // Do it soon because debug traces are activated by this

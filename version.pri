@@ -11,4 +11,3 @@ RELEASE = $$replace(TAO_VERSION, "^[0-9]+\\.[0-9]+\\.", "")
 
 !isEmpty(TAO_PLAYER):MAYBE_PLAYER = " Player"
 APP_NAME="Tao3D$$MAYBE_PLAYER"
-

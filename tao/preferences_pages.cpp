@@ -196,10 +196,7 @@ void GeneralPage::setCheckForUpdateOnStartup(bool on)
 // ----------------------------------------------------------------------------
 {
    QSettings settings;
-   if (on == checkForUpdateOnStartupDefault())
-       settings.remove("CheckForUpdate");
-   else
-       settings.setValue("CheckForUpdate", QVariant(on));
+   settings.setValue("CheckForUpdate", QVariant(on));
 }
 
 
@@ -233,10 +230,7 @@ void GeneralPage::setWebUISecurityTokenEnabled(bool on)
 // ----------------------------------------------------------------------------
 {
    QSettings settings;
-   if (on == webUISecurityTokenEnabledDefault())
-       settings.remove("WebUISecurity");
-   else
-       settings.setValue("WebUISecurity", QVariant(on));
+   settings.setValue("WebUISecurity", QVariant(on));
    emit webUISecurityChanged();
 }
 
@@ -268,10 +262,7 @@ void GeneralPage::setGitEnabled(bool on)
 // ----------------------------------------------------------------------------
 {
    QSettings settings;
-   if (!on)
-       settings.remove("GitEnabled");
-   else
-       settings.setValue("GitEnabled", QVariant(on));
+   settings.setValue("GitEnabled", QVariant(on));
    emit gitEnabledChanged(on);
 }
 
@@ -875,10 +866,7 @@ void PerformancesPage::setPerPixelLighting(bool on)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (on == perPixelLightingDefault())
-        settings.remove("PerPixelLighting");
-    else
-        settings.setValue("PerPixelLighting", QVariant(on));
+    settings.setValue("PerPixelLighting", QVariant(on));
 
     perPixelLighting_ = TaoApp->useShaderLighting = on;
 }
@@ -891,10 +879,7 @@ void PerformancesPage::setVSync(bool on)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (on == VSyncDefault())
-        settings.remove("VSync");
-    else
-        settings.setValue("VSync", QVariant(on));
+    settings.setValue("VSync", QVariant(on));
     TaoApp->enableVSync(on);
     VSync_ = on;
 }
@@ -907,10 +892,7 @@ void PerformancesPage::setTexture2DCompress(bool on)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (on == texture2DCompressDefault())
-        settings.remove("Texture2DCompress");
-    else
-        settings.setValue("Texture2DCompress", QVariant(on));
+    settings.setValue("Texture2DCompress", QVariant(on));
     texture2DCompress_ = on;
 }
 
@@ -922,10 +904,7 @@ void PerformancesPage::setTexture2DMipmap(bool on)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (on == texture2DMipmapDefault())
-        settings.remove("Texture2DMipmap");
-    else
-        settings.setValue("Texture2DMipmap", QVariant(on));
+    settings.setValue("Texture2DMipmap", QVariant(on));
     texture2DMipmap_ = on;
 }
 
@@ -937,10 +916,7 @@ void PerformancesPage::setTexture2DMinFilter(int value)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (value == texture2DMinFilterDefault())
-        settings.remove("Texture2DMinFilter");
-    else
-        settings.setValue("Texture2DMinFilter", QVariant(value));
+    settings.setValue("Texture2DMinFilter", QVariant(value));
     TextureCache::instance()->setMinFilter(value);
     texture2DMinFilter_ = value;
 }
@@ -963,10 +939,7 @@ void PerformancesPage::setTexture2DMagFilter(int value)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (value == texture2DMagFilterDefault())
-        settings.remove("Texture2DMagFilter");
-    else
-        settings.setValue("Texture2DMagFilter", QVariant(value));
+    settings.setValue("Texture2DMagFilter", QVariant(value));
     TextureCache::instance()->setMagFilter(value);
     texture2DMagFilter_ = value;
 }
@@ -989,10 +962,7 @@ void PerformancesPage::setTextureCacheMaxMem(quint64 bytes)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (bytes == textureCacheMaxMemDefault())
-        settings.remove("TextureCacheMaxMem");
-    else
-        settings.setValue("TextureCacheMaxMem", QVariant(bytes));
+    settings.setValue("TextureCacheMaxMem", QVariant(bytes));
     TextureCache::instance()->setMaxMemSize(bytes);
     textureCacheMaxMem_ = bytes;
 }
@@ -1015,10 +985,7 @@ void PerformancesPage::setTextureCacheMaxGLMem(quint64 bytes)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (bytes == textureCacheMaxGLMemDefault())
-        settings.remove("TextureCacheMaxGLMem");
-    else
-        settings.setValue("TextureCacheMaxGLMem", QVariant(bytes));
+    settings.setValue("TextureCacheMaxGLMem", QVariant(bytes));
     TextureCache::instance()->setMaxGLSize(bytes);
     textureCacheMaxGLMem_ = bytes;
 }

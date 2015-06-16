@@ -14249,9 +14249,9 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
 //   Check if a compile-time option is enabled
 // ----------------------------------------------------------------------------
 {
-#ifdef CFG_NOGIT
+#ifndef CFG_NOGIT
     if (name->value == "git")
-        return XL::xl_false;
+        return XL::xl_true;
 #endif
 
     if (name->value == "mac")
@@ -14278,7 +14278,7 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
     if (name->value == "vsync_ctl")
         return VSyncSupported() ? XL::xl_true : XL::xl_false;
 
-    return XL::xl_true;
+    return XL::xl_false;
 }
 
 

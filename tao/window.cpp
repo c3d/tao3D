@@ -126,6 +126,7 @@ Window::Window(XL::Main *xlr,
 #ifndef CFG_NO_WEBUI
       webui(this),
 #endif
+      helpMenu(NULL),
       splashScreen(NULL), aboutSplash(NULL)
 {
     RECORD(ALWAYS, "Window constructor", "this", (intptr_t)this);
@@ -2239,9 +2240,6 @@ void Window::createMenus()
 #endif
 
     menuBar()->addSeparator();
-
-    helpMenu = NULL;
-    createHelpMenus();
 }
 
 
@@ -2262,10 +2260,9 @@ void Window::createHelpMenus()
 //   Create the help menus
 // ----------------------------------------------------------------------------
 {
-    delete helpMenu;
-
     helpMenu = new ExamplesMenu(tr("&Help"), menuBar());
     menuBar()->addMenu(helpMenu);
+
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(updateAct);
@@ -2273,6 +2270,7 @@ void Window::createHelpMenus()
     helpMenu->addAction(licensesAct);
     if (onlineDocAct)
         helpMenu->addAction(onlineDocAct);
+
 #if defined(TAO_PLAYER) && defined(CFG_NONETWORK)
     // A player with no download capabilities has no need for a tutorials/forum menu
 #else

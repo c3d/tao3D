@@ -22,7 +22,7 @@
 
 #include "commit_table_widget.h"
 #include "commit_table_model.h"
-#include <QHeaderView.h>
+#include <QHeaderView>
 
 namespace Tao {
 

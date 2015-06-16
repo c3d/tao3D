@@ -275,6 +275,14 @@ bool GeneralPage::gitEnabled()
     bool dflt = false;
     return QSettings().value("GitEnabled", QVariant(dflt)).toBool();
 }
+#else
+bool GeneralPage::gitEnabled()
+// ----------------------------------------------------------------------------
+//   If git features are not built, just disable
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
 #endif // CFG_NOGIT
 
 

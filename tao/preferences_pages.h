@@ -53,9 +53,7 @@ public:
     static bool         webUISecurityTokenEnabled();
     static QString      taoUriScheme();
 
-#ifndef CFG_NOGIT
     static bool         gitEnabled();
-#endif
 
 #ifndef CFG_NO_WEBUI
 signals:

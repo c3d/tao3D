@@ -33,6 +33,7 @@ GIT_VERSION=1.9.0
 GIT_DESTDIR=$(shell pwd)/git_build/install
 GIT_DEST=$(shell pwd)/build_root/$(APP_NAME).app/Contents/MacOS/git
 define git-makeparms
+CFLAGS=-mmacosx-version-min=10.6 \
 NO_DARWIN_PORTS=1 NO_GETTEXT=1 NO_INSTALL_HARDLINKS=1 \
 NO_PERL=1 NO_PYTHON=1 NO_TCLTK=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef

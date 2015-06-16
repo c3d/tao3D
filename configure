@@ -105,6 +105,7 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
       FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
       FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
+      FLAGS="$FLAGS DEFINES+=CFG_NOGIT=1"
       shift
       ;;
     -debug|--debug)

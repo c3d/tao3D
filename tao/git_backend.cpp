@@ -101,7 +101,11 @@ again:
     QString userCmd = QSettings().value("GitCommand").toString();
     if (!userCmd.isEmpty())
         commands << userCmd;
-    commands << qApp->applicationDirPath() + "/git/bin/git" << "git";
+    QString appPath = qApp->applicationDirPath();
+    commands << appPath + "/git/usr/local/bin/git"
+             << appPath + "/git/usr/bin/git"
+             << appPath + "/git/bin/git"
+             << "git";
     QStringListIterator it(commands);
     bool ok = false;
     while (it.hasNext())
@@ -128,11 +132,12 @@ again:
         IFTRACE(process)
             std::cerr << "Will use git command: " << +gitCommand << "\n";
 #ifndef Q_OS_WIN
-        QString appPath = qApp->applicationDirPath();
-        if (gitCommand == appPath + "/git/bin/git")
+        if (gitCommand.startsWith(appPath + "/git/"))
         {
-            gitExecPath    = appPath + "/git/libexec/git-core";
-            gitTemplateDir = appPath + "/git/share/git-core/templates";
+            gitExecPath    = appPath;
+            gitTemplateDir = appPath;
+            gitExecPath    .replace("/bin/git", "/libexec/git-core");
+            gitTemplateDir .replace("/bin/git", "/share/git-core/templates");
             IFTRACE(process)
             {
                 std::cerr << "Will set GIT_EXEC_PATH to: "

@@ -134,8 +134,8 @@ again:
 #ifndef Q_OS_WIN
         if (gitCommand.startsWith(appPath + "/git/"))
         {
-            gitExecPath    = appPath;
-            gitTemplateDir = appPath;
+            gitExecPath    = gitCommand;
+            gitTemplateDir = gitCommand;
             gitExecPath    .replace("/bin/git", "/libexec/git-core");
             gitTemplateDir .replace("/bin/git", "/share/git-core/templates");
             IFTRACE(process)

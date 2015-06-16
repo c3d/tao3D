@@ -175,8 +175,7 @@ void Application::deferredInit()
 #endif
 
     if (cmdLineArguments.contains("-norepo") ||
-        cmdLineArguments.contains("-nogit")  ||
-        !GeneralPage::gitEnabled())
+        cmdLineArguments.contains("-nogit"))
     {
         std::cerr << "No Git repository\n";
         RepositoryFactory::no_repo = true;

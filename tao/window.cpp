@@ -1063,7 +1063,7 @@ bool Window::saveFile(const QString &fileName)
     isReadOnly = false;
 
 #ifndef CFG_NOGIT
-    if (repo)
+    if (repo && GeneralPage::gitEnabled())
     {
         // Trigger immediate commit to repository
         // FIXME: shouldn't create an empty commit

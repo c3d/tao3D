@@ -52,6 +52,7 @@ static inline int glewInit() { return GLEW_OK; }
 # endif
 # if defined(CONFIG_MACOSX)
 #  include <OpenGL/glu.h>
+#  define glFramebufferTexture glFramebufferTextureEXT
 # elif defined (CONFIG_LINUX)
 #  include <GL/glu.h>
 # else

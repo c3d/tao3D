@@ -11,7 +11,7 @@ REV="$(tao/updaterev.sh -n)"
 (echo $REV | grep g) || make distclean
 
 # Configure with the Jenkins input parameters
-./configure -$BUILD_OPT $BUILD_VERSION VLC=$VLCPATH 
+./configure -$OPT $VERSION VLC=$VLCPATH 
 
 # Build it and upload on server
 make kit

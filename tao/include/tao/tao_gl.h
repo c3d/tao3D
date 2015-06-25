@@ -34,6 +34,11 @@
 
 # include <qopengl.h>
 
+#  ifndef CONFIG_MINGW
+#   define GLEW_OK 0
+static inline int glewInit() { return GLEW_OK; }
+#  endif
+
 #else
 
 # ifdef CONFIG_MINGW

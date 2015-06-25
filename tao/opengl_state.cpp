@@ -22,14 +22,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#ifdef CONFIG_MINGW
-#include <tao/GL/glew.h>
-#define QT_NO_OPENGL
-#else
-#define GLEW_OK 0
-static inline int glewInit() { return GLEW_OK; }
-#endif
-
+#include "tao_gl.h"
 #include "opengl_state.h"
 
 #include <cassert>

@@ -3177,10 +3177,12 @@ void Window::setCurrentFile(const QString &fileName)
     closeAct->setEnabled(!isTutorial(curFile));
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     if (Licenses::Has("SignDocument"))
-    bool show = !isReadOnly &&
-                !curFile.startsWith(Application::applicationDirPath()) &&
-                 TaoApp->edition == Application::StudioPro;
-    signDocumentAct->setEnabled(show);
+    {
+        bool show = !isReadOnly &&
+                    !curFile.startsWith(Application::applicationDirPath()) &&
+                     TaoApp->edition == Application::StudioPro;
+        signDocumentAct->setEnabled(show);
+    }
 #endif
 #ifndef CFG_NO_WEBUI
     QString jsonFile(curFile);

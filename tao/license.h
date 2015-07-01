@@ -83,60 +83,6 @@ public:
         return days > 0;
     }
 
-    static bool CheckImpressOrLicense(text feature)
-    {
-        if (DontCheck(feature))
-            return true;
-        else
-            return Check(feature, false);
-    }
-
-    static bool HasImpressOrLicense(text feature)
-    {
-        if (DontCheck(feature))
-            return true;
-        else
-            return Has(feature);
-    }
-
-    static bool DontCheck(text feature)
-    {
-        // Cache request for less verbose logging
-        static std::set<text> checked;
-
-        if (TaoApp->edition == Application::DesignPro)
-        {
-            IFTRACE(lic)
-            {
-                if (checked.count(feature) == 0)
-                {
-                    debug() << "'" << feature << "' not checked "
-                               "(authorized because edition is Design Pro)\n";
-                    checked.insert(feature);
-                }
-            }
-            return true;
-        }
-
-#ifndef CFG_NO_DOC_SIGNATURE
-        Window *win = TaoApp->window();
-        if (win && win->isDocumentSigned())
-        {
-            IFTRACE(lic)
-            {
-                if (checked.count(feature) == 0)
-                {
-                    debug() << "'" << feature << "' not checked "
-                               "(authorized because doc is signed)\n";
-                    checked.insert(feature);
-                }
-            }
-            return true;
-        }
-#endif
-        return false;
-    }
-
     static text hostID();
 
 #endif // KEYGEN

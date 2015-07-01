@@ -935,7 +935,6 @@ public:
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
     Name_p      checkLicense(Tree_p self, Text_p feature, Name_p critical);
-    Name_p      checkImpressOrLicense(Tree_p self, Text_p feature);
     Name_p      blink(Tree_p self, Real_p on, Real_p off, Real_p after);
 
     // z order management

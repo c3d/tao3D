@@ -69,7 +69,7 @@
 #   DEFINES+=CFG_NO_QTWEBKIT
 #     Do not use QtWebKit. The url and url_texture primitives become no-ops.
 #   DEFINES+=CFG_UNLICENSED_MAX_PAGES=<N>
-#     Tao Player and Tao Design (non-Pro editions) will limit the number of
+#     Tao Player and Tao Studio (non-Libre editions) will limit the number of
 #     pages in a document to <N>, unless the document has a valid signature.
 #   DEFINES+=CFG_NO_LICENSE
 #     For the Libre edition: Compile without license check code

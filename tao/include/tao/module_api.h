@@ -356,16 +356,6 @@ struct ModuleApi
     std::string (*currentDocumentFolder)();
 
     // ------------------------------------------------------------------------
-    //   Licence checking (continued)
-    // ------------------------------------------------------------------------
-
-    // If the current build of Tao is Impress or Design Pro, return true. Else,
-    // return true if a valid license is found for the requested feature name,
-    // false otherwise. When no license is found, an information dialog
-    // is shown.
-    bool (*checkImpressOrLicense)(std::string featureName);
-
-    // ------------------------------------------------------------------------
     //   Main window
     // ------------------------------------------------------------------------
 
@@ -432,15 +422,8 @@ struct ModuleApi
 
 
     // ------------------------------------------------------------------------
-    //   Licence checking (continued)
+    //   Event handling
     // ------------------------------------------------------------------------
-
-    // If the current build of Tao is Impress or Design Pro, return true. Else,
-    // return true if a valid license is found for the requested feature name,
-    // false otherwise.
-    bool (*hasImpressOrLicense)(std::string featureName);
-
-
 
     // Post a user event to the graphical widget, only if there is no pending
     // event with the same eventType. Return true if the event was accepted,

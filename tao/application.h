@@ -62,7 +62,13 @@ class Application : public QApplication
 // ----------------------------------------------------------------------------
 {
 public:
-    enum TaoEdition { Unknown,Design,DesignPro,Player,PlayerPro,GPL,Other };
+    enum TaoEdition
+    {
+        Unknown,
+        Studio,StudioPro,
+        Player,PlayerPro,
+        Libre
+    };
 
 public:
     static QPixmap *padlockIcon;
@@ -84,24 +90,22 @@ public:
     static double  runTime();
     static bool    isTrialVersion()
     {
-        return (TaoApp->edition == Player || TaoApp->edition == Design);
+        return (TaoApp->edition == Player || TaoApp->edition == Studio);
     }
     static QString editionStr()
     {
         switch (TaoApp->edition)
         {
-        case Application::Design:
-            return "Design";
-        case Application::DesignPro:
-            return "Design Pro";
+        case Application::Studio:
+            return "Studio (demo)";
+        case Application::StudioPro:
+            return "Studio";
         case Application::Player:
-            return "Player";
+            return "Player (demo)";
         case Application::PlayerPro:
-            return "Player Pro";
-        case Application::GPL:
+            return "Player";
+        case Application::Libre:
             return "Libre";
-        case Application::Other:
-            return "Other";
         case Application::Unknown:
             XL_ASSERT(!"Edition not set");
         default:

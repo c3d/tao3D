@@ -237,31 +237,27 @@ void Application::deferredInit()
     padlockIcon = new QPixmap(pm.scaled(64, 64, Qt::IgnoreAspectRatio,
                                         Qt::SmoothTransformation));
 
-    QString designPro = QString("Tao3D Design Pro %1").arg(GITREV_);
-    QString impress = QString("Tao3D Impress %1").arg(GITREV_);
-    QString creativity = QString("Tao3D Creativity %1").arg(GITREV_);
+    QString studioPro = QString("Tao3D Studio %1").arg(GITREV_);
 #ifdef TAO_PLAYER
-    QString playerPro = QString("Tao3D Player Pro %1").arg(GITREV_);
-    if (Licenses::Has(+playerPro) || Licenses::Has(+designPro) ||
-        Licenses::Has(+impress) || Licenses::Has(+creativity))
+    QString playerPro = QString("Tao3D Player %1").arg(GITREV_);
+    if (Licenses::Has(+playerPro) || Licenses::Has(+studioPro))
         edition = Application::PlayerPro;
     else
         edition = Application::Player;
 #else
 #ifdef CFG_LIBRE_EDITION
-    edition = Application::GPL;
+    edition = Application::Libre;
 #else
-    if (Licenses::Has(+designPro) || Licenses::Has(+impress) ||
-        Licenses::Has(+creativity))
-        edition = Application::DesignPro;
+    if (Licenses::Has(+studioPro))
+        edition = Application::StudioPro;
     else
-        edition = Application::Design;
+        edition = Application::Studio;
 #endif // CFG_LIBRE_EDITION
 #endif
 
 #ifndef TAO_PLAYER
     // Design edition shows nag screen on startup after 30 days
-    if (edition == Design)
+    if (edition == Studio)
     {
         QString keyName("FirstRun");
         QDateTime now = QDateTime::currentDateTime();

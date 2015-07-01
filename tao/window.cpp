@@ -1036,7 +1036,7 @@ bool Window::saveFile(const QString &fileName)
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
     // Save should keep the signatures valid if they where valid
     // before the document was modified.
-    if (TaoApp->edition == Application::DesignPro)
+    if (TaoApp->edition == Application::StudioPro)
     {
         XL::SourceFile &sf = xlRuntime->files[+fileName];
         SignatureInfo *si = sf.GetInfo<SignatureInfo>();
@@ -1894,12 +1894,15 @@ void Window::createActions()
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
 
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    signDocumentAct = new QAction(tr("Sign Document for Player Pro Edition"),
-                                  this);
-    signDocumentAct->setObjectName("signDocument");
-    connect(signDocumentAct, SIGNAL(triggered()),
-            this, SLOT(signDocument()));
-    signDocumentAct->setEnabled(TaoApp->edition == Application::DesignPro);
+    if (Licenses::Has("SignDocument"))
+    {
+        signDocumentAct = new QAction(tr("Sign Document for Tao3D Player"),
+                                      this);
+        signDocumentAct->setObjectName("signDocument");
+        connect(signDocumentAct, SIGNAL(triggered()),
+                this, SLOT(signDocument()));
+        signDocumentAct->setEnabled(TaoApp->edition == Application::StudioPro);
+    }
 #endif
 #endif
 
@@ -3173,9 +3176,10 @@ void Window::setCurrentFile(const QString &fileName)
     // Disable close menu if document is the default one
     closeAct->setEnabled(!isTutorial(curFile));
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+    if (Licenses::Has("SignDocument"))
     bool show = !isReadOnly &&
                 !curFile.startsWith(Application::applicationDirPath()) &&
-                 TaoApp->edition == Application::DesignPro;
+                 TaoApp->edition == Application::StudioPro;
     signDocumentAct->setEnabled(show);
 #endif
 #ifndef CFG_NO_WEBUI

@@ -2634,15 +2634,15 @@ Code : %1
     </message>
     <message>
         <location filename="window.cpp" line="1099"/>
-        <source>Cannot save document signature: 
+        <source>Cannot save document signature:
 %1.</source>
         <translation>Impossible d&apos;enregistrer la signature du document :
 %1.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1897"/>
-        <source>Sign Document for Player Pro Edition</source>
-        <translation>Signer pour Player Pro</translation>
+        <location filename="window.cpp" line="1896"/>
+        <source>Sign Document for Tao3D Player</source>
+        <translation>Signer pour Tao3D Player</translation>
     </message>
     <message>
         <location filename="window.cpp" line="1964"/>

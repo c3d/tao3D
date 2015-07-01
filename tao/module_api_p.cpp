@@ -108,13 +108,9 @@ ModuleApiPrivate::ModuleApiPrivate()
 #ifndef CFG_NO_LICENSE
     hasLicense = Licenses::Has;
     checkLicense = Licenses::Check;
-    checkImpressOrLicense = Licenses::CheckImpressOrLicense;
-    hasImpressOrLicense = Licenses::HasImpressOrLicense;
 #else // CFG_NO_LICENSE
     hasLicense = returnFalse;
     checkLicense = returnFalse2;
-    checkImpressOrLicense = returnFalse;
-    hasImpressOrLicense = returnFalse;
 #endif // CFG_NO_LICENSE
     blink      = Widget::blink;
 

@@ -51,10 +51,10 @@ base_slide "Tao3D",
         show_edition tao_edition
 
         // We adjust the color based on the edition of the software
-        show_edition "Design Pro"       -> color "#A02"; text "Design Pro"
-        show_edition "Design"           -> color "#EA1"; text "Design"
+        show_edition "Studio"           -> color "#A02"; text "Studio"
+        show_edition "Studio (demo)"    -> color "#EA1"; text "Studio (demo)"
         show_edition "Player"           -> color "#063"; text "Player"
-        show_edition "Player Pro"       -> color "#063"; text "Player Pro"
+        show_edition "Player (demo)"    -> color "#063"; text "Player (demo)"
         show_edition Other              -> color "#036"; text Other
 
     // Manually create an additional text box matching the theme

@@ -1294,9 +1294,6 @@ PREFIX(CheckLicense, boolean,  "check_license",
        PARM(feature, text, "The feature name to check")
        PARM(critical, boolean, "Show warning (false) or error (true) dialog on no license?"),
        RTAO(checkLicense(self, feature, critical)),)
-PREFIX(CheckImpressOrLicense, boolean,  "check_impress_or_license",
-       PARM(feature, text, "The feature name to check"),
-       RTAO(checkImpressOrLicense(self, feature)),)
 // Texture cache
 PREFIX(TextureMipmap, boolean, "texture_mipmap",
       PARM(enable, boolean, "Enable or disable"),

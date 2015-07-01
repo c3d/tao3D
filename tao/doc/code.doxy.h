@@ -826,10 +826,11 @@ text tao_version();
  * Renvoie une chaîne de caractères qui identifie l'édition de Tao3D.
  * Les valeurs possibles sont actuellement:
  * @~
- * - <tt>Design</tt>
- * - <tt>Design Pro</tt>
+ * - <tt>Studio</tt>
+ * - <tt>Studio (demo)</tt>
  * - <tt>Player</tt>
- * - <tt>Player Pro</tt>
+ * - <tt>Player (demo)</tt>
+ * - <tt>Libre</tt>
  */
 text tao_edition();
 

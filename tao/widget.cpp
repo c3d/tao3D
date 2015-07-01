@@ -912,12 +912,12 @@ void Widget::drawActivities()
     if (contextFilesLoaded &&
         (Licenses::UnlicensedCount() > 0
          || TaoApp->edition == Application::Player
-         || TaoApp->edition == Application::Design
-         || (TaoApp->edition == Application::PlayerPro
+         || TaoApp->edition == Application::Studio
 #ifndef CFG_NO_DOC_SIGNATURE
-             && !isDocumentSigned
+         || (TaoApp->edition == Application::PlayerPro
+             && !isDocumentSigned)
 #endif // CFG_NO_DOC_SIGNATURE
-        )))
+            ))
     {
         GLStateKeeper save;
         SpaceLayout licenseOverlaySpace(this);
@@ -6064,7 +6064,7 @@ XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
 #ifdef CFG_UNLICENSED_MAX_PAGES
     if (pageId == CFG_UNLICENSED_MAX_PAGES
         && (TaoApp->edition == Application::Player ||
-            TaoApp->edition == Application::Design)
+            TaoApp->edition == Application::Studio)
 #ifndef CFG_NO_DOC_SIGNATURE
         && !isDocSigned()
 #endif
@@ -12862,20 +12862,6 @@ Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
 #else
     bool crit = (critical == XL::xl_true) ? true : false;
     return Licenses::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
-#endif
-}
-
-
-Name_p Widget::checkImpressOrLicense(Tree_p self, Text_p feature)
-// ----------------------------------------------------------------------------
-//   Export 'Licenses::CheckImpressOrLicense' as a primitive
-// ----------------------------------------------------------------------------
-{
-#ifdef CFG_NO_LICENSE
-    return XL::xl_false;
-#else
-    return Licenses::CheckImpressOrLicense(feature->value) ? XL::xl_true
-                                                           : XL::xl_false;
 #endif
 }
 

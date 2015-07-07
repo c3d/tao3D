@@ -106,15 +106,15 @@ Window::Window(XL::Main *xlr,
 // ----------------------------------------------------------------------------
     : contextFileNames(context), 
 #ifndef CFG_NOSRCEDIT
-      srcEdit(NULL), src(NULL),
+      srcEdit(), src(),
 #endif
-      stackedWidget(NULL), taoWidget(NULL), 
+      stackedWidget(), taoWidget(), 
       isUntitled(sourceFile.isEmpty()), isReadOnly(ro),
       loadInProgress(false),
       xlRuntime(xlr),
-      repo(NULL),
-      errorMessages(NULL), errorDock(NULL),
-      curFile(), uri(NULL),
+      repo(), docFontIds(), currentProjectFolder(),
+      errorMessages(), errorDock(),
+      curFile(), uri(),
 #ifndef CFG_NOFULLSCREEN
       slideShowMode(false),
 #endif
@@ -122,12 +122,70 @@ Window::Window(XL::Main *xlr,
 #ifndef CFG_NORELOAD
       fileCheckTimer(this),
 #endif
-      onlineDocAct(NULL),
+      fileMenu(), openRecentMenu(),
+#ifndef CFG_NOEDIT
+      editMenu(),
+#endif
+      viewMenu(), displayModeMenu(),
+      displayModes(), displayModeToAction(),
+      fileToolBar(),
+#ifndef CFG_NOEDIT
+      editToolBar(),
+#endif
+      viewToolBar(), gitToolBar(),
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
+      newDocAct(),
+#endif
+      newAct(), openAct(),
+#ifndef CFG_NOEDIT
+      saveAct(), saveAsAct(), saveFontsAct(), consolidateAct(),
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+      signDocumentAct(),
+#endif
+#endif
+      renderToFileAct(), printAct(), pageSetupAct(), closeAct(), exitAct(),
+#ifndef CFG_NONETWORK
+      openUriAct(),
+#endif
+
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
+      setPullUrlAct(),
+      pushAct(), fetchAct(), cloneAct(), mergeAct(), checkoutAct(),
+      selectiveUndoAct(),
+      diffAct(),
+#endif
+      aboutAct(), updateAct(), preferencesAct(),
+      licensesAct(), onlineDocAct(),
+#if !defined(TAO_PLAYER) || !defined(CFG_NONETWORK)
+      introPageAct(), tutorialsPageAct(),
+      forumPageAct(), bugPageAct(),
+#endif
+#ifndef CFG_NOFULLSCREEN
+      slideShowAct(),
+#endif
+      clearErrorsAct(),
+      viewAnimationsAct(),
+      stereoIdentAct(),
+      windowBordersAct(),
+      undoView(),
+#ifndef CFG_NOEDIT
+      cutAct(),
+      copyAct(),
+      pasteAct(),
+      undoAction(),
+      redoAction(),
+#endif
+      clearRecentAct(),
+      handCursorAct(),
+      zoomInAct(),
+      zoomOutAct(),
+      resetViewAct(),
 #ifndef CFG_NO_WEBUI
+      launchWebUIAct(),
       webui(this),
 #endif
-      helpMenu(NULL),
-      splashScreen(NULL), aboutSplash(NULL)
+      helpMenu(),
+      splashScreen(), aboutSplash()
 {
     RECORD(ALWAYS, "Window constructor", "this", (intptr_t)this);
 
@@ -2178,7 +2236,8 @@ void Window::createMenus()
     fileMenu->addAction(consolidateAct);
 #endif
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    fileMenu->addAction(signDocumentAct);
+    if (signDocumentAct)
+        fileMenu->addAction(signDocumentAct);
 #endif
 #endif
     fileMenu->addSeparator();
@@ -3176,7 +3235,7 @@ void Window::setCurrentFile(const QString &fileName)
     // Disable close menu if document is the default one
     closeAct->setEnabled(!isTutorial(curFile));
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-    if (Licenses::Has("SignDocument"))
+    if (signDocumentAct)
     {
         bool show = !isReadOnly &&
                     !curFile.startsWith(Application::applicationDirPath()) &&

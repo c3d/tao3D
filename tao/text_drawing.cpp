@@ -1199,7 +1199,7 @@ static inline bool isBreakingSpace(QChar c)
 //   Return true if this is a breaking space
 // ----------------------------------------------------------------------------
 {
-    return c != 0xA0 && c.isSpace();
+    return c.unicode() != 0xA0 && c.isSpace();
 }
 
 

@@ -43,9 +43,6 @@
 
 DEFINE_MODULE_GL;
 
-// Silence comparisons on glFunctions (which are GLEW only)
-#pragma GCC diagnostic ignored "-Wtautological-pointer-compare"
-
 TAO_BEGIN
 
 text OpenGLState::vendorsList[LAST_VENDOR] =
@@ -3566,15 +3563,16 @@ bool OpenGLState::HasFramebuffers()
 // ----------------------------------------------------------------------------
 //   Check if we can use framebuffer functions
 // ----------------------------------------------------------------------------
+//   This is really only useful and valid on Windows.
 {
     return
-        glGenFramebuffers != NULL &&
-        glDeleteFramebuffers != NULL &&
-        glBindFramebuffer != NULL &&
-        glFramebufferTexture != NULL &&
-        glFramebufferTexture1D != NULL &&
-        glFramebufferTexture2D != NULL &&
-        glFramebufferTexture3D != NULL;
+        !IsNull(glGenFramebuffers) &&
+        !IsNull(glDeleteFramebuffers) &&
+        !IsNull(glBindFramebuffer) &&
+        !IsNull(glFramebufferTexture) &&
+        !IsNull(glFramebufferTexture1D) &&
+        !IsNull(glFramebufferTexture2D) &&
+        !IsNull(glFramebufferTexture3D);
 }
 
 
@@ -3670,12 +3668,12 @@ bool OpenGLState::HasBuffers()
 // ----------------------------------------------------------------------------
 {
     return
-        glGenBuffers != NULL &&
-        glDeleteBuffers != NULL &&
-        glBindBuffer != NULL &&
-        glBufferData != NULL &&
-        glMapBuffer != NULL &&
-        glUnmapBuffer != NULL;
+        !IsNull(glGenBuffers) &&
+        !IsNull(glDeleteBuffers) &&
+        !IsNull(glBindBuffer) &&
+        !IsNull(glBufferData) &&
+        !IsNull(glMapBuffer) &&
+        !IsNull(glUnmapBuffer);
 }
 
 

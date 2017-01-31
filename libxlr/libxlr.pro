@@ -132,6 +132,7 @@ system(bash -c \"llvm-config-2.9 --version >/dev/null 2>&1\") {
 LLVM_VERSION = $$system(bash -c \"$$LLVMCONFIG --version | sed -e 's/[.a-z-]//g' \")
 LLVM_LIBS = $$system(bash -c \"$$LLVMCONFIG --libs\")
 LLVM_LIBS += $$system(bash -c \"$$LLVMCONFIG --ldflags\")
+LLVM_LIBS += -lncurses        # Don't ask (after 3.50)
 LLVM_INC = $$system(bash -c \"$$LLVMCONFIG --includedir\")
 LLVM_DEF = $$system(bash -c \"$$LLVMCONFIG --cppflags | sed \'s/-I[^ ]*//g\' | sed s/-D//g\") LLVM_VERSION=$$LLVM_VERSION
 

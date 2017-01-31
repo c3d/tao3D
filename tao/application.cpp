@@ -108,6 +108,12 @@ Application::Application(int & argc, char ** argv)
       splash(NULL), win(NULL), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), peer(NULL)
 {
+    kstring versionString = qVersion();
+    int major = 0, minor = 0, patch = 0;
+    if (sscanf(versionString, "%u.%u.%u", &major, &minor, &patch) < 2)
+        std::cerr << "qVersion() format error: '" << versionString << "'\n";
+    qtVersion = (major << 16) | (minor << 8) | patch;
+
 #if defined(Q_OS_WIN32)
     installDDEWidget();
 #endif
@@ -624,6 +630,8 @@ bool Application::checkGL()
 
     useShaderLighting = PerformancesPage::perPixelLighting();
 
+    // Workaround QTBUG-55291
+    if (qtVersion < 0x050700 || qtVersion >= 0x050702)
     {
         RECORD(ALWAYS, "Checking quad buffer");
         QGLWidget gl((QGLFormat(QGL::StereoBuffers)));
@@ -632,6 +640,12 @@ bool Application::checkGL()
             std::cerr << "GL stereo buffers support: " << hasGLStereoBuffers
                       << "\n";
     }
+    else
+    {
+        RECORD(ALWAYS, "Checking quad buffer disabled - QTBUG-55291");
+        std::cerr << "QTBUG-55291: Quad buffer test disabled\n";
+    }
+
     {
         RECORD(ALWAYS, "Checking sample buffers");
         QGLWidget gl((QGLFormat(QGL::SampleBuffers)));
@@ -644,6 +658,7 @@ bool Application::checkGL()
         {
             RECORD(ALWAYS, "Checking FBO sample buffers");
             gl.makeCurrent();
+
             QGLFramebufferObjectFormat format;
             format.setSamples(4);
             QGLFramebufferObject fbo(100, 100, format);

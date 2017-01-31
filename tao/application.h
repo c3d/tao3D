@@ -199,6 +199,7 @@ private:
     ModuleManager * moduleManager;
     QTranslator  translator, qtTranslator, qtHelpTranslator;
     double       startTime;
+    ulong        qtVersion;
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;
 #endif

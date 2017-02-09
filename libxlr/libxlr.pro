@@ -110,11 +110,6 @@ OTHER_FILES = \
     ../tao/xlr/xlr/traces.tbl \
     ../tao/xlr/xlr/include/basics.tbl
 
-linux* {
-  # Prevent linker from exporting symbols from the LLVM static libraries
-  LIBS += -Wl,--exclude-libs,ALL
-}
-
 # We need bash, llvm-config[-2.9]
 !system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
 system(bash -c \"llvm-config-2.9 --version >/dev/null 2>&1\") {

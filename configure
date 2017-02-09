@@ -237,7 +237,7 @@ if [ "$?" != "0" ]; then
         echo "sudo apt-get install llvm-3.4-dev libqt5svg5-dev libqt5webkit5-dev libqt5help5 libqt5opengl5-dev qttool5-dev qttools5-dev-tools doxygen festival festival-dev libxss-dev nodejs npm livlc-dev libvlccore-dev curl"
         echo "(cd /usr/bin; sudo ln -s nodejs node; sudo ln -s llvm-config-3.4 llvm-config)"
     elif dnf --version > /dev/null 2>&1 ; then
-        echo "sudo dnf install qt5-devel llvm35-devel llvm35-static festival-devel vlc-devel nodejs npm"
+        echo "sudo dnf install gcc-c++ libGLU-devel libXScrnSaver-devel alsa-lib-devel qt5-devel llvm35-devel llvm35-static festival-devel vlc-devel nodejs npm"
     elif brew --version > /dev/null 2>&1 ; then
         echo "brew install qt5 llvm@3.7 vlc nodejs"
     fi

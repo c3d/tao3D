@@ -73,14 +73,14 @@ OPTVAR(threaded_gc, bool, true)
 OPTION(nomtgc, "Do not run XL garbage collection in a separate thread", threaded_gc = false)
 
 #ifdef CFG_WITH_EULA
-OPTION(-reset-eula, "Show End-User License Agreement on next run", ;)
+OPTION(reset-eula, "Show End-User License Agreement on next run", ;)
 #endif
 
-OPTION(-version, "Print program version and exit", ;)
-OPTION(-glinfo, "Print information about the OpenGL implementation detected by the program, "
+OPTION(version, "Print program version and exit", ;)
+OPTION(glinfo, "Print information about the OpenGL implementation detected by the program, "
                 "and exit. Includes: vendor, renderer, version and supported extensions.", ;)
 
-OPTION(-one-instance, "Run in client/server mode: first instance is the server, "
+OPTION(oneinstance, "Run in client/server mode: first instance is the server, "
                       "subsequent instances send any file path to the server and exit", ;)
 
 OPTION(fontpath, "Load fonts from the specified directory. "

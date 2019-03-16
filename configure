@@ -185,11 +185,7 @@ osflags() {
        if [ "$with_xcode" ]; then
            echo "-spec macx-xcode"
        else
-           if ( uname -r | grep -q ^13 ); then
-               echo "-spec macx-llvm QMAKE_CXXFLAGS+=-Qunused-arguments $EXTRA"
-           else
-               echo "-spec macx-g++ $EXTRA"
-           fi
+           echo "-spec macx-clang QMAKE_CXXFLAGS+=-Qunused-arguments $EXTRA"
        fi
        ;;
     MINGW*)

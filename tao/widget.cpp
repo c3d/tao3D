@@ -8275,10 +8275,6 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
 }
 
 
-#if defined(Q_OS_MACX)
-#include <OpenGL.h>
-#endif
-
 Name_p Widget::enableVSync(Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 //   Enable or disable vertical sync (prevent tearing), return previous state

@@ -283,6 +283,7 @@ static inline Justification &layoutJustification(Layout *where,
     {
     default:
         std::cerr << "layoutJustification: Invalid axis " << a << "\n";
+        /* Fall through */
 
     case JustificationChange::AlongX:   return where->alongX;
     case JustificationChange::AlongY:   return where->alongY;

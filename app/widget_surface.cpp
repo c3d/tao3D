@@ -634,8 +634,8 @@ bool GridGroupBox::event(QEvent *event)
                 }
 
             }
-
         }
+        /* Fall through */
 
     default:
         return QGroupBox::event(event);

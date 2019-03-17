@@ -108,10 +108,12 @@ public:
             return "Libre";
         case Application::Unknown:
             XL_ASSERT(!"Edition not set");
+            break;
         default:
             XL_ASSERT(!"Unexpected edition value");
-            return "Unknown";
+            break;
         }
+        return "Unknown";
     }
 
 public:

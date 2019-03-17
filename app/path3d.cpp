@@ -988,12 +988,15 @@ void GraphicPath::Draw(Layout *layout,
         {
         default:
             std::cerr << "GraphicPath::Draw: Unexpected element kind\n";
+            break;
 
         case LINE_TO:
             data.push_back(here);
+            // Fall through
+            
         case MOVE_TO:
             control.clear();
-            // Fallback
+            // Fall through
 
         case CURVE_CONTROL:
             control.push_back(here);
@@ -1047,6 +1050,7 @@ void GraphicPath::Draw(Layout *layout,
             default:
                 std::cerr << "GraphicPath::Draw: Unimplemented Bezier"
                           << " (order " << size << ")\n";
+                break;
             case 4:
             {
                 // Cubic Bezier curve

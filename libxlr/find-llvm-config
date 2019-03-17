@@ -1,0 +1,38 @@
+#!/bin/bash
+
+CANDIDATES="    llvm-config-3.5         \
+                llvm-config-64-3.5      \
+                llvm-config-3.4         \
+                llvm-config-64-3.4      \
+                llvm-config-3.6         \
+                llvm-config-64-3.6      \
+                llvm-config-3.7         \
+                llvm-config-64-3.7      \
+                llvm-config-3.8         \
+                llvm-config-64-3.8      \
+                llvm-config-3.9         \
+                llvm-config-64-3.9      \
+                llvm-config-4.0         \
+                llvm-config-4.0-64      \
+                llvm-config-5.0         \
+                llvm-config-5.0-64      \
+                llvm-config-6.0         \
+                llvm-config-6.0-64      \
+                llvm-config-7.0         \
+                llvm-config-7.0-64      \
+                llvm-config-8.0         \
+                llvm-config-8.0-64      \
+                llvm-config-9.0         \
+                llvm-config-9.0-64      \
+                llvm-config             \
+                llvm-config-64"
+
+for C in $CANDIDATES; do
+    if $C --version > /dev/null 2>&1; then
+        echo $C
+        exit 0
+    fi
+done
+
+echo "No suitable llvm-config was found"
+exit 1

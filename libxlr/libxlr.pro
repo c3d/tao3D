@@ -112,16 +112,11 @@ OTHER_FILES = \
 
 # We need bash, llvm-config[-2.9]
 !system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
-system(bash -c \"llvm-config-2.9 --version >/dev/null 2>&1\") {
-  !build_pass:message(Found llvm-config-2.9)
-  LLVMCONFIG=llvm-config-2.9
+system(bash -c \"./find-llvm-config >/dev/null 2>&1\") {
+  LLVMCONFIG=$$system(bash -c \"./find-llvm-config\")
+  !build_pass:message(Found $$LLVMCONFIG)
 } else {
-  system(bash -c \"llvm-config --version >/dev/null 2>&1\") {
-    !build_pass:message(Found llvm-config)
-    LLVMCONFIG=llvm-config
-  } else {
-    error("Can't execute llvm-config-2.9 nor llvm-config")
-  }
+  error("Can't find a suitable llvm-config (not by lack of trying)")
 }
 # LLVM dependencies
 LLVM_VERSION = $$system(bash -c \"$$LLVMCONFIG --version | sed -e 's/[.a-z-]//g' \")

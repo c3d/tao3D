@@ -49,7 +49,7 @@ struct SplashScreen;
 struct ModuleManager;
 struct GCThread;
 struct UpdateApplication;
-#ifndef CFG_NO_LICENSE_DOWNLOAD
+#ifdef CFG_LICENSE_DOWNLOAD
 struct LicenseDownloadUI;
 #endif
 
@@ -140,7 +140,7 @@ protected:
 #if defined (Q_OS_WIN32)
     void           installDDEWidget();
 #endif
-#ifndef CFG_NO_LICENSE_DOWNLOAD
+#ifdef CFG_LICENSE_DOWNLOAD
     bool           fetchLicenses();
 #endif
     bool           loadLicenses();
@@ -180,7 +180,7 @@ public:
     QString            lang;
     GCThread *         gcThread;
     UpdateApplication* updateApp;
-#ifndef CFG_NO_LICENSE_DOWNLOAD
+#ifdef CFG_LICENSE_DOWNLOAD
     LicenseDownloadUI * licDownload;
 #endif
     bool               readyToLoad;

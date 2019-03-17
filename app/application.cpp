@@ -44,10 +44,10 @@
 #include "preferences_pages.h"
 #include "update_application.h"
 #include "examples_menu.h"
-#if defined (CFG_WITH_EULA)
+#ifdef CFG_WITH_EULA
 #include "eula_dialog.h"
 #endif
-#ifndef CFG_NO_LICENSE_DOWNLOAD
+#ifdef CFG_LICENSE_DOWNLOAD
 #include "license_download.h"
 #endif
 #include "nag_screen.h"
@@ -204,7 +204,7 @@ void Application::deferredInit()
                    +stylesheet.absoluteFilePath(),
                    +builtins.absoluteFilePath());
 
-#ifndef CFG_NO_LICENSE_DOWNLOAD
+#ifdef CFG_LICENSE_DOWNLOAD
     licDownload = new LicenseDownloadUI;
     fetchLicenses();
 #endif
@@ -458,7 +458,7 @@ void Application::installDDEWidget()
 #endif
 
 
-#ifndef CFG_NO_LICENSE_DOWNLOAD
+#ifdef CFG_LICENSE_DOWNLOAD
 bool Application::fetchLicenses()
 // ----------------------------------------------------------------------------
 //   Use LicenseDownload object to fetch licenses for any .taokey.src file

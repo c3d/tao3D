@@ -215,7 +215,7 @@ bool GeneralPage::checkForUpdateOnStartupDefault()
 //   Default value for "check for update on startup"
 // ----------------------------------------------------------------------------
 {
-#ifdef CFG_WITH_CFU
+#ifdef CFG_WITH_UPDATES
     return true;
 #else
     return false;

@@ -353,7 +353,7 @@ contains(DEFINES, CFG_WITH_EULA) {
     HEADERS += eula_dialog.h
     SOURCES += eula_dialog.cpp
 }
-contains(DEFINES, CFG_WITH_CFU) {
+contains(DEFINES, CFG_WITH_UPDATES) {
     !build_pass:message("Check for update on startup is enabled by default")
 }
 contains(DEFINES, CFG_NO_NEW_FROM_TEMPLATE) {
@@ -372,9 +372,8 @@ contains(DEFINES, CFG_NO_QTWEBKIT) {
     QT += webkit
     greaterThan(QT_MAJOR_VERSION, 4) { QT += webkitwidgets }
 }
-contains(DEFINES, CFG_NO_LICENSE_DOWNLOAD) {
-    !build_pass:message("[CFG_NO_LICENSE_DOWNLOAD] License download is disabled")
-} else {
+contains(DEFINES, CFG_LICENSE_DOWNLOAD) {
+    !build_pass:message("[CFG_LICENSE_DOWNLOAD] License download is enabled")
     HEADERS += \
         license_download.h \
         login_dialog.h

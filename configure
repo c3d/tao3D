@@ -27,8 +27,10 @@ usage() {
   echo "  --disable-doc   Do not build documentation."
   echo "  --with-eula     Enable the End-User License Agreement dialog (REQUIRED for"
   echo "                  official builds)"
-  echo "  --with-cfu      Check for update on application startup (unless overriden"
+  echo "  --with-updates  Check for update on application startup (unless overriden"
   echo "                  in preferences)"
+  echo "  --with-license-download"
+  echo "                  Download licenses from license sever (obsolete)"
   echo "  --with-ccache   Use compiler cache. Appends the following qmake flags:"
   echo "                  QMAKE_CC='ccache gcc' QMAKE_CXX='ccache g++'"
   echo ""
@@ -90,9 +92,9 @@ while [ $# -ne 0 ] ; do
       usage
       ;;
     -release|--release)
-      FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
-      FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
-      FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
+      #FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
+      #FLAGS="$FLAGS DEFINES+=CFG_WITH_UPDATES"
+      #FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
       FLAGS="$FLAGS DEFINES+=CFG_NOGIT=1"
       shift
       ;;
@@ -123,10 +125,15 @@ while [ $# -ne 0 ] ; do
       ;;
     --with-eula)
       FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
+      FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
       shift
       ;;
-    --with-cfu)
-      FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
+    --with-updates)
+      FLAGS="$FLAGS DEFINES+=CFG_WITH_UPDATES"
+      shift
+      ;;
+    --with-license-download)
+      FLAGS="$FLAGS DEFINES+=CFG_LICENSE_DOWNLOAD"
       shift
       ;;
     --with-ccache)
@@ -151,7 +158,7 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NOGIT"
       FLAGS="$FLAGS DEFINES+=CFG_NONETWORK DEFINES+=CFG_NOEDIT"
       FLAGS="$FLAGS DEFINES+=CFG_NO_NEW_FROM_TEMPLATE"
-      FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
+      #FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
       FLAGS="$FLAGS templates=none"
       PACKAGE="Player"
       shift ; done=1

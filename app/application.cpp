@@ -332,10 +332,6 @@ void Application::deferredInit()
     // Now time to install the "persistent" error handler
     install_first_exception_handler();
 
-    // Application updater
-    RECORD(ALWAYS, "Creating application updater");
-    updateApp = new UpdateApplication;
-
     // Initialize the graphics just below contents of basics.tbl
     Initialize();
     RECORD(ALWAYS, "CreateScope");
@@ -400,6 +396,10 @@ void Application::deferredInit()
     // Check for update now if wanted
     if(GeneralPage::checkForUpdateOnStartup())
     {
+        // Application updater
+        RECORD(ALWAYS, "Creating application updater");
+        updateApp = new UpdateApplication;
+        
         QDateTime now = QDateTime::currentDateTime();
         QDateTime last = updateApp->lastChecked();
         if (!last.isValid() || last.secsTo(now) > 24*60*60)
@@ -760,7 +760,8 @@ void Application::cleanup()
 //   Perform last-minute cleanup before application exit
 // ----------------------------------------------------------------------------
 {
-    updateApp->cancel();
+    if (updateApp)
+        updateApp->cancel();
     // Closing windows will save windows settings (geometry)
     closeAllWindows();
     saveSettings();

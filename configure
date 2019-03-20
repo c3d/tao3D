@@ -137,8 +137,7 @@ while [ $# -ne 0 ] ; do
       with_xcode=1
       shift
       ;;
-    design)
-    studio)
+    design|studio)
       shift ; done=1
       ;;
     player)

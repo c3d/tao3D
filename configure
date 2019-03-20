@@ -137,6 +137,10 @@ while [ $# -ne 0 ] ; do
       with_xcode=1
       shift
       ;;
+    --webkit)
+      with_webkit=1
+      shift
+      ;;
     design|studio)
       shift ; done=1
       ;;
@@ -147,7 +151,6 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NOGIT"
       FLAGS="$FLAGS DEFINES+=CFG_NONETWORK DEFINES+=CFG_NOEDIT"
       FLAGS="$FLAGS DEFINES+=CFG_NO_NEW_FROM_TEMPLATE"
-      FLAGS="$FLAGS DEFINES+=CFG_NO_QTWEBKIT"
       FLAGS="$FLAGS DEFINES+=CFG_UNLICENSED_MAX_PAGES=5"
       FLAGS="$FLAGS templates=none"
       PACKAGE="Player"
@@ -167,10 +170,12 @@ while [ $# -ne 0 ] ; do
   [ "$done" ] && break
 done
 
+
 # Process what was given
 FLAGS="$FLAGS PACKAGE_APPEND=$PACKAGE$VERSION"
 
 [ "$with_modlic" ] && FLAGS="$FLAGS SIGN_MODULE_LICENSES=1 LICENSE_VALIDITY=120"
+[ "$with_webkit" ] || FLAGS="$FLAGS DEFINES+=CFG_NO_QTWEBKIT NO_HELP_VIEWER=1"
 
 # Default QMake flags for each OS
 osflags() {

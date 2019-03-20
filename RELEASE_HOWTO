@@ -38,7 +38,7 @@ Once:
 On all platforms:
 
 - Pull and make sure the tag is known locally by running:
-  $ tao/updaterev.sh -n
+  $ app/updaterev.sh -n
   (otherwise '$ git fetch --tags' or create a local tag).
 - Build Tao and make packages:
   $ ./build_all.sh
@@ -54,7 +54,7 @@ Once:
 - Build the Tao documentation for the web site:
   $ ./make_doc_tarball.sh
 - Create an annotated tag with the MD5 hash of all kits.
-  Take inspiration from 'git show 1.0-beta4' for instance. 
+  Take inspiration from 'git show 1.0-beta4' for instance.
   $ git tag -a 1.0-beta5
 
 

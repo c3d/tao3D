@@ -589,9 +589,9 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ../tao/doc \\
+INPUT                  = ../app/doc \\
                          ../modules/modules_doxygen.h \\
-                         $$MOD_PATHS 
+                         $$MOD_PATHS
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -649,7 +649,7 @@ EXCLUDE_SYMBOLS        =
 # directories that contain example code fragments that are included (see
 # the \\include command).
 
-EXAMPLE_PATH           = ../tao/doc/examples . \\
+EXAMPLE_PATH           = ../app/doc/examples . \\
                          $$MOD_PATHS
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
@@ -671,7 +671,7 @@ EXAMPLE_RECURSIVE      = NO
 # the \\image command).
 
 IMAGE_PATH             = images \\
-                         ../tao/doc/images \\
+                         ../app/doc/images \\
                          $$MOD_PATHS
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
@@ -968,7 +968,7 @@ QCH_FILE               = ../qch/Tao3D.qch
 # Qt Help Project output. For more information please see
 # http://doc.trolltech.com/qthelpproject.html#namespace
 
-QHP_NAMESPACE          = com.Taodyne.Tao3D.$$TAO_VERSION 
+QHP_NAMESPACE          = com.Taodyne.Tao3D.$$TAO_VERSION
 
 # The QHP_VIRTUAL_FOLDER tag specifies the namespace to use when generating
 # Qt Help Project output. For more information please see

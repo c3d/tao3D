@@ -8,7 +8,7 @@ isEmpty(TAO_SDK) {
 
 include(../main_defs.pri)
 
-!exists(../main.pro):IS_SDK=true
+!exists(../tao.pro):IS_SDK=true
 
 # Try to install into (in this order, depending on what variable is defined):
 # 1. $$MODINSTPATH

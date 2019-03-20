@@ -9,7 +9,7 @@
 
 # List names of directories in $1
 dirs() {
-  [ -d "$1" ] && ( cd "$1" ; for i in * ; do [ -d "$i" ] && echo "$i" ; done ) 
+  [ -d "$1" ] && ( cd "$1" ; for i in * ; do [ -d "$i" ] && echo "$i" ; done )
 }
 
 
@@ -25,7 +25,7 @@ esac
 TMPDIR=taodoc_$$
 mkdir -p $TMPDIR || exit 1
 
-VER=`tao/updaterev.sh -n`
+VER=`app/updaterev.sh -n`
 mkdir -p $TMPDIR/taodoc-$VER/help
 
 DEST=$TMPDIR/taodoc-$VER
@@ -40,7 +40,7 @@ for mod in `dirs "$INST/modules"` ; do
     printf "$lang "
     if [ -d "$INST/modules/$mod/doc/$lang/html" ] ; then
       mkdir -p $DEST/modules/$mod/$lang
-      cp -R "$INST/modules/$mod/doc/$lang/html"/* $DEST/modules/$mod/$lang 
+      cp -R "$INST/modules/$mod/doc/$lang/html"/* $DEST/modules/$mod/$lang
     fi
     BS="\b"
   done

@@ -12,7 +12,7 @@ include Makefile.config
 ifdef PACKAGE_APPEND
 APPENDSTR=$(PACKAGE_APPEND)_
 endif
-TAO=Tao3D_$(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
+TAO=Tao3D_$(APPENDSTR)$(shell ../../app/updaterev.sh -n)
 
 OS=$(shell lsb_release -is)
 ifeq ($(OS),)

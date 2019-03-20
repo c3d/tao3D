@@ -1,5 +1,5 @@
 # ******************************************************************************
-#  main.pro                                                         Tao project
+#  tao.pro                                                         Tao project
 # ******************************************************************************
 # File Description:
 #
@@ -137,7 +137,7 @@ greaterThan(QT_MAJOR_VERSION, 4) { cache() }
 include(main.pri)
 
 TEMPLATE = subdirs
-SUBDIRS  = libxlr tao modules ssh_ask_pass tests doc templates \
+SUBDIRS  = libxlr app modules ssh_ask_pass tests doc templates \
            packaging libcryptopp
 
 win32:SUBDIRS += detach
@@ -154,16 +154,16 @@ isEmpty(NO_WEBUI) {
   !build_pass:message(Will not build web user interface.)
 }
 
-tao.depends = libxlr libcryptopp
+app.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp
-modules.depends = tao
-tests.depends = tao
-templates.depends = tao
+modules.depends = app
+tests.depends = app
+templates.depends = app
 xlconv.depends = libxlr
 
 # The following is artificial, it's just so that we don't start building the
 # doc until the main build has actually completed.
-doc.depends = tao libxlr modules ssh_ask_pass
+doc.depends = app libxlr modules ssh_ask_pass
 
 sdk.commands = \$(MAKE) -f Makefile.sdk
 sdk.depends = FORCE
@@ -186,9 +186,9 @@ QMAKE_EXTRA_TARGETS += kit
 
 # Run sanity tests after build in release mode
 test.commands = \$(MAKE) -C tests/sanity check
-test.depends = tao modules templates
+test.depends = app modules templates
 ref.commands = \$(MAKE) -C tests/sanity ref
-ref.depends = tao modules templates
+ref.depends = app modules templates
 
 QMAKE_EXTRA_TARGETS += test ref
 

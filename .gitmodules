@@ -1,6 +1,6 @@
-[submodule "tao/xlr"]
-	path = tao/xlr
-	url = https://github.com/c3d/XL-programming-language.git
+[submodule "libxlr/xlr"]
+	path = libxlr/xlr
+	url = https://github.com/c3d/xl.git
 [submodule "help_viewer"]
 	path = help_viewer
 	url = https://github.com/c3d/tao-help-viewer.git

@@ -52,7 +52,7 @@ usage() {
   echo "QMake options:"
   echo ""
   echo "  Any other option is passed unmodified to Qmake, after the options added by"
-  echo "  this configure script. Many Tao build options are documented in main.pro."
+  echo "  this configure script. Many Tao build options are documented in tao.pro."
   echo ""
   echo "Examples:"
   echo ""

@@ -33,10 +33,10 @@ equals(HAS_DOXYGEN, 1) {
   include (../version.pri)
   include (../gitrev.pri)
 
-  PROJECT_NUMBER = $$system(bash -c \"../tao/updaterev.sh -n\")
-  macx:TAO_ICON_FOR_QHCP = ../tao/tao.icns
-  win32:TAO_ICON_FOR_QHCP = ../tao/tao.ico
-  !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
+  PROJECT_NUMBER = $$system(bash -c \"../app/updaterev.sh -n\")
+  macx:TAO_ICON_FOR_QHCP = ../app/tao.icns
+  win32:TAO_ICON_FOR_QHCP = ../app/tao.ico
+  !macx:!win32:TAO_ICON_FOR_QHCP = ../app/tao.png
   QMAKE_SUBSTITUTES = Doxyfile.in \
                       DoxyfileWebdoc.in \
                       Tao3D.qhcp.in
@@ -46,7 +46,7 @@ equals(HAS_DOXYGEN, 1) {
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   DOXYLANG=en,fr
-  doc.commands = EXAMPLES=`cd ../tao/doc; echo examples/*.ddd` ; export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=\"Taodyne_logo.png \$\$EXAMPLES\"; $$DOXYGEN
+  doc.commands = EXAMPLES=`cd ../app/doc; echo examples/*.ddd` ; export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=\"Taodyne_logo.png \$\$EXAMPLES\"; $$DOXYGEN
   doc.depends = cp_examples cp_logo version xlref
 
   webdoc.commands = export DOXYLANG=$$DOXYLANG ; export DOXYOUTPUT=webhtml ; $$DOXYGEN DoxyfileWebdoc
@@ -55,12 +55,12 @@ equals(HAS_DOXYGEN, 1) {
   LANGUAGES=$$replace(DOXYLANG, ',', ' ')
   cp_examples.commands = for l in $$LANGUAGES ; do \
                            mkdir -p output/\$\$l/html/examples ; \
-                           cp ../tao/doc/examples/*.ddd output/\$\$l/html/examples/ ; \
+                           cp ../app/doc/examples/*.ddd output/\$\$l/html/examples/ ; \
                          done
 
   cp_examples_webdoc.commands = for l in $$LANGUAGES ; do \
                                   mkdir -p webhtml/\$\$l/html/examples ; \
-                                  cp ../tao/doc/examples/*.ddd webhtml/\$\$l/html/examples/ ; \
+                                  cp ../app/doc/examples/*.ddd webhtml/\$\$l/html/examples/ ; \
                                   for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/\$\$l/html/ 2>/dev/null || : ; done ; \
                                 done
 
@@ -70,8 +70,8 @@ equals(HAS_DOXYGEN, 1) {
 
   xlref.target = XLRef.html
   equals(HAS_TEXMACS, true) {
-    xlref.commands = texmacs --convert ../tao/xlr/xlr/doc/XLRef.tm XLRef.tmp.html --quit && sed -f texmacs_html.sed XLRef.tmp.html > XLRef.html && rm XLRef.tmp.html
-    xlref.depends = ../tao/xlr/xlr/doc/XLRef.tm
+    xlref.commands = texmacs --convert ../app/xlr/xlr/doc/XLRef.tm XLRef.tmp.html --quit && sed -f texmacs_html.sed XLRef.tmp.html > XLRef.html && rm XLRef.tmp.html
+    xlref.depends = ../app/xlr/xlr/doc/XLRef.tm
   }
 
   cleandocdirs.commands = /bin/rm -rf html/ webhtml/ qch/
@@ -111,25 +111,24 @@ equals(HAS_DOXYGEN, 1) {
 }
 
 OTHER_FILES += XLRef.pdf \
-    ../tao/doc/camera.doxy.h \
-    ../tao/doc/graph.doxy.h \
-    ../tao/doc/page.doxy.h \
-    ../tao/doc/tao.doxy.h \
-    ../tao/doc/widgets.doxy.h \
-    ../tao/doc/chooser.doxy.h \
-    ../tao/doc/lighting.doxy.h \
-    ../tao/doc/shaders.doxy.h  \
-    ../tao/doc/tao_application.doxy.h \
-    ../tao/doc/code.doxy.h \
-    ../tao/doc/menus.doxy.h \
-    ../tao/doc/shape_handling.doxy.h \
-    ../tao/doc/text.doxy.h \
-    ../tao/doc/files.doxy.h \
-    ../tao/doc/modules.doxy.h \
-    ../tao/doc/stereoscopy.doxy.h \
-    ../tao/doc/time.doxy.h \
-    ../tao/doc/frame.doxy.h \
-    ../tao/doc/mouse.doxy.h \
-    ../tao/doc/tablelayout.doxy.h \
-    ../tao/doc/transform.doxy.h
-
+    ../app/doc/camera.doxy.h \
+    ../app/doc/graph.doxy.h \
+    ../app/doc/page.doxy.h \
+    ../app/doc/tao.doxy.h \
+    ../app/doc/widgets.doxy.h \
+    ../app/doc/chooser.doxy.h \
+    ../app/doc/lighting.doxy.h \
+    ../app/doc/shaders.doxy.h  \
+    ../app/doc/tao_application.doxy.h \
+    ../app/doc/code.doxy.h \
+    ../app/doc/menus.doxy.h \
+    ../app/doc/shape_handling.doxy.h \
+    ../app/doc/text.doxy.h \
+    ../app/doc/files.doxy.h \
+    ../app/doc/modules.doxy.h \
+    ../app/doc/stereoscopy.doxy.h \
+    ../app/doc/time.doxy.h \
+    ../app/doc/frame.doxy.h \
+    ../app/doc/mouse.doxy.h \
+    ../app/doc/tablelayout.doxy.h \
+    ../app/doc/transform.doxy.h

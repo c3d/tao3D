@@ -73,13 +73,13 @@ FILES_COMMON = \
 	$(HELLO_WORLD_FILES) \
 	$(LOREM_IPSUM_FILES) \
 	$(NEWMODULE_FILES) \
-	tao \
-	tao/include \
-	$(shell find tao/include) \
-	tao/xlr \
-	tao/xlr/xlr \
-	tao/xlr/xlr/include \
-	$(shell find tao/xlr/xlr/include) \
+	app \
+	app/include \
+	$(shell find app/include) \
+	libxlr/xlr \
+	libxlr/xlr/xlr \
+	libxlr/xlr/xlr/include \
+	$(shell find libxlr/xlr/xlr/include) \
 	$(NULL)
 
 FILES_macosx = \
@@ -118,8 +118,7 @@ sdk:
 	done ; \
 	mv $(SDK_ROOT)/modules/README_SDK $(SDK_ROOT)/README ; \
 	mv $(SDK_ROOT)/sdk.pro.txt $(SDK_ROOT)/sdk.pro ; \
-	tao/updaterev.sh -n > $(SDK_ROOT)/VERSION ; \
+	app/updaterev.sh -n > $(SDK_ROOT)/VERSION ; \
 	$(OTHER_COMMANDS_$(BUILDENV))
 
 .PHONY: sdk
-

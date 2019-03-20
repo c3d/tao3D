@@ -46,7 +46,7 @@ endif
 ifdef PACKAGE_APPEND
 APPENDSTR=$(PACKAGE_APPEND) # ends with one space - do not remove this comment!
 endif
-VOLNAME=Tao3D $(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
+VOLNAME=Tao3D $(APPENDSTR)$(shell ../../app/updaterev.sh -n)
 DMG=$(VOLNAME).$(ARCH).dmg
 
 kit: .dmg_ts

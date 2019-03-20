@@ -13,7 +13,7 @@
 MODINSTDIR = lens_flare
 
 include(../modules.pri)
-INCLUDEPATH += $${TAOTOPSRC}/tao/include/tao/
+INCLUDEPATH += $${TAOTOPSRC}/app/include/tao/
 HEADERS      = flare.h \
     lens_flare.h
 SOURCES      = lens_flare.cpp flare.cpp

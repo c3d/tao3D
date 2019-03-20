@@ -20,7 +20,7 @@ TARGET   = vg_test
 macx:CONFIG -= app_bundle
 
 SOURCES = vg_test.cpp
-INC = ../../tao/xlr/xlr/include
+INC = ../../libxlr/xlr/xlr/include
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
 

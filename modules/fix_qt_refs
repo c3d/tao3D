@@ -10,9 +10,9 @@ doo(){
   "$@"
 }
 TARGET="$1"
-QTBASE="$2"
+QTBASE="$2" # Now ignored
 REFS=`otool -L "$TARGET" | grep -e /Qt -e libQtCLucene -e phonon | grep -v  @executable_path | grep -v @rpath | grep -v ':$' | awk '{ print $1 }' `
 for r in $REFS ; do
-  base=`echo $r | sed -e s@$QTBASE/@@g`
+  base=`echo $r |  sed -e 's!^.*/\(Qt.*\.framework\)!\1!g' `
   doo install_name_tool -change "$r" "@rpath/$base" "$TARGET"
 done

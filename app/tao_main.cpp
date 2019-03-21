@@ -291,7 +291,8 @@ void redirect_console()
         QDir dir(Tao::Application::defaultProjectFolderPath());
         dir.mkpath(dir.absolutePath());
         QString path = dir.absoluteFilePath(log);
-        log = path.toStdString().c_str();
+        text pathStr = path.toStdString();
+        log = pathStr.c_str();
 
 #ifdef CONFIG_MINGW
         freopen(log, "w", stdout);
@@ -304,9 +305,10 @@ void redirect_console()
         int fd = open(log, O_RDWR | O_CREAT | O_TRUNC, 0644);
         if (fd != -1)
         {
+            fprintf(stderr, "Redirecting output to %s\n", log);
             dup2(fd, 1);
             dup2(fd, 2);
-            fprintf(stderr, "Redirected to tao.log\n");
+            fprintf(stderr, "Redirected to %s\n", log);
         }
         else
         {

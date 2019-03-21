@@ -421,15 +421,15 @@ void signal_handler(int sigid)
     static char buffer[512];
     int two = fileno(stderr);
 
-    kstring vendor = "Unknown";
-    kstring renderer = "Unknown";
-    kstring version = "Unknown";
+    text vendor = "Unknown";
+    text renderer = "Unknown";
+    text version = "Unknown";
 
     if (OpenGLState *state = OpenGLState::Current())
     {
-        vendor = state->Vendor().c_str();
-        renderer = state->Renderer().c_str();
-        version = state->Version().c_str();
+        vendor = state->Vendor();
+        renderer = state->Renderer();
+        version = state->Version();
     }
     else if (QGLContext::currentContext() &&
              QGLContext::currentContext()->isValid())
@@ -454,7 +454,9 @@ void signal_handler(int sigid)
                            sig_handler_log,
                            Tao::GITREV_,
                            Tao::GITSHA1_,
-                           vendor, renderer, version);
+                           vendor.c_str(),
+                           renderer.c_str(),
+                           version.c_str());
 
     Write(two, buffer, size);
 

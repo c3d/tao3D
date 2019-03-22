@@ -33,6 +33,8 @@ usage() {
   echo "                  Download licenses from license sever (obsolete)"
   echo "  --with-ccache   Use compiler cache. Appends the following qmake flags:"
   echo "                  QMAKE_CC='ccache gcc' QMAKE_CXX='ccache g++'"
+  echo "  --llvm-config   Specify which llvm-config to use, in order to select"
+  echo "                  the version of LLVM that will be used for code generation"
   echo ""
   echo "Edition Name:"
   echo ""
@@ -148,6 +150,11 @@ while [ $# -ne 0 ] ; do
       with_webkit=1
       shift
       ;;
+    --llvm-config|--llvm)
+      FLAGS="$FLAGS LLVMCONFIG=$2";
+      shift
+      shift
+      ;;
     design|studio)
       shift ; done=1
       ;;
@@ -192,14 +199,14 @@ osflags() {
        if [ "$with_xcode" ]; then
            echo "-spec macx-xcode"
        else
-           echo "-spec macx-clang QMAKE_CXXFLAGS+=-Qunused-arguments $EXTRA"
+           echo "-spec macx-clang QMAKE_CXXFLAGS+=-Qunused-arguments"
        fi
        ;;
     MINGW*)
-      echo "-spec win32-g++ $EXTRA"
+      echo "-spec win32-g++"
       ;;
     Linux*)
-      echo "$EXTRA"
+      echo ""
       ;;
   esac
 }
@@ -222,9 +229,9 @@ echo "#define CONFIGURE_OPTIONS \"$CONFIGURE_OPTIONS\"" >>config.h
 
 echo Running: $QMAKE -r `osflags` $FLAGS "$CCACHE_FLAGS" "$CCACHE_CC" "$CCACHE_CXX" "$@"
 if [ "$with_ccache" ] ; then
-  $QMAKE -r `osflags` $FLAGS QMAKE_CXX='ccache g++' QMAKE_CC='ccache gcc' "$@"
+  $QMAKE -r `osflags` $FLAGS QMAKE_CXX='ccache g++' QMAKE_CC='ccache gcc' $EXTRA "$@"
 else
-  $QMAKE -r `osflags` $FLAGS "$@"
+  $QMAKE -r `osflags` $FLAGS $EXTRA "$@"
 fi
 
 if [ "$?" != "0" ]; then

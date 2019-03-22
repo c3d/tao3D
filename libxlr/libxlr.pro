@@ -133,10 +133,10 @@ OTHER_FILES = \
     xlr/xlr/traces.tbl \
     xlr/xlr/include/basics.tbl
 
-# We need bash, llvm-config[-2.9]
+# We need bash, llvm-config
 !system(bash -c \"bash --version >/dev/null\"):error("Can't execute bash")
 system(bash -c \"./find-llvm-config >/dev/null 2>&1\") {
-  LLVMCONFIG=$$system(bash -c \"./find-llvm-config\")
+  LLVMCONFIG=$$system(bash -c \"./find-llvm-config $$LLVMCONFIG\")
   !build_pass:message(Found $$LLVMCONFIG)
 } else {
   error("Can't find a suitable llvm-config (not by lack of trying)")
@@ -144,7 +144,10 @@ system(bash -c \"./find-llvm-config >/dev/null 2>&1\") {
 # LLVM dependencies
 LLVM_VERSION = $$system(bash -c \"$$LLVMCONFIG --version | sed -e 's/[.a-z-]//g' \")
 LLVM_LIBS = $$system(bash -c \"$$LLVMCONFIG --libs\")
-LLVM_LIBS += $$system(bash -c \"$$LLVMCONFIG --system-libs\")
+# --system-libs is required after 3.5, but not there before 3.4
+# So LLVM not only makes source code incompatible, they managed to make
+# incompatible configuration command lines as well!
+LLVM_LIBS += $$system(bash -c \"$$LLVMCONFIG --system-libs 2> /dev/null || true\")
 LLVM_LIBS += $$system(bash -c \"$$LLVMCONFIG --ldflags\")
 LLVM_LIBS += -lncurses        # Don't ask (after 3.50)
 LLVM_INC = $$system(bash -c \"$$LLVMCONFIG --includedir\")

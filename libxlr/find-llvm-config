@@ -1,6 +1,7 @@
 #!/bin/bash
 
-CANDIDATES="    llvm-config-3.5         \
+CANDIDATES="    $1                      \
+                llvm-config-3.5         \
                 llvm-config-64-3.5      \
                 llvm-config-3.4         \
                 llvm-config-64-3.4      \

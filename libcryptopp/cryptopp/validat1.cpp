@@ -1,3 +1,38 @@
+// *****************************************************************************
+// validat1.cpp                                                    Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // validat1.cpp - written and placed in the public domain by Wei Dai
 
 #include "pch.h"
@@ -587,8 +622,8 @@ bool ValidateCipherModes()
 	{
 		// from FIPS 81
 		const byte encrypted[] = {
-			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C, 
-			0x43, 0xE9, 0x34, 0x00, 0x8C, 0x38, 0x9C, 0x0F, 
+			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C,
+			0x43, 0xE9, 0x34, 0x00, 0x8C, 0x38, 0x9C, 0x0F,
 			0x68, 0x37, 0x88, 0x49, 0x9A, 0x7C, 0x05, 0xF6};
 
 		CBC_Mode_ExternalCipher::Encryption modeE(desE, iv);
@@ -611,9 +646,9 @@ bool ValidateCipherModes()
 		// generated with Crypto++, matches FIPS 81
 		// but has extra 8 bytes as result of padding
 		const byte encrypted[] = {
-			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C, 
-			0x43, 0xE9, 0x34, 0x00, 0x8C, 0x38, 0x9C, 0x0F, 
-			0x68, 0x37, 0x88, 0x49, 0x9A, 0x7C, 0x05, 0xF6, 
+			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C,
+			0x43, 0xE9, 0x34, 0x00, 0x8C, 0x38, 0x9C, 0x0F,
+			0x68, 0x37, 0x88, 0x49, 0x9A, 0x7C, 0x05, 0xF6,
 			0x62, 0xC1, 0x6A, 0x27, 0xE4, 0xFC, 0xF2, 0x77};
 
 		CBC_Mode_ExternalCipher::Encryption modeE(desE, iv);
@@ -632,9 +667,9 @@ bool ValidateCipherModes()
 		// generated with Crypto++ 5.2, matches FIPS 81
 		// but has extra 8 bytes as result of padding
 		const byte encrypted[] = {
-			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C, 
-			0x43, 0xE9, 0x34, 0x00, 0x8C, 0x38, 0x9C, 0x0F, 
-			0x68, 0x37, 0x88, 0x49, 0x9A, 0x7C, 0x05, 0xF6, 
+			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C,
+			0x43, 0xE9, 0x34, 0x00, 0x8C, 0x38, 0x9C, 0x0F,
+			0x68, 0x37, 0x88, 0x49, 0x9A, 0x7C, 0x05, 0xF6,
 			0xcf, 0xb7, 0xc7, 0x64, 0x0e, 0x7c, 0xd9, 0xa7};
 
 		CBC_Mode_ExternalCipher::Encryption modeE(desE, iv);
@@ -671,8 +706,8 @@ bool ValidateCipherModes()
 		// generated with Crypto++, matches FIPS 81
 		// but with last two blocks swapped as result of CTS
 		const byte encrypted[] = {
-			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C, 
-			0x68, 0x37, 0x88, 0x49, 0x9A, 0x7C, 0x05, 0xF6, 
+			0xE5, 0xC7, 0xCD, 0xDE, 0x87, 0x2B, 0xF2, 0x7C,
+			0x68, 0x37, 0x88, 0x49, 0x9A, 0x7C, 0x05, 0xF6,
 			0x43, 0xE9, 0x34, 0x00, 0x8C, 0x38, 0x9C, 0x0F};
 
 		CBC_CTS_Mode_ExternalCipher::Encryption modeE(desE, iv);
@@ -780,8 +815,8 @@ bool ValidateCipherModes()
 	}
 	{
 		const byte encrypted[] = {	// generated with Crypto++
-			0xF3, 0x09, 0x62, 0x49, 0xC7, 0xF4, 0x6E, 0x51, 
-			0x16, 0x3A, 0x8C, 0xA0, 0xFF, 0xC9, 0x4C, 0x27, 
+			0xF3, 0x09, 0x62, 0x49, 0xC7, 0xF4, 0x6E, 0x51,
+			0x16, 0x3A, 0x8C, 0xA0, 0xFF, 0xC9, 0x4C, 0x27,
 			0xFA, 0x2F, 0x80, 0xF4, 0x80, 0xB8, 0x6F, 0x75};
 
 		CTR_Mode_ExternalCipher::Encryption modeE(desE, iv);
@@ -802,9 +837,9 @@ bool ValidateCipherModes()
 	}
 	{
 		const byte plain[] = {	// "7654321 Now is the time for "
-			0x37, 0x36, 0x35, 0x34, 0x33, 0x32, 0x31, 0x20, 
-			0x4e, 0x6f, 0x77, 0x20, 0x69, 0x73, 0x20, 0x74, 
-			0x68, 0x65, 0x20, 0x74, 0x69, 0x6d, 0x65, 0x20, 
+			0x37, 0x36, 0x35, 0x34, 0x33, 0x32, 0x31, 0x20,
+			0x4e, 0x6f, 0x77, 0x20, 0x69, 0x73, 0x20, 0x74,
+			0x68, 0x65, 0x20, 0x74, 0x69, 0x6d, 0x65, 0x20,
 			0x66, 0x6f, 0x72, 0x20};
 		const byte mac1[] = {	// from FIPS 113
 			0xf1, 0xd3, 0x0f, 0x68, 0x49, 0x31, 0x2c, 0xa4};
@@ -1284,7 +1319,7 @@ bool ValidateBaseCode()
 	byte data[255];
 	for (unsigned int i=0; i<255; i++)
 		data[i] = i;
-	const char *hexEncoded = 
+	const char *hexEncoded =
 "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F2021222324252627"
 "28292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F"
 "505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F7071727374757677"
@@ -1292,14 +1327,14 @@ bool ValidateBaseCode()
 "A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7"
 "C8C9CACBCCCDCECFD0D1D2D3D4D5D6D7D8D9DADBDCDDDEDFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"
 "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFE";
-	const char *base32Encoded = 
+	const char *base32Encoded =
 "AAASEA2EAWDAQCAJBIFS2DIQB6IBCESVCSKTNF22DEPBYHA7D2RUAIJCENUCKJTHFAWUWK3NFWZC8NBT"
 "GI3VIPJYG66DUQT5HS8V6R4AIFBEGTCFI3DWSUKKJPGE4VURKBIXEW4WKXMFQYC3MJPX2ZK8M7SGC2VD"
 "NTUYN35IPFXGY5DPP3ZZA6MUQP4HK7VZRB6ZW856RX9H9AEBSKB2JBNGS8EIVCWMTUG27D6SUGJJHFEX"
 "U4M3TGN4VQQJ5HW9WCS4FI7EWYVKRKFJXKX43MPQX82MDNXVYU45PP72ZG7MZRF7Z496BSQC2RCNMTYH"
 "3DE6XU8N3ZHN9WGT4MJ7JXQY49NPVYY55VQ77Z9A6HTQH3HF65V8T4RK7RYQ55ZR8D29F69W8Z5RR8H3"
 "9M7939R8";
-	const char *base64AndHexEncoded = 
+	const char *base64AndHexEncoded =
 "41414543417751464267634943516F4C4441304F4478415245684D554652595847426B6147787764"
 "486838674953496A4A43556D4A7967704B6973734C5334764D4445794D7A51310A4E6A63344F546F"
 "375044302B50304242516B4E4552555A4853456C4B5330784E546B395155564A5456465657563168"

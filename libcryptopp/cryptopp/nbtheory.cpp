@@ -1,3 +1,37 @@
+// *****************************************************************************
+// nbtheory.cpp                                                    Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // nbtheory.cpp - written and placed in the public domain by Wei Dai
 
 #include "pch.h"
@@ -173,7 +207,7 @@ bool IsLucasProbablePrime(const Integer &n)
 		++b; ++b;
 	}
 
-	if (j==0) 
+	if (j==0)
 		return false;
 	else
 		return Lucas(n+1, b, n)==2;
@@ -200,7 +234,7 @@ bool IsStrongLucasProbablePrime(const Integer &n)
 		++b; ++b;
 	}
 
-	if (j==0) 
+	if (j==0)
 		return false;
 
 	Integer n1 = n+1;
@@ -458,10 +492,10 @@ static bool ProvePrime(const Integer &p, const Integer &q)
 	const word16 * primeTable = GetPrimeTable(primeTableSize);
 
 	assert(primeTableSize >= 50);
-	for (int i=0; i<50; i++) 
+	for (int i=0; i<50; i++)
 	{
 		Integer b = a_exp_b_mod_c(primeTable[i], r, p);
-		if (b != 1) 
+		if (b != 1)
 			return a_exp_b_mod_c(b, q, p) == 1;
 	}
 	return false;
@@ -1074,7 +1108,7 @@ void PrimeAndGenerator::Generate(signed int delta, RandomNumberGenerator &rng, u
 		else
 		{
 			assert(delta == -1);
-			// find g such that g*g-4 is a quadratic non-residue, 
+			// find g such that g*g-4 is a quadratic non-residue,
 			// and such that g has order q
 			for (g=3; ; ++g)
 				if (Jacobi(g*g-4, p)==-1 && Lucas(q, g, p)==2)

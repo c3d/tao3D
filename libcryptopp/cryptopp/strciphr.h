@@ -1,3 +1,37 @@
+// *****************************************************************************
+// strciphr.h                                                      Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 /*! \file
  	This file contains helper classes for implementing stream ciphers.
 
@@ -56,11 +90,11 @@ protected:
 
 enum KeystreamOperationFlags {OUTPUT_ALIGNED=1, INPUT_ALIGNED=2, INPUT_NULL = 4};
 enum KeystreamOperation {
-	WRITE_KEYSTREAM				= INPUT_NULL, 
-	WRITE_KEYSTREAM_ALIGNED		= INPUT_NULL | OUTPUT_ALIGNED, 
-	XOR_KEYSTREAM				= 0, 
-	XOR_KEYSTREAM_INPUT_ALIGNED = INPUT_ALIGNED, 
-	XOR_KEYSTREAM_OUTPUT_ALIGNED= OUTPUT_ALIGNED, 
+	WRITE_KEYSTREAM				= INPUT_NULL,
+	WRITE_KEYSTREAM_ALIGNED		= INPUT_NULL | OUTPUT_ALIGNED,
+	XOR_KEYSTREAM				= 0,
+	XOR_KEYSTREAM_INPUT_ALIGNED = INPUT_ALIGNED,
+	XOR_KEYSTREAM_OUTPUT_ALIGNED= OUTPUT_ALIGNED,
 	XOR_KEYSTREAM_BOTH_ALIGNED	= OUTPUT_ALIGNED | INPUT_ALIGNED};
 
 struct CRYPTOPP_DLL CRYPTOPP_NO_VTABLE AdditiveCipherAbstractPolicy

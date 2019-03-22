@@ -1,3 +1,38 @@
+// *****************************************************************************
+// menus.doxy.h                                                    Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011-2012, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 /**
  * @~english
  * @addtogroup TaoGui Application User Interface
@@ -24,16 +59,16 @@
  * (with a check mark: enable or disabled) are supported.
  *
  * Menus are structured as follows:
- *   - A top level element that is either 
+ *   - A top level element that is either
  *       - the application menu bar (made current by @ref menubar)<BR>
- *         or 
+ *         or
  *       - a created tool bar (made current by @ref toolbar).<BR>
  *         or
  *       - a contextual menu
  *
  *   - A top-level menu may contain menu items (created or made current by
  *       @ref menu_item) and/or sub-menus (create or made current by
- *       @ref submenu). The top-level menu is either added to the menubar, 
+ *       @ref submenu). The top-level menu is either added to the menubar,
  *       a toolbar or registered as a contextual menu.
  *   - A sub-menu, like top-level menus, may contain sub-menus and menu
  *       items.

@@ -1,45 +1,81 @@
+// *****************************************************************************
+// shapes_test.xl                                                  Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2010,2012, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2010,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2010, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2010, Lionel Schaffhauser <lionel@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 shapes_test -> test_definition "shapes", 0,  <<Testing all kind of 2D and 3D shapes
 Testing rotation and translation
-Testing images>>, 1920, 1135, 
+Testing images>>, 1920, 1135,
   test_add_check 0, 2014, 0
-  test_add_key_press 16777237, 536870912, 1147 // 
+  test_add_key_press 16777237, 536870912, 1147 //
   test_add_key_release 16777237, 536870912, 508 // 
   test_add_check 1, 1714, 0
   test_add_mouse_move 0, 0, 0, 647, 8, 90
-  test_add_key_press 16777237, 536870912, 770 // 
+  test_add_key_press 16777237, 536870912, 770 //
   test_add_key_release 16777237, 536870912, 81 // 
   test_add_mouse_move 0, 0, 0, 647, 2, 81
   test_add_check 2, 2089, 0
   test_add_mouse_move 0, 0, 0, 649, 9, 95
-  test_add_key_press 16777237, 536870912, 600 // 
+  test_add_key_press 16777237, 536870912, 600 //
   test_add_key_release 16777237, 536870912, 87 // 
   test_add_mouse_move 0, 0, 0, 649, 1, 144
   test_add_check 3, 1541, 0
   test_add_mouse_move 0, 0, 0, 650, 13, 75
-  test_add_key_press 16777237, 536870912, 489 // 
+  test_add_key_press 16777237, 536870912, 489 //
   test_add_key_release 16777237, 536870912, 95 // 
   test_add_mouse_move 0, 0, 0, 650, 0, 116
   test_add_check 4, 1615, 0
   test_add_mouse_move 0, 0, 0, 649, 8, 84
-  test_add_key_press 16777237, 536870912, 746 // 
+  test_add_key_press 16777237, 536870912, 746 //
   test_add_key_release 16777237, 536870912, 95 // 
   test_add_mouse_move 0, 0, 0, 649, 0, 108
   test_add_check 5, 1623, 0
   test_add_mouse_move 0, 0, 0, 651, 5, 110
-  test_add_key_press 16777237, 536870912, 488 // 
+  test_add_key_press 16777237, 536870912, 488 //
   test_add_key_release 16777237, 536870912, 103 // 
   test_add_mouse_move 0, 0, 0, 651, 0, 133
   test_add_check 6, 1558, 0
   test_add_mouse_move 0, 0, 0, 650, 13, 225
-  test_add_key_press 16777237, 536870912, 396 // 
+  test_add_key_press 16777237, 536870912, 396 //
   test_add_key_release 16777237, 536870912, 88 // 
 
-start_test -> 
+start_test ->
   shapes_test
   display_mode "taotester"
   test_replay
 
-start_ref -> 
+start_ref ->
   shapes_test
   display_mode "taotester"
   make_ref

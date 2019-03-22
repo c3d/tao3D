@@ -1,4 +1,38 @@
-/****************************************************************************
+// *****************************************************************************
+// qtlockedfile_unix.cpp                                           Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2012-2013, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
+/*
 **
 ** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -35,8 +69,7 @@
 ** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 **
 ** $QT_END_LICENSE$
-**
-****************************************************************************/
+**/
 
 #include <string.h>
 #include <errno.h>
@@ -51,10 +84,10 @@ bool QtLockedFile::lock(LockMode mode, bool block)
         qWarning("QtLockedFile::lock(): file is not opened");
         return false;
     }
- 
+
     if (mode == NoLock)
         return unlock();
-           
+
     if (mode == m_lock_mode)
         return true;
 
@@ -68,14 +101,14 @@ bool QtLockedFile::lock(LockMode mode, bool block)
     fl.l_type = (mode == ReadLock) ? F_RDLCK : F_WRLCK;
     int cmd = block ? F_SETLKW : F_SETLK;
     int ret = fcntl(handle(), cmd, &fl);
-    
+
     if (ret == -1) {
         if (errno != EINTR && errno != EAGAIN)
             qWarning("QtLockedFile::lock(): fcntl: %s", strerror(errno));
         return false;
     }
 
-    
+
     m_lock_mode = mode;
     return true;
 }
@@ -97,12 +130,12 @@ bool QtLockedFile::unlock()
     fl.l_len = 0;
     fl.l_type = F_UNLCK;
     int ret = fcntl(handle(), F_SETLKW, &fl);
-    
+
     if (ret == -1) {
         qWarning("QtLockedFile::lock(): fcntl: %s", strerror(errno));
         return false;
     }
-    
+
     m_lock_mode = NoLock;
     return true;
 }
@@ -112,4 +145,3 @@ QtLockedFile::~QtLockedFile()
     if (isOpen())
         unlock();
 }
-

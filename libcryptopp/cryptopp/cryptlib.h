@@ -1,3 +1,38 @@
+// *****************************************************************************
+// cryptlib.h                                                      Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // cryptlib.h - written and placed in the public domain by Wei Dai
 /*! \file
  	This file contains the declarations for the abstract base
@@ -216,7 +251,7 @@ struct CRYPTOPP_DLL DecodingResult
 	and to read values from keys and crypto parameters.
 	\note To obtain an object that implements NameValuePairs for the purpose of parameter
 	passing, use the MakeParameters() function.
-	\note To get a value from NameValuePairs, you need to know the name and the type of the value. 
+	\note To get a value from NameValuePairs, you need to know the name and the type of the value.
 	Call GetValueNames() on a NameValuePairs object to obtain a list of value names that it supports.
 	Then look at the Name namespace documentation to see what the type of each value is, or
 	alternatively, call GetIntValue() with the value name, and if the type is not int, a
@@ -402,7 +437,7 @@ public:
 	virtual void Resynchronize(const byte *iv, int ivLength=-1) {throw NotImplemented(GetAlgorithm().AlgorithmName() + ": this object doesn't support resynchronization");}
 	//! get a secure IV for the next message
 	/*! This method should be called after you finish encrypting one message and are ready to start the next one.
-		After calling it, you must call SetKey() or Resynchronize() before using this object again. 
+		After calling it, you must call SetKey() or Resynchronize() before using this object again.
 		This method is not implemented on decryption objects. */
 	virtual void GetNextIV(RandomNumberGenerator &rng, byte *IV);
 
@@ -926,7 +961,7 @@ public:
 		virtual bool AnyMessages() const;
 		//! start retrieving the next message
 		/*!
-			Returns false if no more messages exist or this message 
+			Returns false if no more messages exist or this message
 			is not completely retrieved.
 		*/
 		virtual bool GetNextMessage();
@@ -1235,15 +1270,15 @@ public:
 	/*! \pre CiphertextLength(plaintextLength) != 0 (i.e., plaintext isn't too long)
 		\pre size of ciphertext == CiphertextLength(plaintextLength)
 	*/
-	virtual void Encrypt(RandomNumberGenerator &rng, 
-		const byte *plaintext, size_t plaintextLength, 
+	virtual void Encrypt(RandomNumberGenerator &rng,
+		const byte *plaintext, size_t plaintextLength,
 		byte *ciphertext, const NameValuePairs &parameters = g_nullNameValuePairs) const =0;
 
 	//! create a new encryption filter
 	/*! \note The caller is responsible for deleting the returned pointer.
 		\note Encoding parameters should be passed in the "EP" channel.
 	*/
-	virtual BufferedTransformation * CreateEncryptionFilter(RandomNumberGenerator &rng, 
+	virtual BufferedTransformation * CreateEncryptionFilter(RandomNumberGenerator &rng,
 		BufferedTransformation *attachment=NULL, const NameValuePairs &parameters = g_nullNameValuePairs) const;
 };
 
@@ -1256,14 +1291,14 @@ public:
 	/*! \pre size of plaintext == MaxPlaintextLength(ciphertextLength) bytes.
 		\return the actual length of the plaintext, indication that decryption failed.
 	*/
-	virtual DecodingResult Decrypt(RandomNumberGenerator &rng, 
-		const byte *ciphertext, size_t ciphertextLength, 
+	virtual DecodingResult Decrypt(RandomNumberGenerator &rng,
+		const byte *ciphertext, size_t ciphertextLength,
 		byte *plaintext, const NameValuePairs &parameters = g_nullNameValuePairs) const =0;
 
 	//! create a new decryption filter
 	/*! \note caller is responsible for deleting the returned pointer
 	*/
-	virtual BufferedTransformation * CreateDecryptionFilter(RandomNumberGenerator &rng, 
+	virtual BufferedTransformation * CreateDecryptionFilter(RandomNumberGenerator &rng,
 		BufferedTransformation *attachment=NULL, const NameValuePairs &parameters = g_nullNameValuePairs) const;
 
 	//! decrypt a fixed size ciphertext
@@ -1338,7 +1373,7 @@ public:
 	unsigned int DigestSize() const
 		{throw NotImplemented("PK_MessageAccumulator: DigestSize() should not be called");}
 	//! should not be called on PK_MessageAccumulator
-	void TruncatedFinal(byte *digest, size_t digestSize) 
+	void TruncatedFinal(byte *digest, size_t digestSize)
 		{throw NotImplemented("PK_MessageAccumulator: TruncatedFinal() should not be called");}
 };
 
@@ -1374,7 +1409,7 @@ public:
 	/*! \pre size of signature == MaxSignatureLength(recoverableMessageLength)
 		\return actual signature length
 	*/
-	virtual size_t SignMessageWithRecovery(RandomNumberGenerator &rng, const byte *recoverableMessage, size_t recoverableMessageLength, 
+	virtual size_t SignMessageWithRecovery(RandomNumberGenerator &rng, const byte *recoverableMessage, size_t recoverableMessageLength,
 		const byte *nonrecoverableMessage, size_t nonrecoverableMessageLength, byte *signature) const;
 };
 
@@ -1401,7 +1436,7 @@ public:
 	virtual bool VerifyAndRestart(PK_MessageAccumulator &messageAccumulator) const =0;
 
 	//! check whether input signature is a valid signature for input message
-	virtual bool VerifyMessage(const byte *message, size_t messageLen, 
+	virtual bool VerifyMessage(const byte *message, size_t messageLen,
 		const byte *signature, size_t signatureLength) const;
 
 	//! recover a message from its signature
@@ -1417,8 +1452,8 @@ public:
 	//! recover a message from its signature
 	/*! \pre size of recoveredMessage == MaxRecoverableLengthFromSignatureLength(signatureLength)
 	*/
-	virtual DecodingResult RecoverMessage(byte *recoveredMessage, 
-		const byte *nonrecoverableMessage, size_t nonrecoverableMessageLength, 
+	virtual DecodingResult RecoverMessage(byte *recoveredMessage,
+		const byte *nonrecoverableMessage, size_t nonrecoverableMessageLength,
 		const byte *signature, size_t signatureLength) const;
 };
 
@@ -1599,9 +1634,9 @@ public:
 class PasswordAuthenticatedKeyAgreementSession : public KeyAgreementSession
 {
 public:
-	void InitializePasswordAuthenticatedKeyAgreementSession(RandomNumberGenerator &rng, 
-		const byte *myId, unsigned int myIdLength, 
-		const byte *counterPartyId, unsigned int counterPartyIdLength, 
+	void InitializePasswordAuthenticatedKeyAgreementSession(RandomNumberGenerator &rng,
+		const byte *myId, unsigned int myIdLength,
+		const byte *counterPartyId, unsigned int counterPartyIdLength,
 		const byte *passwordOrVerifier, unsigned int passwordOrVerifierLength);
 };
 
@@ -1625,7 +1660,7 @@ public:
 //! BER Decode Exception Class, may be thrown during an ASN1 BER decode operation
 class CRYPTOPP_DLL BERDecodeErr : public InvalidArgument
 {
-public: 
+public:
 	BERDecodeErr() : InvalidArgument("BER decode error") {}
 	BERDecodeErr(const std::string &s) : InvalidArgument(s) {}
 };

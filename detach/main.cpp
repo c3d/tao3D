@@ -1,50 +1,38 @@
-// ****************************************************************************
-//  detach.cpp                                                     Tao project
-// ****************************************************************************
+// *****************************************************************************
+// main.cpp                                                        Tao3D project
+// *****************************************************************************
 //
-// What's this?
+// File description:
 //
-// The source file for the detach.exe program (MS Windows only).
 //
-// How do I use it?
 //
-//   detach.exe \path\to\some\program.exe -any parameter...
 //
-// What does it do?
 //
-//   Starts program.exe as a detached process (DETACHED_PROCESS flag), and
-//   redirect the child's standard output and standard error to our own
-//   stdout and stderr channels.
-//   The child has no console allocated, but can still send output to the
-//   parent's stdout and stderr channels.
 //
-// Why would I want to do this?
 //
-//   This is quite useful in the following situation:
-//     - A GUI application (app.exe) needs to perform some Git commands, such
-//       as "git clone <ssh URI>"
-//     - git.exe (from the MSysGit distribution) will execute ssh.exe to deal
-//       with ssh:// URIs
-//     - ssh typically needs to authenticate the user. By default it does
-//       it through the command line, more specifically, using the console
-//       (/dev/tty on Unix, the Console on Windows). If there is no console
-//       allocated, it checks if the environment variables DISPLAY and
-//       SSH_ASK_PASS are set. If so, ssh executes the command $SSH_ASK_PASS.
-//     - Our app.exe application wants Git to display a dialog box when a
-//       password is needed. In order to do that, it has to:
-//         1. Set the DISPLAY variable to a dummy value
-//         2. Set the SSH_ASK_PASS variable to be the path to a simple dialog
-//            box application that will prompt the user and return the answer
-//            on its stdout
-//         3. Start git.exe through detach.exe in order to get rid of the
-//            console.
 //
-//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2010 Taodyne SAS
-// ****************************************************************************
+// *****************************************************************************
 // This software is licensed under the GNU General Public License v3
-// See file COPYING for details.
-// ****************************************************************************
+// (C) 2010-2011, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2010-2012, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 #if defined(UNICODE) && !defined(_UNICODE)
 #define _UNICODE 1

@@ -1,3 +1,37 @@
+// *****************************************************************************
+// ripemd.cpp                                                      Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // ripemd.cpp
 // RIPEMD-160 written and placed in the public domain by Wei Dai
 // RIPEMD-320, RIPEMD-128, RIPEMD-256 written by Kevin Springle
@@ -9,7 +43,7 @@
 
 NAMESPACE_BEGIN(CryptoPP)
 
-#define F(x, y, z)    (x ^ y ^ z) 
+#define F(x, y, z)    (x ^ y ^ z)
 #define G(x, y, z)    (z ^ (x & (y^z)))
 #define H(x, y, z)    (z ^ (x | ~y))
 #define I(x, y, z)    (y ^ (z & (x^y)))
@@ -154,7 +188,7 @@ void RIPEMD160::Transform (word32 *digest, const word32 *X)
 	Subround(J, b2, c2, d2, e2, a2, X[ 3], 12, k5);
 	Subround(J, a2, b2, c2, d2, e2, X[12],  6, k5);
 
-	Subround(I, e2, a2, b2, c2, d2, X[ 6],  9, k6); 
+	Subround(I, e2, a2, b2, c2, d2, X[ 6],  9, k6);
 	Subround(I, d2, e2, a2, b2, c2, X[11], 13, k6);
 	Subround(I, c2, d2, e2, a2, b2, X[ 3], 15, k6);
 	Subround(I, b2, c2, d2, e2, a2, X[ 7],  7, k6);
@@ -313,7 +347,7 @@ void RIPEMD320::Transform (word32 *digest, const word32 *X)
 	Subround(G, a1, b1, c1, d1, e1, X[11], 13, k1);
 	Subround(G, e1, a1, b1, c1, d1, X[ 8], 12, k1);
 
-	Subround(I, e2, a2, b2, c2, d2, X[ 6],  9, k6); 
+	Subround(I, e2, a2, b2, c2, d2, X[ 6],  9, k6);
 	Subround(I, d2, e2, a2, b2, c2, X[11], 13, k6);
 	Subround(I, c2, d2, e2, a2, b2, X[ 3], 15, k6);
 	Subround(I, b2, c2, d2, e2, a2, X[ 7],  7, k6);

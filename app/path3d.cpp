@@ -1,8 +1,8 @@
-// ****************************************************************************
-//  path3d.cpp                                                      Tao project
-// ****************************************************************************
+// *****************************************************************************
+// path3d.cpp                                                      Tao3D project
+// *****************************************************************************
 //
-//   File Description:
+// File description:
 //
 //     Representation of paths in 3D
 //
@@ -13,13 +13,32 @@
 //
 //
 //
-// ****************************************************************************
-// This software is licensed under the GNU General Public License v3.
-// See file COPYING for details.
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
-//  (C) 2010 Taodyne SAS
-// ****************************************************************************
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011-2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2010, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2010-2015,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2010-2011,2013-2014, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2010-2011, Lionel Schaffhauser <lionel@taodyne.com>
+// (C) 2011-2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2010, Christophe de Dinechin <christophe@dinechin.org>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 #include "path3d.h"
 #include "layout.h"
@@ -57,7 +76,7 @@ inline int pathSteps(scale length)
         steps = 1;
     return (int) ceil(steps);
 }
-            
+
 
 #ifndef CALLBACK // Needed for Windows
 #define CALLBACK
@@ -94,7 +113,7 @@ GraphicPath::PolygonData::~PolygonData()
 
 static void drawArrays(GLenum mode, uint64 textureUnits, Vertices &data)
 // ----------------------------------------------------------------------------
-//   Draw arrays 
+//   Draw arrays
 // ----------------------------------------------------------------------------
 {
     double *vdata = &data[0].vertex.x;
@@ -197,13 +216,13 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
             continue;
         Vector3 newNormal = swapXY(delta);
         if (invert)
-            newNormal *= -1.0; 
+            newNormal *= -1.0;
         if (!s)
         {
             normal = newNormal;
             continue;
         }
-        
+
         Vector3 orig = v.vertex;
         float dotProduct = newNormal.Dot(normal);
         if (dotProduct < BACKSTEP_VALUE)
@@ -217,7 +236,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                 mid.Normalize();
                 extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
                 extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
-                v.vertex = orig;                
+                v.vertex = orig;
                 normal = newNormal;
                 continue;
             }
@@ -232,7 +251,7 @@ static void extrudeSide(Vertices &data, bool invert, uint64 textureUnits,
                     mid.Normalize();
                     extrudeFacet(side, v, orig, mid, r1, z1, sa1, ca1);
                     extrudeFacet(side, v, orig, mid, r2, z2, sa2, ca2);
-                    v.vertex = orig;                
+                    v.vertex = orig;
                 }
             }
         }
@@ -254,7 +273,7 @@ static void extrude(PolygonData &poly, Vertices &data, scale depth)
     uint size = data.size();
     if (!size)
         return;
-    
+
     Layout *layout = poly.layout;
     uint64 textureUnits = GL.ActiveTextureUnits();
 
@@ -707,7 +726,7 @@ static void addEndpointToPath(EndpointStyle style,
         circle.addEllipse(c.x-r, c.y-r, 2*r, 2*r);
         outline.addQtPath(circle);
     }
-    break;        
+    break;
     case GraphicPath::NONE:
     default:
         break;
@@ -780,7 +799,7 @@ void GraphicPath::DrawOutline(Layout *where)
         if (first)
         {
             shortenBy = getShortenByStyle(startStyle, where->lineWidth);
-                
+
             switch ((*i).kind)
             {
             case MOVE_TO:
@@ -831,7 +850,7 @@ void GraphicPath::DrawOutline(Layout *where)
                 }
                 break;
             }
-            
+
         }
         else
         {
@@ -853,7 +872,7 @@ void GraphicPath::DrawOutline(Layout *where)
     {
         outline.elements.push_back(*p);
     }
-        
+
     path_elements::reverse_iterator rbegin = outline.elements.rbegin();
     path_elements::reverse_iterator rend = outline.elements.rend();
     for (path_elements::reverse_iterator j, i = rbegin; i != rend; ++i)
@@ -862,7 +881,7 @@ void GraphicPath::DrawOutline(Layout *where)
         if (last)
         {
             shortenBy = getShortenByStyle(endStyle, where->lineWidth);
-                
+
             switch ((*i).kind)
             {
             case LINE_TO:
@@ -908,7 +927,7 @@ void GraphicPath::DrawOutline(Layout *where)
             }
         }
     }
-        
+
 
     // Draw outline of the path.
     QPainterPath path;
@@ -993,7 +1012,7 @@ void GraphicPath::Draw(Layout *layout,
         case LINE_TO:
             data.push_back(here);
             // Fall through
-            
+
         case MOVE_TO:
             control.clear();
             // Fall through

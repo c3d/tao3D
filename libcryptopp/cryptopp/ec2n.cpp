@@ -1,3 +1,37 @@
+// *****************************************************************************
+// ec2n.cpp                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // ec2n.cpp - written and placed in the public domain by Wei Dai
 
 #include "pch.h"
@@ -61,7 +95,7 @@ bool EC2N::DecodePoint(EC2N::Point &P, BufferedTransformation &bt, size_t encode
 			return false;
 
 		P.identity = false;
-		P.x.Decode(bt, m_field->MaxElementByteLength()); 
+		P.x.Decode(bt, m_field->MaxElementByteLength());
 
 		if (P.x.IsZero())
 		{
@@ -153,7 +187,7 @@ bool EC2N::ValidateParameters(RandomNumberGenerator &rng, unsigned int level) co
 bool EC2N::VerifyPoint(const Point &P) const
 {
 	const FieldElement &x = P.x, &y = P.y;
-	return P.identity || 
+	return P.identity ||
 		(x.CoefficientCount() <= m_field->MaxElementBitLength()
 		&& y.CoefficientCount() <= m_field->MaxElementBitLength()
 		&& !(((x+m_a)*x*x+m_b-(x+y)*y)%m_field->GetModulus()));

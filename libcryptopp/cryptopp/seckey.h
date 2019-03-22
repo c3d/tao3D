@@ -1,3 +1,37 @@
+// *****************************************************************************
+// seckey.h                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // seckey.h - written and placed in the public domain by Wei Dai
 
 // This file contains helper classes/functions for implementing secret key algorithms.
@@ -183,7 +217,7 @@ public:
 // ************** documentation ***************
 
 //! These objects usually should not be used directly. See CipherModeDocumentation instead.
-/*! Each class derived from this one defines two types, Encryption and Decryption, 
+/*! Each class derived from this one defines two types, Encryption and Decryption,
 	both of which implement the BlockCipher interface. */
 struct BlockCipherDocumentation
 {
@@ -193,7 +227,7 @@ struct BlockCipherDocumentation
 	typedef BlockCipher Decryption;
 };
 
-/*! \brief Each class derived from this one defines two types, Encryption and Decryption, 
+/*! \brief Each class derived from this one defines two types, Encryption and Decryption,
 	both of which implement the SymmetricCipher interface. Two types of classes derive
 	from this class: stream ciphers and block cipher modes. Stream ciphers can be used
 	alone, cipher mode classes need to be used with a block cipher. See CipherModeDocumentation
@@ -206,7 +240,7 @@ struct SymmetricCipherDocumentation
 	typedef SymmetricCipher Decryption;
 };
 
-/*! \brief Each class derived from this one defines two types, Encryption and Decryption, 
+/*! \brief Each class derived from this one defines two types, Encryption and Decryption,
 	both of which implement the AuthenticatedSymmetricCipher interface. */
 struct AuthenticatedSymmetricCipherDocumentation
 {

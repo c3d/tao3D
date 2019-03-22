@@ -1,3 +1,37 @@
+// *****************************************************************************
+// md2.cpp                                                         Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // md2.cpp - modified by Wei Dai from Andrew M. Kuchling's md2.c
 // The original code and all modifications are in the public domain.
 
@@ -8,8 +42,8 @@
  *
  * Part of the Python Cryptography Toolkit, version 1.1
  *
- * Distribute and use freely; there are no restrictions on further 
- * dissemination and usage except those imposed by the laws of your 
+ * Distribute and use freely; there are no restrictions on further
+ * dissemination and usage except those imposed by the laws of your
  * country of residence.
  *
  */
@@ -58,14 +92,14 @@ void MD2::Update(const byte *buf, size_t len)
 		31, 26, 219, 153, 141, 51, 159, 17, 131, 20
 	};
 
-	while (len) 
+	while (len)
     {
 		unsigned int L = UnsignedMin(16U-m_count, len);
 		memcpy(m_buf+m_count, buf, L);
 		m_count+=L;
 		buf+=L;
 		len-=L;
-		if (m_count==16) 
+		if (m_count==16)
 		{
 			byte t;
 			int i,j;

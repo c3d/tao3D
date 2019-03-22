@@ -1,3 +1,37 @@
+// *****************************************************************************
+// polynomi.cpp                                                    Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // polynomi.cpp - written and placed in the public domain by Wei Dai
 
 // Part of the code for polynomial evaluation and interpolation
@@ -83,7 +117,7 @@ unsigned int PolynomialOver<T>::CoefficientCount(const Ring &ring) const
 }
 
 template <class T>
-typename PolynomialOver<T>::CoefficientType PolynomialOver<T>::GetCoefficient(unsigned int i, const Ring &ring) const 
+typename PolynomialOver<T>::CoefficientType PolynomialOver<T>::GetCoefficient(unsigned int i, const Ring &ring) const
 {
 	return (i < m_coefficients.size()) ? m_coefficients[i] : ring.Identity();
 }
@@ -394,13 +428,13 @@ std::ostream& PolynomialOver<T>::Output(std::ostream &out, const Ring &ring) con
 
 					if (pstr.str().size() <= nstr.str().size())
 					{
-						out << " + "; 
+						out << " + ";
 						if (!i || !ring.Equal(m_coefficients[i], ring.MultiplicativeIdentity()))
 							out << m_coefficients[i];
 					}
 					else
 					{
-						out << " - "; 
+						out << " - ";
 						if (!i || !ring.Equal(inverse, ring.MultiplicativeIdentity()))
 							out << inverse;
 					}

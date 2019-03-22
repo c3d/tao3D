@@ -1,3 +1,37 @@
+// *****************************************************************************
+// gost.cpp                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 #include "pch.h"
 #include "gost.h"
 #include "misc.h"
@@ -24,7 +58,7 @@ const byte GOST::Base::sBox[8][16]={
 	{ 7, 13, 14,  3,  0,  6,  9, 10,  1,  2,  8,  5, 11, 12,  4, 15 },
 	{10,  0,  9, 14,  6,  3, 15,  5,  1, 13, 12,  7, 11,  4,  2,  8 },
 	{15,  1,  8, 14,  6, 11,  3,  4,  9,  7,  2, 13, 12,  0,  5, 10 },
-	{14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7 }}; 
+	{14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7 }};
 */
 
 volatile bool GOST::Base::sTableCalculated = false;
@@ -44,7 +78,7 @@ void GOST::Base::PrecalculateSTable()
 	if (!sTableCalculated)
 	{
 		for (unsigned i = 0; i < 4; i++)
-			for (unsigned j = 0; j < 256; j++) 
+			for (unsigned j = 0; j < 256; j++)
 			{
 				word32 temp = sBox[2*i][j%16] | (sBox[2*i+1][j/16] << 4);
 				sTable[i][j] = rotlMod(temp, 11+8*i);

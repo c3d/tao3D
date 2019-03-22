@@ -1,3 +1,37 @@
+// *****************************************************************************
+// square.cpp                                                      Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // square.cpp - written and placed in the public domain by Wei Dai
 // Based on Paulo S.L.M. Barreto's public domain implementation
 
@@ -11,11 +45,11 @@ NAMESPACE_BEGIN(CryptoPP)
 // apply theta to a roundkey
 static void SquareTransform (word32 in[4], word32 out[4])
 {
-	static const byte G[4][4] = 
+	static const byte G[4][4] =
 	{
-		0x02U, 0x01U, 0x01U, 0x03U, 
-		0x03U, 0x02U, 0x01U, 0x01U, 
-		0x01U, 0x03U, 0x02U, 0x01U, 
+		0x02U, 0x01U, 0x01U, 0x03U,
+		0x03U, 0x02U, 0x01U, 0x01U,
+		0x01U, 0x03U, 0x02U, 0x01U,
 		0x01U, 0x01U, 0x03U, 0x02U
 	};
 
@@ -52,7 +86,7 @@ void Square::Base::UncheckedSetKey(const byte *userKey, unsigned int length, con
 		roundkeys(i, 1) = roundkeys(i-1, 1) ^ roundkeys(i, 0);
 		roundkeys(i, 2) = roundkeys(i-1, 2) ^ roundkeys(i, 1);
 		roundkeys(i, 3) = roundkeys(i-1, 3) ^ roundkeys(i, 2);
-	}  
+	}
 
 	/* produce the round keys */
 	if (IsForwardTransformation())
@@ -128,13 +162,13 @@ void Square::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, 
 {
 	word32 text[4], temp[4];
 	Block::Get(inBlock)(text[0])(text[1])(text[2])(text[3]);
-   
+
 	/* initial key addition */
 	text[0] ^= roundkeys(0, 0);
 	text[1] ^= roundkeys(0, 1);
 	text[2] ^= roundkeys(0, 2);
 	text[3] ^= roundkeys(0, 3);
- 
+
 	/* ROUNDS - 1 full rounds */
 	for (int i=1; i+1<ROUNDS; i+=2)
 	{
@@ -153,13 +187,13 @@ void Square::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, 
 {
 	word32 text[4], temp[4];
 	Block::Get(inBlock)(text[0])(text[1])(text[2])(text[3]);
-   
+
 	/* initial key addition */
 	text[0] ^= roundkeys(0, 0);
 	text[1] ^= roundkeys(0, 1);
 	text[2] ^= roundkeys(0, 2);
 	text[3] ^= roundkeys(0, 3);
- 
+
 	/* ROUNDS - 1 full rounds */
 	for (int i=1; i+1<ROUNDS; i+=2)
 	{

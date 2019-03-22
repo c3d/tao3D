@@ -1,3 +1,37 @@
+// *****************************************************************************
+// pssr.cpp                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // pssr.cpp - written and placed in the public domain by Wei Dai
 
 #include "pch.h"
@@ -27,7 +61,7 @@ size_t PSSR_MEM_Base::MaxRecoverableLength(size_t representativeBitLength, size_
 	return 0;
 }
 
-bool PSSR_MEM_Base::IsProbabilistic() const 
+bool PSSR_MEM_Base::IsProbabilistic() const
 {
 	return SaltLen(1) > 0;
 }
@@ -42,7 +76,7 @@ bool PSSR_MEM_Base::RecoverablePartFirst() const
 	return false;
 }
 
-void PSSR_MEM_Base::ComputeMessageRepresentative(RandomNumberGenerator &rng, 
+void PSSR_MEM_Base::ComputeMessageRepresentative(RandomNumberGenerator &rng,
 	const byte *recoverableMessage, size_t recoverableMessageLength,
 	HashTransformation &hash, HashIdentifier hashIdentifier, bool messageEmpty,
 	byte *representative, size_t representativeBitLength) const
@@ -112,7 +146,7 @@ DecodingResult PSSR_MEM_Base::RecoverMessageFromRepresentative(
 	byte *salt = representative + representativeByteLength - u - digestSize - saltSize;
 	byte *M = std::find_if(representative, salt-1, std::bind2nd(std::not_equal_to<byte>(), 0));
 	recoverableMessageLength = salt-M-1;
-	if (*M == 0x01 
+	if (*M == 0x01
 		&& (size_t)(M - representative - (representativeBitLength % 8 != 0)) >= MinPadLen(digestSize)
 		&& recoverableMessageLength <= MaxRecoverableLength(representativeBitLength, hashIdentifier.second, digestSize))
 	{

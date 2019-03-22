@@ -1,38 +1,47 @@
-// ****************************************************************************
-//  autumn_on_earth.xl                                             Tao project 
-// ****************************************************************************
-// 
-//   File Description:
-// 
+// *****************************************************************************
+// autumn_on_earth.xl                                              Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
 //     The 'Autumn on Earth' theme.
-// 
+//
 //     This computer program serves as a document template for
 //     the Tao3D application.
-// 
-// 
-// 
-// 
-// 
-// 
-// ****************************************************************************
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
 // This software is licensed under the GNU General Public License v3
-// See file COPYING for details.
-//  (C) 2014 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2012-2014 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2012-2014 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
-//  (C) 2012-2014 Catherine Burvelle <catherine@taodyne.com>
-//  (C) 2014 Taodyne SAS
-// ****************************************************************************
-//    Norebbo image used with permission. Source:
-//    http://www.norebbo.com/store/photo/NTgxMWRlYThhOGQ5N2U=/
-//    global-electronic-network-background.html
-// ****************************************************************************
+// (C) 2013-2014, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2012-2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2013-2014, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 import Slides
 import Charts
 
 module_description
-    id "EC3C6ED6-1727-4248-9449-61AC6A2D477E" 
+    id "EC3C6ED6-1727-4248-9449-61AC6A2D477E"
     name "Autumn on Earth theme"
     description "A simple brown theme"
     import_name "AutumnOnEarthTheme"
@@ -52,9 +61,9 @@ add_search_path "AutumnOnEarth:", module_dir
 
 
 // ============================================================================
-// 
+//
 //    Theme definition
-// 
+//
 // ============================================================================
 
 theme_slide_width  "AutumnOnEarth" -> 1024
@@ -135,9 +144,9 @@ theme_color "AutumnOnEarth", "bar", Style:text, N:integer ->
     color_hsv 9, 0.65 - T * N, 0.4 + T * N
 
 // ============================================================================
-// 
+//
 //    Colors
-// 
+//
 // ============================================================================
 
 theme_color      "AutumnOnEarth","main","title"           -> color "white"
@@ -174,9 +183,9 @@ theme_size "AutumnOnEarth",Master:text,"story",4           -> 28
 
 
 // ============================================================================
-// 
+//
 //    Background pictures
-// 
+//
 // ============================================================================
 
 theme_background "AutumnOnEarth", "main" ->
@@ -211,9 +220,9 @@ theme_background "AutumnOnEarth", Master:text ->
 
 
 // ============================================================================
-// 
+//
 //    Slide layout
-// 
+//
 // ============================================================================
 
 theme_layout "AutumnOnEarth", "main" ->

@@ -1,3 +1,38 @@
+// *****************************************************************************
+// tao.doxy.h                                                      Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011-2012, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2011,2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011-2013, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 /**
  * @~english
  * @mainpage Tao3D Documentation
@@ -28,7 +63,7 @@
  *   - les expressions (@a builtins) que vous pouvez utiliser pour écrire
  * des documents,
  *   - le langage XLR, qui est la base des documents Tao.
- * 
+ *
  * @~
  * @ref getting_started \n
  * @ref tao_documents \n
@@ -138,7 +173,7 @@ import "second_part.ddd"
  * Une introduction aux bases des documents Tao3D.
  *
  * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Les
- * caractères sont encodés en 
+ * caractères sont encodés en
  * <a href="http://fr.wikipedia.org/wiki/UTF-8">UTF-8</a> ce
  * qui permet d'utiliser des caractères internationaux n'importe où dans le
  * document.
@@ -533,7 +568,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * Replace <tt>Tao3D</tt> with <tt>Tao3D Player</tt>
  * if you are using the player's edition.
  * The application folder is where Tao3D is installed.
- * 
+ *
  * @~french
  * @section secSearchPaths Chemins additionnels
  *
@@ -1048,7 +1083,7 @@ import "xl:mes_définitions.xl"
  * Les primitives  de Tao sont des formes XL que vous devez utiliser pour
  * décrire votre document. Elles sont réparties en catégories comme décrit
  * ci-dessus.
- * 
+ *
  * @~
  *
  * @todo Document Git-related primitives (branch/commit chooser commands and

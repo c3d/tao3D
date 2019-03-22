@@ -1,3 +1,37 @@
+// *****************************************************************************
+// theme.xl                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2011,2019, Christophe de Dinechin <christophe@dinechin.org>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // Define what is a slide : a page with a background and a scaled contents
 // consisting of a title, a body and a foreground.
 // The body is defined by the Body argument to "slide"
@@ -15,7 +49,7 @@ title_slide Title:text ->
         slide_background "TitleBackground.jpg"
         scale_contents
         title_slide_title
-        
+
 // Define what a transition slide is
 transition_slide Title:text ->
     page Title,
@@ -55,8 +89,8 @@ two_column_slide Title:text, TextBody, PictureBody ->
             translate 250, -50, 0
             color "white"
             PictureBody
-            
-        
+
+
 
 // Define what the background is: A scaled picture colorized in white.
 // Adjust the name and size of the picture. Most image file formats will work.
@@ -90,7 +124,7 @@ slide_footer ->
         text month_name month & " " & text day & ", " & text year
         month_name N:integer -> ("January", "February", "March",
                                  "April", "May", "June", "July",
-                                 "August", "September", "October", 
+                                 "August", "September", "October",
                                  "November", "December") at N
 
 
@@ -148,7 +182,7 @@ slide_body Body ->
 // Logical dimensions for the slide. You can put anything you want here,
 // but the aspect ratio should match that of the background picture and be
 // close to the aspect ratio of the screens you are going to use.
-// This will be used to define the logical coordinates of anything that 
+// This will be used to define the logical coordinates of anything that
 // follows "scale_contents". For example, we placed our text boxes on this
 // 1024x768 grid.
 slide_width -> 1024.0

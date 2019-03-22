@@ -1,8 +1,8 @@
-// ****************************************************************************
-//  formulas.tbl                                                    Tao project
-// ****************************************************************************
+// *****************************************************************************
+// formulas.tbl                                                    Tao3D project
+// *****************************************************************************
 //
-//   File Description:
+// File description:
 //
 //     Functions and transforms allowed in formulas
 //
@@ -13,15 +13,29 @@
 //
 //
 //
-// ****************************************************************************
-// This software is licensed under the GNU General Public License v3.
-// See file COPYING for details.
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
-//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
-//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
-//  (C) 2010 Taodyne SAS
-// ****************************************************************************
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2010, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2009-2010,2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2010-2011, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2010, Lionel Schaffhauser <lionel@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 // Integer arithmetic and comparisons
 INFIX(AddInt, integer,  integer,"+",integer,XL_RINT(XL_INT(l) + XL_INT(r)),
@@ -100,31 +114,31 @@ INFIX(EQInt,  boolean,  integer, "=", integer,XL_RBOOL(XL_INT(l) == XL_INT(r)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(NegateInt,  integer,  "-", 
+PREFIX(NegateInt,  integer,  "-",
     PARM(x, integer, )
-, XL_RINT(-x), 
+, XL_RINT(-x),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
 
 // Percents
-PREFIX(BitwiseNotInt,  integer,  "not", 
+PREFIX(BitwiseNotInt,  integer,  "not",
     PARM(x, integer, )
-, XL_RINT(~x), 
+, XL_RINT(~x),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-POSTFIX(PercentInt,  real, 
+POSTFIX(PercentInt,  real,
     PARM(x, integer, )
-,  "%", XL_RREAL(x / 100.0), 
+,  "%", XL_RREAL(x / 100.0),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
 
 // Real arithmetic and comparisons
-POSTFIX(PercentReal,  real, 
+POSTFIX(PercentReal,  real,
     PARM(x, real, )
-,  "%", XL_RREAL(x / 100.0), 
+,  "%", XL_RREAL(x / 100.0),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
@@ -186,94 +200,94 @@ INFIX(EQReal,  boolean,  real, "=", real,XL_RBOOL(XL_REAL(l) == XL_REAL(r)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Negate,  real,  "-", 
+PREFIX(Negate,  real,  "-",
     PARM(r, real, )
-, XL_RREAL(-r), 
+, XL_RREAL(-r),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Sin,  real,  "sin", 
+PREFIX(Sin,  real,  "sin",
     PARM(x, real, )
-, XL_RREAL(sin(x)), 
+, XL_RREAL(sin(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Cos,  real,  "cos", 
+PREFIX(Cos,  real,  "cos",
     PARM(x, real, )
-, XL_RREAL(cos(x)), 
+, XL_RREAL(cos(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Tan,  real,  "tan", 
+PREFIX(Tan,  real,  "tan",
     PARM(x, real, )
-, XL_RREAL(tan(x)), 
+, XL_RREAL(tan(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(ArcSin,  real,  "asin", 
+PREFIX(ArcSin,  real,  "asin",
     PARM(x, real, )
-, XL_RREAL(asin(x)), 
+, XL_RREAL(asin(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(ArcCos,  real,  "acos", 
+PREFIX(ArcCos,  real,  "acos",
     PARM(x, real, )
-, XL_RREAL(acos(x)), 
+, XL_RREAL(acos(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(ArcTan,  real,  "atan", 
+PREFIX(ArcTan,  real,  "atan",
     PARM(x, real, )
-, XL_RREAL(atan(x)), 
+, XL_RREAL(atan(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(ArcTan2,  real,  "atan", 
+PREFIX(ArcTan2,  real,  "atan",
     PARM(y, real, )
     PARM(x, real, )
-, XL_RREAL(atan2(y,x)), 
+, XL_RREAL(atan2(y,x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Exp,  real,  "exp", 
+PREFIX(Exp,  real,  "exp",
     PARM(x, real, )
-, XL_RREAL(exp(x)), 
+, XL_RREAL(exp(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(ExpMinus1,  real,  "expm1", 
+PREFIX(ExpMinus1,  real,  "expm1",
     PARM(x, real, )
-, XL_RREAL(expm1(x)), 
+, XL_RREAL(expm1(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Log,  real,  "log", 
+PREFIX(Log,  real,  "log",
     PARM(x, real, )
-, XL_RREAL(log(x)), 
+, XL_RREAL(log(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Log2,  real,  "log2", 
+PREFIX(Log2,  real,  "log2",
     PARM(x, real, )
-, XL_RREAL(log2(x)), 
+, XL_RREAL(log2(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(Log10,  real,  "log10", 
+PREFIX(Log10,  real,  "log10",
     PARM(x, real, )
-, XL_RREAL(log10(x)), 
+, XL_RREAL(log10(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(LogPlus1,  real,  "log1p", 
+PREFIX(LogPlus1,  real,  "log1p",
     PARM(x, real, )
-, XL_RREAL(log1p(x)), 
+, XL_RREAL(log1p(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
 
 // Boolean operations
-PREFIX(PiConstant,  real,  "pi", , XL_RREAL(M_PI), 
+PREFIX(PiConstant,  real,  "pi", , XL_RREAL(M_PI),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
@@ -290,9 +304,9 @@ INFIX(XorBool,  boolean,  boolean, "xor", boolean,XL_RBOOL(XL_BOOL(l) ^ XL_BOOL(
     SYNOPSIS("")
     DESCRIPTION(""))
 
-PREFIX(NotBool,  boolean,  "not", 
+PREFIX(NotBool,  boolean,  "not",
     PARM(x, boolean, )
-, XL_RBOOL(!x), 
+, XL_RBOOL(!x),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
@@ -337,58 +351,58 @@ INFIX(EQText,  boolean,  text, "=", text,XL_RBOOL(XL_TEXT(l) == XL_TEXT(r)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(IntToReal,   real,  "real", 
+PREFIX(IntToReal,   real,  "real",
     PARM(x, integer, )
-, XL_RREAL((real_t) x), 
+, XL_RREAL((real_t) x),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(TextToReal,  real,  "real", 
+PREFIX(TextToReal,  real,  "real",
     PARM(x, text, )
-, XL_RREAL(xl_text2real(x)), 
+, XL_RREAL(xl_text2real(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(RealToInt,  integer,  "integer", 
+PREFIX(RealToInt,  integer,  "integer",
     PARM(x, real, )
-, XL_RINT((integer_t) x), 
+, XL_RINT((integer_t) x),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(TextToInt,  integer,  "integer", 
+PREFIX(TextToInt,  integer,  "integer",
     PARM(x, text, )
-, XL_RINT(xl_text2int(x)), 
+, XL_RINT(xl_text2int(x)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(IntToText,  text,  "text", 
+PREFIX(IntToText,  text,  "text",
     PARM(x, integer, )
-, XL_RTEXT((text) x), 
+, XL_RTEXT((text) x),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
 
-PREFIX(RealToText,  text,  "text", 
+PREFIX(RealToText,  text,  "text",
     PARM(x, real, )
-, XL_RTEXT((text) x), 
+, XL_RTEXT((text) x),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
 // Return hour, minutes, seconds for the current time
-PREFIX(SystemTime,  integer,  "system_time", , XL_RINT(xl_time(1)), 
+PREFIX(SystemTime,  integer,  "system_time", , XL_RINT(xl_time(1)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
 
 // Random number generator
-PREFIX(RandomNumber,  real,  "random", , XL_RREAL(xl_random(0.0, 1.0)), 
+PREFIX(RandomNumber,  real,  "random", , XL_RREAL(xl_random(0.0, 1.0)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(RandomNumber2,  real,  "random", 
+PREFIX(RandomNumber2,  real,  "random",
     PARM(low, real, )
     PARM(high, real, )
-, XL_RREAL(xl_random(XL_REAL(low), XL_REAL(high))), 
+, XL_RREAL(xl_random(XL_REAL(low), XL_REAL(high))),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
@@ -409,54 +423,54 @@ TYPE(character);
 //
 // ============================================================================
 
-PREFIX(RandomNumber2i,  integer,  "random", 
+PREFIX(RandomNumber2i,  integer,  "random",
     PARM(low,integer, )
     PARM(high,integer, )
-, XL_RINT(xl_random(XL_INT(low), XL_INT(high))), 
+, XL_RINT(xl_random(XL_INT(low), XL_INT(high))),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(PageLabel,    text,      "page_label", , RTAO(pageLabel(self)), 
+PREFIX(PageLabel,    text,      "page_label", , RTAO(pageLabel(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(PageId,       integer,   "page_number", , RTAO(pageNumber(self)), 
+PREFIX(PageId,       integer,   "page_number", , RTAO(pageNumber(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)), 
+PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(PageWidth,    real,      "page_width", , RTAO(pageWidth(self)), 
+PREFIX(PageWidth,    real,      "page_width", , RTAO(pageWidth(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(PageHeight,   real,      "page_height", , RTAO(pageHeight(self)), 
+PREFIX(PageHeight,   real,      "page_height", , RTAO(pageHeight(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)), 
+PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(FrameHeight,  real,      "frame_height", , RTAO(frameHeight(self)), 
+PREFIX(FrameHeight,  real,      "frame_height", , RTAO(frameHeight(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(FrameDepth,   real,      "frame_depth", , RTAO(frameDepth(self)), 
+PREFIX(FrameDepth,   real,      "frame_depth", , RTAO(frameDepth(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(WindowWidth,  real,      "window_width", , RTAO(windowWidth(self)), 
+PREFIX(WindowWidth,  real,      "window_width", , RTAO(windowWidth(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(WindowHeight, real,      "window_height", , RTAO(windowHeight(self)), 
+PREFIX(WindowHeight, real,      "window_height", , RTAO(windowHeight(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
-PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)), 
+PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
     GROUP(formula)
     SYNOPSIS("")
     DESCRIPTION(""))
@@ -468,26 +482,26 @@ PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
 //
 // ============================================================================
 
-PREFIX(PageSeconds,  real,      "page_time", , RTAO(pageTime(self)), 
+PREFIX(PageSeconds,  real,      "page_time", , RTAO(pageTime(self)),
        GROUP(formula)
        SYNOPSIS("")
        DESCRIPTION(""))
-PREFIX(ErrorMessage,  tree,  "error", 
+PREFIX(ErrorMessage,  tree,  "error",
        PARM(m, text, ) PARM(s, tree, ),
-       return Tao::Widget::formulaRuntimeError(self, m, &s), 
+       return Tao::Widget::formulaRuntimeError(self, m, &s),
        GROUP(formula)
        SYNOPSIS("")
        DESCRIPTION(""))
 
-PREFIX(ErrorMessage0,  tree,  "error", 
+PREFIX(ErrorMessage0,  tree,  "error",
        PARM(m, text, ),
-       return Tao::Widget::formulaRuntimeError(self, m, NULL), 
+       return Tao::Widget::formulaRuntimeError(self, m, NULL),
        GROUP(formula)
     SYNOPSIS("")
        DESCRIPTION(""))
-PREFIX(ErrorMessageM,  tree,  "error_message_box", 
+PREFIX(ErrorMessageM,  tree,  "error_message_box",
        PARM(m, text, ) PARM(s, tree, ),
-       RTAO(runtimeError(self, m, &s)), 
+       RTAO(runtimeError(self, m, &s)),
        GROUP(formula)
        SYNOPSIS("")
        DESCRIPTION(""))
@@ -500,30 +514,30 @@ PREFIX(ErrorMessageM,  tree,  "error_message_box",
 //
 // ============================================================================
 
-PREFIX(ErrorMessageM0,  tree,  "error_message_box", 
+PREFIX(ErrorMessageM0,  tree,  "error_message_box",
        PARM(m, text, ),
-       RTAO(runtimeError(self, m, NULL)), 
+       RTAO(runtimeError(self, m, NULL)),
        GROUP(formula)
        SYNOPSIS("")
        DESCRIPTION(""))
-POSTFIX(FromCm,    real, PARM(x, real, ), "cm", RTAO(fromCm(self, x)), 
+POSTFIX(FromCm,    real, PARM(x, real, ), "cm", RTAO(fromCm(self, x)),
         GROUP(formula)
         SYNOPSIS("")
         DESCRIPTION(""))
-POSTFIX(FromMm,    real, PARM(x, real, ), "mm", RTAO(fromMm(self, x)), 
+POSTFIX(FromMm,    real, PARM(x, real, ), "mm", RTAO(fromMm(self, x)),
         GROUP(formula)
         SYNOPSIS("")
         DESCRIPTION(""))
-POSTFIX(FromInch,  real, PARM(x, real, ), "inch", RTAO(fromIn(self, x)), 
+POSTFIX(FromInch,  real, PARM(x, real, ), "inch", RTAO(fromIn(self, x)),
         GROUP(formula)
         SYNOPSIS("")
         DESCRIPTION(""))
-POSTFIX(FromPt, real, PARM(x, real, ), "pt", RTAO(fromPt(self, x)), 
+POSTFIX(FromPt, real, PARM(x, real, ), "pt", RTAO(fromPt(self, x)),
         GROUP(formula)
         SYNOPSIS("")
         DESCRIPTION(""))
 
-POSTFIX(FromPx, real, PARM(x, real, ), "px", RTAO(fromPx(self, x)), 
+POSTFIX(FromPx, real, PARM(x, real, ), "px", RTAO(fromPx(self, x)),
         GROUP(formula)
         SYNOPSIS("")
         DESCRIPTION(""))

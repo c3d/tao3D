@@ -1,33 +1,46 @@
-// ****************************************************************************
-//  bright_rectangles.xl                                           Tao project 
-// ****************************************************************************
-// 
-//   File Description:
-// 
+// *****************************************************************************
+// bright_rectangles.xl                                            Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
 //      Bright rectangles animated in the background
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// ****************************************************************************
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
 // This software is licensed under the GNU General Public License v3
-// See file COPYING for details.
-//  (C) 2012-2014 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2012-2014 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2012-2014 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
-//  (C) 2012-2014 Catherine Burvelle <catherine@taodyne.com>
-//  (C) 2012-2014 Taodyne SAS
-// ****************************************************************************
+// (C) 2013-2014, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2012-2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2013-2014, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 import Slides
 import Charts
 
 module_description
-    id "3F8474A2-FB08-4463-AEF0-6D8E3A0AF92B" 
+    id "3F8474A2-FB08-4463-AEF0-6D8E3A0AF92B"
     name "Bright Rectangles theme"
     description "A theme with bright rectangles animated in the background"
     import_name "BrightRectanglesTheme"
@@ -43,9 +56,9 @@ module_description "fr",
 
 
 // ============================================================================
-// 
+//
 //    Easily configurable parameters
-// 
+//
 // ============================================================================
 
 theme_slide_width  "BrightRectangles"                  -> 1920

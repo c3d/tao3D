@@ -1,3 +1,37 @@
+// *****************************************************************************
+// tea.cpp                                                         Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // tea.cpp - modified by Wei Dai from code in the original paper
 
 #include "pch.h"
@@ -24,7 +58,7 @@ void TEA::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, byt
 
 	word32 sum = 0;
 	while (sum != m_limit)
-	{   
+	{
 		sum += DELTA;
 		y += (z << 4) + m_k[0] ^ z + sum ^ (z >> 5) + m_k[1];
 		z += (y << 4) + m_k[2] ^ y + sum ^ (y >> 5) + m_k[3];
@@ -41,7 +75,7 @@ void TEA::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, byt
 	word32 sum = m_limit;
 	while (sum != 0)
 	{
-		z -= (y << 4) + m_k[2] ^ y + sum ^ (y >> 5) + m_k[3]; 
+		z -= (y << 4) + m_k[2] ^ y + sum ^ (y >> 5) + m_k[3];
 		y -= (z << 4) + m_k[0] ^ z + sum ^ (z >> 5) + m_k[1];
 		sum -= DELTA;
 	}
@@ -70,7 +104,7 @@ void XTEA::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, by
 	word32 sum = 0;
 	while (sum != m_limit)
 #endif
-	{   
+	{
 		y += (z<<4 ^ z>>5) + z ^ sum + m_k[sum&3];
 		sum += DELTA;
 		z += (y<<4 ^ y>>5) + y ^ sum + m_k[sum>>11 & 3];
@@ -114,7 +148,7 @@ void BTEA::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, by
 	word32 sum = 0;
 	
 	while (q-- > 0)
-	{   
+	{
 		sum += DELTA;
 		e = sum>>2 & 3;
 		for (p = 0; p < n-1; p++)
@@ -140,7 +174,7 @@ void BTEA::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, by
 	word32 sum = q * DELTA;
 
 	while (sum != 0)
-	{   
+	{
 		e = sum>>2 & 3;
 		for (p = n-1; p > 0; p--)
 		{

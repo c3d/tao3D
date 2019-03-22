@@ -1,3 +1,38 @@
+// *****************************************************************************
+// widgets.doxy.h                                                  Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011-2012, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011-2012, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 /**
  * @~english
  * @addtogroup Widgets GUI widgets
@@ -21,7 +56,7 @@
  * @param name [text] Name that uniquely identify the widget
  *
  * @section dialogbox_widgets Dialog box widgets
- * Standard dialog boxes from OS are also available as pop-up windows. 
+ * Standard dialog boxes from OS are also available as pop-up windows.
  *
  * There is currently three kind of chooser:
  * -# @ref filechooser "file chooser"
@@ -118,7 +153,7 @@ push_button ( x:real, y:real, w:real, h:real, name:text, label:text, action:tree
  *
  * @param label [text] Label of the button.
  * @param marked [text] @c "true" if the button is selected, @c "false" otherwise.
- * This parameter is not represented by a boolean, because we cannot rewrite boolean, 
+ * This parameter is not represented by a boolean, because we cannot rewrite boolean,
  * so marked value would not be registered.
  * @param action [tree] The action to perform when the button state change from non-selected to selected.
  *
@@ -150,8 +185,8 @@ radio_button (x:real, y:real, w:real, h:real, name:text, label:text, marked:text
  * It is useful to create multiple group of radio buttons. This primitive does not have
  * graphical representation. If you want one use @ref group_box.
  *
- * When an action in this group occurs (like a button is clicked), the button's @p action 
- * is called and then the @ref button_group_action code, if one was present in the body. 
+ * When an action in this group occurs (like a button is clicked), the button's @p action
+ * is called and then the @ref button_group_action code, if one was present in the body.
  *
  * @param ex [boolean] If true the buttons inside the group are mutually exclusive.
  * @param body [tree] The code that describes buttons. May contains a button_group_action command.
@@ -201,7 +236,7 @@ group_box_texture ( w:real, h:real, label:text);
  * Creates a group box.
  *
  * Draw a group box in the current frame, and fill it with the @p body.
- * The x and y coordinate of widgets placed in this box 
+ * The x and y coordinate of widgets placed in this box
  *  are respectively colomn and row number. Total number of rows and columns is dynamic.
  *
  * @param label [text] The label of the box
@@ -225,7 +260,7 @@ group_box ( x:real, y:real, w:real, h:real, label:text, body:tree);
  *
  * @param label [text] Label of the button
  * @param marked [text] @c "true" if the button is marked, @c "false" otherwise.
- * This parameter is not represented by a boolean, because we cannot rewrite boolean, 
+ * This parameter is not represented by a boolean, because we cannot rewrite boolean,
  * so marked value would not be registered.
  * @param action [tree] The action to perform when the button state change from non-set to set
  *
@@ -313,7 +348,7 @@ line_edit (x:real, y:real, w:real, h:real, line:text);
  * <tr><td> @c file_directory </td><td> QFileInfo.canonicalPath </td> </tr>
  * <tr><td> @c file_path      </td><td> QFileInfo.canonicalFilePath </td> </tr>
  * <tr><td> @c rel_file_path  </td><td> a computed relative path with no subdirectory
- * reference (no <tt>..</tt> ). Returned value is one of the following ones in order of precedence. 
+ * reference (no <tt>..</tt> ). Returned value is one of the following ones in order of precedence.
  *    -# relative to current document folder
  *    -# relative to user's home directory (with <tt>~</tt> prepended)
  *    -# absolute : QFileInfo.canonicalFilePath </td> </tr>
@@ -321,7 +356,7 @@ line_edit (x:real, y:real, w:real, h:real, line:text);
  *
  * Example of code used to show an image chooser (from a file).
  *@code
-image_chooser -> 
+image_chooser ->
     file_chooser
         filter "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
            "BMP - Windows Bitmap (*.bmp);;" &
@@ -420,7 +455,7 @@ file_chooser_directory ( d:text );
  * Available labels are :
  * - @c LookIn
  * - @c FileName
- * - @c FileType 
+ * - @c FileType
  * - @c Accept
  * - @c Reject
  *
@@ -448,7 +483,7 @@ file_chooser_label ( label_name:text, label_value:text);
  *
  * Set the file filters (file pattern, e.g. *.img).
  * A sequence of filters can be provided separated by <tt>;;</tt>.
- * Filters are made of either the file pattern, or of a textual description 
+ * Filters are made of either the file pattern, or of a textual description
  * followed by the file pattern enclosed in parenthesis <tt>()</tt>.
  *
  *Example :
@@ -588,10 +623,10 @@ file_chooser_texture (w:real, h:real, body:tree);
 text_font_chooser ->
     font_chooser
         set_attribute "font", {
-            font font_family, 
-            font_size, 
+            font font_family,
+            font_size,
             slant font_slant%,
-            weight font_weight%, 
+            weight font_weight%,
             stretch font_stretch% }
 
 @endcode

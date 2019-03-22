@@ -1,3 +1,38 @@
+// *****************************************************************************
+// rijndael.cpp                                                    Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // rijndael.cpp - modified by Chris Morgan <cmorgan@wpi.edu>
 // and Wei Dai from Paulo Baretto's Rijndael implementation
 // The original code and all modifications are in the public domain.
@@ -9,15 +44,15 @@ July 2010: Added support for AES-NI instructions via compiler intrinsics.
 */
 
 /*
-Feb 2009: The x86/x64 assembly code was rewritten in by Wei Dai to do counter mode 
-caching, which was invented by Hongjun Wu and popularized by Daniel J. Bernstein 
-and Peter Schwabe in their paper "New AES software speed records". The round 
-function was also modified to include a trick similar to one in Brian Gladman's 
-x86 assembly code, doing an 8-bit register move to minimize the number of 
-register spills. Also switched to compressed tables and copying round keys to 
+Feb 2009: The x86/x64 assembly code was rewritten in by Wei Dai to do counter mode
+caching, which was invented by Hongjun Wu and popularized by Daniel J. Bernstein
+and Peter Schwabe in their paper "New AES software speed records". The round
+function was also modified to include a trick similar to one in Brian Gladman's
+x86 assembly code, doing an 8-bit register move to minimize the number of
+register spills. Also switched to compressed tables and copying round keys to
 the stack.
 
-The C++ implementation now uses compressed tables if 
+The C++ implementation now uses compressed tables if
 CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS is defined.
 */
 
@@ -25,15 +60,15 @@ CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS is defined.
 July 2006: Defense against timing attacks was added in by Wei Dai.
 
 The code now uses smaller tables in the first and last rounds,
-and preloads them into L1 cache before usage (by loading at least 
-one element in each cache line). 
+and preloads them into L1 cache before usage (by loading at least
+one element in each cache line).
 
-We try to delay subsequent accesses to each table (used in the first 
+We try to delay subsequent accesses to each table (used in the first
 and last rounds) until all of the table has been preloaded. Hopefully
 the compiler isn't smart enough to optimize that code away.
 
 After preloading the table, we also try not to access any memory location
-other than the table and the stack, in order to prevent table entries from 
+other than the table and the stack, in order to prevent table entries from
 being unloaded from L1 cache, until that round is finished.
 (Some popular CPUs have 2-way associative caches.)
 */
@@ -493,7 +528,7 @@ void Rijndael::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
 
 #ifndef CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS
 	// timing attack countermeasure. see comments at top for more details
-	// If CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS is defined, 
+	// If CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS is defined,
 	// QUARTER_ROUND_LD will use Td, which is already preloaded.
 	u = 0;
 	for (i=0; i<256; i+=cacheLineSize)
@@ -963,7 +998,7 @@ CRYPTOPP_NAKED void CRYPTOPP_FASTCALL Rijndael_Enc_AdvancedProcessBlocks(void *l
 #endif
 #ifdef __GNUC__
 	".att_syntax prefix;"
-	: 
+	:
 	: "c" (locals), "d" (k), "S" (Te), "D" (g_cacheLineSize)
 	: "memory", "cc", "%eax"
 	#if CRYPTOPP_BOOL_X64

@@ -1,49 +1,37 @@
-// zlib.cpp - written and placed in the public domain by Wei Dai
-
-// "zlib" is the name of a well known C language compression library
-// (http://www.zlib.org) and also the name of a compression format
-// (RFC 1950) that the library implements. This file is part of a
-// complete reimplementation of the zlib compression format.
-
-#include "pch.h"
-#include "zlib.h"
-#include "zdeflate.h"
-#include "zinflate.h"
-
-NAMESPACE_BEGIN(CryptoPP)
-
-static const byte DEFLATE_METHOD = 8;
-static const byte FDICT_FLAG = 1 << 5;
-
-// *************************************************************
-
-void ZlibCompressor::WritePrestreamHeader()
-{
-	m_adler32.Restart();
-	byte cmf = DEFLATE_METHOD | ((GetLog2WindowSize()-8) << 4);
-	byte flags = GetCompressionLevel() << 6;
-	AttachedTransformation()->PutWord16(RoundUpToMultipleOf(cmf*256+flags, 31));
-}
-
-void ZlibCompressor::ProcessUncompressedData(const byte *inString, size_t length)
-{
-	m_adler32.Update(inString, length);
-}
-
-void ZlibCompressor::WritePoststreamTail()
-{
-	FixedSizeSecBlock<byte, 4> adler32;
-	m_adler32.Final(adler32);
-	AttachedTransformation()->Put(adler32, 4);
-}
-
-unsigned int ZlibCompressor::GetCompressionLevel() const
-{
-	static const unsigned int deflateToCompressionLevel[] = {0, 1, 1, 1, 2, 2, 2, 2, 2, 3};
-	return deflateToCompressionLevel[GetDeflateLevel()];
-}
-
-// *************************************************************
+// *****************************************************************************
+// zlib.cpp                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 ZlibDecompressor::ZlibDecompressor(BufferedTransformation *attachment, bool repeat, int propagation)
 	: Inflator(attachment, repeat, propagation)

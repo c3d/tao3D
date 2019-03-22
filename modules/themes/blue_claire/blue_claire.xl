@@ -1,36 +1,46 @@
-// ****************************************************************************
-//  blue_claire.xl                                                 Tao project 
-// ****************************************************************************
-// 
-//   File Description:
-// 
+// *****************************************************************************
+// blue_claire.xl                                                  Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
 //     Blue Claire : A simple blue theme
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// ****************************************************************************
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
 // This software is licensed under the GNU General Public License v3
-// See file COPYING for details.
-//  (C) 2014 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2012-2014 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2012-2014 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
-//  (C) 2012-2014 Catherine Burvelle <catherine@taodyne.com>
-//  (C) 2012-2014 Claire Hyvrier <claire.hyvrier@taodyne.com>
-//  (C) 2014 Taodyne SAS
-// ****************************************************************************
-//    Background image from http://freestock.ca, used with permission
-// ****************************************************************************
+// (C) 2012-2014, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2012-2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2013-2014, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 import Slides
 import Charts
 
 module_description
-    id "C3FE1E13-F4EB-4E65-96D9-73C8FBBFC90D" 
+    id "C3FE1E13-F4EB-4E65-96D9-73C8FBBFC90D"
     name "BlueClaire theme"
     description "A simple blue theme"
     import_name "BlueClaireTheme"
@@ -49,9 +59,9 @@ add_search_path "BlueClaire:", module_dir
 
 
 // ============================================================================
-// 
+//
 //   Theme size
-// 
+//
 // ============================================================================
 
 theme_slide_width  "BlueClaire" -> 1024
@@ -61,9 +71,9 @@ theme_drawing_width "BlueClaire" -> 880
 theme_drawing_height "BlueClaire" -> 550
 
 // ============================================================================
-// 
+//
 //    Colors
-// 
+//
 // ============================================================================
 
 theme_color      "BlueClaire","main","title"            -> color "#960000"
@@ -105,9 +115,9 @@ theme_size "BlueClaire",Master:text,"story",4           -> 22
 
 
 // ============================================================================
-// 
+//
 //    Background pictures
-// 
+//
 // ============================================================================
 
 theme_background "BlueClaire", "main" ->
@@ -142,9 +152,9 @@ theme_background "BlueClaire", Master:text ->
 
 
 // ============================================================================
-// 
+//
 //    Slide layout
-// 
+//
 // ============================================================================
 
 theme_layout "BlueClaire", "main" ->

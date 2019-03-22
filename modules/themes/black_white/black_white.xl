@@ -1,33 +1,46 @@
-// ****************************************************************************
-//  black_white.xl                                                 Tao project 
-// ****************************************************************************
-// 
-//   File Description:
-// 
+// *****************************************************************************
+// black_white.xl                                                  Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
 //     A collection of simple black and white themes
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// ****************************************************************************
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
 // This software is licensed under the GNU General Public License v3
-// See file COPYING for details.
-//  (C) 2014 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2012-2014 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2012-2014 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
-//  (C) 2012-2014 Catherine Burvelle <catherine@taodyne.com>
-//  (C) 2014 Taodyne SAS
-// ****************************************************************************
+// (C) 2013-2014, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2012,2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2013-2014, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 import Slides
 import Charts
 
 module_description
-    id "C6322FFB-3A37-447D-BFE7-0DA0F943F977" 
+    id "C6322FFB-3A37-447D-BFE7-0DA0F943F977"
     name "Black and White theme"
     description "A collection of simple black and white themes"
     import_name "BlackAndWhiteThemes"
@@ -41,9 +54,9 @@ module_description "fr",
 
 
 // ============================================================================
-// 
+//
 //   Default pictures (normally overriden by user)
-// 
+//
 // ============================================================================
 
 theme_background_picture "BlackOnPicture",Master:text,PageNumber:integer -> "http://images.nationalgeographic.com/wpf/media-live/photos/000/617/cache/boat-rapids-sakamoto_61722_990x742.jpg"
@@ -51,9 +64,9 @@ theme_background_picture "WhiteOnPicture",Master:text,PageNumber:integer -> "htt
 
 
 // ============================================================================
-// 
+//
 //   Black text on white background
-// 
+//
 // ============================================================================
 
 theme_background "BlackOnWhite",Master:text             -> clear_color 1,1,1,1
@@ -71,9 +84,9 @@ theme_color "BlackOnWhite", "bar", Style:text, N:integer -> color_hsv 0, 0, (rea
 
 
 // ============================================================================
-// 
+//
 //   White text on black background
-// 
+//
 // ============================================================================
 
 theme_background "WhiteOnBlack",Master:text             -> clear_color 0,0,0,1
@@ -91,9 +104,9 @@ theme_color "WhiteOnBlack", "bar", Style:text, N:integer -> color_hsv 0, 0, 1.0 
 
 
 // ============================================================================
-// 
+//
 //   Black text on gray background
-// 
+//
 // ============================================================================
 
 theme_background "BlackOnGray",Master:text             -> clear_color 0.5,0.5,0.5,1
@@ -111,9 +124,9 @@ theme_color "BlackOnGray", "bar", Style:text, N:integer   -> theme_color "BlackO
 
 
 // ============================================================================
-// 
+//
 //   White text on gray background
-// 
+//
 // ============================================================================
 
 theme_background "WhiteOnGray",Master:text             -> clear_color 0.5,0.5,0.5,1
@@ -130,9 +143,9 @@ theme_color "WhiteOnGray", "line", Style:text, N:integer  -> theme_color "WhiteO
 theme_color "WhiteOnGray", "bar", Style:text, N:integer   -> theme_color "WhiteOnBlack", "bar", Style, N
 
 // ============================================================================
-// 
+//
 //   Black text on picture background
-// 
+//
 // ============================================================================
 
 theme_background "BlackOnPicture",Master:text ->
@@ -158,9 +171,9 @@ theme_color "BlackOnPicture", "bar", Style:text, N:integer   -> theme_color "Bla
 
 
 // ============================================================================
-// 
+//
 //   Black text on picture background
-// 
+//
 // ============================================================================
 
 theme_background "WhiteOnPicture",Master:text ->

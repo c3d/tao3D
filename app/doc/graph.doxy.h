@@ -1,3 +1,40 @@
+// *****************************************************************************
+// graph.doxy.h                                                    Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011-2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2011-2012, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2013-2015,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011-2014, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2011-2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 /**
  * @~english
  * @defgroup Graphics Graphics
@@ -978,7 +1015,7 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  *
  *  - @p start_x et @p start_y sont les coordonnées de départ du dégradé.
  *  - @p end_x et @p end_y sont les coordonnées de fin du dégradé.
- *  - @p w et @p h sont la largeur et la hauteur de la texture de destination. 
+ *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
  *
  * @warning L'origine du dégradé se situe sur le bord en haut à gauche de la texture.
  *
@@ -987,15 +1024,15 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  * Le code de cet exemple est le suivant :
  * @~
 @code
-linear_grad -> 
-    color "white" 
+linear_grad ->
+    color "white"
     linear_gradient 0, 0, 700, 700, 700, 700,
-        gradient_color 0, 0.0, 0.0, 1.0, 1.0 
-        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
+        gradient_color 0, 0.0, 0.0, 1.0, 1.0
+        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0
         gradient_color 1, 1.0, 0.0, 0.0, 1.0
-     
+
     rectangle 0, 0, 250, 250
- 
+
 linear_grad
 @endcode
  */
@@ -1024,7 +1061,7 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  *
  *  - @p cx et @p cy sont les coordonnées du centre du dégradé.
  *  - @p r est le rayon du dégradé.
- *  - @p w et @p h sont la largeur et la hauteur de la texture de destination. 
+ *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
  *
  * @warning L'origine du dégradé se situe sur le bord en haut à gauche de la texture.
  *
@@ -1033,14 +1070,14 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  * Le code de cet exemple est le suivant :
  *@~
 @code
-radial_grad -> 
-    color "white" 
-    radial_gradient 350, 350, 350, 700, 700, 
-        gradient_color 0, 0.0, 0.0, 1.0, 1.0 
-        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
-        gradient_color 1, 1.0, 0.0, 0.0, 1.0 
+radial_grad ->
+    color "white"
+    radial_gradient 350, 350, 350, 700, 700,
+        gradient_color 0, 0.0, 0.0, 1.0, 1.0
+        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0
+        gradient_color 1, 1.0, 0.0, 0.0, 1.0
 
-    rectangle 0, 0, 250, 250 
+    rectangle 0, 0, 250, 250
 
 radial_grad
 @endcode
@@ -1079,15 +1116,15 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
  * Le code de cet exemple est le suivant :
  *@~
 @code
-conical_grad -> 
-    color "white" 
-    conical_gradient 350, 350, 30, 700, 700, 
-        gradient_color 0, 0.0, 0.0, 1.0, 1.0 
-        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
+conical_grad ->
+    color "white"
+    conical_gradient 350, 350, 30, 700, 700,
+        gradient_color 0, 0.0, 0.0, 1.0, 1.0
+        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0
         gradient_color 1, 1.0, 0.0, 0.0, 1.0
-     
+
     rectangle 0, 0, 250, 250
- 
+
 conical_grad
 @endcode
  */
@@ -1240,7 +1277,7 @@ page "Graphs",
         path
             W -> 0.001 * (page_time mod 60)
             for T in 0..5000 loop
-                line_to 0.01 * T * sin(W * T), 0.01 * T * cos(W * T), sin(7 * W * T) 
+                line_to 0.01 * T * sin(W * T), 0.01 * T * cos(W * T), sin(7 * W * T)
 @endcode
  */
 cached(version:real; body:tree);
@@ -2528,7 +2565,7 @@ polygon (x:real, y:real, w:real, h:real, p:integer);
  * Synonym for @ref star_polygon.
  * Shortcuts has been defined for polygram from 5 to 10 vertexes.
  *
- * @~french 
+ * @~french
  * Synonyme de @ref star_polygon.
  * Des raccourcis existent pour des polygrams de 5 à 10 sommets.
  *

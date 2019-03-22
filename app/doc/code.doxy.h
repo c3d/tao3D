@@ -1,3 +1,39 @@
+// *****************************************************************************
+// code.doxy.h                                                     Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011-2012, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2014-2015,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2012-2013, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2011-2012, Soulisse Baptiste <baptiste.soulisse@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 /**
  * @~english
  * @addtogroup code
@@ -84,7 +120,7 @@ x ( px);
  * @p x is a value in PostScript points (1/72 inch).
  *
  * @p x [real] is the value in point
- * @returns The value in pixel. 
+ * @returns The value in pixel.
  *
  * @~french
  * Convertit des points PostScript (pt) en pixels.
@@ -706,7 +742,7 @@ boolean key_pressed();
  *  - 0x10000000	One of the Meta keys
  *  - 0x20000000	A keypad button
  *  - 0x40000000	Mode_switch key (X11 only)
- *  
+ *
  * @note On Mac OS X, the Control modifier corresponds to
  * the Command keys on the Macintosh keyboard, and the
  * Meta modifier corresponds to the Control keys.
@@ -860,7 +896,7 @@ text tao_language();
  * allowing the named process to be run. For example, you must have a
  * license for @code RunProcess:ls @endcode to be able to invoke
  * @code ls @endcode or @code ls#3 @endcode.
- * 
+ *
  * @~french
  * Lance un processus externe
  * Exécute le processus nommé en argument. La fonction retourne true
@@ -882,7 +918,7 @@ boolean run_process(name:text);
  * Execute an external process with arguments
  * The @p args specify a space-separated list of arguments to be given
  * to the specified process.
- * 
+ *
  * @~french
  * Lance un processus externe avec des arguments
  * @p args contient une liste d'arguments séparés par des espaces.

@@ -1,3 +1,37 @@
+// *****************************************************************************
+// pubkey.h                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // pubkey.h - written and placed in the public domain by Wei Dai
 
 #ifndef CRYPTOPP_PUBKEY_H
@@ -191,7 +225,7 @@ public:
 	virtual size_t MaxRecoverableLength(size_t representativeBitLength, size_t hashIdentifierLength, size_t digestLength) const
 		{return 0;}
 
-	bool IsProbabilistic() const 
+	bool IsProbabilistic() const
 		{return true;}
 	bool AllowNonrecoverablePart() const
 		{throw NotImplemented("PK_MessageEncodingMethod: this signature scheme does not support message recovery");}
@@ -202,8 +236,8 @@ public:
 	virtual void ProcessSemisignature(HashTransformation &hash, const byte *semisignature, size_t semisignatureLength) const {}
 
 	// for signature
-	virtual void ProcessRecoverableMessage(HashTransformation &hash, 
-		const byte *recoverableMessage, size_t recoverableMessageLength, 
+	virtual void ProcessRecoverableMessage(HashTransformation &hash,
+		const byte *recoverableMessage, size_t recoverableMessageLength,
 		const byte *presignature, size_t presignatureLength,
 		SecByteBlock &semisignature) const
 	{
@@ -211,7 +245,7 @@ public:
 			assert(!"ProcessRecoverableMessage() not implemented");
 	}
 
-	virtual void ComputeMessageRepresentative(RandomNumberGenerator &rng, 
+	virtual void ComputeMessageRepresentative(RandomNumberGenerator &rng,
 		const byte *recoverableMessage, size_t recoverableMessageLength,
 		HashTransformation &hash, HashIdentifier hashIdentifier, bool messageEmpty,
 		byte *representative, size_t representativeBitLength) const =0;
@@ -265,7 +299,7 @@ public:
 class CRYPTOPP_DLL DL_SignatureMessageEncodingMethod_DSA : public PK_DeterministicSignatureMessageEncodingMethod
 {
 public:
-	void ComputeMessageRepresentative(RandomNumberGenerator &rng, 
+	void ComputeMessageRepresentative(RandomNumberGenerator &rng,
 		const byte *recoverableMessage, size_t recoverableMessageLength,
 		HashTransformation &hash, HashIdentifier hashIdentifier, bool messageEmpty,
 		byte *representative, size_t representativeBitLength) const;
@@ -274,7 +308,7 @@ public:
 class CRYPTOPP_DLL DL_SignatureMessageEncodingMethod_NR : public PK_DeterministicSignatureMessageEncodingMethod
 {
 public:
-	void ComputeMessageRepresentative(RandomNumberGenerator &rng, 
+	void ComputeMessageRepresentative(RandomNumberGenerator &rng,
 		const byte *recoverableMessage, size_t recoverableMessageLength,
 		HashTransformation &hash, HashIdentifier hashIdentifier, bool messageEmpty,
 		byte *representative, size_t representativeBitLength) const;
@@ -310,18 +344,18 @@ template <class INTERFACE, class BASE>
 class CRYPTOPP_NO_VTABLE TF_SignatureSchemeBase : public INTERFACE, protected BASE
 {
 public:
-	size_t SignatureLength() const 
+	size_t SignatureLength() const
 		{return this->GetTrapdoorFunctionBounds().MaxPreimage().ByteCount();}
-	size_t MaxRecoverableLength() const 
+	size_t MaxRecoverableLength() const
 		{return this->GetMessageEncodingInterface().MaxRecoverableLength(MessageRepresentativeBitLength(), GetHashIdentifier().second, GetDigestSize());}
 	size_t MaxRecoverableLengthFromSignatureLength(size_t signatureLength) const
 		{return this->MaxRecoverableLength();}
 
-	bool IsProbabilistic() const 
+	bool IsProbabilistic() const
 		{return this->GetTrapdoorFunctionInterface().IsRandomized() || this->GetMessageEncodingInterface().IsProbabilistic();}
-	bool AllowNonrecoverablePart() const 
+	bool AllowNonrecoverablePart() const
 		{return this->GetMessageEncodingInterface().AllowNonrecoverablePart();}
-	bool RecoverablePartFirst() const 
+	bool RecoverablePartFirst() const
 		{return this->GetMessageEncodingInterface().RecoverablePartFirst();}
 
 protected:
@@ -397,11 +431,11 @@ public:
 	}
 
 protected:
-	const typename BASE::MessageEncodingInterface & GetMessageEncodingInterface() const 
+	const typename BASE::MessageEncodingInterface & GetMessageEncodingInterface() const
 		{return Singleton<CPP_TYPENAME SCHEME_OPTIONS::MessageEncodingMethod>().Ref();}
-	const TrapdoorFunctionBounds & GetTrapdoorFunctionBounds() const 
+	const TrapdoorFunctionBounds & GetTrapdoorFunctionBounds() const
 		{return GetKey();}
-	const typename BASE::TrapdoorFunctionInterface & GetTrapdoorFunctionInterface() const 
+	const typename BASE::TrapdoorFunctionInterface & GetTrapdoorFunctionInterface() const
 		{return GetKey();}
 
 	// for signature scheme
@@ -967,16 +1001,16 @@ public:
 		return GetSignatureAlgorithm().RLen(this->GetAbstractGroupParameters())
 			+ GetSignatureAlgorithm().SLen(this->GetAbstractGroupParameters());
 	}
-	size_t MaxRecoverableLength() const 
+	size_t MaxRecoverableLength() const
 		{return GetMessageEncodingInterface().MaxRecoverableLength(0, GetHashIdentifier().second, GetDigestSize());}
 	size_t MaxRecoverableLengthFromSignatureLength(size_t signatureLength) const
 		{assert(false); return 0;}	// TODO
 
-	bool IsProbabilistic() const 
+	bool IsProbabilistic() const
 		{return true;}
-	bool AllowNonrecoverablePart() const 
+	bool AllowNonrecoverablePart() const
 		{return GetMessageEncodingInterface().AllowNonrecoverablePart();}
-	bool RecoverablePartFirst() const 
+	bool RecoverablePartFirst() const
 		{return GetMessageEncodingInterface().RecoverablePartFirst();}
 
 protected:
@@ -1009,8 +1043,8 @@ public:
 	{
 		PK_MessageAccumulatorBase &ma = static_cast<PK_MessageAccumulatorBase &>(messageAccumulator);
 		ma.m_recoverableMessage.Assign(recoverableMessage, recoverableMessageLength);
-		this->GetMessageEncodingInterface().ProcessRecoverableMessage(ma.AccessHash(), 
-			recoverableMessage, recoverableMessageLength, 
+		this->GetMessageEncodingInterface().ProcessRecoverableMessage(ma.AccessHash(),
+			recoverableMessage, recoverableMessageLength,
 			ma.m_presignature, ma.m_presignature.size(),
 			ma.m_semisignature);
 	}
@@ -1026,9 +1060,9 @@ public:
 
 		SecByteBlock representative(this->MessageRepresentativeLength());
 		this->GetMessageEncodingInterface().ComputeMessageRepresentative(
-			rng, 
-			ma.m_recoverableMessage, ma.m_recoverableMessage.size(), 
-			ma.AccessHash(), this->GetHashIdentifier(), ma.m_empty, 
+			rng,
+			ma.m_recoverableMessage, ma.m_recoverableMessage.size(),
+			ma.AccessHash(), this->GetHashIdentifier(), ma.m_empty,
 			representative, this->MessageRepresentativeBitLength());
 		ma.m_empty = true;
 		Integer e(representative, representative.size());
@@ -1106,7 +1140,7 @@ public:
 		const DL_PublicKey<T> &key = this->GetKeyInterface();
 
 		SecByteBlock representative(this->MessageRepresentativeLength());
-		this->GetMessageEncodingInterface().ComputeMessageRepresentative(NullRNG(), ma.m_recoverableMessage, ma.m_recoverableMessage.size(), 
+		this->GetMessageEncodingInterface().ComputeMessageRepresentative(NullRNG(), ma.m_recoverableMessage, ma.m_recoverableMessage.size(),
 			ma.AccessHash(), this->GetHashIdentifier(), ma.m_empty,
 			representative, this->MessageRepresentativeBitLength());
 		ma.m_empty = true;
@@ -1127,8 +1161,8 @@ public:
 
 		SecByteBlock representative(this->MessageRepresentativeLength());
 		this->GetMessageEncodingInterface().ComputeMessageRepresentative(
-			NullRNG(), 
-			ma.m_recoverableMessage, ma.m_recoverableMessage.size(), 
+			NullRNG(),
+			ma.m_recoverableMessage, ma.m_recoverableMessage.size(),
 			ma.AccessHash(), this->GetHashIdentifier(), ma.m_empty,
 			representative, this->MessageRepresentativeBitLength());
 		ma.m_empty = true;
@@ -1329,7 +1363,7 @@ protected:
 		{return Singleton<CPP_TYPENAME SCHEME_OPTIONS::SymmetricEncryptionAlgorithm>().Ref();}
 	HashIdentifier GetHashIdentifier() const
 		{return HashIdentifier();}
-	const PK_SignatureMessageEncodingMethod & GetMessageEncodingInterface() const 
+	const PK_SignatureMessageEncodingMethod & GetMessageEncodingInterface() const
 		{return Singleton<CPP_TYPENAME SCHEME_OPTIONS::MessageEncodingMethod>().Ref();}
 };
 
@@ -1441,7 +1475,7 @@ public:
 
 	Element AgreeWithEphemeralPrivateKey(const DL_GroupParameters<Element> &params, const DL_FixedBasePrecomputation<Element> &publicPrecomputation, const Integer &privateExponent) const
 	{
-		return publicPrecomputation.Exponentiate(params.GetGroupPrecomputation(), 
+		return publicPrecomputation.Exponentiate(params.GetGroupPrecomputation(),
 			COFACTOR_OPTION::ToEnum() == INCOMPATIBLE_COFACTOR_MULTIPLICTION ? privateExponent*params.GetCofactor() : privateExponent);
 	}
 
@@ -1450,7 +1484,7 @@ public:
 		if (COFACTOR_OPTION::ToEnum() == COMPATIBLE_COFACTOR_MULTIPLICTION)
 		{
 			const Integer &k = params.GetCofactor();
-			return params.ExponentiateElement(publicElement, 
+			return params.ExponentiateElement(publicElement,
 				ModularArithmetic(params.GetSubgroupOrder()).Divide(privateExponent, k)*k);
 		}
 		else if (COFACTOR_OPTION::ToEnum() == INCOMPATIBLE_COFACTOR_MULTIPLICTION)

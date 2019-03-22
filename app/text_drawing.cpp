@@ -1,8 +1,8 @@
-// ****************************************************************************
-//  text_drawing.cpp                                                Tao project
-// ****************************************************************************
+// *****************************************************************************
+// text_drawing.cpp                                                Tao3D project
+// *****************************************************************************
 //
-//   File Description:
+// File description:
 //
 //    Rendering of text
 //
@@ -13,12 +13,30 @@
 //
 //
 //
-// ****************************************************************************
-// This software is licensed under the GNU General Public License v3.
-// See file COPYING for details.
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Taodyne SAS
-// ****************************************************************************
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2011-2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2010-2013, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2010-2014,2017,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2010-2013, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2011-2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 #include "text_drawing.h"
 #include "path3d.h"
@@ -264,7 +282,7 @@ void TextSplit::DrawCached(Layout *where)
                 continue;
 
             uint glyphWidth = glyph.advance + spread;
-            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
+            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);
             x += glyphWidth;
         }
     }
@@ -332,7 +350,7 @@ void TextSplitRTL::DrawCached(Layout *where)
 
             uint glyphWidth = glyph.advance + spread;
             x -= glyphWidth;
-            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);            
+            AddGlyph(x, y, z, glyph, glyphs, quads, texCoords);
         }
     }
 
@@ -1624,7 +1642,7 @@ bool TextUnit::Paginate(PageLayout *page)
     // If we are invalidated, we need to drop references to text splits we
     // created from the justifiers in the page layout
     caches.push_back(page);
-    
+
     // Case where we replayed a line from a text flow : we played text splits
     // that we would otherwise emit here (resulting in duplicated text)
     if (TextSplit *lastSplit = page->LastSplit())

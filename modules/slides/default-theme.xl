@@ -1,24 +1,40 @@
-// ****************************************************************************
-//  default-theme.xl                                               Tao project 
-// ****************************************************************************
-// 
-//   File Description:
-// 
+// *****************************************************************************
+// default-theme.xl                                                Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
 //     Define a default theme for slides
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// ****************************************************************************
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
 // This software is licensed under the GNU General Public License v3
-// See file COPYING for details.
-//  (C) 2012-2014 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2014 Taodyne SAS
-// ****************************************************************************
+// (C) 2012-2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2012-2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2013-2014, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 // This file is designed to be overriden by themes, etc.
 override_priority -3
@@ -26,9 +42,9 @@ override_priority -3
 
 
 // ============================================================================
-// 
+//
 //    Easily configurable parameters
-// 
+//
 // ============================================================================
 
 theme_background Theme:text,Master:text         -> clear_color 1, 1, 1, 1
@@ -77,9 +93,9 @@ theme_drawing_height Theme:text -> 750
 
 
 // ============================================================================
-// 
+//
 //    Styles for the various elements
-// 
+//
 // ============================================================================
 
 theme_style Theme:text, Master:text, Style:text ->
@@ -106,9 +122,9 @@ theme_style Theme:text, Master:text, Style:text, Level:integer ->
 
 
 // ============================================================================
-// 
+//
 //   Titles and subtitles
-// 
+//
 // ============================================================================
 
 theme_title Theme:text, Master:text, Body ->
@@ -131,9 +147,9 @@ theme_subtitle Theme:text, Master:text, Body ->
 
 
 // ============================================================================
-// 
+//
 //   Contents
-// 
+//
 // ============================================================================
 
 theme_story Theme:text, Master:text, Body ->
@@ -226,9 +242,9 @@ theme_right_column_picture Theme:text, Master:text, URL:text ->
 
 
 // ============================================================================
-// 
+//
 //    Layout for the various kind of pages
-// 
+//
 // ============================================================================
 
 theme_layout Theme:text, "main" ->
@@ -266,9 +282,9 @@ theme_layout Theme:text, Master:text ->
 
 
 // ============================================================================
-// 
+//
 //   Text boxes
-// 
+//
 // ============================================================================
 
 theme_box Theme:text,Master:text,Style:text, X:real,Y:real,W:real,H:real ->
@@ -293,9 +309,9 @@ theme_text Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
 
 
 // ============================================================================
-// 
+//
 //    Bullet formatting
-// 
+//
 // ============================================================================
 
 theme_item Theme:text, Master:text, Level:integer, Body ->

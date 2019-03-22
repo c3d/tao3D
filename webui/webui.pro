@@ -1,20 +1,36 @@
 # ******************************************************************************
-# webui.pro                                                          Tao project
+# webui.pro                                                        Tao3D project
 # ******************************************************************************
-# File Description:
+#
+# File description:
 # Qt build file for the Tao3D Web User Interface
+#
+#
+#
+#
+#
+#
+#
 # ******************************************************************************
-# GNU General Public License Usage
-# This file may be used under the terms of the GNU General Public License
-# version 3.0 as published by the Free Software Foundation and appearing in the
-# file LICENSE included in the packaging of this file.
+# This software is licensed under the GNU General Public License v3
+# (C) 2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+# (C) 2013, Jérôme Forissier <jerome@taodyne.com>
+# ******************************************************************************
+# This file is part of Tao3D
 #
-# Please review the following information to ensure the GNU General Public
-# License version 3.0 requirements will be met:
-# http://www.gnu.org/copyleft/gpl.html.
+# Tao3D is free software: you can r redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# (C) 2013 Jerome Forissier <jerome@taodyne.com>
-# (C) 2013 Taodyne SAS
+# Tao3D is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Tao3D, in a file named COPYING.
+# If not, see <https://www.gnu.org/licenses/>.
 # ******************************************************************************
 
 !build_pass:!system(bash -c \"npm -v >/dev/null\") {

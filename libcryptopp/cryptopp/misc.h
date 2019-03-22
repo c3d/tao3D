@@ -1,5 +1,40 @@
 #ifndef CRYPTOPP_MISC_H
 #define CRYPTOPP_MISC_H
+// *****************************************************************************
+// misc.h                                                          Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2013, Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 #include "cryptlib.h"
 #include "smartptr.h"
@@ -101,7 +136,7 @@ struct NewObject
 };
 
 /*! This function safely initializes a static object in a multithreaded environment without using locks (for portability).
-	Note that if two threads call Ref() at the same time, they may get back different references, and one object 
+	Note that if two threads call Ref() at the same time, they may get back different references, and one object
 	may end up being memory leaked. This is by design.
 */
 template <class T, class F = NewObject<T>, int instance=0>
@@ -264,9 +299,9 @@ inline unsigned int TrailingZeros(word32 v)
 	return result;
 #else
 	// from http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightMultLookup
-	static const int MultiplyDeBruijnBitPosition[32] = 
+	static const int MultiplyDeBruijnBitPosition[32] =
 	{
-	  0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
+	  0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
 	  31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
 	};
 	return MultiplyDeBruijnBitPosition[((word32)((v & -v) * 0x077CB531U)) >> 27];

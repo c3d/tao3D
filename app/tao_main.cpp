@@ -1,8 +1,8 @@
-// ****************************************************************************
-//  tao_main.cpp                                                    Tao project
-// ****************************************************************************
+// *****************************************************************************
+// tao_main.cpp                                                    Tao3D project
+// *****************************************************************************
 //
-//   File Description:
+// File description:
 //
 //     Main entry point for Tao invoking XL
 //
@@ -14,13 +14,29 @@
 //
 //
 //
-// ****************************************************************************
-// This software is licensed under the GNU General Public License v3.
-// See file COPYING for details.
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2010 Taodyne SAS
-// ****************************************************************************
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2010-2011, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2010-2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2010-2013, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2010, Lionel Schaffhauser <lionel@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 #ifdef CONFIG_MINGW
 #define WINVER 0x501
@@ -150,7 +166,7 @@ int main(int argc, char **argv)
     {
         RECORD(ALWAYS, "Cleaning up");
         Cleanup();
-        
+
         // HACK: it seems that cleanup() does not clean everything, at least on
         // Windows -- without the exit() call, the windows build crashes at exit
         exit(ret);
@@ -174,7 +190,7 @@ static PTOP_LEVEL_EXCEPTION_FILTER PrimaryExceptionFilter = NULL;
 static LPEXCEPTION_POINTERS PrimaryExceptionPointers = NULL;
 
 
-static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep) 
+static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep)
 // ----------------------------------------------------------------------------
 //   Call signal handler on unhandled exception
 // ----------------------------------------------------------------------------
@@ -184,7 +200,7 @@ static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep)
         TopLevelExceptionPointers = ep;
         signal_handler(SIGSEGV);
     }
-    
+
     // Allow dialog box to pop up allowing choice to start debugger.
     if (TopLevelExceptionFilter)
         return (*TopLevelExceptionFilter)(ep);
@@ -192,7 +208,7 @@ static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep)
 }
 
 
-static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep) 
+static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
 // ----------------------------------------------------------------------------
 //   Call signal handler on unhandled exception before LLVM does
 // ----------------------------------------------------------------------------
@@ -202,7 +218,7 @@ static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
         PrimaryExceptionPointers = ep;
         signal_handler(SIGSEGV);
     }
-        
+
     // Allow dialog box to pop up allowing choice to start debugger.
     if (PrimaryExceptionFilter)
         return (*PrimaryExceptionFilter)(ep);
@@ -479,7 +495,7 @@ void signal_handler(int sigid)
     // Backtrace
     tao_stack_trace(fd);
     tao_stack_trace(two);
-        
+
     // Dump the flight recorder
     Write (fd, "\n\n", 2);
     XL::FlightRecorder::SDump(fd, false);
@@ -517,7 +533,7 @@ void tao_stack_trace(int fd)
     {
         uint size = snprintf(buffer, sizeof buffer,
                              "%4d %18p ", i, addresses[i]);
-            
+
         Dl_info info;
         if (dladdr(addresses[i], &info))
             size += snprintf(buffer + size, sizeof buffer - size,
@@ -542,7 +558,7 @@ void tao_stack_trace(int fd)
     {
         static char buffer[512];
         int two = fileno(stderr);
-    
+
         // Initialize the STACKFRAME structure.
         STACKFRAME StackFrame;
         memset(&StackFrame, 0, sizeof(StackFrame));
@@ -614,7 +630,7 @@ void tao_stack_trace(int fd)
             else
                 size = snprintf(buffer, sizeof buffer,
                                 ", %s", symbol->Name);
-            
+
 
             // Print the source file and line number information.
             IMAGEHLP_LINE line;

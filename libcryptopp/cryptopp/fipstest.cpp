@@ -1,3 +1,37 @@
+// *****************************************************************************
+// fipstest.cpp                                                    Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // fipstest.cpp - written and placed in the public domain by Wei Dai
 
 #include "pch.h"
@@ -57,8 +91,8 @@ void KnownAnswerTest(RandomNumberGenerator &rng, const char *output)
 
 template <class CIPHER>
 void X917RNG_KnownAnswerTest(
-	const char *key, 
-	const char *seed, 
+	const char *key,
+	const char *seed,
 	const char *deterministicTimeVector,
 	const char *output,
 	CIPHER *dummy = NULL)
@@ -93,9 +127,9 @@ void KnownAnswerTest(StreamTransformation &encryption, StreamTransformation &dec
 
 template <class CIPHER>
 void SymmetricEncryptionKnownAnswerTest(
-	const char *key, 
-	const char *hexIV, 
-	const char *plaintext, 
+	const char *key,
+	const char *hexIV,
+	const char *plaintext,
 	const char *ecb,
 	const char *cbc,
 	const char *cfb,
@@ -180,22 +214,22 @@ void EncryptionPairwiseConsistencyTest(const PK_Encryptor &encryptor, const PK_D
 		std::string ciphertext, decrypted;
 
 		StringSource(
-			testMessage, 
-			true, 
+			testMessage,
+			true,
 			new PK_EncryptorFilter(
-				rng, 
-				encryptor, 
+				rng,
+				encryptor,
 				new StringSink(ciphertext)));
 
 		if (ciphertext == testMessage)
 			throw 0;
 
 		StringSource(
-			ciphertext, 
-			true, 
+			ciphertext,
+			true,
 			new PK_DecryptorFilter(
-				rng, 
-				decryptor, 
+				rng,
+				decryptor,
 				new StringSink(decrypted)));
 
 		if (decrypted != testMessage)
@@ -214,11 +248,11 @@ void SignaturePairwiseConsistencyTest(const PK_Signer &signer, const PK_Verifier
 		RandomPool rng;
 
 		StringSource(
-			"test message", 
-			true, 
+			"test message",
+			true,
 			new SignerFilter(
-				rng, 
-				signer, 
+				rng,
+				signer,
 				new VerifierFilter(verifier, NULL, VerifierFilter::THROW_EXCEPTION),
 				true));
 	}
@@ -499,7 +533,7 @@ void DoPowerUpSelfTest(const char *moduleFilename, const byte *expectedModuleMac
 			"Sample #2",
 			"0922d3405faa3d194f82a45830737d5cc6c75d24");
 
-		const char *keyRSA1 = 
+		const char *keyRSA1 =
 			"30820150020100300d06092a864886f70d01010105000482013a3082013602010002400a66791dc6988168de7ab77419bb7fb0"
 			"c001c62710270075142942e19a8d8c51d053b3e3782a1de5dc5af4ebe99468170114a1dfe67cdc9a9af55d655620bbab0203010001"
 			"02400123c5b61ba36edb1d3679904199a89ea80c09b9122e1400c09adcf7784676d01d23356a7d44d6bd8bd50e94bfc723fa"
@@ -584,8 +618,8 @@ NAMESPACE_END
 #ifdef CRYPTOPP_WIN32_AVAILABLE
 
 // DllMain needs to be in the global namespace
-BOOL APIENTRY DllMain(HANDLE hModule, 
-                      DWORD  ul_reason_for_call, 
+BOOL APIENTRY DllMain(HANDLE hModule,
+                      DWORD  ul_reason_for_call,
                       LPVOID lpReserved)
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)

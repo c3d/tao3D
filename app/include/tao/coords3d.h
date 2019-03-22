@@ -1,26 +1,44 @@
 #ifndef COORDS3D_H
 #define COORDS3D_H
-// ****************************************************************************
-//  coords3d.h                                                      Tao project
-// ****************************************************************************
-// 
-//   File Description:
-// 
+// *****************************************************************************
+// coords3d.h                                                      Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
 //     Basic operations on 3D coordinates (3-vectors, 3-points)
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// ****************************************************************************
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
 // This software is licensed under the GNU General Public License v3
-// See file COPYING for details.
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Taodyne SAS
-// ****************************************************************************
+// (C) 2010, Catherine Burvelle <catherine@taodyne.com>
+// (C) 2010-2014,2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2010-2012, Jérôme Forissier <jerome@taodyne.com>
+// (C) 2010, Lionel Schaffhauser <lionel@taodyne.com>
+// (C) 2011, Soulisse Baptiste <soulisse@polytech.unice.fr>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 
 #include "coords.h"
 #include <iostream>
@@ -28,9 +46,9 @@
 TAO_BEGIN
 
 // ============================================================================
-// 
+//
 //   Types defined in this file
-// 
+//
 // ============================================================================
 
 struct Point3;                  // 3D point
@@ -38,9 +56,9 @@ struct Vector3;                 // 3D vector
 
 
 // ============================================================================
-// 
+//
 //   Point3 class
-// 
+//
 // ============================================================================
 
 struct Point3
@@ -120,7 +138,7 @@ struct Vector3 : Point3
         z *= s;
         return *this;
     }
-    
+
     Vector3& operator /=(scale s)
     {
         x /= s;
@@ -586,7 +604,7 @@ struct Box3
             || lower.y >= upper.y
             || lower.z >= upper.z;
     }
-            
+
     Box3 &Normalize()
     {
         if (lower.x > upper.x)  std::swap(lower.x, upper.x);
@@ -619,9 +637,9 @@ public:
 
 
 // ============================================================================
-// 
+//
 //   Inline operations not defined in class
-// 
+//
 // ============================================================================
 
 inline Box3 operator+ (const Box3 &b, const Vector3 &v)

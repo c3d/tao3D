@@ -1,3 +1,37 @@
+// *****************************************************************************
+// gf2n.cpp                                                        Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // gf2n.cpp - written and placed in the public domain by Wei Dai
 
 #include "pch.h"
@@ -84,14 +118,14 @@ void PolynomialMod2::SetByte(size_t n, byte value)
 	reg[n/WORD_SIZE] |= (word(value) << 8*(n%WORD_SIZE));
 }
 
-PolynomialMod2 PolynomialMod2::Monomial(size_t i) 
+PolynomialMod2 PolynomialMod2::Monomial(size_t i)
 {
-	PolynomialMod2 r((word)0, i+1); 
-	r.SetBit(i); 
+	PolynomialMod2 r((word)0, i+1);
+	r.SetBit(i);
 	return r;
 }
 
-PolynomialMod2 PolynomialMod2::Trinomial(size_t t0, size_t t1, size_t t2) 
+PolynomialMod2 PolynomialMod2::Trinomial(size_t t0, size_t t1, size_t t2)
 {
 	PolynomialMod2 r((word)0, t0+1);
 	r.SetBit(t0);
@@ -535,7 +569,7 @@ bool PolynomialMod2::IsIrreducible() const
 // ********************************************************
 
 GF2NP::GF2NP(const PolynomialMod2 &modulus)
-	: QuotientRing<EuclideanDomainOf<PolynomialMod2> >(EuclideanDomainOf<PolynomialMod2>(), modulus), m(modulus.Degree()) 
+	: QuotientRing<EuclideanDomainOf<PolynomialMod2> >(EuclideanDomainOf<PolynomialMod2>(), modulus), m(modulus.Degree())
 {
 }
 

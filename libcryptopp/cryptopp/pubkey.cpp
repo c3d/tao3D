@@ -1,3 +1,37 @@
+// *****************************************************************************
+// pubkey.cpp                                                      Tao3D project
+// *****************************************************************************
+//
+// File description:
+//
+//
+//
+//
+//
+//
+//
+//
+// *****************************************************************************
+// This software is licensed under the GNU General Public License v3
+// (C) 2019, Christophe de Dinechin <christophe@dinechin.org>
+// (C) 2011, Jérôme Forissier <jerome@taodyne.com>
+// *****************************************************************************
+// This file is part of Tao3D
+//
+// Tao3D is free software: you can r redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Tao3D is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tao3D, in a file named COPYING.
+// If not, see <https://www.gnu.org/licenses/>.
+// *****************************************************************************
 // pubkey.cpp - written and placed in the public domain by Wei Dai
 
 #include "pch.h"
@@ -59,7 +93,7 @@ void TF_SignerBase::InputRecoverableMessage(PK_MessageAccumulator &messageAccumu
 
 	ma.m_recoverableMessage.Assign(recoverableMessage, recoverableMessageLength);
 	encoding.ProcessRecoverableMessage(
-		ma.AccessHash(), 
+		ma.AccessHash(),
 		recoverableMessage, recoverableMessageLength,
 		NULL, 0, ma.m_semisignature);
 }
@@ -74,8 +108,8 @@ size_t TF_SignerBase::SignAndRestart(RandomNumberGenerator &rng, PK_MessageAccum
 		throw PK_SignatureScheme::KeyTooShort();
 
 	SecByteBlock representative(MessageRepresentativeLength());
-	encoding.ComputeMessageRepresentative(rng, 
-		ma.m_recoverableMessage, ma.m_recoverableMessage.size(), 
+	encoding.ComputeMessageRepresentative(rng,
+		ma.m_recoverableMessage, ma.m_recoverableMessage.size(),
 		ma.AccessHash(), id, ma.m_empty,
 		representative, MessageRepresentativeBitLength());
 	ma.m_empty = true;

@@ -53,6 +53,7 @@ INC = . \
     include \
     include/tao \
     ../libxlr/xlr/xlr/include \
+    ../libxlr/xlr \
     ../libcryptopp \
     ../keygen
 DEPENDPATH += $$INC

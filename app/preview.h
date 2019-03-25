@@ -62,7 +62,7 @@ public:
     void        setPath(QString path);
     void        setMaxSize(uint maxWidth, uint maxHeight);
     void        setInterval(uint interval);
-    void        record(QImage &image);
+    void        recordImage(QImage &image);
     bool        isBusy();
     bool        isReady();
 

@@ -52,7 +52,6 @@
 #include "tao_utf8.h"
 #include "gc.h"
 #include "tao_main.h"
-#include "flight_recorder.h"
 #include "tao_utf8.h"
 #include "../config.h"
 #include "crypto.h"
@@ -89,6 +88,16 @@ static void taoQt5MessageHandler(QtMsgType type,
 static void taoQtMessageHandler(QtMsgType type, const char *msg);
 #endif
 
+#ifndef CONFIGURE_OPTIONS
+#  define CONFIGURE_OPTIONS "Unknown"
+#endif
+
+#ifdef TAO_PLAYER
+#  define TAO_EDITION_NAME      "Tao3D Player"
+#else
+#  define TAO_EDITION_NAME      "Tao3D"
+#endif // TAO_PLAYER
+
 namespace Tao {
     extern const char * GITREV_;
     extern const char * GITSHA1_;
@@ -103,32 +112,31 @@ int main(int argc, char **argv)
 {
     using namespace Tao;
 
+    // Recorder initialization
+    recorder_dump_on_common_signals(0, 0);
+    recorder_trace_set(".*_(error|warning)");
+    recorder_trace_set(getenv("TAO_TRACES"));
+
     // Do our best to send stdout/stderr output somewhere
     redirect_console();
 
     // Process --version before graphic initialization so that this option may
     // be used without a valid X11 display on Linux
+    record(tao_app, "Starting " TAO_EDITION_NAME);
+    record(tao_app, "Git revision %+s", Tao::GITSHA1_);
+    record(tao_app, "Configured as %+s", CONFIGURE_OPTIONS);
+    record(tao_app, "Invoked as %+s with %d arguments", argv[0], argc-1);
+
+    bool wantVersion = false;
     for (int i = 1; i < argc; i++)
     {
-        if (!strcmp(argv[i], "--version"))
-        {
-#ifdef TAO_PLAYER
-#define EDSTR "Player "
-#else
-#define EDSTR
-#endif
-            std::cout << "Tao3D " EDSTR << Tao::GITREV_  <<
-                                               " (" << Tao::GITSHA1_ << ")\n";
-#undef EDSTR
-#ifdef CONFIGURE_OPTIONS
-            std::cout << "Configure options: " << CONFIGURE_OPTIONS << "\n";
-#endif
-            exit(0);
-        }
+        record(tao_app, "  option %d: %+s", i, argv[i]);
+        wantVersion |= !strcmp(argv[i], "--version");
     }
+    if (wantVersion)
+        recorder_dump_for("tao_app");
 
-    XL::FlightRecorder::Initialize();
-    RECORD(ALWAYS, "Tao Starting");
+    record(tao_app, "Tao Starting");
     install_signal_handler(signal_handler);
 
     Q_INIT_RESOURCE(tao);
@@ -158,13 +166,12 @@ int main(int argc, char **argv)
     }
     catch(...)
     {
-        RECORD(ALWAYS, "Exception caught at top level");
-        std::cerr << "Exception caught, exiting\n";
+        record(tao_error, "Exception caught at top level, exiting");
     }
 
     try
     {
-        RECORD(ALWAYS, "Cleaning up");
+        record(tao_app, "Cleaning up");
         Cleanup();
 
         // HACK: it seems that cleanup() does not clean everything, at least on
@@ -173,7 +180,7 @@ int main(int argc, char **argv)
     }
     catch(...)
     {
-        std::cerr << "Exception caught during cleanup\n";
+        record(tao_error, "Exception caught during cleanup");
     }
 
     return ret;
@@ -231,7 +238,7 @@ void install_first_exception_handler(void)
 //   Install an unhandled exception handler that happens before LLVM
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "Setting unhandled exception filter");
+    record(tao_app, "Setting unhandled exception filter");
     // Windows-specific ugliness
     PrimaryExceptionFilter =
         SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
@@ -498,7 +505,7 @@ void signal_handler(int sigid)
 
     // Dump the flight recorder
     Write (fd, "\n\n", 2);
-    XL::FlightRecorder::SDump(fd, false);
+    recorder_dump();
 
     // Close the output stream
     close(fd);

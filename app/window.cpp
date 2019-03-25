@@ -83,8 +83,7 @@
 #if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
 #include "document_signature.h"
 #endif
-#include "flight_recorder.h"
-
+#include <recorder/recorder.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -114,6 +113,8 @@
  *                      ";;Headers (*.dds *.xs)"\
  *                      ";;All files (*.*)"
  */
+
+RECORDER(tao_window, 32, "Window for the Tao3D application");
 
 namespace Tao {
 
@@ -207,7 +208,7 @@ Window::Window(XL::Main *xlr,
       helpMenu(),
       splashScreen(), aboutSplash()
 {
-    RECORD(ALWAYS, "Window constructor", "this", (intptr_t)this);
+    record(tao_window, "Constructor %p", this);
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
@@ -330,7 +331,7 @@ Window::~Window()
 //   Destroy a document window and free associated resources
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "Window destructor", "this", (intptr_t)this);
+    record(tao_window, "Destructor %p", this);
     FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
     delete printer;
@@ -2626,9 +2627,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "Loading file");
-    IFTRACE(fileload)
-        std::cerr << "Opening document: " << +fileName << "\n";
+    record(tao_fileload, "Loading %+s %s",
+           openProj ? "project" : "file",
+           fileName.data());
 
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 

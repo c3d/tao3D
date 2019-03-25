@@ -48,6 +48,7 @@
 #endif
 #include "qtlocalpeer.h"
 #include "texture_cache.h"
+#include <recorder/recorder.h>
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
@@ -233,5 +234,10 @@ private:
 
 #define DEBUG_TRACES_SETTING_NAME "DebugTraces"
 }
+
+RECORDER_DECLARE(tao_app);
+RECORDER_DECLARE(tao_fileload);
+RECORDER_DECLARE(tao_error);
+RECORDER_DECLARE(tao_warning);
 
 #endif // APPLICATION_H

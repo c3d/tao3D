@@ -46,7 +46,10 @@
 #include "shapes.h"
 #include "application.h"
 #include "attributes.h"
-#include "flight_recorder.h"
+#include <recorder/recorder.h>
+
+RECORDER(module_renderer, 16, "Tao module renderer - Drawing GL in a document");
+RECORDER(module_renderer_error, 8, "Tao module renderer errors");
 
 namespace Tao {
 
@@ -57,6 +60,7 @@ ModuleRenderer::~ModuleRenderer()
 //   Destructor
 // ----------------------------------------------------------------------------
 {
+    record(module_renderer, "Deleting [%p]", this);
     if (del)
         del(arg);
 }
@@ -67,6 +71,7 @@ bool ModuleRenderer::ScheduleRender(ModuleApi::render_fn callback, void *arg)
 //   Create a ModuleRendererPrivate object attached to current layout
 // ----------------------------------------------------------------------------
 {
+    record(module_renderer, "Schedule %p (%p)", callback, arg);
     Widget::Tao()->layout->Add(new ModuleRenderer(callback, arg));
     return true;
 }
@@ -78,6 +83,7 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
 //   Create a ModuleRendererPrivate object attached to current layout
 // ----------------------------------------------------------------------------
 {
+    record(module_renderer, "Add %p (%p) del %p", callback, arg, del);
     Widget::Tao()->layout->Add(new ModuleRenderer(callback, arg, del));
     return true;
 }
@@ -91,6 +97,8 @@ bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
 //  identify function
 // ----------------------------------------------------------------------------
 {
+    record(module_renderer, "Add %p (%p) del %p identify %p",
+           callback, arg, del, identify);
     Widget::Tao()->layout->Add(new ModuleRenderer(callback,identify,arg,del));
     return true;
 }
@@ -149,6 +157,8 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
+    record(module_renderer, "Draw [%p] in layout %p", this, where);
+
     // Synchronise GL states
     GL.Sync();
 
@@ -159,10 +169,9 @@ void ModuleRenderer::Draw(Layout *where)
     }
     catch(...)
     {
-        RECORD(ALWAYS, "Exception raised from module renderer",
-               "call", (intptr_t) callback);
-        std::cerr << "Exception raised from module renderer callback "
-                  << (intptr_t) callback << "\n";
+        record(module_renderer_error,
+               "Exception raised from module renderer %p drawing with %p",
+               this, callback);
     }
 
     GL.Invalidate();
@@ -194,12 +203,9 @@ void ModuleRenderer::Identify(Layout *where)
         }
         catch(...)
         {
-            RECORD(ALWAYS, "Exception raised from module identify",
-                   "call", (intptr_t) callback,
-                   "id", (intptr_t) identify);
-            std::cerr << "Exception raised from module renderer callback "
-                      << (intptr_t) callback << " "
-                      << (intptr_t) identify << "\n";
+            record(module_renderer_error,
+                   "Exception raised from module renderer %p identify %p",
+                   this, identify);
         }
     }
 

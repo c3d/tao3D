@@ -832,10 +832,10 @@ void Application::processCommandLineFile()
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
     record(tao_app, "user.xl absolute path is %s, file %+s",
-           user.absoluteFilePath().data(),
+           user.absoluteFilePath().toUtf8().data(),
            user.exists() ? "exists" : "does not exist");
     record(tao_app, "theme.xl absolute path is %s, file %+s",
-           theme.absoluteFilePath().data(),
+           theme.absoluteFilePath().toUtf8().data(),
            theme.exists() ? "exists" : "does not exist");
     if (user.exists())
         contextFiles.push_back(+user.absoluteFilePath());
@@ -855,7 +855,7 @@ void Application::processCommandLineFile()
     {
         toOpen = win->welcomePath();
         record(tao_app, "No file to open, selected welcome at %s",
-               toOpen.data());
+               toOpen.toUtf8().data());
     }
     XL_ASSERT(!toOpen.isEmpty());
 
@@ -907,7 +907,7 @@ void Application::loadUri(QString uri)
 // ----------------------------------------------------------------------------
 {
     record(tao_fileload, "Load URI %s, %+s",
-           uri.data(),
+           uri.toUtf8().data(),
            readyToLoad ? "ready" : "pending");
     if (readyToLoad)
         win->open(uri);

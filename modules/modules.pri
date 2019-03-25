@@ -42,7 +42,9 @@ TARGET   = $$basename(MODINSTPATH)
 CONFIG  += dll
 QT      -= core gui sql
 
-INC = . $${TAOTOPSRC}/libxlr/xlr/xlr/include $${TAOTOPSRC}/app/include \
+INC = . $${TAOTOPSRC}/libxlr/xlr/xlr/include    \
+        $${TAOTOPSRC}/libxlr/xlr/               \
+        $${TAOTOPSRC}/app/include               \
         $${TAOTOPSRC}/app/include/tao
 INCLUDEPATH += $$INC
 DEPENDPATH  += $$INC

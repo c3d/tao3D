@@ -1423,4 +1423,7 @@ struct SetAttributeAction : XL::Action
 #define TREEPOINTER_TYPE 383 // (QVariant::UserType | 0x100)
 Q_DECLARE_METATYPE(XL::Tree_p)
 
+RECORDER_DECLARE(tao_widget);
+RECORDER_DECLARE(primitive);
+
 #endif // TAO_WIDGET_H

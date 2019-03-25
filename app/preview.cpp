@@ -112,7 +112,7 @@ void PreviewThread::setInterval(uint interval)
 }
 
 
-void PreviewThread::record(QImage &image)
+void PreviewThread::recordImage(QImage &image)
 // ----------------------------------------------------------------------------
 //   Store the image to record next
 // ----------------------------------------------------------------------------

@@ -51,7 +51,6 @@
 #include "frame.h"
 #include "chooser.h"
 #include "formulas.h"
-#include "flight_recorder.h"
 
 
 namespace Tao
@@ -62,7 +61,7 @@ void Initialize()
 //    Initialize application symbols
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "Initializing XLR symbols");
+    record(tao_app, "XL symbols initialization");
     XL::EnterBasics();
     Tao::EnterGraphics();
     Tao::EnterAttributes();
@@ -76,6 +75,7 @@ void Initialize()
     Tao::EnterTransforms();
     Tao::EnterLighting();
     Tao::EnterChooser();
+    record(tao_app, "XL symbols initialization complete");
 }
 
 
@@ -84,6 +84,8 @@ void Cleanup()
 //   Cleaning up before exit
 // ----------------------------------------------------------------------------
 {
+    record(tao_app, "XL symbols cleanup");
+
     // First, discard ALL global (smart) pointers to XL types/names
     XL::DeleteBasics();
     Tao::DeleteGraphics();     // REVISIT: move to Tao:: namespace?
@@ -103,6 +105,8 @@ void Cleanup()
 
     // No more global refs, deleting GC will purge everything
     XL::GarbageCollector::Delete();
+
+    record(tao_app, "XL symbols cleanup complete");
 }
 
 }

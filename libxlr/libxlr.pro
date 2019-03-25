@@ -45,6 +45,7 @@ QT      -= core gui
 
 INC = . \
     xlr/xlr/include \
+    xlr/            \
     xlr/xlr
 INCLUDEPATH += $$INC
 DEPENDPATH += $$INC
@@ -57,7 +58,6 @@ HEADERS += \
     xlr/xlr/lcs.h \
     xlr/xlr/include/action.h \
     xlr/xlr/include/base.h \
-    xlr/xlr/include/flight_recorder.h \
     xlr/xlr/include/basics.h \
     xlr/xlr/include/bfs.h \
     xlr/xlr/include/configuration.h \
@@ -98,7 +98,6 @@ SOURCES += \
     xlr/xlr/diff.cpp \
     xlr/xlr/errors.cpp \
     xlr/xlr/expred.cpp \
-    xlr/xlr/flight_recorder.cpp \
     xlr/xlr/gc.cpp \
     xlr/xlr/hash.cpp \
     xlr/xlr/lcs.cpp \
@@ -117,7 +116,9 @@ SOURCES += \
     xlr/xlr/traces_base.cpp \
     xlr/xlr/tree.cpp \
     xlr/xlr/types.cpp \
-    xlr/xlr/unit.cpp
+    xlr/xlr/unit.cpp \
+    xlr/recorder/recorder.c \
+    xlr/recorder/recorder_ring.c
 
 win32 {
       SOURCES += xlr/xlr/winglob.cpp

@@ -68,9 +68,8 @@
 #include "license_download.h"
 #endif
 #include "nag_screen.h"
-#include "flight_recorder.h"
 #include "tao_gl.h"
-
+#include <recorder/recorder.h>
 #include <stdlib.h>
 #include <string>
 
@@ -105,6 +104,13 @@ extern "C" void UpdateSystemActivity(uint8_t);
 #include "dde_widget.h"
 #endif
 
+
+RECORDER(tao_app,       64, "Tao application");
+RECORDER(tao_warning,   16, "Tao application warnings");
+RECORDER(tao_error,     16, "Tao application errors");
+RECORDER(tao_gc,        16, "Garbage collection thread in Tao");
+RECORDER(tao_glinfo,    16, "OpenGL information");
+RECORDER(tao_fileload,  16, "Loading files in Tao");
 
 XL_DEFINE_TRACES
 
@@ -239,12 +245,12 @@ void Application::deferredInit()
     }
 
     // Create and start garbage collection thread
+    RECORD(tao_gc, "Creating GC thread (%+s)",
+           xlr->options.threaded_gc ? "threaded" : "non-threaded");
     gcThread = new GCThread;
     if (xlr->options.threaded_gc)
     {
-        RECORD(ALWAYS, "Starting GC thread");
-        IFTRACE(memory)
-            std::cerr << "Threaded GC is enabled\n";
+        RECORD(tao_gc, "Starting separate GC thread");
         gcThread->moveToThread(gcThread);
         gcThread->start();
     }
@@ -306,7 +312,7 @@ void Application::deferredInit()
 #endif
 
     // Create main window
-    RECORD(ALWAYS, "Creating main window");
+    record(tao_app, "Creating main window");
     win = new Window (xlr, contextFiles);
 
     // Update the help menu
@@ -340,7 +346,7 @@ void Application::deferredInit()
                         cmdLineArguments.contains("-h"));
     if (showSplash)
     {
-        RECORD(ALWAYS, "Creating splash screen");
+        record(tao_app, "Creating splash screen");
         splash = new SplashScreen();
         splash->show();
         splash->raise();
@@ -351,12 +357,12 @@ void Application::deferredInit()
 
     // Initialize the graphics just below contents of basics.tbl
     Initialize();
-    RECORD(ALWAYS, "CreateScope");
+    record(tao_app, "Create main symbol table for XL");
     xlr->CreateScope();
 
     // Activate basic compilation
     xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
-    RECORD(ALWAYS, "SetupCompiler");
+    record(tao_app, "Setup XL compiler");
     xlr->SetupCompiler();
 
     // Load settings
@@ -390,10 +396,10 @@ void Application::deferredInit()
     // ("Save as..." box will land there)
     createDefaultProjectFolder();
 
-    RECORD(ALWAYS, "Loading settings");
+    record(tao_app, "Loading settings");
     loadSettings();
 
-    RECORD(ALWAYS, "Loading fonts");
+    record(tao_app, "Loading fonts");
     loadFonts();
 
     // The aboutToQuit signal is the recommended way for cleaning things up
@@ -414,7 +420,7 @@ void Application::deferredInit()
     if(GeneralPage::checkForUpdateOnStartup())
     {
         // Application updater
-        RECORD(ALWAYS, "Creating application updater");
+        record(tao_app, "Creating application updater");
         updateApp = new UpdateApplication;
 
         QDateTime now = QDateTime::currentDateTime();
@@ -429,7 +435,7 @@ void Application::deferredInit()
     // We're ready to go
     processCommandLineFile();
 
-    RECORD(ALWAYS, "End of deferred init");
+    record(tao_app, "End of deferred init");
 }
 
 
@@ -440,16 +446,17 @@ Application::~Application()
 {
     if (gcThread)
     {
-        IFTRACE(memory)
-            std::cerr << "Stopping GC thread...\n";
+        record(tao_gc, "Stopping GC thread %p", gcThread);
         gcThread->quit();
         gcThread->wait();
-        IFTRACE(memory)
-            std::cerr << "GC thread stopped\n";
+        record(tao_gc, "GC thread %p stopped, deleting", gcThread);
         delete gcThread;
     }
     if (updateApp)
+    {
+        record(tao_app, "Deleting appliation updater %p", updateApp);
         delete updateApp;
+    }
 }
 
 
@@ -594,50 +601,72 @@ bool Application::checkGL()
 //   Check if GL implementation can be used
 // ----------------------------------------------------------------------------
 {
-    text GLVendor = "?";
-    text GLRenderer = "?";
-    text GLVersionAvailable = "?";
-    text GLExtensionsAvailable = "?";
+    // These variables are static so that we can display info in recorder dump
+    static text GLVendor = "?";
+    static text GLRenderer = "?";
+    static text GLVersion = "?";
+    static text GLExtensions = "?";
 
     {
-        RECORD(ALWAYS, "Reading GL info");
+        // Record before asking for info since LLVM-based rendering pipes
+        // often crash during creation of QGLWidget
+        record(tao_glinfo, "Reading GL info - QTVersion is %lX", qtVersion);
+
         // We need a valid GL context to read the information strings
         QGLWidget gl;
         gl.makeCurrent();
 
-        if (QGLContext::currentContext()->isValid())
+        bool validContext = QGLContext::currentContext()->isValid();
+        record(tao_glinfo, "Current GL context is %+s",
+               validContext ? "valid" : "invalid");
+        if (validContext)
         {
-            GLVendor   = getGLText(GL_VENDOR);
-            GLRenderer = getGLText(GL_RENDERER);
-            GLVersionAvailable = getGLText(GL_VERSION);
-            GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
+            GLVendor     = getGLText(GL_VENDOR);
+            GLRenderer   = getGLText(GL_RENDERER);
+            GLVersion    = getGLText(GL_VERSION);
+            GLExtensions = getGLText(GL_EXTENSIONS);
+            record(tao_glinfo, "GL Vendor     %+s", GLVendor.c_str());
+            record(tao_glinfo, "GL Renderer   %+s", GLRenderer.c_str());
+            record(tao_glinfo, "GL Version    %+s", GLVersion.c_str());
+            record(tao_glinfo, "GL Extensions %+s", GLExtensions.c_str());
 
 #if defined(Q_OS_WIN32) && QT_VERSION <= 0x050000
             hasMipmap = (glGenerateMipmap != NULL);
 #else
             hasMipmap = true;
 #endif
-            IFTRACE(displaymode)
-                std::cerr << "GL mipmap support: " << hasMipmap << "\n";
+            record(tao_glinfo, "GL %+s mimpap support",
+                   hasMipmap ? "has" : "does not have");
         }
     }
 
     // Basic sanity tests to check if we can actually run
-    RECORD(ALWAYS, "Checking GL >= 2.0");
-    if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
+    QGLFormat::OpenGLVersionFlags version = QGLFormat::openGLVersionFlags ();
+    QGLFormat::OpenGLVersionFlags required = QGLFormat::OpenGL_Version_2_0;
+    record(tao_glinfo,
+           "OpenGL version flags %lX, required %lX (2.0)", version, required);
+    if (version < required)
     {
-        QString msg = tr("This system (%1, %2, %3) doesn't support "
-                         "OpenGL 2.0.").arg(+GLVendor).arg(+GLRenderer)
-                                       .arg(+GLVersionAvailable);
-        QMessageBox::warning(NULL, tr("OpenGL support"), msg);
+        QString msg = tr("This system does not support OpenGL 2.0.\n"
+                         "Vendor:   %1\n"
+                         "Renderer: %2\n"
+                         "Version:  %3")
+            .arg(+GLVendor)
+            .arg(+GLRenderer)
+            .arg(+GLVersion);
+        QMessageBox::warning(NULL, tr("Insufficient OpenGL support"), msg);
         return false;
     }
-    RECORD(ALWAYS, "Checking frame buffer objects");
+
+    bool hasFbo = QGLFramebufferObject::hasOpenGLFramebufferObjects();
+    record(tao_glinfo, "Frame buffer objects are %+s",
+           hasFbo ? "supported" : "not supported");
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
     {
-        QMessageBox::warning(NULL, tr("FBO support"),
-                             tr("This system doesn't support Frame Buffer "
-                                "Objects."));
+        QMessageBox::warning(NULL,
+                             tr("Insufficient graphics capabilities"),
+                             tr("This system does not support "
+                                "Frame Buffer Objects."));
         return false;
     }
 
@@ -646,63 +675,55 @@ bool Application::checkGL()
     // Workaround QTBUG-55291
     if (qtVersion < 0x050700 || qtVersion >= 0x050702)
     {
-        RECORD(ALWAYS, "Checking quad buffer");
         QGLWidget gl((QGLFormat(QGL::StereoBuffers)));
         hasGLStereoBuffers = gl.format().stereo();
-        IFTRACE(displaymode)
-            std::cerr << "GL stereo buffers support: " << hasGLStereoBuffers
-                      << "\n";
+        record(tao_glinfo, "GL stereo buffers are %+s",
+               hasGLStereoBuffers ? "supported" : "not supported");
     }
     else
     {
-        RECORD(ALWAYS, "Checking quad buffer disabled - QTBUG-55291");
-        std::cerr << "QTBUG-55291: Quad buffer test disabled\n";
+        record(tao_warning, "Checking quad buffer disabled - QTBUG-55291");
     }
 
+    if (hasFbo)                 // Better be true here ;-)
     {
-        RECORD(ALWAYS, "Checking sample buffers");
         QGLWidget gl((QGLFormat(QGL::SampleBuffers)));
         int samples = gl.format().samples();
         hasGLMultisample = samples > 1;
-        IFTRACE(displaymode)
-            std::cerr << "GL multisample support: " << hasGLMultisample
-                      << " (samples per pixel: " << samples << ")\n";
-        if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
-        {
-            RECORD(ALWAYS, "Checking FBO sample buffers");
-            gl.makeCurrent();
+        record(tao_glinfo, "Multisample support is %+s, %d samples per pixel",
+               hasGLMultisample ? "present" : "not present", samples);
 
-            QGLFramebufferObjectFormat format;
-            format.setSamples(4);
-            QGLFramebufferObject fbo(100, 100, format);
-            int samples = 0;
-            if (fbo.isValid())
-            {
-                samples = fbo.format().samples();
-                hasFBOMultisample = samples > 1;
-            }
-            IFTRACE(displaymode)
-            {
-                std::cerr << "GL FBO supported; multisample support: "
-                          << hasFBOMultisample;
-                if (samples)
-                    std::cerr << " (samples per pixel: " << samples <<")";
-                std::cerr << "\n";
-            }
+        gl.makeCurrent();
+
+        QGLFramebufferObjectFormat format;
+        format.setSamples(4);
+        QGLFramebufferObject fbo(100, 100, format);
+        samples = 0;
+        if (fbo.isValid())
+        {
+            samples = fbo.format().samples();
+            hasFBOMultisample = samples > 1;
         }
+
+        record(tao_glinfo,
+               "FBO multisample support is %+s, %d samples per pixel",
+               hasFBOMultisample ? "present" : "not present", samples);
 
         // Enable font bitmap cache only if we don't have multisampling
         TextUnit::cacheEnabled = !(hasGLMultisample || hasFBOMultisample);
+        record(tao_glinfo, "Font bitmap cache is %+s",
+               TextUnit::cacheEnabled ? "enabled" : "disabled");
     }
     if (!hasGLMultisample)
     {
+        record(tao_warning, "No multisample - Bitmap text may look jagged");
         ErrorMessageDialog dialog;
         dialog.setWindowTitle(tr("Information"));
         dialog.showMessage(tr("On this system, graphics and text edges may "
                               "look jagged."));
     }
 
-    RECORD(ALWAYS, "End of GL checks");
+    record(tao_glinfo, "GL driver did not crash so far...");
     return true;
 }
 
@@ -712,7 +733,7 @@ void Application::checkModules()
 //   Initialize module manager, check module configuration
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "Checking modules");
+    record(tao_app, "Initializing modules");
     moduleManager = ModuleManager::moduleManager();
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
@@ -721,9 +742,9 @@ void Application::checkModules()
     moduleManager->init();
     // Load and initialize only auto-load modules (the ones that do not have an
     // import_name, or have the auto_load property set)
-    RECORD(ALWAYS, "Loading auto-load modules");
+    record(tao_app, "Loading auto-load modules");
     moduleManager->loadAutoLoadModules(XL::MAIN->context);
-    RECORD(ALWAYS, "Modules checked");
+    record(tao_app, "Modules successfully loaded");
 }
 
 
@@ -801,7 +822,7 @@ void Application::processCommandLineFile()
 //   Handle command-line files or URIs
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "processCommandLineFile");
+    record(tao_app, "Process command line file");
     XL_ASSERT(win);
 
     // Find file or URI
@@ -810,6 +831,12 @@ void Application::processCommandLineFile()
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
+    record(tao_app, "user.xl absolute path is %s, file %+s",
+           user.absoluteFilePath().data(),
+           user.exists() ? "exists" : "does not exist");
+    record(tao_app, "theme.xl absolute path is %s, file %+s",
+           theme.absoluteFilePath().data(),
+           theme.exists() ? "exists" : "does not exist");
     if (user.exists())
         contextFiles.push_back(+user.absoluteFilePath());
     if (theme.exists())
@@ -825,7 +852,11 @@ void Application::processCommandLineFile()
         pendingOpen = "";
     }
     if (toOpen.isEmpty())
+    {
         toOpen = win->welcomePath();
+        record(tao_app, "No file to open, selected welcome at %s",
+               toOpen.data());
+    }
     XL_ASSERT(!toOpen.isEmpty());
 
     // This code makes size() and geometry() valid for the main window
@@ -845,7 +876,7 @@ void Application::processCommandLineFile()
     if (st == 0)
         win->open(win->welcomePath());
     win->show();
-    RECORD(ALWAYS, "Main window shown");
+    record(tao_app, "Main window shown, win=%p", win);
 
     // Now that main window has been shown (if it had to), we can set the
     // "quit on last window closed" flag.
@@ -853,7 +884,8 @@ void Application::processCommandLineFile()
 
     if (splash)
     {
-        RECORD(ALWAYS, "Deleting splash screen");
+        record(tao_app, "Deleting splash screen %p",
+               (Tao::SplashScreen *) splash);
         splash->close();
         delete splash;
     }
@@ -874,8 +906,9 @@ void Application::loadUri(QString uri)
 //   Load a Tao URI into main window
 // ----------------------------------------------------------------------------
 {
-    IFTRACE2(ipc, fileload)
-        std::cerr << "Request to open '" << +uri << "'\n";
+    record(tao_fileload, "Load URI %s, %+s",
+           uri.data(),
+           readyToLoad ? "ready" : "pending");
     if (readyToLoad)
         win->open(uri);
     else

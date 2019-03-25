@@ -2629,7 +2629,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 {
     record(tao_fileload, "Loading %+s %s",
            openProj ? "project" : "file",
-           fileName.data());
+           fileName.toUtf8().data());
 
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 

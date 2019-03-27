@@ -48,18 +48,24 @@ struct Main : public XL::Main
 //   Customization of the Main class for Tao
 // ----------------------------------------------------------------------------
 {
-    Main(int argc, char **argv, text name = "xl_tao",
-         text syntax = "xl.syntax",
-         text style = "xl.stylesheet",
-         text builtins = "builtins.xl")
-         : XL::Main(argc, argv, name, syntax, style, builtins)
+    typedef XL::path_list path_list;
+
+    Main(int               argc,
+         char            **argv,
+         const path_list  &bin_paths,
+         const path_list  &lib_paths,
+         text              compiler_name = "xl_tao",
+         text              syntax = "xl.syntax",
+         text              style = "xl.stylesheet",
+         text              builtins = "builtins.xl")
+        : XL::Main(argc, argv, bin_paths, lib_paths,
+                   compiler_name, syntax, style, builtins)
     {
         MAIN = this;
     }
 
     virtual int  LoadFile(text file, bool updateContext = false,
-                          XL::Context *importContext=0,
-                          XL::Symbols *importSymbols=0);
+                          XL::Scope *importScope=0);
     virtual text SearchFile(text input);
     virtual bool Refresh(double delay);
     virtual text Decrypt(text input);

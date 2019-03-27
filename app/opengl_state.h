@@ -45,6 +45,8 @@
 #include "graphic_state.h"
 #include <stack>
 #include <vector>
+#include <map>
+#include <set>
 
 TAO_BEGIN
 

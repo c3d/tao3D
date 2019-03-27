@@ -218,4 +218,5 @@ QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 # Display configuration info
 !build_pass {
   !isEmpty(NO_DOC):message(Documentation is disabled.)
+  message(Configured with $$CONFIGURE_OPTIONS)
 }

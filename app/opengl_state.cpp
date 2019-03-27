@@ -57,6 +57,9 @@
 
 DEFINE_MODULE_GL;
 
+RECORDER_DEFINE(gl_error,  16, "OpenGL errors");
+RECORDER_DEFINE(gl_checks, 32, "OpenGL error checks");
+
 TAO_BEGIN
 
 text OpenGLState::vendorsList[LAST_VENDOR] =
@@ -278,36 +281,28 @@ uint OpenGLState::ShowErrors(kstring msg)
     static GLenum last = GL_NO_ERROR;
     static unsigned int count = 0;
     GLenum err = glGetError();
+    record(gl_checks, "%+s: error code %d", msg, err);
     uint errorsFound = 0;
     while (err != GL_NO_ERROR)
     {
         errorsFound++;
-        if (!count)
+        if (err == last)
         {
-            char *p = (char *) gluErrorString(err);
-            std::cerr << "GL Error: " << p;
-            if (msg)
-                std::cerr << " (" << msg << ") ";
-            std::cerr << "[error code: " << err << "]\n";
-            IFTRACE(glerrors)
-                tao_stack_trace(2);
-            last = err;
-        }
-        if (err != last || count == 100)
-        {
-            std::cerr << "GL Error: Error " << last;
-            if (msg)
-                std::cerr << " in " << msg << " ";
-            std::cerr << " repeated " << count << " times\n";
-            count = 0;
+            count++;
+            if (count % 100 == 0)
+                record(gl_error, "Error %d repeated %d times", err, count);
         }
         else
         {
-            count++;
+            char *p = (char *) gluErrorString(err);
+            record(gl_error, "%s (%d, %+s)", p, err, msg);
+            last = err;
+            count = 0;
         }
         err = glGetError();
     }
-
+    if (errorsFound && XLTRACE(gl_error))
+        tao_stack_trace(2);
     return errorsFound;
 }
 
@@ -324,7 +319,7 @@ void OpenGLState::Sync(uint64 which)
     if (!needSync)
         return;
 
-    bool traceErrors = XLTRACE(glerrors);
+    bool traceErrors = XLTRACE(gl_error);
 #define SYNC(name, Code)                                \
     do                                                  \
     {                                                   \
@@ -1817,13 +1812,10 @@ void OpenGLState::UseProgram(uint prg)
 
 #define SHADER(body)                            \
 {                                               \
-    bool traceErrors = XLTRACE(glerrors);       \
-    if (traceErrors)                            \
-        ShowErrors("before " #body);            \
+    ShowErrors("before " #body);                \
     Sync(STATE_shaderProgram);                  \
     body;                                       \
-    if (traceErrors)                            \
-        ShowErrors("after " #body);             \
+    ShowErrors("after " #body);                 \
 }
 
 
@@ -2804,8 +2796,6 @@ void LightState::Sync(const LightState &ls, bool force)
 //   Sync a light state with a new value
 // ----------------------------------------------------------------------------
 {
-    bool traceErrors = XLTRACE(glerrors);
-
 #define SYNC_LIGHT(name, Code)                          \
             do                                          \
             {                                           \
@@ -2813,8 +2803,7 @@ void LightState::Sync(const LightState &ls, bool force)
                 {                                       \
                     name = ls.name;                     \
                     Code;                               \
-                    if (traceErrors)                    \
-                        GL.ShowErrors(#name);           \
+                    GL.ShowErrors(#name);               \
                 }                                       \
             } while(0)
 
@@ -2963,8 +2952,6 @@ void ClipPlaneState::Sync(ClipPlaneState &p, bool force)
 //   Sync with new clip plane state
 // ----------------------------------------------------------------------------
 {
-    bool traceErrors = XLTRACE(glerrors);
-
 #define SYNC_PLANE(name, Code)                          \
             do                                          \
             {                                           \
@@ -2972,8 +2959,7 @@ void ClipPlaneState::Sync(ClipPlaneState &p, bool force)
                 {                                       \
                     name = p.name;                      \
                     Code;                               \
-                    if (traceErrors)                    \
-                        GL.ShowErrors(#name);           \
+                    GL.ShowErrors(#name);               \
                 }                                       \
             } while(0)
 
@@ -3425,8 +3411,6 @@ void TextureState::Sync(TextureState &ts)
 //   Sync a texture state with a new value
 // ----------------------------------------------------------------------------
 {
-    bool traceErrors = XLTRACE(glerrors);
-
 #define SYNC_TEXTURE(name, Code)                \
     do                                          \
     {                                           \
@@ -3434,8 +3418,7 @@ void TextureState::Sync(TextureState &ts)
         {                                       \
             name = ts.name;                     \
             Code;                               \
-            if (traceErrors)                    \
-                GL.ShowErrors(#name);           \
+            GL.ShowErrors(#name);               \
         }                                       \
     } while(0)
 

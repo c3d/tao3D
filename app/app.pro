@@ -38,6 +38,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 # ******************************************************************************
 
+LIBXLR=../libxlr
 include(../main.pri)
 include(../version.pri) # required to process Info.plist.in, tao.rc.in
 include(../gitrev.pri)
@@ -52,7 +53,8 @@ macx:TARGET  = $$APP_NAME
 INC = . \
     include \
     include/tao \
-    ../libxlr/xlr/xlr/include \
+    ../libxlr \
+    ../libxlr/xlr/src \
     ../libxlr/xlr \
     ../libcryptopp \
     ../keygen
@@ -439,7 +441,7 @@ contains(DEFINES, CFG_NO_WEBUI) {
     SOURCES += webui.cpp
 }
 
-CXXTBL_SOURCES += formulas.cpp graphics.cpp
+XL_MODULES += formulas.tbl graphics.tbl
 
 
 win32 {

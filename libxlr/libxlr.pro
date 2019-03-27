@@ -34,7 +34,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 # ******************************************************************************
 
-
+LIBXLR=.
 include (../main.pri)
 
 TEMPLATE = lib
@@ -44,90 +44,102 @@ QT      -= core gui
 #VERSION  = "1.0.0"
 
 INC = . \
-    xlr/xlr/include \
-    xlr/            \
-    xlr/xlr
+    xlr/include \
+    xlr/ \
+    ..
 INCLUDEPATH += $$INC
 DEPENDPATH += $$INC
 
 DEFINES += LIBXLR
 
+QMAKE_CXXFLAGS += -w
+
 HEADERS += \
-    xlr/xlr/compiler.h \
-    xlr/xlr/diff.h \
-    xlr/xlr/lcs.h \
-    xlr/xlr/include/action.h \
-    xlr/xlr/include/base.h \
-    xlr/xlr/include/basics.h \
-    xlr/xlr/include/bfs.h \
-    xlr/xlr/include/configuration.h \
-    xlr/xlr/include/context.h \
-    xlr/xlr/include/errors.h \
-    xlr/xlr/include/gc.h \
-    xlr/xlr/include/hash.h \
-    xlr/xlr/include/info.h \
-    xlr/xlr/include/main.h \
-    xlr/xlr/include/opcodes.h \
-    xlr/xlr/include/opcodes_declare.h \
-    xlr/xlr/include/opcodes_define.h \
-    xlr/xlr/include/opcodes_delete.h \
-    xlr/xlr/include/options.h \
-    xlr/xlr/include/parser.h \
-    xlr/xlr/include/renderer.h \
-    xlr/xlr/include/runtime.h \
-    xlr/xlr/include/scanner.h \
-    xlr/xlr/include/serializer.h \
-    xlr/xlr/include/sha1.h \
-    xlr/xlr/include/sha1_ostream.h \
-    xlr/xlr/include/syntax.h \
-    xlr/xlr/include/traces.h \
-    xlr/xlr/include/traces_base.h \
-    xlr/xlr/include/tree.h \
-    xlr/xlr/include/types.h \
-    xlr/xlr/include/utf8.h \
-    xlr/xlr/utf8_fileutils.h
+     xlr/include/action.h \
+     xlr/include/atomic.h \
+     xlr/include/base.h \
+     xlr/include/basics.h \
+     xlr/include/bytecode.h \
+     xlr/include/context.h \
+     xlr/include/errors.h \
+     xlr/include/evaluator.h \
+     xlr/include/gc.h \
+     xlr/include/info.h \
+     xlr/include/interpreter.h \
+     xlr/include/main.h \
+     xlr/include/opcodes.h \
+     xlr/include/options.h \
+     xlr/include/parser.h \
+     xlr/include/postorder.h \
+     xlr/include/refcount.h \
+     xlr/include/remote.h \
+     xlr/include/renderer.h \
+     xlr/include/runtime.h \
+     xlr/include/save.h \
+     xlr/include/scanner.h \
+     xlr/include/serializer.h \
+     xlr/include/syntax.h \
+     xlr/include/time_functions.h \
+     xlr/include/tree-clone.h \
+     xlr/include/tree-walk.h \
+     xlr/include/tree.h \
+     xlr/include/types.h \
+     xlr/include/utf8.h \
+     xlr/include/utf8_fileutils.h \
+     xlr/include/winglob.h \
+     xlr/src/cdecls.h \
+     xlr/src/compiler-args.h \
+     xlr/src/compiler-expr.h \
+     xlr/src/compiler-function.h \
+     xlr/src/compiler-parms.h \
+     xlr/src/compiler-prototype.h \
+     xlr/src/compiler-unit.h \
+     xlr/src/compiler.h \
+     xlr/src/llvm-crap.h
 
 SOURCES += \
-    xlr/xlr/action.cpp \
-    xlr/xlr/args.cpp \
-    xlr/xlr/cdecls.cpp \
-    xlr/xlr/compiler.cpp \
-    xlr/xlr/compiler-gc.cpp \
-    xlr/xlr/compiler-llvm.cpp \
-    xlr/xlr/context.cpp \
-    xlr/xlr/diff.cpp \
-    xlr/xlr/errors.cpp \
-    xlr/xlr/expred.cpp \
-    xlr/xlr/gc.cpp \
-    xlr/xlr/hash.cpp \
-    xlr/xlr/lcs.cpp \
-    xlr/xlr/main.cpp \
-    xlr/xlr/opcodes.cpp \
-    xlr/xlr/options.cpp \
-    xlr/xlr/parms.cpp \
-    xlr/xlr/parser.cpp \
-    xlr/xlr/renderer.cpp \
-    xlr/xlr/runtime.cpp \
-    xlr/xlr/scanner.cpp \
-    xlr/xlr/serializer.cpp \
-    xlr/xlr/sha1.cpp \
-    xlr/xlr/symbols.cpp \
-    xlr/xlr/syntax.cpp \
-    xlr/xlr/traces_base.cpp \
-    xlr/xlr/tree.cpp \
-    xlr/xlr/types.cpp \
-    xlr/xlr/unit.cpp \
+    xlr/src/types.cpp \
+    xlr/src/bytecode.cpp \
+    xlr/src/compiler.cpp \
+    xlr/src/interpreter.cpp \
+    xlr/src/compiler-unit.cpp \
+    xlr/src/context.cpp \
+    xlr/src/compiler-prototype.cpp \
+    xlr/src/options.cpp \
+    xlr/src/tree.cpp \
+    xlr/src/utf8_fileutils.cpp \
+    xlr/src/scanner.cpp \
+    xlr/src/compiler-function.cpp \
+    xlr/src/llvm-crap.cpp \
+    xlr/src/opcodes.cpp \
+    xlr/src/compiler-expr.cpp \
+    xlr/src/gc.cpp \
+    xlr/src/compiler-args.cpp \
+    xlr/src/cdecls.cpp \
+    xlr/src/errors.cpp \
+    xlr/src/runtime.cpp \
+    xlr/src/syntax.cpp \
+    xlr/src/serializer.cpp \
+    xlr/src/action.cpp \
+    xlr/src/parser.cpp \
+    xlr/src/main.cpp \
+    xlr/src/renderer.cpp \
     xlr/recorder/recorder.c \
     xlr/recorder/recorder_ring.c
 
 win32 {
-      SOURCES += xlr/xlr/winglob.cpp
-      HEADERS += xlr/xlr/winglob.h
+      SOURCES += xlr/src/winglob.cpp
+      HEADERS += xlr/src/winglob.h
 }
 
-
-CXXTBL_SOURCES += \
-    xlr/xlr/basics.cpp
+XL_MODULES += \
+    xlr/include/basics.tbl \
+    xlr/include/temperature.tbl \
+    xlr/include/math.tbl \
+    xlr/include/text.tbl \
+    xlr/include/remote.tbl \
+    xlr/include/time_functions.tbl \
+    xlr/include/io.tbl
 
 OTHER_FILES = \
     xlr/xlr/options.tbl \
@@ -159,6 +171,9 @@ LLVM_DEF = $$system(bash -c \"$$LLVMCONFIG --cppflags | sed \'s/-I[^ ]*//g\' | s
 INCLUDEPATH += $$LLVM_INC
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
+DEFINES += XL_VERSION=\\\"$$system(bash -c \"git describe --always --tags --dirty=-dirty\")\\\"
+DEFINES += XL_BIN=\\\"\\\"
+DEFINES += XL_LIB=\\\"\\\"
 # Bug#1430
 # LLVM_DEF adds NDEBUG when LLVM is a release build.
 # We don't want this flag in our debug build.

@@ -54,11 +54,10 @@ system(bash -c \"lupdate -help >/dev/null 2>&1\") {
 
 # Translations: convenience targets "make lupdate" and "make lrelease"
 # Include this file AFTER relevant variables have been defined
-lupdate.commands = $$LUPDATE -verbose $$SOURCES $$HEADERS $$FORMS $$CXXTBL_SOURCES $$NOWARN_SOURCES -ts $$TRANSLATIONS || lupdate -verbose $$SOURCES $$HEADERS $$FORMS $$CXXTBL_SOURCES $$NOWARN_SOURCES -ts $$TRANSLATIONS
+lupdate.commands = $$LUPDATE -verbose $$SOURCES $$HEADERS $$FORMS $$NOWARN_SOURCES -ts $$TRANSLATIONS || lupdate -verbose $$SOURCES $$HEADERS $$FORMS $$CXXTBL_SOURCES $$NOWARN_SOURCES -ts $$TRANSLATIONS
 
 lupdate.depends  = FORCE
 QMAKE_EXTRA_TARGETS += lupdate
 lrelease.commands = lrelease $$TRANSLATIONS
 lrelease.depends  = FORCE
 QMAKE_EXTRA_TARGETS += lrelease
-

@@ -58,19 +58,25 @@ linux-g++*:QMAKE_STRIP = :
 # (Qt commit 0c4ed66e87ef6f76d5b0d67905b587c31ad03a18)
 win32-g++:QMAKE_LFLAGS *= -Wl,-enable-auto-import
 
-# Adding 'cxxtbl' option with lowered optimization level
-cxxtbl.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}.o
-cxxtbl.commands = $$QMAKE_CXX \
-    -c \
-    $(CXXFLAGS:-O2=) \
-    $(INCPATH) \
-    ${QMAKE_FILE_IN} \
-    -o \
-    ${QMAKE_FILE_OUT}
-silent:cxxtbl.commands = @echo compiling "${QMAKE_FILE_IN}" && $$cxxtbl.commands
-cxxtbl.dependency_type = TYPE_C
-cxxtbl.input = CXXTBL_SOURCES
-QMAKE_EXTRA_COMPILERS += cxxtbl
+XLGENMODH=$$LIBXLR/xlr/src/generate-module-header
+XLGENMODB=$$LIBXLR/xlr/src/generate-module-body
+
+# Building XL modules headers
+xlmod_hdr.output  = ${QMAKE_FILE_BASE}_module.h
+xlmod_hdr.commands = $$XLGENMODH ${QMAKE_FILE_IN} > ${QMAKE_FILE_OUT}
+xlmod_hdr.input = XL_MODULES
+silent:xlmod_hdr.commands = @echo Generating header for "${QMAKE_FILE_IN}" && $$xlmod_hdr.commands
+xlmod_hdr.variable_out = HEADERS
+QMAKE_EXTRA_COMPILERS += xlmod_hdr
+
+# Building XL modules sources
+xlmod_src.output  = ${QMAKE_FILE_BASE}_module.cpp
+xlmod_src.commands = $$XLGENMODB ${QMAKE_FILE_IN} > ${QMAKE_FILE_OUT}
+xlmod_src.input = XL_MODULES
+silent:xlmod_src.commands = @echo Generating body for "${QMAKE_FILE_IN}" && $$xlmod_src.commands
+xlmod_src.variable_out = SOURCES
+xlmod_src.depends = ${QMAKE_FILE_BASE}_module.h
+QMAKE_EXTRA_COMPILERS += xlmod_src
 
 # Build some files with warnings disabled
 c++nowarn.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}.o

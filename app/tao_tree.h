@@ -65,15 +65,15 @@ typedef XL::Postfix_p      Postfix_p;
 typedef XL::Block          Block;
 typedef XL::Block_p        Block_p;
 
-typedef XL::real_r         real_r;
-typedef XL::integer_r      integer_r;
-typedef XL::text_r         text_r;
-typedef XL::symbol_r       symbol_r;
+typedef XL::Real_r         real_r;
+typedef XL::Integer_r      integer_r;
+typedef XL::Text_r         text_r;
+typedef XL::Scope_r        scope_r;
 
-typedef XL::real_p         real_p;
-typedef XL::integer_p      integer_p;
-typedef XL::text_p         text_p;
-typedef XL::symbol_p       symbol_p;
+typedef XL::Real_p         real_p;
+typedef XL::Integer_p      integer_p;
+typedef XL::Text_p         text_p;
+typedef XL::Scope_p        scope_p;
 
 typedef XL::TreeList       TreeList;
 

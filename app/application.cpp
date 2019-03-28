@@ -113,6 +113,7 @@ RECORDER(fileload,      16, "Loading files in Tao");
 RECORDER(paths,         16, "File paths");
 RECORDER(settings,      16, "Tao application settings");
 RECORDER(uri,           16, "Tao URI handling");
+RECORDER(ipc,           16, "Tao inter-process communications");
 
 namespace Tao {
 
@@ -1518,7 +1519,7 @@ void Application::loadDebugTraceSettings()
     QStringList enabled;
     enabled = QSettings().value(DEBUG_TRACES_SETTING_NAME).toStringList();
     foreach (QString trace, enabled)
-        XL::Traces::enable(+trace);
+        recorder_trace_set(+trace);
 }
 
 
@@ -1529,11 +1530,9 @@ void Application::saveDebugTraceSettings()
 {
     QStringList enabled;
 
-    std::set<std::string>::iterator it;
-    std::set<std::string> names = XL::Traces::names();
-    for (it = names.begin(); it != names.end(); it++)
-        if (XL::Traces::enabled(*it))
-            enabled.append(+*it);
+    for (recorder_info *rec = recorder_list(); rec; rec = rec->next)
+        if (rec->trace)
+            enabled.append(rec->name);
 
     if (!enabled.isEmpty())
         QSettings().setValue(DEBUG_TRACES_SETTING_NAME, enabled);
@@ -1670,31 +1669,26 @@ bool Application::singleInstanceClientTalkedToServer()
     peer = new QtLocalPeer(this, id);
     if (peer->isClient())
     {
-        IFTRACE(ipc)
-            std::cerr << "Starting as client (instance id '" << +id << "')\n";
+        record(ipc, "Starting as client, instance '%s'", +id);
         QString uri = getFileOrUriFromCommandLine();
         if (!uri.isEmpty())
         {
-            IFTRACE(ipc)
-                std::cerr << "Sending to server: '" << +uri << "'\n";
+            record(ipc, "Sending to server: %s", +uri);
             if (!peer->sendMessage(uri, 10000))
             {
-                IFTRACE(ipc)
-                    std::cerr << "Failed, proceeding with file open\n";
+                record(ipc, "Failed, proceeding with file open");
                 return false;
             }
-            IFTRACE(ipc)
-                std::cerr << "Command sent, exiting\n";
+            record(ipc, "Command sent, exiting");
             exit(0);
             return true;
         }
-        std::cerr << "No file or URI found on command line\n";
+        record(tao_error, "No file or URI found on command line");
         ::exit(1);
     }
     else
     {
-        IFTRACE(ipc)
-            std::cerr << "Starting as server (instance id '" << +id << "')\n";
+        record(ipc, "Starting as server, instance '%s'", +id);
         connect(peer, SIGNAL(messageReceived(QString)),
                 this, SLOT(loadUri(QString)));
     }

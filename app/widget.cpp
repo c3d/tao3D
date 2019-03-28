@@ -708,12 +708,13 @@ Widget::~Widget()
 }
 
 
-template <class T> struct PurgeInfo : XL::Action
+template <class T> struct PurgeInfo
 // ----------------------------------------------------------------------------
 //   Delete all XL::Info structures of type T in a tree
 // ----------------------------------------------------------------------------
 {
-    virtual Tree *Do (Tree *what)
+    typedef Tree *value_type;
+    Tree *Do (Tree *what)
     {
         what->Purge<T>();
         return what;

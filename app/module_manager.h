@@ -532,14 +532,10 @@ private:
                 sectionName(sectionName), attrName(attrName), lang(lang),
                 sectionFound(false) {}
 
-        Tree *DoInteger(Integer *)              { return NULL; }
-        Tree *DoReal(Real *)                    { return NULL; }
-        Tree *DoText(Text *)                    { return NULL; }
-        Tree *DoName(Name *)                    { return NULL; }
-        Tree *DoInfix(Infix *what);
-        Tree *DoPrefix(Prefix *what);
-        Tree *DoPostfix(Postfix *)              { return NULL; }
-        Tree *DoBlock(Block *what);
+        Tree *Do(Tree *)                { return NULL; }
+        Tree *Do(Infix *what);
+        Tree *Do(Prefix *what);
+        Tree *Do(Block *what);
 
         text sectionName, attrName, lang;
         bool sectionFound;
@@ -726,14 +722,14 @@ private:
 //
 // ============================================================================
 
-inline Tree *ModuleManager::FindAttribute::DoBlock(Block *what)
+inline Tree *ModuleManager::FindAttribute::Do(Block *what)
 {
     if (!sectionFound)
         return NULL;
     return what->child->Do(this);
 }
 
-inline Tree *ModuleManager::FindAttribute::DoInfix(Infix *what)
+inline Tree *ModuleManager::FindAttribute::Do(Infix *what)
 {
     if (what->name == "\n" || what->name == ";")
     {
@@ -744,7 +740,7 @@ inline Tree *ModuleManager::FindAttribute::DoInfix(Infix *what)
     return NULL;
 }
 
-inline Tree *ModuleManager::FindAttribute::DoPrefix(Prefix *what)
+inline Tree *ModuleManager::FindAttribute::Do(Prefix *what)
 {
     XL::Name * name = what->left->AsName();
     if (!sectionFound)

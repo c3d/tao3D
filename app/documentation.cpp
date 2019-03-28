@@ -80,7 +80,7 @@ text ExtractComment::extract(XL::CommentsList commentList)
 }
 
 
-XL::Tree *ExtractComment::DoInteger(XL::Integer *what)
+XL::Tree *ExtractComment::Do(XL::Integer *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from an Integer.
 // ----------------------------------------------------------------------------
@@ -94,7 +94,7 @@ XL::Tree *ExtractComment::DoInteger(XL::Integer *what)
 }
 
 
-XL::Tree *ExtractComment::DoReal(XL::Real *what)
+XL::Tree *ExtractComment::Do(XL::Real *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Real.
 // ----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ XL::Tree *ExtractComment::DoReal(XL::Real *what)
 }
 
 
-XL::Tree *ExtractComment::DoText(XL::Text *what)
+XL::Tree *ExtractComment::Do(XL::Text *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Text.
 // ----------------------------------------------------------------------------
@@ -120,7 +120,7 @@ XL::Tree *ExtractComment::DoText(XL::Text *what)
 }
 
 
-XL::Tree *ExtractComment::DoName(XL::Name *what)
+XL::Tree *ExtractComment::Do(XL::Name *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Name.
 // ----------------------------------------------------------------------------
@@ -133,7 +133,7 @@ XL::Tree *ExtractComment::DoName(XL::Name *what)
 }
 
 
-XL::Tree *ExtractComment::DoBlock(XL::Block *what)
+XL::Tree *ExtractComment::Do(XL::Block *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Block'
 // ----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ XL::Tree *ExtractComment::DoBlock(XL::Block *what)
     return new XL::Text(comment,"","");
 }
 
-XL::Tree *ExtractComment::DoInfix(XL::Infix *what)
+XL::Tree *ExtractComment::Do(XL::Infix *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from an Infix
 // ----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ XL::Tree *ExtractComment::DoInfix(XL::Infix *what)
 }
 
 
-XL::Tree *ExtractComment::DoPrefix(XL::Prefix *what)
+XL::Tree *ExtractComment::Do(XL::Prefix *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Prefix.
 // ----------------------------------------------------------------------------
@@ -208,7 +208,7 @@ XL::Tree *ExtractComment::DoPrefix(XL::Prefix *what)
 }
 
 
-XL::Tree *ExtractComment::DoPostfix(XL::Postfix *what)
+XL::Tree *ExtractComment::Do(XL::Postfix *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/*| |*/) from a Postfix.
 // ----------------------------------------------------------------------------
@@ -234,7 +234,7 @@ XL::Tree *ExtractComment::DoPostfix(XL::Postfix *what)
 }
 
 
-XL::Tree *ExtractDoc::DoInfix(XL::Infix *what)
+XL::Tree *ExtractDoc::Do(XL::Infix *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/** **/) from an Infix
 // ----------------------------------------------------------------------------
@@ -286,18 +286,18 @@ XL::Tree *ExtractDoc::DoInfix(XL::Infix *what)
     return new XL::Text(comment,"","");
 }
 
-XL::Tree *ExtractDoc::DoPrefix(XL::Prefix *what)
+XL::Tree *ExtractDoc::Do(XL::Prefix *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/** **/) from a Prefix.
 // ----------------------------------------------------------------------------
 {
     if ( params_tree && what && what->left && what->left->AsName())
         symbol = what->left->AsName()->value;
-    return ExtractComment::DoPrefix(what);
+    return ExtractComment::Do((Tree *) what);
 }
 
 
-XL::Tree *ExtractDoc::DoPostfix(XL::Postfix *what)
+XL::Tree *ExtractDoc::Do(XL::Postfix *what)
 // ----------------------------------------------------------------------------
 //   Extract the documentation (/** **/) from a Postfix.
 // ----------------------------------------------------------------------------
@@ -305,7 +305,7 @@ XL::Tree *ExtractDoc::DoPostfix(XL::Postfix *what)
     if ( params_tree && what && what->right && what->right->AsName())
         symbol = what->right->AsName()->value;
 
-    return ExtractComment::DoPostfix(what);
+    return ExtractComment::Do((Tree *) what);
 }
 
 

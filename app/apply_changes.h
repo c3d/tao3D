@@ -52,7 +52,7 @@ struct ApplyChanges
 // ----------------------------------------------------------------------------
 {
     ApplyChanges (Tree *r): replace(r) {}
-    Tree *DoInteger(Integer *what)
+    Tree *Do(Integer *what)
     {
         if (Integer *it = replace->AsInteger())
         {
@@ -64,7 +64,7 @@ struct ApplyChanges
                       << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
-    Tree *DoReal(Real *what)
+    Tree *Do(Real *what)
     {
         if (Real *rt = replace->AsReal())
         {
@@ -76,7 +76,7 @@ struct ApplyChanges
                       << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
-    Tree *DoText(Text *what)
+    Tree *Do(Text *what)
     {
         if (Text *tt = replace->AsText())
         {
@@ -88,7 +88,7 @@ struct ApplyChanges
                       << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
-    Tree *DoName(Name *what)
+    Tree *Do(Name *what)
     {
         if (Name *nt = replace->AsName())
             if (nt->value == what->value)
@@ -96,7 +96,7 @@ struct ApplyChanges
         return NULL;
     }
 
-    Tree *DoBlock(Block *what)
+    Tree *Do(Block *what)
     {
         if (Block *bt = replace->AsBlock())
         {
@@ -116,7 +116,7 @@ struct ApplyChanges
                       << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
-    Tree *DoInfix(Infix *what)
+    Tree *Do(Infix *what)
     {
         if (Infix *it = replace->AsInfix())
         {
@@ -149,7 +149,7 @@ struct ApplyChanges
                       << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
-    Tree *DoPrefix(Prefix *what)
+    Tree *Do(Prefix *what)
     {
         if (Prefix *pt = replace->AsPrefix())
         {
@@ -170,7 +170,7 @@ struct ApplyChanges
                       << " replaced with  " << (Tree *) replace << '\n';
         return NULL;
     }
-    Tree *DoPostfix(Postfix *what)
+    Tree *Do(Postfix *what)
     {
         if (Postfix *pt = replace->AsPostfix())
         {

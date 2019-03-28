@@ -47,18 +47,19 @@ struct ExtractComment
 //   Extract Comment surrounded by /*| |*/ from the given tree
 // ----------------------------------------------------------------------------
 {
+    typedef Tree *value_type;
     ExtractComment() : opening("/*|"), closing("|*/") {}
     text extract(XL::CommentsList commentList);
 
-    XL::Tree *DoInteger(XL::Integer *what);
-    XL::Tree *DoReal(XL::Real *what);
-    XL::Tree *DoText(XL::Text *what);
-    XL::Tree *DoName(XL::Name *what);
+    XL::Tree *Do(XL::Integer *what);
+    XL::Tree *Do(XL::Real *what);
+    XL::Tree *Do(XL::Text *what);
+    XL::Tree *Do(XL::Name *what);
 
-    XL::Tree *DoBlock(XL::Block *what);
-    XL::Tree *DoInfix(XL::Infix *what);
-    XL::Tree *DoPrefix(XL::Prefix *what);
-    XL::Tree *DoPostfix(XL::Postfix *what);
+    XL::Tree *Do(XL::Block *what);
+    XL::Tree *Do(XL::Infix *what);
+    XL::Tree *Do(XL::Prefix *what);
+    XL::Tree *Do(XL::Postfix *what);
     XL::Tree *Do(XL::Tree *what)
     {
         return what->Do(this);
@@ -77,9 +78,9 @@ struct ExtractDoc : public ExtractComment
         opening = "/**";
         closing = "**/";
     }
-    XL::Tree *DoInfix(XL::Infix *what);
-    XL::Tree *DoPrefix(XL::Prefix *what);
-    XL::Tree *DoPostfix(XL::Postfix *what);
+    XL::Tree *Do(XL::Infix *what);
+    XL::Tree *Do(XL::Prefix *what);
+    XL::Tree *Do(XL::Postfix *what);
 
     text formatSyntax(XL::Tree *t);
     text formatDoc(text *c);

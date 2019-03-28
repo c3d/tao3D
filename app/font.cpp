@@ -61,7 +61,7 @@ Tree *FontParsingAction::Do (Tree *what)
 }
 
 
-Tree *FontParsingAction::DoInteger(Integer *what)
+Tree *FontParsingAction::Do(Integer *what)
 // ----------------------------------------------------------------------------
 //   Integers specify the font size
 // ----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ Tree *FontParsingAction::DoInteger(Integer *what)
 }
 
 
-Tree *FontParsingAction::DoReal(Real *what)
+Tree *FontParsingAction::Do(Real *what)
 // ----------------------------------------------------------------------------
 //   Real numbers specify the font size
 // ----------------------------------------------------------------------------
@@ -81,7 +81,7 @@ Tree *FontParsingAction::DoReal(Real *what)
 }
 
 
-Tree *FontParsingAction::DoText(Text *what)
+Tree *FontParsingAction::Do(Text *what)
 // ----------------------------------------------------------------------------
 //   Text specifies a font family (optionally a foundry)
 // ----------------------------------------------------------------------------
@@ -138,7 +138,7 @@ Tree *FontParsingAction::DoText(Text *what)
 }
 
 
-Tree *FontParsingAction::DoName(Name *what)
+Tree *FontParsingAction::Do(Name *what)
 // ----------------------------------------------------------------------------
 //   A name specifies one of the font attributes
 // ----------------------------------------------------------------------------
@@ -320,7 +320,7 @@ bool FontParsingAction::SetAttribute(Name *n, Tree *value)
 }
 
 
-Tree *FontParsingAction::DoPrefix(Prefix *what)
+Tree *FontParsingAction::Do(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate the prefix
 // ----------------------------------------------------------------------------
@@ -337,7 +337,7 @@ Tree *FontParsingAction::DoPrefix(Prefix *what)
 }
 
 
-Tree *FontParsingAction::DoPostfix(Postfix *what)
+Tree *FontParsingAction::Do(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate the postfix
 // ----------------------------------------------------------------------------
@@ -350,7 +350,7 @@ Tree *FontParsingAction::DoPostfix(Postfix *what)
 }
 
 
-Tree *FontParsingAction::DoInfix(Infix *what)
+Tree *FontParsingAction::Do(Infix *what)
 // ----------------------------------------------------------------------------
 //   Split comma-separated lists, otherwise evaluate sides
 // ----------------------------------------------------------------------------
@@ -376,7 +376,7 @@ Tree *FontParsingAction::DoInfix(Infix *what)
 }
 
 
-Tree *FontParsingAction::DoBlock(Block *what)
+Tree *FontParsingAction::Do(Block *what)
 // ----------------------------------------------------------------------------
 //   Evaluate the block
 // ----------------------------------------------------------------------------

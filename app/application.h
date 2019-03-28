@@ -236,8 +236,11 @@ private:
 }
 
 RECORDER_DECLARE(tao_app);
-RECORDER_DECLARE(tao_fileload);
 RECORDER_DECLARE(tao_error);
 RECORDER_DECLARE(tao_warning);
+RECORDER_DECLARE(fileload);
+RECORDER_DECLARE(paths);
+RECORDER_DECLARE(settings);
+RECORDER_DECLARE(uri);
 
 #endif // APPLICATION_H

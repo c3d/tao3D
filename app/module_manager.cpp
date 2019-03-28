@@ -373,13 +373,11 @@ bool ModuleManager::saveConfig()
 //   Save all modules into user's configuration
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(settings)
-        debug() << "Saving user's module configuration\n";
+    record(settings, "Saving user's module configuration, %u modules",
+           modules.count()););
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
         ok &= addToConfig(m);
-    IFTRACE(settings)
-            debug() << modules.count() << " module(s) saved\n";
     return ok;
 }
 

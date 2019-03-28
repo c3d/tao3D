@@ -260,9 +260,9 @@ void Uri::refreshSettings()
 
     int total = 0, deleted = 0, added = 0;
 
-    IFTRACE2(settings, uri)
-        debug() << "Cleaning obsolete {URI -> local project} mappings "
-                << "for group " << +settingsGroup << "\n";
+    record(settings,
+           "Clearing obsolete {URI -> local project} mappings"
+           "for group %s", +settingsGroup);
     emit progressMessage(tr("Checking known URIs"));
 
     QSettings settings;
@@ -281,26 +281,6 @@ void Uri::refreshSettings()
                 projects.removeOne(project);
                 deleted++;
             }
-#if defined(Q_OS_WIN)
-            else
-            {
-                // "Repair" code for #1341. Can be later removed safely.
-                if (project.contains("/"))
-                {
-                    projects.removeOne(project);
-                    project = QDir::toNativeSeparators(project);
-                    projects.append(project);
-                    IFTRACE2(settings, uri)
-                    {
-                        QByteArray ba;
-                        ba.append(key);
-                        text uri = +QUrl::fromPercentEncoding(ba);
-                        debug() << " {" << uri << " -> " << +project << "} ";
-                        std::cerr << "[converted]\n";
-                    }
-                }
-            }
-#endif
             IFTRACE2(settings, uri)
             {
                 QByteArray ba;
@@ -315,18 +295,13 @@ void Uri::refreshSettings()
         }
 
         int dups = projects.removeDuplicates();
-        if (dups)
-            IFTRACE2(settings, uri)
-                debug() << "Removed " << dups << " duplicate paths\n";
-
+        record(settings, "Removed %d duplicate paths", dups);
         if (projects.isEmpty())
             settings.remove(key);
         else
             settings.setValue(key, projects);
     }
-    IFTRACE2(settings, uri)
-        debug() << " (" << deleted << "/" << total
-                  << " deleted/total)\n";
+    record(settings, "Deleted %d out of %d", deleted, total);
 
     QString folder = parentFolderForDownload();
     if (folder.isEmpty())

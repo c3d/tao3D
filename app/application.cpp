@@ -109,7 +109,10 @@ RECORDER(tao_warning,   16, "Tao application warnings");
 RECORDER(tao_error,     16, "Tao application errors");
 RECORDER(tao_gc,        16, "Garbage collection thread in Tao");
 RECORDER(tao_glinfo,    16, "OpenGL information");
-RECORDER(tao_fileload,  16, "Loading files in Tao");
+RECORDER(fileload,      16, "Loading files in Tao");
+RECORDER(paths,         16, "File paths");
+RECORDER(settings,      16, "Tao application settings");
+RECORDER(uri,           16, "Tao URI handling");
 
 namespace Tao {
 
@@ -903,7 +906,7 @@ void Application::loadUri(QString uri)
 //   Load a Tao URI into main window
 // ----------------------------------------------------------------------------
 {
-    record(tao_fileload, "Load URI %s, %+s",
+    record(fileload, "Load URI %s, %+s",
            uri.toUtf8().data(),
            readyToLoad ? "ready" : "pending");
     if (readyToLoad)
@@ -1474,18 +1477,19 @@ void Application::saveSettings()
 // ----------------------------------------------------------------------------
 {
     QSettings().setValue("UrlCompletions", QVariant(urlList));
+    record(settings, "URL completions saved");
     IFTRACE(settings)
     {
-        std::cerr << "URL completions saved:\n";
         foreach (QString s, urlList)
-            std::cerr << "  " << +s << "\n";
+            record(settings, "  url %s", s.toUtf8().data());
     }
+
     QSettings().setValue("PathCompletions", QVariant(pathList));
+    record(settings, "Path completions saved");
     IFTRACE(settings)
     {
-        std::cerr << "Path completions saved:\n";
         foreach (QString s, pathList)
-            std::cerr << "  " << +s << "\n";
+            record(settings, "  path %s", s.toUtf8().data());
     }
 }
 

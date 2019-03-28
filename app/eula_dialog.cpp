@@ -127,9 +127,8 @@ void EulaDialog::done(int r)
     if (r == QMessageBox::Ok)
     {
         QString accepted(GITREV_);
-        IFTRACE(settings)
-            debug() << "EULA accepted, saving version: '"
-                    << +accepted << "'\n";
+        record(settings, "EULA accepted, saving version %s",
+               accepted.toUtf8().data());
         QSettings().setValue(EULA_SETTING_NAME, QVariant(accepted));
     }
     QMessageBox::done(r);
@@ -143,9 +142,9 @@ bool EulaDialog::previouslyAccepted()
 {
     QString accepted = QSettings().value(EULA_SETTING_NAME).toString();
     QString current = QString(GITREV_);
-    IFTRACE(settings)
-        debug() << "Tao versions: current '" << GITREV_ << "', "
-                << "EULA previously accepted: '" << +accepted << "'\n";
+    record(settings, "Tao versions: Current " GITREV_ " accpted %s %+s",
+           accepted.toUtf8().data(),
+           accepted == current ? "identical" : "different");
     return (accepted == current);
 }
 
@@ -155,8 +154,7 @@ void EulaDialog::resetAccepted()
 //   Forget that user has accepted EULA for any version
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(settings)
-        debug() << "Clearing saved version\n";
+    record(settings, "Clearing saved version");
     QSettings().remove(EULA_SETTING_NAME);
 }
 

@@ -314,8 +314,7 @@ bool GitRepository::showGitSelectionDialog()
                             tr("Select git program"));
     if (!gitCommand.isEmpty())
     {
-        IFTRACE(settings)
-            std::cerr << "Setting GitCommand to '" << +gitCommand <<"'\n";
+        record(settings, "Git command: %s", gitCommand.toUtf8().data());
         QSettings().setValue("GitCommand", gitCommand);
     }
     return true;

@@ -1290,8 +1290,7 @@ void Window::clearRecentFileList()
 {
     QSettings settings;
     settings.setValue("recentFileList", QStringList());
-    IFTRACE(settings)
-        std::cerr << "Cleared recent file list\n";
+    record(settings, "Cleared recent file list");
     updateRecentFileActions();
 }
 
@@ -2627,7 +2626,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 //    Load a specific file (and optionally, open project repository)
 // ----------------------------------------------------------------------------
 {
-    record(tao_fileload, "Loading %+s %s",
+    record(fileload, "Loading %+s %s",
            openProj ? "project" : "file",
            fileName.toUtf8().data());
 
@@ -3275,8 +3274,7 @@ void Window::setCurrentFile(const QString &fileName)
     // Update the recent file list
     if (!isUntitled && !isTutorial(curFile) && fi.exists())
     {
-        IFTRACE(settings)
-            std::cerr << "Adding " << +curFile << " to recent file list\n";
+        record(settings, "Adding %s to recent file list", +curFile);
 
         QSettings settings;
         QStringList files = settings.value("recentFileList").toStringList();
@@ -3300,9 +3298,8 @@ void Window::setCurrentFile(const QString &fileName)
 
         IFTRACE(settings)
         {
-            std::cerr << "Recent file list:\n";
             foreach (QString s, files)
-                std::cerr << "  " << +s << "\n";
+                record(settings, "Recent file %s", +s);
         }
 
         foreach (QWidget *widget, QApplication::topLevelWidgets())

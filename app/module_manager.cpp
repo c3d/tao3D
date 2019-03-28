@@ -94,7 +94,7 @@ static QStringList allPaths(XL::source_files &files)
 }
 
 
-static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
+static XL::Tree_p doXLImport(XL::Context &context, XL::Tree *self, text name,
                              XL::phase_t phase, bool needSignature)
 // ----------------------------------------------------------------------------
 //   Call XLR to import a file, update monitored paths
@@ -491,7 +491,7 @@ bool ModuleManager::enabled(QString importName)
 }
 
 
-bool ModuleManager::loadAll(Context *context)
+bool ModuleManager::loadAll(Context &context)
 // ----------------------------------------------------------------------------
 //   Load all enabled modules for current user
 // ----------------------------------------------------------------------------
@@ -499,9 +499,10 @@ bool ModuleManager::loadAll(Context *context)
     QList<ModuleInfoPrivate> toload;
     foreach (ModuleInfoPrivate m, modules)
     {
-        modules[+m.id].context = context;
+        modules[+m.id].scope = context.CreateScope();
         if (m.enabled && !m.loaded && m.path != "")
             toload.append(m);
+        context.PopScope();
     }
     bool ok = load(context, toload);
     IFTRACE(modules)
@@ -514,7 +515,7 @@ bool ModuleManager::loadAll(Context *context)
 }
 
 
-bool ModuleManager::loadAutoLoadModules(Context *context)
+bool ModuleManager::loadAutoLoadModules(Context &context)
 // ----------------------------------------------------------------------------
 //   Load and init native code for all modules that are marked auto-load
 // ----------------------------------------------------------------------------
@@ -917,7 +918,7 @@ Text * ModuleManager::toText(Tree *what)
 }
 
 
-bool ModuleManager::load(Context *ctx, const QList<ModuleInfoPrivate> &mods)
+bool ModuleManager::load(Context &ctx, const QList<ModuleInfoPrivate> &mods)
 // ----------------------------------------------------------------------------
 //   Load modules, in sequence
 // ----------------------------------------------------------------------------
@@ -929,7 +930,7 @@ bool ModuleManager::load(Context *ctx, const QList<ModuleInfoPrivate> &mods)
 }
 
 
-bool ModuleManager::load(Context *context, const ModuleInfoPrivate &m)
+bool ModuleManager::load(Context &context, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load one module
 // ----------------------------------------------------------------------------
@@ -947,7 +948,7 @@ bool ModuleManager::load(Context *context, const ModuleInfoPrivate &m)
 }
 
 
-bool ModuleManager::loadXL(Context */*context*/, const ModuleInfoPrivate &/*m*/)
+bool ModuleManager::loadXL(Context &/*context*/, const ModuleInfoPrivate &/*m*/)
 // ----------------------------------------------------------------------------
 //   Load the XL code of a module
 // ----------------------------------------------------------------------------
@@ -984,7 +985,7 @@ bool ModuleManager::loadXL(Context */*context*/, const ModuleInfoPrivate &/*m*/)
     if (it != end)
     {
         XL::SourceFile &sf = (*it).second;
-        Context *moduleContext = sf.context;
+        Context &moduleContext = sf.context;
 
         if (context->Bound(new XL::Name("module_init")))
         {
@@ -1145,7 +1146,7 @@ void ModuleManager::ModuleInfoPrivate::expandSpecialPathTokens()
 
 
 
-bool ModuleManager::loadNative(Context * /*context*/,
+bool ModuleManager::loadNative(Context & /*context*/,
                                const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load the native code of a module (shared libraries under lib/)

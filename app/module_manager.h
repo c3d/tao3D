@@ -336,12 +336,12 @@ public:
     {
         ModuleInfoPrivate() : ModuleInfo(), enabled(false), loaded(false),
               updateAvailable(false), hasNative(false),
-            native(NULL), context(NULL), inError(false), show_preferences(NULL)
+            native(NULL), scope(NULL), inError(false), show_preferences(NULL)
             {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL), inError(false),
+              native(NULL), scope(NULL), inError(false),
               show_preferences(NULL), graphicStatePtr(NULL)
             {}
 
@@ -358,7 +358,7 @@ public:
         bool                    hasNative;
         // native is the pointer to a compliant library (enter_symbols is present)
         QLibrary *              native;
-        XL::Context_p           context;
+        XL::Scope_p             scope;
         bool                    inError;
         QString                 source; // .xl content, non-null only after full text search
         module_preferences_fn   show_preferences;
@@ -456,7 +456,7 @@ public:
 
     bool                init();
     bool                loadAll(Context *context);
-    bool                loadAutoLoadModules(Context *context);
+    bool                loadAutoLoadModules(Context &context);
     QStringList                anonymousXL();
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
@@ -563,10 +563,10 @@ private:
     Tree *              moduleAttrAsTree(Tree * tree, QString attribute);
     Text *              toText(Tree *what);
 
-    bool                load(Context *, const QList<ModuleInfoPrivate> &mods);
-    bool                load(Context *, const ModuleInfoPrivate &m);
-    bool                loadXL(Context *, const ModuleInfoPrivate &m);
-    bool                loadNative(Context *, const ModuleInfoPrivate &m);
+    bool                load(Context &, const QList<ModuleInfoPrivate> &mods);
+    bool                load(Context &, const ModuleInfoPrivate &m);
+    bool                loadXL(Context &, const ModuleInfoPrivate &m);
+    bool                loadNative(Context &, const ModuleInfoPrivate &m);
     bool                isCompatible(QLibrary * lib);
 
     static

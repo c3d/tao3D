@@ -53,7 +53,6 @@
 #include "window.h"
 #include "font_file_manager.h"
 #include "module_manager.h"
-#include "traces.h"
 #include "display_driver.h"
 #include "gc_thread.h"
 #include "text_drawing.h"

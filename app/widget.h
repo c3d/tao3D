@@ -1199,7 +1199,8 @@ private:
     Window *              taoWindow();
     StereoIdentTexture    newStereoIdentTexture(int i);
     void                  updateStereoIdentPatterns(int nb);
-    void                  runPurgeAction(XL::Action &action);
+    template <typename Action>
+    void                  runPurgeAction(Action &action);
     void                  updateFileDialog(Tree *properties, Tree *context);
     Tree_p                updateParentWithGroupInPlaceOfChild(Tree *parent,
                                                               Tree *child,
@@ -1291,11 +1292,13 @@ inline void glShowErrors()
 //
 // ============================================================================
 
-struct DeleteSelectionAction : XL::Action
+struct DeleteSelectionAction
 // ----------------------------------------------------------------------------
 //    A specialized clone action that doesn't copy selected trees
 // ----------------------------------------------------------------------------
 {
+    typedef Tree *value_type;
+
     DeleteSelectionAction(Widget *widget): widget(widget) {}
     Tree *DoInteger(Integer *what)
     {

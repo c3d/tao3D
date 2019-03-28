@@ -46,7 +46,7 @@
 
 TAO_BEGIN
 
-struct ApplyChanges : XL::Action
+struct ApplyChanges
 // ----------------------------------------------------------------------------
 //   Check if we can apply changes from another tree on the current one
 // ----------------------------------------------------------------------------

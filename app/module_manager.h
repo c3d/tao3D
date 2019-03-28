@@ -509,11 +509,12 @@ private:
     };
 
 
-    struct FindAttribute : XL::Action
+    struct FindAttribute
     // ------------------------------------------------------------------------
     //   Find value of an attribute in a named section
     // ------------------------------------------------------------------------
     {
+        typedef Tree *value_type;
         // This action looks for the following pattern in the tree:
         //
         // ...
@@ -531,10 +532,14 @@ private:
                 sectionName(sectionName), attrName(attrName), lang(lang),
                 sectionFound(false) {}
 
-        Tree *DoBlock(Block *what);
+        Tree *DoInteger(Integer *)              { return NULL; }
+        Tree *DoReal(Real *)                    { return NULL; }
+        Tree *DoText(Text *)                    { return NULL; }
+        Tree *DoName(Name *)                    { return NULL; }
         Tree *DoInfix(Infix *what);
         Tree *DoPrefix(Prefix *what);
-        Tree *Do(Tree *what);
+        Tree *DoPostfix(Postfix *)              { return NULL; }
+        Tree *DoBlock(Block *what);
 
         text sectionName, attrName, lang;
         bool sectionFound;
@@ -779,12 +784,6 @@ inline Tree *ModuleManager::FindAttribute::DoPrefix(Prefix *what)
     }
     if (name && name->value == attrName)
         return what->right;
-    return NULL;
-}
-
-inline Tree *ModuleManager::FindAttribute::Do(Tree *what)
-{
-    (void) what;
     return NULL;
 }
 

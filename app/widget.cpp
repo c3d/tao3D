@@ -422,7 +422,7 @@ struct DisplayListInfo : XL::Info, InfoTrashCan
 };
 
 
-struct PurgeGLContextSensitiveInfo : XL::Action
+struct PurgeGLContextSensitiveInfo
 // ----------------------------------------------------------------------------
 //   Delete all Info structures that are invalid when the GL context is changed
 // ----------------------------------------------------------------------------
@@ -444,6 +444,32 @@ struct ExecOnceInfo : XL::Info
 //    Mark node for single execution
 // ----------------------------------------------------------------------------
 {};
+
+
+template <typename Action>
+void Widget::runPurgeAction(Action &purge)
+// ----------------------------------------------------------------------------
+//   Recurse "purge info" action on whole program including imports
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram || !xlProgram->tree)
+        return;
+
+    xlProgram->tree->Do(purge);
+    // Do it also on imported files
+    import_set iset;
+    ScanImportedFiles(iset, false);
+    {
+        import_set::iterator it;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            sf.tree->Do(purge);
+        }
+    }
+    // Drop the garbage
+    InfoTrashCan::Empty();
+}
 
 
 Widget::Widget(Widget &o, const QGLFormat &format)
@@ -679,31 +705,6 @@ Widget::~Widget()
     // Or make sure you set the correct GL context. See #1686.
 
     TextureCache::instance()->clear();
-}
-
-
-void Widget::runPurgeAction(XL::Action &purge)
-// ----------------------------------------------------------------------------
-//   Recurse "purge info" action on whole program including imports
-// ----------------------------------------------------------------------------
-{
-    if (!xlProgram || !xlProgram->tree)
-        return;
-
-    xlProgram->tree->Do(purge);
-    // Do it also on imported files
-    import_set iset;
-    ScanImportedFiles(iset, false);
-    {
-        import_set::iterator it;
-        for (it = iset.begin(); it != iset.end(); it++)
-        {
-            XL::SourceFile &sf = **it;
-            sf.tree->Do(purge);
-        }
-    }
-    // Drop the garbage
-    InfoTrashCan::Empty();
 }
 
 

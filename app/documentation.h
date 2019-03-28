@@ -42,7 +42,7 @@
 #include "tao_tree.h"
 
 
-struct ExtractComment : public XL::Action
+struct ExtractComment
 // ----------------------------------------------------------------------------
 //   Extract Comment surrounded by /*| |*/ from the given tree
 // ----------------------------------------------------------------------------

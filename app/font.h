@@ -47,7 +47,7 @@
 
 TAO_BEGIN
 
-struct FontParsingAction : XL::Action
+struct FontParsingAction
 // ----------------------------------------------------------------------------
 //   Parse a font description
 // ----------------------------------------------------------------------------
@@ -91,4 +91,3 @@ inline double fontSizeAdjust(double size)
 TAO_END
 
 #endif // FONT_H
-

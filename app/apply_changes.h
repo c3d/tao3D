@@ -44,6 +44,8 @@
 #include "action.h"
 #include <set>
 
+RECORDER_DECLARE(filesync);
+
 TAO_BEGIN
 
 struct ApplyChanges
@@ -51,6 +53,7 @@ struct ApplyChanges
 //   Check if we can apply changes from another tree on the current one
 // ----------------------------------------------------------------------------
 {
+    typedef Tree *value_type;
     ApplyChanges (Tree *r): replace(r) {}
     Tree *Do(Integer *what)
     {
@@ -59,9 +62,7 @@ struct ApplyChanges
             what->value = it->value;
             return what;
         }
-        IFTRACE(filesync)
-            std::cerr << "Integer " << (Tree *) what
-                      << " replaced with  " << (Tree *) replace << '\n';
+        record(filesync, "Integer %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
     Tree *Do(Real *what)
@@ -71,9 +72,7 @@ struct ApplyChanges
             what->value = rt->value;
             return what;
         }
-        IFTRACE(filesync)
-            std::cerr << "Real " << (Tree *) what
-                      << " replaced with  " << (Tree *) replace << '\n';
+        record(filesync, "Real %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
     Tree *Do(Text *what)
@@ -83,9 +82,7 @@ struct ApplyChanges
             what->value = tt->value;
             return what;
         }
-        IFTRACE(filesync)
-            std::cerr << "Text " << (Tree *) what
-                      << " replaced with  " << (Tree *) replace << '\n';
+        record(filesync, "Text %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
     Tree *Do(Name *what)
@@ -93,6 +90,7 @@ struct ApplyChanges
         if (Name *nt = replace->AsName())
             if (nt->value == what->value)
                 return what;
+        record(filesync, "Name %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
 
@@ -111,9 +109,7 @@ struct ApplyChanges
                 return NULL;
             }
         }
-        IFTRACE(filesync)
-            std::cerr << "Block " << (Tree *) what
-                      << " replaced with  " << (Tree *) replace << '\n';
+        record(filesync, "Block %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
     Tree *Do(Infix *what)
@@ -144,9 +140,7 @@ struct ApplyChanges
                 return what;
             }
         }
-        IFTRACE(filesync)
-            std::cerr << "Infix " << (Tree *) what
-                      << " replaced with  " << (Tree *) replace << '\n';
+        record(filesync, "Infix %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
     Tree *Do(Prefix *what)
@@ -165,9 +159,7 @@ struct ApplyChanges
                 return NULL;
             return what;
         }
-        IFTRACE(filesync)
-            std::cerr << "Prefix " << (Tree *) what
-                      << " replaced with  " << (Tree *) replace << '\n';
+        record(filesync, "Prefix %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
     Tree *Do(Postfix *what)
@@ -186,9 +178,7 @@ struct ApplyChanges
                 return NULL;
             return what;
         }
-        IFTRACE(filesync)
-            std::cerr << "Postfix " << (Tree *) what
-                      << " replaced with  " << (Tree *) replace << '\n';
+        record(filesync, "Postfix %t replaced with %t", what, (Tree *) replace);
         return NULL;
     }
     Tree *Do(Tree * )

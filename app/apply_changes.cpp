@@ -40,14 +40,77 @@
 #include "apply_changes.h"
 #include "main.h"
 #include "widget_surface.h"
-#include "hash.h"
-#include "sha1_ostream.h"
 #include "widget.h"
 #include "tao_utf8.h"
 #include <iostream>
 #include <sstream>
 
+
+RECORDER(filesync, 32, "File synchronization (on file reload)");
+
 TAO_BEGIN
+
+struct TreeHash
+// ----------------------------------------------------------------------------
+//    Hash function for a tree
+// ----------------------------------------------------------------------------
+{
+    typedef uint64 value_type;
+    value_type Do(Integer *what)
+    {
+        return what->value;
+    }
+    value_type Do(Real *what)
+    {
+        return *((value_type *) &what->value);
+    }
+    value_type Do(Text *what)
+    {
+        return Compute(what->value,   0xBABAC00L)
+            ^  Compute(what->opening, 0xBADF00D)
+            ^  Compute(what->closing, 0x600DBEEF);
+    }
+    value_type Do(Name *what)
+    {
+        return Compute(what->value, 0xFABD00DL);
+    }
+    value_type Do(Infix *what)
+    {
+        return Compute(what->name, 0xABB00L)
+            ^  what->left->Do(this)
+            ^  what->right->Do(this);
+    }
+    value_type Do(Prefix *what)
+    {
+        return 0x73F7541F7
+            ^  what->left->Do(this)
+            ^  what->right->Do(this);
+    }
+    value_type Do(Postfix *what)
+    {
+        return 0xB057F1C5
+            ^  what->left->Do(this)
+            ^  what->right->Do(this);
+    }
+    value_type Do(Block *what)
+    {
+        return 0xB70C4
+            ^  what->child->Do(this);
+    }
+    static value_type Compute(kstring ptr, value_type seed)
+    {
+        value_type result = seed;
+        kstring last = ptr + 64;
+        while (*ptr && ptr < last)
+            result = (result * 0x1081) ^ *ptr++;
+        return result;
+    }
+    static value_type Compute(const text &value, value_type seed)
+    {
+        return Compute(value.c_str(), seed);
+    }
+};
+
 
 void ScanImportedFiles(import_set &done, bool markChanged)
 // ----------------------------------------------------------------------------
@@ -63,26 +126,18 @@ void ScanImportedFiles(import_set &done, bool markChanged)
     for (it = files.begin(); it != files.end(); it++)
     {
         SourceFile &sf = (*it).second;
-        if (sf.tree && !done.count(&sf))
+        Tree *source = sf.tree;
+        if (source && !done.count(&sf))
         {
             done.insert(&sf);
             if (markChanged)
             {
-                text prev_hash = sf.hash;
-                TreeHashAction<> hash(XL::TreeHashAction<>::Force);
-                sf.tree->Do(hash);
-                std::ostringstream os;
-                os << sf.tree->Get< HashInfo<> > ();
-                sf.hash = os.str();
-
-                if (!prev_hash.empty() && sf.hash != prev_hash)
-                {
-                    IFTRACE(filesync)
-                        std::cerr << "Hash changed from " << prev_hash
-                                  << " to " << sf.hash
-                                  << " for file " << sf.name << "\n";
-                    sf.changed = true;
-                }
+                TreeHash hash;
+                uint64 old_hash = sf.hash;
+                uint64 new_hash = source->Do(hash);
+                record(filesync, "Computed hash for %s: %llX (was %llX)",
+                       sf.name.c_str(), new_hash, old_hash);
+                sf.changed = old_hash != new_hash;
             }
         }
     }

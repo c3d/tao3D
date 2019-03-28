@@ -111,8 +111,6 @@ RECORDER(tao_gc,        16, "Garbage collection thread in Tao");
 RECORDER(tao_glinfo,    16, "OpenGL information");
 RECORDER(tao_fileload,  16, "Loading files in Tao");
 
-XL_DEFINE_TRACES
-
 namespace Tao {
 
 QPixmap * Application::padlockIcon = NULL;
@@ -211,7 +209,6 @@ void Application::deferredInit()
 
     // Setup the XL runtime environment
     // Do it soon because debug traces are activated by this
-    XL_INIT_TRACES();
     updateSearchPaths();
     QFileInfo syntax    ("system:xl.syntax");
     QFileInfo stylesheet("system:xl.stylesheet");
@@ -221,7 +218,10 @@ void Application::deferredInit()
     QVector<char *> args;
     foreach (QString arg, arguments())
         args.append(strdup(arg.toUtf8().constData()));
-    xlr = new Main(args.size(), args.data(), "xl_tao",
+    XL::path_list bin { +syntax.absoluteDir().absolutePath() };
+    XL::path_list lib {  +syntax.absoluteDir().absolutePath() };
+    xlr = new Main(args.size(), args.data(), bin, lib,
+                   "xl_tao",
                    +syntax.absoluteFilePath(),
                    +stylesheet.absoluteFilePath(),
                    +builtins.absoluteFilePath());
@@ -357,12 +357,10 @@ void Application::deferredInit()
     // Initialize the graphics just below contents of basics.tbl
     Initialize();
     record(tao_app, "Create main symbol table for XL");
-    xlr->CreateScope();
+    xlr->context.CreateScope();
 
     // Activate basic compilation
     xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
-    record(tao_app, "Setup XL compiler");
-    xlr->SetupCompiler();
 
     // Load settings
     loadDebugTraceSettings();

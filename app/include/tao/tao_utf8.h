@@ -55,12 +55,12 @@ inline QString operator +(text s)
 }
 
 
-inline text operator +(QString s)
+inline kstring operator +(QString s)
 // ----------------------------------------------------------------------------
-//   Quickly convert from QString to text
+//   Quickly convert from QString to kstring (can also be used for text)
 // ----------------------------------------------------------------------------
 {
-    return text(s.toUtf8().constData());
+    return s.toUtf8().constData();
 }
 
 TAO_END

@@ -127,8 +127,7 @@ void EulaDialog::done(int r)
     if (r == QMessageBox::Ok)
     {
         QString accepted(GITREV_);
-        record(settings, "EULA accepted, saving version %s",
-               accepted.toUtf8().data());
+        record(settings, "EULA accepted, saving version %s", +accepted);
         QSettings().setValue(EULA_SETTING_NAME, QVariant(accepted));
     }
     QMessageBox::done(r);
@@ -143,7 +142,7 @@ bool EulaDialog::previouslyAccepted()
     QString accepted = QSettings().value(EULA_SETTING_NAME).toString();
     QString current = QString(GITREV_);
     record(settings, "Tao versions: Current " GITREV_ " accpted %s %+s",
-           accepted.toUtf8().data(),
+           +accepted,
            accepted == current ? "identical" : "different");
     return (accepted == current);
 }

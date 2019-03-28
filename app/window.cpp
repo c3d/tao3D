@@ -2628,7 +2628,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 {
     record(fileload, "Loading %+s %s",
            openProj ? "project" : "file",
-           fileName.toUtf8().data());
+           +fileName);
 
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 

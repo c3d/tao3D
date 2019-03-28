@@ -832,10 +832,10 @@ void Application::processCommandLineFile()
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
     record(tao_app, "user.xl absolute path is %s, file %+s",
-           user.absoluteFilePath().toUtf8().data(),
+           +user.absoluteFilePath(),
            user.exists() ? "exists" : "does not exist");
     record(tao_app, "theme.xl absolute path is %s, file %+s",
-           theme.absoluteFilePath().toUtf8().data(),
+           +theme.absoluteFilePath(),
            theme.exists() ? "exists" : "does not exist");
     if (user.exists())
         contextFiles.push_back(+user.absoluteFilePath());
@@ -854,8 +854,7 @@ void Application::processCommandLineFile()
     if (toOpen.isEmpty())
     {
         toOpen = win->welcomePath();
-        record(tao_app, "No file to open, selected welcome at %s",
-               toOpen.toUtf8().data());
+        record(tao_app, "No file to open, selected welcome at %s", +toOpen);
     }
     XL_ASSERT(!toOpen.isEmpty());
 
@@ -906,9 +905,8 @@ void Application::loadUri(QString uri)
 //   Load a Tao URI into main window
 // ----------------------------------------------------------------------------
 {
-    record(fileload, "Load URI %s, %+s",
-           uri.toUtf8().data(),
-           readyToLoad ? "ready" : "pending");
+    record(fileload,
+           "Load URI %s, %+s", +uri, readyToLoad ? "ready" : "pending");
     if (readyToLoad)
         win->open(uri);
     else
@@ -1481,7 +1479,7 @@ void Application::saveSettings()
     IFTRACE(settings)
     {
         foreach (QString s, urlList)
-            record(settings, "  url %s", s.toUtf8().data());
+            record(settings, "  url %s", +s);
     }
 
     QSettings().setValue("PathCompletions", QVariant(pathList));
@@ -1489,7 +1487,7 @@ void Application::saveSettings()
     IFTRACE(settings)
     {
         foreach (QString s, pathList)
-            record(settings, "  path %s", s.toUtf8().data());
+            record(settings, "  path %s", +s);
     }
 }
 

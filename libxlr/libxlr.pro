@@ -45,8 +45,8 @@ QT      -= core gui
 
 INC = . \
     xlr/include \
-    xlr/ \
-    ..
+    xlr
+
 INCLUDEPATH += $$INC
 DEPENDPATH += $$INC
 

@@ -54,10 +54,11 @@ INC = . \
     include \
     include/tao \
     ../libxlr \
-    ../libxlr/xlr/src \
+    ../libxlr/xlr/include \
     ../libxlr/xlr \
     ../libcryptopp \
     ../keygen
+
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
 LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp

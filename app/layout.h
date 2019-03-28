@@ -54,6 +54,9 @@
 #include <QFont>
 #include <QEvent>
 #include <float.h>
+#include <recorder/recorder.h>
+
+RECORDER_DECLARE(layoutevents);
 
 
 TAO_BEGIN

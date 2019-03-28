@@ -52,6 +52,8 @@
 #include <QFont>
 
 
+RECORDER_DEFINE(justify, 16, "Text justification operations");
+
 TAO_BEGIN
 
 // ============================================================================
@@ -83,9 +85,7 @@ LayoutLine::LayoutLine(coord left, coord right, Justification &j)
 // ----------------------------------------------------------------------------
     : bounds(Point(left, 0), Point(right, 0)), line(), perSolid(0), perBreak(0)
 {
-    IFTRACE(justify)
-        std::cerr << "##### "<< left <<" ##### new LayoutLine L-R " << this
-                  << "##### "<< right <<" #####\n";
+    record(justify, "Layout line %p: %f - %f", this, left, right);
     line.BeginLayout(left, right, j);
 }
 
@@ -95,11 +95,8 @@ LayoutLine::~LayoutLine()
 //    The real work happens in the LineJustifier's destructor
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-            std::cerr << "->LayoutLine::~LayoutLine["<< this << "]\n";
+    record(justify, "Delete layout line %p", this);
     line.Clear();
-    IFTRACE(justify)
-            std::cerr << "<-LayoutLine::~LayoutLine["<< this << "]\n";
 }
 
 
@@ -110,9 +107,7 @@ void LayoutLine::Draw(Layout *where)
 {
     assert(!line.data && "LayoutLine::Draw called before layout");
 
-    IFTRACE(justify)
-        std::cerr << "->LayoutLine:" << this
-                  << ":Draw(Layout * " << where << ")\n";
+    record(justify, "Draw layout line %p in layout %p", this, where);
 
     // Copy the perSolid we computed to the layout we draw in
     where->alongX.perSolid = perSolid;
@@ -125,17 +120,9 @@ void LayoutLine::Draw(Layout *where)
     {
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
-        IFTRACE(justify)
-            std::cerr << "--LayoutLine::Draw child is "
-                      << child << ":"
-                      << demangle(typeid(*child).name()) << std::endl;
-
         XL::Save<coord> saveX(where->offset.x, where->offset.x+place.position);
         child->Draw(where);
     }
-
-    IFTRACE(justify)
-        std::cerr << "<-LayoutLine:"<< this << ":Draw\n";
 }
 
 
@@ -241,9 +228,7 @@ PageLayout::PageLayout(Widget *widget)
     : Layout(widget),
       space(), bounds(), page(), currentFlow(NULL), selectId(0)
 {
-    IFTRACE(justify)
-        std::cerr << "<->PageLayout::PageLayout [" << this
-                  << "] from widget " << widget << std::endl;
+    record(justify, "Page layout %p from widget %p", this, widget);
 }
 
 
@@ -254,9 +239,7 @@ PageLayout::PageLayout(const PageLayout &o)
     : Layout(o), space(o.space), bounds(o.bounds),
       page(), currentFlow(NULL), selectId(0)
 {
-    IFTRACE(justify)
-            std::cerr << "<->PageLayout::PageLayout[" << this
-                      <<  "] from layout " << &o <<std::endl;
+    record(justify, "Page layout %p from layout %p", this, &o);
     space |= Point(0,0);
 }
 
@@ -266,11 +249,8 @@ PageLayout::~PageLayout()
 //    Destroy the page layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->PageLayout::~PageLayout " << this << std::endl;
+    record(justify, "Delete page layout %p", this);
     Clear();
-    IFTRACE(justify)
-        std::cerr << "<-PageLayout::~PageLayout " << this << std::endl;
 }
 
 
@@ -282,9 +262,7 @@ void PageLayout::Draw(Layout *where)
 //   and then only iterate on the items that were placed, not all items,
 //   taking the layout offset from the placed position
 {
-    IFTRACE(justify)
-        std::cerr << "->PageLayout::Draw ["<< this << "] offset "
-                  << where->Offset() <<  "\n";
+    record(justify, "Draw page layout %p offset %f", this, where->Offset());
 
     // Inherit state from where, compute layout if necessary
     Compute(where);
@@ -301,22 +279,13 @@ void PageLayout::Draw(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-
-        IFTRACE(justify)
-            std::cerr << "--PageLayout::Draw ["<< this
-                      << "] saved y = " << where->offset.y
-                      << " -- new y = " << where->offset.y + place.position
-                      << "\n";
-
+        record(justify, "Page layout %p from %f to %f",
+               this, where->offset.y, where->offset.y + place.position);
         XL::Save<coord> saveY(offset.y, offset.y+place.position);
         child->Draw(this);
     }
     PopLayout();
-
-    IFTRACE(justify)
-        std::cerr << "<-PageLayout::Draw ["<< this << "] offset = "
-                  << where->Offset()
-                  << " -- where->offset = "<<  where->Offset() << "\n";
+    record(justify, "Page layout %p done, offset %f", this, where->Offset());
 }
 
 
@@ -558,8 +527,7 @@ void PageLayout::Clear()
 //   When we clear a page layout, we need to also clear placed items
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "-- PageLayout::Clear ["<< this << "] \n";
+    record(justify, "Clear page layout %p", this);
     Layout::Clear();
     assert(page.Empty() || !"PageLayout::Clear called with dirty cache");
 }
@@ -581,8 +549,7 @@ void PageLayout::Compute(Layout *where)
 //   Layout all elements on the page, preserving layout state
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->PageLayout::Compute ["<< this <<"]\n";
+    record(justify, "Compute page layout %p in layout %p", this, where);
 
     // Get attributes from surrounding context
     Inherit(where);
@@ -618,9 +585,6 @@ void PageLayout::Compute(Layout *where)
 
     // Restore state as it was at the beginning of the layout
     Inherit(where);
-
-    IFTRACE(justify)
-        page.Dump("<-PageLayout::Compute");
 
 }
 
@@ -786,10 +750,7 @@ TextFlow::TextFlow(Layout *layout, text flowName)
     : Layout(*layout), flowName(flowName),
       textBoxIds(), current(0), reject(), lastSplit(NULL)
 {
-    IFTRACE(justify)
-        std::cerr << "TextFlow::TextFlow[" << this
-                  << "] flowname " << flowName
-                  << " Layout to copy " << layout << std::endl;
+    record(justify, "Text flow %p from layout %p", this, layout);
 }
 
 
@@ -798,15 +759,9 @@ TextFlow::~TextFlow()
 //    Make sure that the widget drops references to this flow
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->TextFlow::~TextFlow[" << this
-                  << "] flowname " << flowName << std::endl;
+    record(justify, "Delete text flow %p", this);
     Clear();
     display->eraseFlow(flowName);
-    IFTRACE(justify)
-        std::cerr << "<-TextFlow::~TextFlow[" << this
-                  << "] flowname " << flowName << std::endl;
-
 }
 
 
@@ -849,9 +804,7 @@ void TextFlow::Clear()
 //   Reset the text flow to the initial setup
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "-> TextFlow::Clear ["<< this << "] " << flowName <<" \n";
-
+    record(justify, "Clear text flow %p", this);
     Layout::Clear();
 
     assert(reject.size() == 0 || !"TextFlow::Clear called with dirty 'reject'");
@@ -861,8 +814,6 @@ void TextFlow::Clear()
     current = 0;
     textBoxIds.clear();
     reject.clear();
-    IFTRACE(justify)
-        std::cerr << "<- TextFlow::Clear ["<< this << "]  \n";
 }
 
 
@@ -871,8 +822,7 @@ void TextFlow::ClearCaches()
 //   Drop all cached references to other drawings from this text flow
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "-> TextFlow::ClearCaches ["<<this<<"] "<<flowName<<" \n";
+    record(jutsify, "Clear text flow %p caches", this);
 
     // Clear caches from rejects
     Drawings r = reject;
@@ -890,9 +840,6 @@ void TextFlow::ClearCaches()
     // We need to restart from the beginning
     current = 0;
     Layout::ClearCaches();
-
-    IFTRACE(justify)
-        std::cerr << "<- TextFlow::ClearCaches ["<<this<<"] "<<flowName<<" \n";
 }
 
 
@@ -902,10 +849,7 @@ bool TextFlow::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   This scenario happens if you put a text box definition inside a text flow
 {
-    IFTRACE(justify)
-        std::cerr << "-> TextFlow::Paginate ["<< this << "] pageLayout "
-                  << page <<  "\n";
-
+    record(justify, "Paginate text flow %p in page %p", this, page);
     XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
 
     // Since text flows and pages can refresh independently, each one need
@@ -924,9 +868,6 @@ bool TextFlow::Paginate(PageLayout *page)
     for (d = rej.begin(); ok && d != rej.end(); d++)
     {
         Drawing *child = *d;
-        IFTRACE(justify)
-            std::cerr << "-- TextFlow::Paginate [" << this
-                      << "] repaginating reject " << child <<  "\n";
         ok = child->Paginate(page);
     }
     reject.insert(reject.end(), d, rej.end());
@@ -935,17 +876,10 @@ bool TextFlow::Paginate(PageLayout *page)
     while (ok && current < max)
     {
         Drawing *child = items[current];
-        IFTRACE(justify)
-            std::cerr << "-- TextFlow::Paginate ["<< this
-                      << "] paginating #" << current
-                      << " child " << child <<  "\n";
         ok = child->Paginate(page);
         if (ok)
             current++;
     }
-    IFTRACE(justify)
-        std::cerr << "<- TextFlow::Paginate ["<< this << "] pageLayout "
-                  << page <<  "\n";
     return ok;
 }
 
@@ -957,14 +891,10 @@ void TextFlow::Transfer(LayoutLine *line)
 {
     typedef Justifier<Drawing *> DJ;
     DJ::Places &places = line->line.places;
+    record(justify, "Transfer layout %p lines %p (%u places)",
+           this, lines, places.size());
     for(DJ::PlacesIterator p = places.begin(); p != places.end(); p++)
-    {
-        IFTRACE(justify)
-            std::cerr << "-- TextFlow::Transfer ["<< this
-                      << "] added to reject "
-                      << (*p).item <<  "\n";
         reject.push_back((*p).item);
-    }
     places.clear();
 }
 
@@ -1217,9 +1147,7 @@ AnchorLayout::AnchorLayout(Widget *widget, bool abs)
 // ----------------------------------------------------------------------------
     : Layout(widget), absolute(abs)
 {
-    IFTRACE(justify)
-        std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
-                  << "] Widget " << widget << "\n";
+    record(justify, "Anchor layout %p in widget %p", this, widget);
 }
 
 
@@ -1229,9 +1157,7 @@ AnchorLayout::AnchorLayout(const AnchorLayout &o)
 // ----------------------------------------------------------------------------
     : Layout(o), absolute(false)
 {
-    IFTRACE(justify)
-        std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
-                  << "] layout " << &o << "\n";
+    record(justify, "Anchor layout %p from %p", this, &o);
 }
 
 
@@ -1240,9 +1166,7 @@ AnchorLayout::~AnchorLayout()
 //   Delete the layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "<->AnchorLayout::~AnchorLayout ["<< this
-                  << "]\n";
+    record(justify, "Delete anchor layout %p", this);
 }
 
 
@@ -1251,6 +1175,7 @@ void AnchorLayout::Draw(Layout *where)
 //   Draw all the children
 // ----------------------------------------------------------------------------
 {
+    record(justify, "Draw anchor layout %p in %p", this, where);
     GLMatrixKeeper saveMatrix;
     if (!where)
     {
@@ -1260,10 +1185,7 @@ void AnchorLayout::Draw(Layout *where)
 
     Vector3 zero(0,0,0);
     Vector3 &o = absolute ? zero : where->offset;
-    IFTRACE(justify)
-        std::cerr << "AnchorLayout:" << this << ":Draw(Layout *" << where
-                  << ") translate to " << o <<std::endl;
-
+    record(justify, "   offset (%f, %f, %f)", o.x, o.y, o.z);
     GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Draw(where);
@@ -1301,6 +1223,8 @@ bool AnchorLayout::Paginate(PageLayout *page)
 //    Since the anchor layout is floating, do not paginate its contents
 // ----------------------------------------------------------------------------
 {
+    record(justify, "Paginate anchor layout %p in page %p", this, page);
+
     // Like any layout, an anchor layout may refresh at its own pace.
     // If the anchor layout is inside a text flow, we need to ensure that
     // the page gets refreshed when the text flow or anchor layout is.

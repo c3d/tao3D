@@ -81,8 +81,7 @@ TextSplit::TextSplit(Text *source, uint start, uint end)
 // ----------------------------------------------------------------------------
     : Shape(), source(source), start(start), end(end)
 {
-    IFTRACE(justify)
-        std::cerr << "<->TextSplit::TextSplit[" << this << "]\n";
+    record(justify, "Text split %p", this);
 }
 
 
@@ -91,11 +90,8 @@ TextSplit::~TextSplit()
 //    Delete a text unit
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->TextSplit::~TextSplit[" << this << "]\n";
+    record(justify, "Delete text split %p", this);
     Clear();
-    IFTRACE(justify)
-        std::cerr << "<-TextSplit::~TextSplit[" << this << "]\n";
 }
 
 
@@ -123,14 +119,8 @@ void TextSplit::Draw(Layout *where)
                              TaoApp->hasGLMultisample;
     bool        badSize    = tooBig || tooSmall;
     Point3      offset0    = where->Offset();
-    IFTRACE(justify)
-        std::cerr << "<->TextSplit::Draw(Layout *" << where
-                  <<") [" << this
-                  << "] offset0 :" << offset0 // << " font " << +font.toString()
-                  << " Layout font " << +where->font.toString()
-                  << " Layout color " << where->fillColor
-                  << std::endl
-                  << *this << std::endl;
+    record(justify, "Text split %p draw in layout %p offset %f",
+           this, where, offset0);
 
     // Check if we activated new texture units
     glyphs.CheckActiveLayout(where);
@@ -925,11 +915,8 @@ void TextSplit::Draw(GraphicPath &path, Layout *l)
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->TextSplit::Draw (GraphicPath &path, Layout *"
-                  << l << ") [" << this << "] layout font"
-                  << +l->font.toString() << "\n"
-                  << *this << "\n";
+    record(justify, "Text split %p draw path %p in layout %p",
+           this, &path, l);
     Point3 position = path.position;
     QFontMetricsF fm(l->font);
     QPainterPath qt;
@@ -951,9 +938,6 @@ void TextSplit::Draw(GraphicPath &path, Layout *l)
 
     path.addQtPath(qt, -1);
     path.moveTo(position);
-    IFTRACE(justify)
-        std::cerr << "<-TextSplit::Draw (GraphicPath &path, Layout *"
-                << l << ") [" << this << "]\n";
 }
 
 
@@ -1045,10 +1029,7 @@ Box3 TextSplit::Space(Layout *where)
     coord       z        = pos.z;
 
     GlyphCache::GlyphEntry  glyph;
-    IFTRACE(justify)
-        std::cerr << "->TextSplit::Space(Layout *" << where<< ") offset "
-                  << where->Offset() << " for\n"
-                  << *this << "\n";
+    record(justify, "Text split %p space in layout %p", this, where);
 
     // Loop over all characters in the text span
     uint i, max = str.length();
@@ -1081,15 +1062,12 @@ Box3 TextSplit::Space(Layout *where)
         // Advance to next character
         if (newLine)
         {
-            IFTRACE(justify)
-                std::cerr << "--TextSplit::Space(Layout *" << where
-                          << ")  newline "
-                          << " y (" << y << ") -= sa + sd + sl ("<< sa + sd + sl
-                          << ") ==> " << y - (sa + sd + sl) << std::endl;
-
+            coord delta = sa + sd + sl;
+            record(justify, "Text split new line %d - %d = %d",
+                   y, delta, y - delta);
             result |= Point3(charX1, y - sd - sl, z);
             x = 0;
-            y -= sa + sd + sl;
+            y -= delta;
         }
         else
         {
@@ -1098,11 +1076,6 @@ Box3 TextSplit::Space(Layout *where)
         }
     }
     where->offset = Point3(x,y,z);
-    IFTRACE(justify)
-        std::cerr << "<-TextSplit::Space(Layout *" << where<< ") offset "
-                  << where->Offset() << " result "
-                  << result << "\n";
-
     return result;
 }
 
@@ -1169,10 +1142,7 @@ Box3 TextSplitArabic::Space(Layout *where)
     coord       z        = pos.z;
 
     GlyphCache::GlyphEntry  glyph;
-    IFTRACE(justify)
-        std::cerr << "->TextSplit::Space(Layout *" << where<< ") offset "
-                  << where->Offset() << " for\n"
-                  << *this << "\n";
+    record(justify, "Text split %p space in layout %p", this, where);
 
     // Loop over all characters in the text span
     uint max = str.length();
@@ -1203,11 +1173,6 @@ Box3 TextSplitArabic::Space(Layout *where)
         x += glyph.advance;
     }
     where->offset = Point3(x,y,z);
-    IFTRACE(justify)
-        std::cerr << "<-TextSplit::Space(Layout *" << where<< ") offset "
-                  << where->Offset() << " result "
-                  << result << "\n";
-
     return result;
 }
 
@@ -1298,11 +1263,7 @@ scale TextSplit::TrailingSpaceSize(Layout *where)
     scale result = box.Width();
     if (result < 0)
         result = 0;
-    IFTRACE(justify)
-        std::cerr << "<->TextSplit::TrailingSpaceSize[" << this << "] font "
-                  << +where->font.toString() <<" returns " << result<< " for\n"
-                  << *this << "\n";
-
+    record(justify, "Text split %p trailing space size %f", this, result);
    return result;
 }
 
@@ -1548,8 +1509,7 @@ TextUnit::TextUnit(Text *source, uint start, uint end)
 // ----------------------------------------------------------------------------
     : TextSplit(source, start, end), splits()
 {
-    IFTRACE(justify)
-        std::cerr << "<->TextUnit::TextUnit[" << this << "]\n";
+    record(justify, "Text unit %p in %t range %u-%u", this, source, start, end);
 }
 
 
@@ -1558,8 +1518,7 @@ TextUnit::~TextUnit()
 //    Delete a text unit
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "<->TextUnit::~TextUnit[" << this << "]\n";
+    record(justify, "Delete text unit %p", this);
     Clear();
 }
 
@@ -1627,9 +1586,7 @@ bool TextUnit::Paginate(PageLayout *page)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->TextUnit::Paginate[" << this << "] nb splits :"
-                  << splits.size() <<"\n";
+    record(justify, "Text unit %p paginate in page %p", this, page);
     text str = source->value;
     uint i, max = str.length();
     bool ok = true;
@@ -1704,10 +1661,6 @@ bool TextUnit::Paginate(PageLayout *page)
         splits.push_back(split);
         ok = page->PaginateItem(split, NoBreak, size);
     }
-    IFTRACE(justify)
-        std::cerr << "<-TextUnit::Paginate[" << this << "] nb splits :"
-                     << splits.size() <<"\n";
-
     return ok;
 }
 
@@ -1734,8 +1687,7 @@ void TextUnit::Clear()
 //   Delete all split text units we created
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-            std::cerr << "-> TextUnit::ClearSplits["<< this << "]\n";
+    record(justify, "Text unit %p cleared", this);
 
     // Make sure we cleared the caches before
     ClearCaches();
@@ -1746,9 +1698,6 @@ void TextUnit::Clear()
     for (i = 0; i < max; i++)
         delete splits[i];
     splits.clear();
-
-    IFTRACE(justify)
-        std::cerr << "<- TextUnit::ClearSplits["<< this << "]\n";
 }
 
 

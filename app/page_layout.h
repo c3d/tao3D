@@ -43,7 +43,9 @@
 #include "shapes.h"
 #include "justification.h"
 #include "attributes.h"
+#include <recorder/recorder.h>
 
+RECORDER_DECLARE(justify);
 
 TAO_BEGIN
 
@@ -186,20 +188,14 @@ struct TextSpan : Layout
 {
     TextSpan(Layout *layout): Layout(*layout), state(*layout), restore(NULL)
     {
-        IFTRACE(justify)
-            std::cerr << "<->TextSpan::TextSpan ["<< this
-                      << "] from layout " << layout << "\n";
+        record(justify, "TextSpan %p in layout %p", this, layout);
     }
     TextSpan(const TextSpan &o): Layout(o), state(o.state), restore(NULL)
     {
-        IFTRACE(justify)
-            std::cerr << "<->TextSpan::TextSpan ["<< this
-                      << "] from TextSpan " << &o << "\n";
+        record(justify, "TextSpan %p from TextSpan %p", this, &o);
     }
     ~TextSpan()         {
-        IFTRACE(justify)
-            std::cerr << "<->TextSpan::~TextSpan ["<< this
-                      << "] \n";
+        record(justify, "Delete TextSpan %p restore=%p", this, restore);
         delete restore;
     }
 

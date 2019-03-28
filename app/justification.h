@@ -231,15 +231,11 @@ void Justifier<Item>::Clear()
 //   Delete the elements we have moved in places
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->Justifier<Item>::Clear()[" << this << "]\n";
-
+    record(justify, "Clear item %p", this)
     PurgeItems();
     places.clear();
     delete data;
     data = NULL;
-    IFTRACE(justify)
-        std::cerr << "<-Justifier<Item>::Clear()[" << this << "]\n";
 }
 
 
@@ -261,9 +257,7 @@ void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 //   Create data for the given
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "Justifier[" << this << "]::BeginLayout "
-                  << start << " - " << end << "\n";
+    record(justify, "Begin layout in %p range %f..%f", this, start, end);
     delete data;
     data = new LayoutData(start, end, j);
 };
@@ -282,14 +276,12 @@ bool Justifier<Item>::AddItem(Item item, uint count,
         return false;
 
     bool reverse = item->IsRTL();
-    IFTRACE(justify)
-        std::cerr << "Justifier[" << this << "]::AddItem "
-                  << item << ":" << demangle(typeid(*item).name())
-                  << " * " << count
-                  << (solid ? " solid " : " break ")
-                  << (reverse ? " reverse " : " forward ")
-                  << size << " + " << offset << " "
-                  << (forceBreak ? "force-break\n" : "\n");
+    record(justify, "Add %+s %+s %+s %+s * %u to %p size %f offset %f",
+           forceBreak ? "forced" : "normal",
+           solid ? "solid" : "breaking",
+           reverse ? "reverse" : "forward",
+           typeid(*item).name(),
+           this, size, offset);
 
     // Shortcuts for elements of data
     Justification &justify      = data->justify;
@@ -327,12 +319,9 @@ bool Justifier<Item>::AddItem(Item item, uint count,
         return false;
     }
 
-    IFTRACE(justify)
-        std::cerr << "Justifier[" << this << "]: Place at "
-                  << pos << (sign == 1 ? " + " : "-") << offset
-                  << " = " << pos + sign*offset << std::endl;
-
     coord offPos = pos + sign * offset;
+    record(justify, "Placed at %f %+s %f = %f",
+           pos, sign > 0 ? "+" : "-", offset, offPos);
     places.push_back(Place(item, count, solid, reverse, size, offPos, lspace));
     pos += sign * size;
     lastOversize = size - originalSize;
@@ -387,8 +376,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
 //   Final positioning of items after we processed all of them
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "Justifier[" << this << "]::EndLayout\n";
+    record(justify, "End layout in %p");
 
     // Shortcuts for elements of data
     Justification &justify      = data->justify;
@@ -478,11 +466,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
             }
         }
 
-        IFTRACE(justify)
-                std::cerr << "Justifier<Item>::Adjust Place.position change by "
-                          << offset << " to "
-                          << place.position << std::endl;
-
+        record(justify, "Adjust %p by %f to %f", this, offset, place.position);
     }
 
     // Final adjustment

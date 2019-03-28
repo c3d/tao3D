@@ -48,9 +48,7 @@ SpaceLayout::SpaceLayout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Layout(widget)
 {
-    IFTRACE(justify)
-            std::cerr << "<->SpaceLayout::SpaceLayout "<<this << std::endl;
-
+    record(justify, "Space layout %p in widget %p", this, widget);
 }
 
 
@@ -59,8 +57,7 @@ SpaceLayout::~SpaceLayout()
 //   Destructor
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "<->SpaceLayout::~SpaceLayout "<<this << std::endl;
+    record(justify, "Delete space layout %p", this);
 }
 
 

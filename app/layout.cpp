@@ -49,6 +49,9 @@
 #include <sstream>
 #include "demangle.h"
 
+RECORDER_DEFINE(layoutevents, 32, "Layout events");
+RECORDER_DEFINE(lfps, 16, "Layout frames-per-second stats");
+
 TAO_BEGIN
 
 int   Layout::polygonOffset   = 0;
@@ -170,10 +173,8 @@ Layout::Layout(Widget *widget)
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {
-    IFTRACE(justify)
-        std::cerr << "<-> Layout::Layout ["<< this << "] parent widget is "
-                  << widget << " layout is "
-                  << widget->layout <<"\n";
+    record(justify, "Layout %p parent is %p with layout %p",
+           this, widget, widget->layout);
 }
 
 
@@ -185,9 +186,7 @@ Layout::Layout(const Layout &o)
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {
-    IFTRACE(justify)
-        std::cerr << "<-> Layout::Layout ["<< this << "] parent layout is "
-                  << &o <<"\n";
+    record(justify, "Layout %p parent is %p", this, &o);
 }
 
 
@@ -196,11 +195,8 @@ Layout::~Layout()
 //   Destroy a layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "-> Layout::~Layout ["<< this << "] \n";
+    record(justify, "Delete layout %p", this);
     Clear();
-    IFTRACE(justify)
-        std::cerr << "<- Layout::~Layout ["<< this << "] \n";
 }
 
 
@@ -211,10 +207,8 @@ Layout *Layout::AddChild(uint childId,
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(layoutevents)
-        std::cerr << "Adding child id " << childId << " to " << id
-                  << " with body: " << body << "\n";
-
+    record(layoutevents, "Adding child id %u to %u with body %t",
+           childId, id, (Tree *) body);
     Layout *result = child ? child : NewChild();
     Add(result);
     result->idx = items.size();
@@ -230,8 +224,7 @@ void Layout::Clear()
 //   Reset the layout (mostly) to the initial setup
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "-> Layout::Clear ["<< this << "] \n";
+    record(justify, "Clear layout %p", this);
 
     // Clear caches before
     ClearCaches();
@@ -241,13 +234,7 @@ void Layout::Clear()
 
     // Remove items now that they are no longer referenced elsewhere
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
-    {
-        IFTRACE(justify)
-            std::cerr << "-- Layout::Clear ["<< this << "] delete drawing "
-                      << (void*) *i << " of type "
-                      << demangle(typeid(**i).name()) << std::endl;
         delete *i;
-    }
     items.clear();
 
     // Initial state has no rotation or attribute changes
@@ -255,8 +242,7 @@ void Layout::Clear()
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
-    IFTRACE(justify)
-        std::cerr << "<- Layout::Clear ["<< this << "] \n";
+    record(justify, "Cleared layout %p", this);
 }
 
 
@@ -266,30 +252,17 @@ void Layout::ClearCaches()
 // ----------------------------------------------------------------------------
 {
     // Clear all pages we may have sent data to
-    IFTRACE(justify)
-        std::cerr << "Layout::ClearCaches ["<< this << "]\n";
+    record(justify, "Clear caches in %p", this);
 
     // Remove cached references
     Drawings ch = caches;
     caches.clear();
     for (Drawings::iterator d = ch.begin(); d != ch.end(); d++)
-    {
-        IFTRACE(justify)
-            std::cerr << "[" << this << "]  cache "
-                      << demangle(typeid(**d).name())
-                      << "@" << (void*) *d << "\n";
         (*d)->ClearCaches();
-    }
 
     // Remove cached information from children
     for (Drawings::iterator d = items.begin(); d != items.end(); d++)
-    {
-        IFTRACE(justify)
-            std::cerr << "[" << this << "]  child "
-                      << demangle(typeid(**d).name())
-                      << "@" << (void*) *d << "\n";
         (*d)->ClearCaches();
-    }
 }
 
 
@@ -394,7 +367,7 @@ void Layout::Identify(Layout *where)
     if (true)
     {
         // Remember that we are in Identify mode
-        XL::Save<bool> saveIdenitfy(inIdentify, true);
+        XL::Save<bool> saveIdentify(inIdentify, true);
 
         // Inherit offset from our parent layout if there is one
         XL::Save<Point3> save(offset, offset);
@@ -492,11 +465,7 @@ void Layout::Add(Drawing *d)
 //   Add a drawing to the items, return true if item fits in layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "<->Layout::Add[" << this << "] drawing is "
-                  << d << ":"
-                  << demangle(typeid(*d).name()) << std::endl;
-
+    record(justify, "Add drawing %p to layout %p", d, this);
     items.push_back(d);
     Layout * child = dynamic_cast<Layout *>(d);
     if (child)
@@ -585,8 +554,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 //   Re-compute layout on event, return true if self or child changed
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->Layout::Refresh[" << this << "]  \n";
+    record(justify, "Refresh %p", this);
     bool changed = false;
     if (!e)
         return false;
@@ -620,8 +588,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         // Check if we can evaluate locally
         if (ctx && body)
         {
-            IFTRACE(justify)
-                std::cerr << "--Layout::Refresh[" << this << "] clears \n";
+            record(justify, "Refresh of layout %p clears it", this);
 
             // Clear old contents of the layout, drop all children
             Clear();
@@ -633,8 +600,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
             XL::Save<Layout *> saveLayout(widget->layout, this);
             GLAllStateKeeper save;
 
-            IFTRACE(layoutevents)
-                std::cerr << "Evaluating " << body << "\n";
+            record(layoutevents, "Evaluating %t", (Tree *) body);
             ctx->Evaluate(body);
         }
         else
@@ -664,8 +630,6 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         // Forward event to all child layouts
         changed |= RefreshChildren(e, now, dbg);
     }
-    IFTRACE(justify)
-        std::cerr << "<-Layout::Refresh[" << this << "]  \n";
     IFTRACE(lfps)
         PerLayoutStatistics::endExec(body);
 

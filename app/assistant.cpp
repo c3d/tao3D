@@ -52,6 +52,8 @@
 
 #include <iostream>
 
+RECORDER(assistant, 16, "Tao3D assistant");
+
 QT_BEGIN_NAMESPACE
 class QWidget;
 QT_END_NAMESPACE
@@ -127,9 +129,7 @@ void Assistant::showKeywordHelp(const QString keyword)
     if (!installed())
         return;
 
-    IFTRACE(assistant)
-            debug() << "Show keyword help: '" << +keyword << "'\n";
-
+    record(assistant, "Show keyword help: %s", +keyword);
     instance()->startAssistant();
 
     QByteArray ba("activatekeyword ");
@@ -158,14 +158,15 @@ QStringList Assistant::registeredFiles(QString collectionFile)
     QStringList files;
     foreach (QString doc, docs)
         files << collection.documentationFileName(doc);
+    record(assistant,
+           "Registered %u help files in collection '%s'",
+           files.count(), +collectionFile);
     IFTRACE(assistant)
     {
-        debug() << "Registered help files in collection '"
-                << +collectionFile << "'\n";
         foreach (QString file, files)
         {
             QString ns = QHelpEngineCore::namespaceName(file);
-            debug() << "  = '" << +file << "' (ns '" << +ns << "')\n";
+            record(assistant, " = '%s' (namespace '%s')", +file, +ns);
         }
 
     }
@@ -189,12 +190,13 @@ QStringList Assistant::registeredNamespaces(QString collectionFile)
     }
 
     QStringList namespaces = collection.registeredDocumentations();
+    record(assistant,
+           "Registered %u namespaces in collection '%s'",
+           namespaces.count(), +collectionFile);
     IFTRACE(assistant)
     {
-        debug() << "Registered namespaces in collection '"
-                << +collectionFile << "'\n";
         foreach (QString ns, namespaces)
-            debug() << "  = '" << +ns << "'\n";
+            record(assistant, " = '%s' (namespace '%s')", +ns);
     }
     return namespaces;
 }
@@ -223,9 +225,9 @@ bool Assistant::registerDocumentation(const QStringList &files,
     QHelpEngineCore collection(collectionFile);
     if (!collection.setupData())
         return false;
-    IFTRACE(assistant)
-            debug() << "Registering files into collection '" << +collectionFile
-                    << "'\n";
+
+    record(assistant, "Registering documentation files into collection '%s'",
+           +collectionFile);
     bool ok = true;
     foreach (QString file, files)
     {
@@ -233,9 +235,8 @@ bool Assistant::registerDocumentation(const QStringList &files,
         IFTRACE(assistant)
         {
             QString ns = QHelpEngineCore::namespaceName(file);
-            debug() << "  + '" << +file << "' (ns '" << +ns << "')\n";
-            if (!reg)
-                debug() << "     FAILED\n";
+            record(assistant, "  + %s (namespace %s) %s",
+                   +file, +ns, reg ? "succeeded" : "FAILED");
         }
         ok &= reg;
     }
@@ -252,16 +253,13 @@ bool Assistant::unregisterDocumentation(const QStringList &files,
     QHelpEngineCore collection(collectionFile);
     if (!collection.setupData())
         return false;
-    IFTRACE(assistant)
-        debug() << "Unregistering files from collection '"
-                << +collectionFile << "'\n";
+    record(assistant,
+           "Unregistering files from collection '%s'", +collectionFile);
     bool ok = true;
     foreach (QString file, files)
     {
         QString ns = QHelpEngineCore::namespaceName(file);
-        IFTRACE(assistant)
-            debug() << "  - '" << +file
-                    << "' (ns '" << +ns << "')\n";
+        record(assistant, " - %s (namespace %s)", +file, +ns);
         if (ns != "")
         ok &= collection.unregisterDocumentation(ns);
     }
@@ -278,14 +276,12 @@ bool Assistant::unregisterDocumentationNS(const QStringList &namespaces,
     QHelpEngineCore collection(collectionFile);
     if (!collection.setupData())
         return false;
-    IFTRACE(assistant)
-        debug() << "Unregistering namespaces from collection '"
-                << +collectionFile << "'\n";
+    record(assistant,
+           "Unregistering namespaces from collection '%s'", +collectionFile);
     bool ok = true;
     foreach (QString ns, namespaces)
     {
-        IFTRACE(assistant)
-            debug() << "  - '" << +ns << "'\n";
+        record(assistant,"  - %s", +ns);
         ok &= collection.unregisterDocumentation(ns);
     }
     return ok;

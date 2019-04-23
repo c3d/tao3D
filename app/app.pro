@@ -208,10 +208,12 @@ SOURCES += \
     file_monitor.cpp \
     font.cpp \
     font_file_manager.cpp \
+    formulas.cpp \
     frame.cpp \
     gc_thread.cpp \
     gl_keepers.cpp \
     glyph_cache.cpp \
+    graphics.cpp \
     group_layout.cpp \
     http_ua.cpp \
     info_trash_can.cpp \
@@ -442,8 +444,7 @@ contains(DEFINES, CFG_NO_WEBUI) {
     SOURCES += webui.cpp
 }
 
-XL_MODULES += formulas.tbl graphics.tbl
-
+# XL_MODULES += formulas.tbl graphics.tbl attributes.tbl
 
 win32 {
     !build_pass:message("Using GLEW")

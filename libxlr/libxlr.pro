@@ -98,34 +98,35 @@ HEADERS += \
      xlr/src/llvm-crap.h
 
 SOURCES += \
-    xlr/src/types.cpp \
-    xlr/src/bytecode.cpp \
-    xlr/src/compiler.cpp \
-    xlr/src/interpreter.cpp \
-    xlr/src/compiler-unit.cpp \
-    xlr/src/context.cpp \
-    xlr/src/compiler-prototype.cpp \
-    xlr/src/options.cpp \
-    xlr/src/tree.cpp \
-    xlr/src/utf8_fileutils.cpp \
-    xlr/src/scanner.cpp \
-    xlr/src/compiler-function.cpp \
-    xlr/src/llvm-crap.cpp \
-    xlr/src/opcodes.cpp \
-    xlr/src/compiler-expr.cpp \
-    xlr/src/gc.cpp \
-    xlr/src/compiler-args.cpp \
-    xlr/src/cdecls.cpp \
-    xlr/src/errors.cpp \
-    xlr/src/runtime.cpp \
-    xlr/src/syntax.cpp \
-    xlr/src/serializer.cpp \
-    xlr/src/action.cpp \
-    xlr/src/parser.cpp \
-    xlr/src/main.cpp \
-    xlr/src/renderer.cpp \
     xlr/recorder/recorder.c \
-    xlr/recorder/recorder_ring.c
+    xlr/recorder/recorder_ring.c \
+    xlr/src/action.cpp \
+    xlr/src/bytecode.cpp \
+    xlr/src/cdecls.cpp \
+    xlr/src/compiler-args.cpp \
+    xlr/src/compiler-expr.cpp \
+    xlr/src/compiler-fast.cpp \
+    xlr/src/compiler-function.cpp \
+    xlr/src/compiler-prototype.cpp \
+    xlr/src/compiler-unit.cpp \
+    xlr/src/compiler.cpp \
+    xlr/src/context.cpp \
+    xlr/src/errors.cpp \
+    xlr/src/gc.cpp \
+    xlr/src/interpreter.cpp \
+    xlr/src/llvm-crap.cpp \
+    xlr/src/main.cpp \
+    xlr/src/opcodes.cpp \
+    xlr/src/options.cpp \
+    xlr/src/parser.cpp \
+    xlr/src/renderer.cpp \
+    xlr/src/runtime.cpp \
+    xlr/src/scanner.cpp \
+    xlr/src/serializer.cpp \
+    xlr/src/syntax.cpp \
+    xlr/src/tree.cpp \
+    xlr/src/types.cpp \
+    xlr/src/utf8_fileutils.cpp
 
 win32 {
       SOURCES += xlr/src/winglob.cpp

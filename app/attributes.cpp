@@ -525,11 +525,9 @@ TAO_END
 // ============================================================================
 
 #include "widget.h"
+#include "opcodes.h"
 
 using namespace XL;
-
-#include "opcodes_declare.h"
-#include "attributes.tbl"
 
 namespace Tao
 {

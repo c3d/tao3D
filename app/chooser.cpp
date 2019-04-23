@@ -327,7 +327,7 @@ Activity *Chooser::Key(text key)
     {
         if (selected)
         {
-            xl_evaluate(xlProgram->context, selected);
+            xl_evaluate(xlProgram->scope, selected);
             delete this;
         }
     }
@@ -417,37 +417,41 @@ void Chooser::AddCommands(text begin, text label)
 // ----------------------------------------------------------------------------
 {
     // Add all the commands that begin with the prefix in the current context
-    XL::name_set names, infix, prefix, postfix;
-    XL::MAIN->ListNames(begin, names, infix, prefix, postfix);
+    XL::RewriteList rewrites;
+    XL::MAIN->context.ListNames(begin, rewrites);
 
     // Loop over all rewrites that match
     uint first = begin.length();
-    for (XL::name_set::iterator n = names.begin(); n != names.end(); n++)
+    for (auto rewrite : rewrites)
     {
-        text symname = *n;
-        text caption = "";
-        kstring data = symname.data();
-        uint c, maxc = symname.length();
-        for (c = first; c < maxc; c = Utf8Next(data, c))
+        if (Name *name = rewrite->left->AsName())
         {
-            wchar_t wc;
-            char wcbuf[MB_LEN_MAX];
-            if (mbtowc(&wc, data + c, maxc - c) > 0)
+            text symname = name->value;
+            text caption = "";
+            kstring data = symname.data();
+            uint c, maxc = symname.length();
+            for (c = first; c < maxc; c = Utf8Next(data, c))
             {
-                if (wc == '_')
-                    wc = ' ';
-                else if (c == first && label.length() > 0)
-                    wc = towupper(wc);
+                wchar_t wc;
+                char wcbuf[MB_LEN_MAX];
+                if (mbtowc(&wc, data + c, maxc - c) > 0)
+                {
+                    if (wc == '_')
+                        wc = ' ';
+                    else if (c == first && label.length() > 0)
+                        wc = towupper(wc);
+                }
+                int sz = wctomb(wcbuf, wc);
+                if (sz > 0)
+                    caption.insert(caption.end(), wcbuf, wcbuf + sz);
             }
-            int sz = wctomb(wcbuf, wc);
-            if (sz > 0)
-                caption.insert(caption.end(), wcbuf, wcbuf + sz);
-        }
 
-        // Create a closure from the resulting commands to remember context
-        Tree *command = new XL::Name(symname);
-        caption = widget->xlTr(NULL, caption);
-        AddItem(label + caption, command);
+            // Create a closure from the resulting commands to remember context
+            Tree *command = new XL::Name(symname);
+            Text_p translated = widget->xlTr(NULL, caption);
+            caption = translated->value;
+            AddItem(label + caption, command);
+        }
     }
 }
 
@@ -499,9 +503,6 @@ TAO_END
 #include "widget.h"
 
 using namespace XL;
-
-#include "opcodes_declare.h"
-#include "chooser.tbl"
 
 namespace Tao
 {

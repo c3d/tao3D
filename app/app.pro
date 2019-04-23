@@ -124,7 +124,19 @@ HEADERS +=     activity.h \
     gl_keepers.h \
     glyph_cache.h \
     group_layout.h \
+    html_converter.h \
     http_ua.h \
+    include/tao/color.h \
+    include/tao/coords.h \
+    include/tao/coords3d.h \
+    include/tao/coords4d.h \
+    include/tao/graphic_state.h \
+    include/tao/matrix.h \
+    include/tao/module_api.h \
+    include/tao/module_info.h \
+    include/tao/tao_gl.h \
+    include/tao/tao_info.h \
+    include/tao/tao_utf8.h \
     info_trash_can.h \
     init_cleanup.h \
     inspectordialog.h \
@@ -140,12 +152,13 @@ HEADERS +=     activity.h \
     module_renderer.h \
     nag_screen.h \
     normalize.h \
+    opengl_save.h \
+    opengl_state.h \
     page_layout.h \
     path3d.h \
     preferences_dialog.h \
     preferences_pages.h \
     preview.h \
-    tao_process.h \
     qtlocalpeer.h \
     qtlockedfile.h \
     raster_text.h \
@@ -161,9 +174,10 @@ HEADERS +=     activity.h \
     svg.h \
     table.h \
     tao_main.h \
+    tao_options.h \
+    tao_process.h \
     tao_tree.h \
     text_drawing.h \
-    html_converter.h \
     texture.h \
     texture_cache.h \
     tool_window.h \
@@ -172,24 +186,9 @@ HEADERS +=     activity.h \
     update_application.h \
     widget.h \
     widget_surface.h \
-    window.h \
-    opengl_state.h \
-    opengl_save.h \
-    include/tao/coords.h \
-    include/tao/coords3d.h \
-    include/tao/coords4d.h \
-    include/tao/color.h \
-    include/tao/matrix.h \
-    include/tao/module_api.h \
-    include/tao/module_info.h \
-    include/tao/tao_gl.h \
-    include/tao/tao_info.h \
-    include/tao/tao_utf8.h \
-    include/tao/graphic_state.h
+    window.h
 
 SOURCES += \
-    opengl_state.cpp \
-    opengl_save.cpp \
     activity.cpp \
     application.cpp \
     apply_changes.cpp \
@@ -215,6 +214,7 @@ SOURCES += \
     glyph_cache.cpp \
     graphics.cpp \
     group_layout.cpp \
+    html_converter.cpp \
     http_ua.cpp \
     info_trash_can.cpp \
     init_cleanup.cpp \
@@ -230,12 +230,13 @@ SOURCES += \
     module_renderer.cpp \
     nag_screen.cpp \
     normalize.cpp \
+    opengl_save.cpp \
+    opengl_state.cpp \
     page_layout.cpp \
     path3d.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
     preview.cpp \
-    tao_process.cpp \
     qtlocalpeer.cpp \
     qtlockedfile.cpp \
     raster_text.cpp \
@@ -251,8 +252,9 @@ SOURCES += \
     svg.cpp \
     table.cpp \
     tao_main.cpp \
+    tao_options.cpp \
+    tao_process.cpp \
     text_drawing.cpp \
-    html_converter.cpp \
     texture.cpp \
     texture_cache.cpp \
     tool_window.cpp \

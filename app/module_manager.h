@@ -290,6 +290,7 @@ Native and XL functions of a module are called by Tao in the following order:
 
 #include "tao.h"
 #include "tao_tree.h"
+#include "tao_options.h"
 #include "action.h"
 #include "repository.h"
 #include "tao_utf8.h"
@@ -460,7 +461,7 @@ public:
     QStringList                anonymousXL();
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
-    bool                enabled() { return XL::MAIN->options.enable_modules; }
+    bool                enabled() { return Opt::enableModules; }
     bool                enabled(QString importName);
     bool                saveConfig();
     void                refreshModuleProperties(QString moduleDir);

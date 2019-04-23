@@ -39,6 +39,7 @@
 
 #include "tao.h"
 #include "main.h"
+#include "options.h"
 #include <signal.h>
 
 TAO_BEGIN
@@ -66,10 +67,10 @@ struct Main : public XL::Main
 
     virtual int  LoadFile(text file, bool updateContext = false,
                           XL::Scope *importScope=0);
-    virtual text SearchFile(text input);
-    virtual bool Refresh(double delay);
-    virtual text Decrypt(text input);
-    virtual Tree *Normalize(Tree *input);
+    virtual text SearchFile(text input, text ext = "") override;
+    virtual bool Refresh(double delay) override;
+    virtual text Decrypt(text input) override;
+    virtual Tree *Normalize(Tree *input) override;
 
     static Main *MAIN;
 };

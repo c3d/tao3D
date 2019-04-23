@@ -238,7 +238,7 @@ void Application::deferredInit()
     loadLicenses();
 
     // Adjust file polling frequency
-    FileMonitorThread::pollInterval = xlr->options.sync_interval;
+    FileMonitorThread::pollInterval = Opt::syncInterval;
 
     // OpenGL checks
     if (!checkGL())
@@ -248,10 +248,10 @@ void Application::deferredInit()
     }
 
     // Create and start garbage collection thread
-    RECORD(tao_gc, "Creating GC thread (%+s)",
-           xlr->options.threaded_gc ? "threaded" : "non-threaded");
+    record(tao_gc, "Creating GC thread (%+s)",
+           Opt::gcThread ? "threaded" : "non-threaded");
     gcThread = new GCThread;
-    if (xlr->options.threaded_gc)
+    if (Opt::gcThread)
     {
         RECORD(tao_gc, "Starting separate GC thread");
         gcThread->moveToThread(gcThread);
@@ -363,9 +363,6 @@ void Application::deferredInit()
     record(tao_app, "Create main symbol table for XL");
     xlr->context.CreateScope();
 
-    // Activate basic compilation
-    xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
-
     // Load settings
     loadDebugTraceSettings();
 
@@ -414,7 +411,7 @@ void Application::deferredInit()
 #endif
 
     XL::MAIN = xlr;
-    if (XL::MAIN->options.enable_modules)
+    if (Opt::enableModules)
         checkModules();
 
     // Check for update now if wanted
@@ -536,14 +533,6 @@ bool Application::loadLicenses()
     QList<QDir> dirs;
     dirs << QDir(Application::userLicenseFolderPath())
          << QDir(Application::appLicenseFolderPath());
-
-    // Add paths given on the command line
-    QString paths = +XL::MAIN->options.license_dirs;
-    foreach (QString path, paths.split(":", QString::SkipEmptyParts))
-    {
-        QFileInfo info(QDir(TaoApp->startDir), path);
-        dirs << QDir(info.absoluteFilePath());
-    }
 
 #ifndef CFG_NO_LICENSE
     foreach (QDir dir, dirs)
@@ -1054,33 +1043,28 @@ bool Application::checkOfflineRendering()
 //   Start offline rendering if command line switch present and we have 1 doc
 // ----------------------------------------------------------------------------
 {
-    XL::Options &opts    = XL::MAIN->options;
     Widget      *widget  = win->taoWidget;
-    QString      display = +opts.display_mode;
+    text        display = Opt::displayMode.value;
 
     if (display != "")
     {
         if (display == "help")
             displayAvailableModes();
         else
-            widget->setDisplayMode(XL::xl_false, opts.display_mode);
+            widget->setDisplayMode(XL::xl_false, display);
     }
 
-    QString ropts = +opts.rendering_options;
-    if (ropts == "-")
-        return false;
-
+    QString ropts = +Opt::renderMode.value;
     if (ropts == "")
-    {
-        std::cerr << +tr("-render: option requires parameters\n");
         return false;
-    }
 
     QStringList parms = ropts.split(",");
     int nparms = parms.size();
     if (nparms < 8 || nparms > 9)
     {
-        std::cerr << +tr("-render: too few or too many parameters\n");
+        std::cerr << +tr("-render: Activate off-line rendering:\n"
+                         "pagenum,width,height,start-time,duration,"
+                         "page-time-offset,fps,folder[,display-mode].");
         return false;
     }
 
@@ -1098,26 +1082,20 @@ bool Application::checkOfflineRendering()
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
     if (nparms >= 9)
-        display = parms[idx++];
-
-    if (display == "help")
-    {
-        displayAvailableModes();
-        return false;
-    }
+        display = +parms[idx++];
 
     std::cout << "Starting offline rendering:"
               << " pagenum=" << page << " width=" << x << " height=" << y
               << " start-time=" << start << " duration=" << duration
               << " page-time-offset=" << offset
               << " fps=" << fps << " folder=\"" << +folder << "\""
-              << " display-mode=\"" << +display << "\"\n";
+              << " display-mode=\"" << display << "\"\n";
 
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    widget->renderFrames(x, y, start, duration, folder, fps, page, offset,
-                         display);
-
+    widget->renderFrames(x, y, start, duration,
+                         folder, fps, page, offset,
+                         +display);
     return true;
 }
 

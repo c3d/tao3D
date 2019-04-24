@@ -64,6 +64,8 @@ typedef XL::Postfix        Postfix;
 typedef XL::Postfix_p      Postfix_p;
 typedef XL::Block          Block;
 typedef XL::Block_p        Block_p;
+typedef XL::Scope          Scope;
+typedef XL::Scope_p        Scope_p;
 
 typedef XL::Real_r         real_r;
 typedef XL::Integer_r      integer_r;
@@ -77,6 +79,7 @@ typedef XL::Scope_p        scope_p;
 
 typedef XL::TreeList       TreeList;
 
+typedef XL::Scope          Scope;
 typedef XL::Context        Context;
 typedef XL::Context_p      Context_p;
 

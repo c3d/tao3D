@@ -47,6 +47,9 @@
 #include <iostream>
 
 
+RECORDER(displaymode, 16, "Information about display mode");
+
+
 namespace Tao {
 
 // Static map of registered display functions and associated parameters

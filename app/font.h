@@ -52,23 +52,23 @@ struct FontParsingAction
 //   Parse a font description
 // ----------------------------------------------------------------------------
 {
-    FontParsingAction(Context *context, const QFont &font)
-        : context(context), font(font), exactMatch(false) {}
+    FontParsingAction(Scope *scope, const QFont &font)
+        : scope(scope), font(font), exactMatch(false) {}
 
-    virtual Tree *Do(Tree *what);
-    virtual Tree *Do(Integer *what);
-    virtual Tree *Do(Real *what);
-    virtual Tree *Do(Text *what);
-    virtual Tree *Do(Name *what);
-    virtual Tree *Do(Prefix *what);
-    virtual Tree *Do(Postfix *what);
-    virtual Tree *Do(Infix *what);
-    virtual Tree *Do(Block *what);
+    typedef bool value_type;
+    bool        Do(Integer *what);
+    bool        Do(Real *what);
+    bool        Do(Text *what);
+    bool        Do(Name *what);
+    bool        Do(Prefix *what);
+    bool        Do(Postfix *what);
+    bool        Do(Infix *what);
+    bool        Do(Block *what);
 
-    bool          SetAttribute(Name *name, Tree *value);
+    bool        SetAttribute(Name *name, Tree *value);
 
 public:
-    Context_p   context;
+    Scope_p     scope;
     QFont       font;
     bool        exactMatch;
 
@@ -89,5 +89,8 @@ inline double fontSizeAdjust(double size)
 }
 
 TAO_END
+
+RECORDER_DECLARE(fonts);
+RECORDER_DECLARE(fonts_warning);
 
 #endif // FONT_H

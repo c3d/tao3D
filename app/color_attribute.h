@@ -39,12 +39,12 @@
              XPARM(pos, real, )                                         \
              PARM(colorName, text, )                                    \
              PARM(colorAlpha, real, ),                                  \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorByName(colorName, colorAlpha)))), )       \
     OVERLOAD(base##_name, tree, name,                                   \
              XPARM(pos, real, )                                         \
              PARM(colorName, text, ),                                   \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorByName(colorName)))), )                   \
                                                                         \
     OVERLOAD(base##_rgba, tree, name,                                   \
@@ -53,14 +53,14 @@
              PARM(colorG, real, )                                       \
              PARM(colorB, real, )                                       \
              PARM(colorA, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorRGB(colorR,colorG,colorB,colorA)))),)     \
     OVERLOAD(base##_rgb, tree, name,                                    \
              XPARM(pos, real, )                                         \
              PARM(colorR, real, )                                       \
              PARM(colorG, real, )                                       \
              PARM(colorB, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorRGB(colorR,colorG,colorB)))),)            \
                                                                         \
     OVERLOAD(base##_hsva, tree, name "_hsv",                            \
@@ -69,14 +69,14 @@
              PARM(colorS, real, )                                       \
              PARM(colorV, real, )                                       \
              PARM(colorA, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorHSV(colorH, colorS,colorV,colorA)))),)    \
     OVERLOAD(base##_hsv, tree, name "_hsv",                             \
              XPARM(pos, real, )                                         \
              PARM(colorH, real, )                                       \
              PARM(colorS, real, )                                       \
              PARM(colorV, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorHSV(colorH, colorS,colorV)))),)           \
                                                                         \
     OVERLOAD(base##_hsla, tree, name "_hsl",                            \
@@ -85,14 +85,14 @@
              PARM(colorS, real, )                                       \
              PARM(colorL, real, )                                       \
              PARM(colorA, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorHSL(colorH, colorS,colorL,colorA)))),)    \
     OVERLOAD(base##_hsl, tree, name "_hsl",                             \
              XPARM(pos, real, )                                         \
              PARM(colorH, real, )                                       \
              PARM(colorS, real, )                                       \
              PARM(colorL, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorHSL(colorH, colorS,colorL)))),)           \
                                                                         \
     OVERLOAD(base##_cmyka, tree, name "_cmyk",                          \
@@ -102,13 +102,17 @@
              PARM(colorY, real, )                                       \
              PARM(colorK, real, )                                       \
              PARM(colorA, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
-                     TAO(colorCMYK(colorC,colorM, colorY,colorK,colorA)))),) \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
+                     TAO(colorCMYK(colorC,                              \
+                                   colorM,                              \
+                                   colorY,                              \
+                                   colorK,                              \
+                                   colorA)))),)                         \
     OVERLOAD(base##_cmyk, tree, name "_cmyk",                           \
              XPARM(pos, real, )                                         \
              PARM(colorC, real, )                                       \
              PARM(colorM, real, )                                       \
              PARM(colorY, real, )                                       \
              PARM(colorK, real, ),                                      \
-             RTAO(fn(self, XARGS(pos)                                   \
+             RTAO(fn(XL_SELF, XARGS(pos)                                \
                      TAO(colorCMYK(colorC,colorM,colorY,colorK)))),)

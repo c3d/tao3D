@@ -224,4 +224,6 @@ struct StereoLayout : Layout
 
 TAO_END
 
+RECORDER_DECLARE(layoutevents);
+
 #endif // LAYOUT_H

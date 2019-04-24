@@ -6070,7 +6070,7 @@ Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
 Widget *Widget::current = NULL;
 typedef XL::Tree Tree;
 
-XL::Text_p Widget::page(Context *context, Text_p namePtr, Tree_p body)
+XL::Text_p Widget::page(Scope *scope, Text_p namePtr, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Start a new page, returns the previously named page
 // ----------------------------------------------------------------------------
@@ -6369,7 +6369,7 @@ Real_p Widget::transitionRatio(Tree_p self)
 }
 
 
-Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
+Tree_p Widget::transitionCurrentPage(Scope *scope, Tree_p self)
 // ----------------------------------------------------------------------------
 //   Evaluate the current page during a transition
 // ----------------------------------------------------------------------------
@@ -6398,7 +6398,7 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
 }
 
 
-Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
+Tree_p Widget::transitionNextPage(Scope *scope, Tree_p self)
 // ----------------------------------------------------------------------------
 //   Evaluate the next page during a transition
 // ----------------------------------------------------------------------------
@@ -6432,7 +6432,7 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
 }
 
 
-Tree_p Widget::runTransition(Context *context)
+Tree_p Widget::runTransition(Scope *scope)
 // ----------------------------------------------------------------------------
 //   Evaluate the transition code until we are done
 // ----------------------------------------------------------------------------
@@ -6721,7 +6721,7 @@ XL::Integer_p Widget::pageSeconds(Tree_p self)
 }
 
 
-XL::Real_p Widget::after(Context *context, double delay, Tree_p code)
+XL::Real_p Widget::after(Scope *scope, double delay, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Execute the given code only after the specified amount of time
 // ----------------------------------------------------------------------------
@@ -6746,7 +6746,7 @@ XL::Real_p Widget::after(Context *context, double delay, Tree_p code)
 }
 
 
-XL::Real_p Widget::every(Context *context,
+XL::Real_p Widget::every(Scope *scope,
                          double interval, double duty,
                          Tree_p code)
 // ----------------------------------------------------------------------------
@@ -6777,7 +6777,7 @@ XL::Real_p Widget::every(Context *context,
 
 
 
-Name_p Widget::once(Context *context, Tree_p self, Tree_p prog)
+Name_p Widget::once(Scope *scope, Tree_p self, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Execute prog once (or after a full reload)
 // ----------------------------------------------------------------------------
@@ -6981,7 +6981,7 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
 }
 
 
-Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
+Tree_p Widget::locally(Scope *scope, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
@@ -6996,7 +6996,7 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 }
 
 
-Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
+Tree_p Widget::shape(Scope *scope, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
@@ -7021,7 +7021,7 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 }
 
 
-Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
+Tree_p Widget::activeWidget(Scope *scope, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Create a context for active widgets, e.g. buttons
 // ----------------------------------------------------------------------------
@@ -7041,7 +7041,7 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
 }
 
 
-Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child, bool abs)
+Tree_p Widget::anchor(Scope *scope, Tree_p self, Tree_p child, bool abs)
 // ----------------------------------------------------------------------------
 //   Anchor a set of shapes to the current position
 // ----------------------------------------------------------------------------
@@ -7062,7 +7062,7 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child, bool abs)
 }
 
 
-Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
+Tree_p Widget::stereoViewpoints(Scope *scope, Tree_p self,
                                 Integer_p viewpoints,Tree_p child)
 // ----------------------------------------------------------------------------
 //   Create a layout that is only active for a given viewpoint
@@ -8637,7 +8637,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 }
 
 
-Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
+Integer* Widget::fillTexture(Scope *scope, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
@@ -8667,7 +8667,7 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
 }
 
 
-Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
+Integer* Widget::fillAnimatedTexture(Scope *scope, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
@@ -8700,7 +8700,7 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
 }
 
 
-Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
+Integer* Widget::fillTextureFromSVG(Scope *scope, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //    Draw an image in SVG format
 // ----------------------------------------------------------------------------
@@ -8736,7 +8736,7 @@ Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
 }
 
 
-Integer* Widget::image(Context *context,
+Integer* Widget::image(Scope *scope,
                        Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
                        text filename)
 //----------------------------------------------------------------------------
@@ -8772,7 +8772,7 @@ Integer* Widget::image(Context *context,
 }
 
 
-Infix_p Widget::imageSize(Context *context,
+Infix_p Widget::imageSize(Scope *scope,
                           Tree_p self, text filename)
 //----------------------------------------------------------------------------
 //  Return the width and height of an image
@@ -8791,7 +8791,7 @@ Infix_p Widget::imageSize(Context *context,
 }
 
 
-static void list_files(Context *context, Dir &current,
+static void list_files(Scope *scope, Dir &current,
                        Tree_p self, Tree_p patterns, Tree_p *&parent)
 // ----------------------------------------------------------------------------
 //   Append files matching patterns (relative to directory current) to parent
@@ -8839,7 +8839,7 @@ static void list_files(Context *context, Dir &current,
 }
 
 
-Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
+Tree_p Widget::listFiles(Scope *scope, Tree_p self, Tree_p pattern)
 // ----------------------------------------------------------------------------
 //   List files, current directory is the document directory
 // ----------------------------------------------------------------------------
@@ -8899,7 +8899,7 @@ Tree_p Widget::textureMagFilter(Tree_p self, text filter)
 }
 
 
-Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
+Tree_p Widget::textureTransform(Scope *scope, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation
 // ----------------------------------------------------------------------------
@@ -9172,7 +9172,7 @@ Tree_p Widget::material(Tree_p self,
 }
 
 
-Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
+Tree_p Widget::shaderProgram(Scope *scope, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //    Creates a new shader program in which we will evaluate shaders
 // ----------------------------------------------------------------------------
@@ -9271,7 +9271,7 @@ Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
 }
 
 
-Tree_p Widget::shaderFromFile(Context *context,
+Tree_p Widget::shaderFromFile(Scope *scope,
                               Tree_p self, ShaderKind kind, text file)
 // ----------------------------------------------------------------------------
 //   Load a shader from shader source
@@ -9335,7 +9335,7 @@ static inline GLenum getTypeOfActiveUniform(GLuint progId, kstring name,
 }
 
 
-Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
+Tree_p Widget::shaderSet(Scope *scope, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Evaluate the code argument as an assignment for the current shader
 // ----------------------------------------------------------------------------
@@ -9574,7 +9574,7 @@ Integer* Widget::geometryOutputCount(Tree_p self)
 //
 // ============================================================================
 
-Tree_p Widget::newPath(Context *context, Tree_p self, Tree_p child)
+Tree_p Widget::newPath(Scope *scope, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree within a polygon
 // ----------------------------------------------------------------------------
@@ -10404,7 +10404,7 @@ bool Widget::addControlBox(Real *x, Real *y, Real *z,
 //
 // ============================================================================
 
-Tree_p  Widget::textEdit(Context *context, Tree_p self,
+Tree_p  Widget::textEdit(Scope *scope, Tree_p self,
                          Real_p x, Real_p y, Real_p w, Real_p h,
                          Text_p html)
 // ----------------------------------------------------------------------------
@@ -10421,7 +10421,7 @@ Tree_p  Widget::textEdit(Context *context, Tree_p self,
 }
 
 
-Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
+Tree_p  Widget::textEditTexture(Scope *scope, Tree_p self,
                                 double w, double h, Text_p html)
 // ----------------------------------------------------------------------------
 //   Create a new text edit widget and render text in it
@@ -10448,7 +10448,7 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 }
 
 
-Tree_p  Widget::textBox(Context *context, Tree_p self,
+Tree_p  Widget::textBox(Scope *scope, Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h,
                         Tree_p body)
 // ----------------------------------------------------------------------------
@@ -10474,7 +10474,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::textFlow(Context *context, Tree_p self,
+Tree_p Widget::textFlow(Scope *scope, Tree_p self,
                         Text_p flowName, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Define the contents of a text flow, or add to an existing one
@@ -10503,7 +10503,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::textFlow(Context *context, Tree_p self, Text_p name)
+Tree_p Widget::textFlow(Scope *scope, Tree_p self, Text_p name)
 // ----------------------------------------------------------------------------
 //   Replay the reminder of an existing text flow in the current layout
 // ----------------------------------------------------------------------------
@@ -10517,7 +10517,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self, Text_p name)
 }
 
 
-Text_p Widget::textFlow(Context *context, Tree_p self)
+Text_p Widget::textFlow(Scope *scope, Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the name of the current text flow
 // ----------------------------------------------------------------------------
@@ -10526,7 +10526,7 @@ Text_p Widget::textFlow(Context *context, Tree_p self)
 }
 
 
-Name_p Widget:: textFlowExists(Context *context, Tree_p self, Text_p name)
+Name_p Widget:: textFlowExists(Scope *scope, Tree_p self, Text_p name)
 // ----------------------------------------------------------------------------
 //   Return true if the given text flow has been created
 // ----------------------------------------------------------------------------
@@ -10537,7 +10537,7 @@ Name_p Widget:: textFlowExists(Context *context, Tree_p self, Text_p name)
 }
 
 
-Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
+Tree_p Widget::textSpan(Scope *scope, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current text format state
 // ----------------------------------------------------------------------------
@@ -10581,7 +10581,7 @@ struct HTMLTextInfo : Info
 };
 
 
-Tree_p Widget::htmlTextUnit(Context *context, Tree_p self, text html, text css)
+Tree_p Widget::htmlTextUnit(Scope *scope, Tree_p self, text html, text css)
 // ----------------------------------------------------------------------------
 //   Insert a block of text written in HTML
 // ----------------------------------------------------------------------------
@@ -10635,7 +10635,7 @@ Tree_p Widget::textFormula(Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
+Tree_p Widget::textValue(Scope *scope, Tree_p self, Tree_p value)
 // ----------------------------------------------------------------------------
 //   Insert a block of text corresponding to the given formula
 // ----------------------------------------------------------------------------
@@ -10666,7 +10666,7 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Context *context, Tree_p self,
+Tree_p Widget::font(Scope *scope, Tree_p self,
                     Tree_p descr1, Tree_p descr2)
 // ----------------------------------------------------------------------------
 //   Select a font family
@@ -10685,7 +10685,7 @@ Tree_p Widget::font(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::fontFamily(Context *context, Tree_p self, Text_p family)
+Tree_p Widget::fontFamily(Scope *scope, Tree_p self, Text_p family)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
@@ -10694,7 +10694,7 @@ Tree_p Widget::fontFamily(Context *context, Tree_p self, Text_p family)
 }
 
 
-Tree_p Widget::fontFamily(Context *context, Tree_p self,
+Tree_p Widget::fontFamily(Scope *scope, Tree_p self,
                           Text_p family, Real_p size)
 // ----------------------------------------------------------------------------
 //   Select a font family
@@ -10956,7 +10956,7 @@ struct LoadTextInfo : Info
 };
 
 
-Text_p Widget::loadText(Context *context,
+Text_p Widget::loadText(Scope *scope,
                         Tree_p self, text file, text encoding)
 // ----------------------------------------------------------------------------
 //    Load a text file from disk
@@ -11173,7 +11173,7 @@ Text_p Widget::unicodeCharText(Tree_p self, text code)
 //
 // ============================================================================
 
-Tree_p Widget::newTable(Context *context, Tree_p self,
+Tree_p Widget::newTable(Scope *scope, Tree_p self,
                         Integer_p rows, Integer_p columns,
                         Tree_p body)
 // ----------------------------------------------------------------------------
@@ -11184,7 +11184,7 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::newTable(Context *context, Tree_p self,
+Tree_p Widget::newTable(Scope *scope, Tree_p self,
                         Real_p x, Real_p y,
                         Integer_p r, Integer_p c, Tree_p body)
 // ----------------------------------------------------------------------------
@@ -11232,7 +11232,7 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::tableCell(Context *context, Tree_p self,
+Tree_p Widget::tableCell(Scope *scope, Tree_p self,
                          Real_p w, Real_p h, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Define a sized cell in the table
@@ -11260,7 +11260,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
+Tree_p Widget::tableCell(Scope *scope, Tree_p self, Tree_p body)
 // ----------------------------------------------------------------------------
 //   Define a free-size cell in the table
 // ----------------------------------------------------------------------------
@@ -11478,7 +11478,7 @@ Tree_p Widget::status(Tree_p self, text caption, float timeout)
 }
 
 
-Integer* Widget::framePaint(Context *context, Tree_p self,
+Integer* Widget::framePaint(Scope *scope, Tree_p self,
                             Real_p x, Real_p y, Real_p w, Real_p h,
                             Tree_p prog)
 // ----------------------------------------------------------------------------
@@ -11497,7 +11497,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 }
 
 
-Integer* Widget::frameTexture(Context *context, Tree_p self,
+Integer* Widget::frameTexture(Scope *scope, Tree_p self,
                               double w, double h, Tree_p prog, text name,
                               Integer_p withDepth, bool canvas)
 // ----------------------------------------------------------------------------
@@ -11667,7 +11667,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
-Tree* Widget::drawingCache(Context *context, Tree_p self,
+Tree* Widget::drawingCache(Scope *scope, Tree_p self,
                            double version, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Create a compiled display list out of the program's result
@@ -11717,7 +11717,7 @@ Tree* Widget::drawingCache(Context *context, Tree_p self,
 }
 
 
-Integer* Widget::thumbnail(Context *context,
+Integer* Widget::thumbnail(Scope *scope,
                          Tree_p self, scale s, double interval, text page)
 // ----------------------------------------------------------------------------
 //   Generate a texture with a page thumbnail of the given page
@@ -11831,7 +11831,7 @@ Integer* Widget::thumbnail(Context *context,
 }
 
 
-Integer* Widget::linearGradient(Context *context, Tree_p self,
+Integer* Widget::linearGradient(Scope *scope, Tree_p self,
                                 Real_p start_x, Real_p start_y,
                                 Real_p end_x, Real_p end_y,
                                 double w, double h, Tree_p prog)
@@ -11915,7 +11915,7 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 }
 
 
-Integer* Widget::radialGradient(Context *context, Tree_p self,
+Integer* Widget::radialGradient(Scope *scope, Tree_p self,
                                 Real_p center_x, Real_p center_y,
                                 Real_p radius,
                                 double w, double h, Tree_p prog)
@@ -11999,7 +11999,7 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 }
 
 
-Integer* Widget::conicalGradient(Context *context, Tree_p self,
+Integer* Widget::conicalGradient(Scope *scope, Tree_p self,
                                  Real_p center_x, Real_p center_y,
                                  Real_p angle,
                                  double w, double h, Tree_p prog)
@@ -12718,7 +12718,7 @@ void Widget::fileChosen(const QString & filename)
 }
 
 
-Tree_p Widget::buttonGroup(Context *context, Tree_p self,
+Tree_p Widget::buttonGroup(Scope *scope, Tree_p self,
                            bool exclusive, Tree_p buttons)
 // ----------------------------------------------------------------------------
 //   Create a button group for radio buttons
@@ -12760,7 +12760,7 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 }
 
 
-Tree_p Widget::groupBox(Context *context, Tree_p self,
+Tree_p Widget::groupBox(Scope *scope, Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h,
                         Text_p lbl, Tree_p buttons)
 // ----------------------------------------------------------------------------
@@ -13009,7 +13009,7 @@ void Widget::drawWatermarkAPI()
 //
 // ============================================================================
 
-Tree_p Widget::chooser(Context *context, Tree_p self, text caption)
+Tree_p Widget::chooser(Scope *scope, Tree_p self, text caption)
 // ----------------------------------------------------------------------------
 //   Create a chooser with the given caption
 // ----------------------------------------------------------------------------
@@ -13948,7 +13948,7 @@ Name_p Widget::setAttribute(Tree_p self,
 //
 // ============================================================================
 
-Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
+Tree_p Widget::group(Scope *scope, Tree_p self, Tree_p shapes)
 // ----------------------------------------------------------------------------
 //   Group objects together, make them selectable as a whole
 // ----------------------------------------------------------------------------
@@ -14365,7 +14365,7 @@ Real_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y,
 }
 
 
-Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
+Name_p Widget::displaySet(Scope *scope, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Set a display option
 // ----------------------------------------------------------------------------

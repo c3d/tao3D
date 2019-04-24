@@ -446,7 +446,7 @@ contains(DEFINES, CFG_NO_WEBUI) {
     SOURCES += webui.cpp
 }
 
-# XL_MODULES += formulas.tbl graphics.tbl attributes.tbl
+XL_MODULES += chooser.tbl formulas.tbl graphics.tbl attributes.tbl
 
 win32 {
     !build_pass:message("Using GLEW")

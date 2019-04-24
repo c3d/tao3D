@@ -42,7 +42,11 @@
 #include <QMutexLocker>
 #include <QTimer>
 #include <sys/stat.h>
+#include <recorder/recorder.h>
 
+
+RECORDER(file_monitor,          16, "File monitor (checking if files changed)");
+RECORDER(file_monitor_error,     8, "Errors during file monitoring");
 
 
 namespace Tao {
@@ -54,9 +58,7 @@ FileMonitor::FileMonitor(QString name)
 // ----------------------------------------------------------------------------
     : name(name)
 {
-    IFTRACE(filemon)
-        debug() << "Creating\n";
-
+    record(file_monitor, "Creating %p name %s", this, +name);
     thread = FileMonitorThread::instance();
     thread->addMonitor(this);
 }
@@ -68,6 +70,7 @@ FileMonitor::FileMonitor(const FileMonitor &o)
 // ----------------------------------------------------------------------------
     : QObject(), thread(o.thread), name(o.name)
 {
+    record(file_monitor, "Copying %p from %p", this, &o);
     foreach (MonitoredFile file, o.files)
         addPath(file.path);
     thread->addMonitor(this);
@@ -79,9 +82,7 @@ FileMonitor::~FileMonitor()
 //    Destructor
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(filemon)
-        debug() << "Deleting\n";
-
+    record(file_monitor, "Deleting %p", this);
     removeAllPaths();
     thread->removeMonitor(this);
 }
@@ -96,14 +97,13 @@ void FileMonitor::addPath(const QString &path)
     bool absolute = QDir::isAbsolutePath(path);
     if (!absolute && !prefixed)
     {
-        IFTRACE(filemon)
-            debug() << "Error: relative path not supported: '" << +path << "'\n";
+        record(file_monitor_error,
+               "relative path '%s' not supported", path);
         return;
     }
     if (!files.contains(path))
     {
-        IFTRACE(filemon)
-            debug() << "Adding: '" << +path << "'\n";
+        record(file_monitor, "Adding %s to %p", path, this);
 
         MonitoredFile mf(path);
         FileMonitorThread::FileInfo file(path);
@@ -119,8 +119,7 @@ void FileMonitor::addPath(const QString &path)
     }
     else
     {
-        IFTRACE(filemon)
-            debug() << "Path '" << +path << "' already monitored\n";
+        record(file_monitor, "Path %s already monitored by %p", path, this);
     }
 }
 
@@ -132,9 +131,7 @@ void FileMonitor::removePath(const QString &path)
 {
     if (files.contains(path))
     {
-        IFTRACE(filemon)
-            debug() << "Removing: '" << +path << "'\n";
-
+        record(file_monitor, "Removing %s from %p", path, this);
         files.remove(path);
         XL_ASSERT(!files.contains(path));
         thread->removePath(path);
@@ -221,9 +218,7 @@ FileMonitorThread::FileMonitorThread()
 // ----------------------------------------------------------------------------
     : dontPollReadOnlyFiles(true)
 {
-    IFTRACE(filemon)
-        debug() << "Starting polling thread (" << pollInterval << " ms)\n";
-
+    record(file_monitor, "Starting polling at %d ms interval", pollInterval);
     moveToThread(this);
     // Using a single-shot timer avoids accumulating timeout events in case
     // checkFiles() takes longer than one period of time
@@ -237,9 +232,7 @@ FileMonitorThread::~FileMonitorThread()
 //    Stop the monitoring thread
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(filemon)
-        debug() << "Stopping\n";
-
+    record(file_monitor, "Stopping file monitoring");
     quit();
     wait(2000);
 }
@@ -304,9 +297,8 @@ void FileMonitorThread::addMonitor(FileMonitor *monitor)
     XL_ASSERT(!monitors.contains(monitor));
     monitors.append(monitor);
 
-    IFTRACE(filemon)
-        debug() << "FileMonitor '" << +monitor->id() << "' added (count="
-                << monitors.count() << ")\n";
+    record(file_monitor,
+           "Monitor %s added, count=%u", +monitor->id(), monitors.count());
 }
 
 
@@ -320,9 +312,8 @@ void FileMonitorThread::removeMonitor(FileMonitor *monitor)
     monitors.removeOne(monitor);
     XL_ASSERT(!monitors.contains(monitor));
 
-    IFTRACE(filemon)
-        debug() << "FileMonitor '" << +monitor->id() << "' removed (count="
-                << monitors.count() << ")\n";
+    record(file_monitor,
+           "Monitor %s removed, count=%u", +monitor->id(), monitors.count());
 }
 
 
@@ -366,9 +357,8 @@ void FileMonitorThread::mergePending()
     QMutexLocker locker(&pendingMutex);
     if (pending.isEmpty())
         return;
-
-    IFTRACE(filemon)
-         debug() << "Moving " << pending.size() << " paths from 'pending'\n";
+    record(file_monitor,
+           "Moving %u paths from pending list", pending.size());
     foreach (QString path, pending)
         addPathNoLock(path);
     pending.clear();
@@ -383,7 +373,7 @@ void FileMonitorThread::checkFiles()
     QMutexLocker locker(&mutex);
 
     QTime time;
-    IFTRACE(filemon)
+    IFTRACE(file_monitor)
         time.start();
 
     foreach (QString path, files.keys())
@@ -407,9 +397,9 @@ void FileMonitorThread::checkFiles()
         {
             if (dontPollReadOnlyFiles && !file.isWritable())
             {
-                IFTRACE(filemon)
-                    debug() << "Read-only file: '" << +path << "' ('"
-                            << +file.absoluteFilePath() << "')\n";
+                record(file_monitor,
+                       "Read-only file %s (%s)",
+                       path, file.absoluteFilePath());
                 file.ignore = true;
                 continue;
             }
@@ -426,9 +416,9 @@ void FileMonitorThread::checkFiles()
                 {
                 case FileMonitor::None:
                 case FileMonitor::Deleted:
-                    IFTRACE(filemon)
-                            debug() << "Created: '" << +path << "' ('"
-                                    << +file.absoluteFilePath() << "')\n";
+                    record(file_monitor,
+                           "Created %s (%s)",
+                           path, file.absoluteFilePath());
                     mf.cachedModified = file.lastModified();
                     mf.cachedAbsolutePath = file.absoluteFilePath();
                     mf.lastNotification = FileMonitor::Created;
@@ -442,7 +432,7 @@ void FileMonitorThread::checkFiles()
                          lastModified > mf.cachedModified)
                         || absolutePath != mf.cachedAbsolutePath)
                     {
-                        IFTRACE(filemon)
+                        IFTRACE(file_monitor)
                         {
                             const QString fmt("dd MMM yyyy hh:mm:ss.zzz");
                             debug() << "Changed: '" << +path << "' ('"
@@ -474,9 +464,9 @@ void FileMonitorThread::checkFiles()
                 if (mf.lastNotification != FileMonitor::Deleted &&
                     mf.lastNotification != FileMonitor::None)
                 {
-                    IFTRACE(filemon)
-                        debug() << "Deleted: '" << +path << "' ('"
-                                << +mf.cachedAbsolutePath << "')\n";
+                    record(file_monitor,
+                           "Deleted %s (%s)",
+                           path, mf.cachedAbsolutePath);
                     mf.cachedModified = QDateTime();
                     mf.cachedAbsolutePath = QString();
                     mf.lastNotification = FileMonitor::Deleted;

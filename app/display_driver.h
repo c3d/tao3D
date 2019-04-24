@@ -190,4 +190,6 @@ protected:
 
 TAO_END
 
+RECORDER_DECLARE(displaymode);
+
 #endif // DISPLAY_DRIVER_H

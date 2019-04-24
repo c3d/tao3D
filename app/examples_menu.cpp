@@ -49,6 +49,8 @@
 #include <QNetworkRequest>
 
 
+RECORDER(examples_menu, 32, "Examples menu");
+
 namespace Tao {
 
 ExamplesMenu::ExamplesMenu(QString caption, QWidget *parent)
@@ -178,12 +180,9 @@ void ExamplesMenuUpdater::downloaded(QNetworkReply *reply)
         description = description.trimmed();
         empty = empty.trimmed();
 
-        IFTRACE(update)
-            std::cerr << "Examples menu Entry " << row+1    << "\n"
-                      << "    Caption=" << +caption         << "\n"
-                      << "    URL    =" << +url             << "\n"
-                      << "    Descr  =" << +description     << "\n"
-                      << "    Empty  =" << +empty           << "\n";
+        record(examples_menu,
+               "Entry %d caption [%s] url [%s] descr [%s]",
+               row+1, +caption, +url, +description);
 
         settings.setArrayIndex(row++);
         settings.setValue("caption", caption);

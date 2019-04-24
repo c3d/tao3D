@@ -46,42 +46,37 @@
 #include <QStringList>
 #include <QFontDatabase>
 
+RECORDER(fonts,         16, "Font description and parsing");
+RECORDER(fonts_warning, 16, "Warning about font descriptions");
+
+
+
 TAO_BEGIN
 
 QMap<QPair<QString, QString>, bool> FontParsingAction::exactMatchCache;
 
 
-Tree *FontParsingAction::Do (Tree *what)
-// ----------------------------------------------------------------------------
-//   Default action on trees - Do nothing?
-// ----------------------------------------------------------------------------
-{
-    Ooops("Unexpected font entry $1", what);
-    return what;
-}
-
-
-Tree *FontParsingAction::Do(Integer *what)
+bool FontParsingAction::Do(Integer *what)
 // ----------------------------------------------------------------------------
 //   Integers specify the font size
 // ----------------------------------------------------------------------------
 {
     font.setPointSizeF(fontSizeAdjust(what->value));
-    return what;
+    return true;
 }
 
 
-Tree *FontParsingAction::Do(Real *what)
+bool FontParsingAction::Do(Real *what)
 // ----------------------------------------------------------------------------
 //   Real numbers specify the font size
 // ----------------------------------------------------------------------------
 {
     font.setPointSizeF(fontSizeAdjust(what->value));
-    return what;
+    return true;
 }
 
 
-Tree *FontParsingAction::Do(Text *what)
+bool FontParsingAction::Do(Text *what)
 // ----------------------------------------------------------------------------
 //   Text specifies a font family (optionally a foundry)
 // ----------------------------------------------------------------------------
@@ -91,8 +86,7 @@ Tree *FontParsingAction::Do(Text *what)
     {
         text family, style;
         text desc = what->value;
-        IFTRACE(fontparsing)
-            std::cerr << "Parsing font description: '" <<  desc << "'\n";
+        record(fonts, "Parsing description %t", what);
         size_t slash = desc.find('/');
         if (slash != std::string::npos)
         {
@@ -100,9 +94,8 @@ Tree *FontParsingAction::Do(Text *what)
             family = desc.substr(0, slash);
             style = desc.substr(slash + 1, std::string::npos);
             int size = font.pointSize();
-            IFTRACE(fontparsing)
-                std::cerr << "  Requesting font: family='" << family
-                          << "' style='" << style << "' size=" << size << "\n";
+            record(fonts, "Requesting family %s style %s size %d",
+                   family, style, size);
             font = QFontDatabase().font(+family, +style, size);
         }
         else
@@ -112,33 +105,25 @@ Tree *FontParsingAction::Do(Text *what)
             family = what->value;
             if (family == "Times")
                 family = "Times New Roman";
-            IFTRACE(fontparsing)
-                std::cerr << "  Requesting font: family='" << family << "'\n";
+            record(fonts, "Requesting family %s", family);
             font.setFamily(+family);
         }
         QPair<QString, QString> key(+family, +style);
         if (!exactMatchCache.contains(key))
         {
             exactMatchCache[key] = font.exactMatch();
-            IFTRACE(fontparsing)
-                std::cerr << "  Caching exact match flag\n";
+            record(fonts, "Caching exact match flag");
         }
         exactMatch = exactMatchCache[key];
-        IFTRACE(fontparsing)
-        {
-            std::cerr << "  Returned font:   family='" << +font.family()
-#if QT_VERSION > 0x040800
-                      << "' style='" << +font.styleName()
-#endif
-                      << "' size=" << font.pointSize() << "\n"
-                      << "  Exact match: " << exactMatch << "\n";
-        }
+        record(fonts, "Returned family %s style %s size %d, %+s",
+               font.family(), font.styleName(), font.pointSize(),
+               exactMatch ? "exact" : "interpolated");
     }
-    return what;
+    return true;
 }
 
 
-Tree *FontParsingAction::Do(Name *what)
+bool FontParsingAction::Do(Name *what)
 // ----------------------------------------------------------------------------
 //   A name specifies one of the font attributes
 // ----------------------------------------------------------------------------
@@ -265,9 +250,9 @@ Tree *FontParsingAction::Do(Name *what)
     else
     {
         Ooops("Unexpected font keyword $1", what);
-        return what;
+        return false;
     }
-    return what;
+    return true;
 }
 
 
@@ -285,8 +270,7 @@ bool FontParsingAction::SetAttribute(Name *n, Tree *value)
     {
         double amount = 0.0;
 
-        Tree *evaluated = context->Evaluate(value);
-
+        Tree *evaluated = xl_evaluate(scope, value);
         if (Integer *iv = evaluated->AsInteger())
             amount = iv->value;
         else if (Real *rv = evaluated->AsReal())
@@ -320,29 +304,29 @@ bool FontParsingAction::SetAttribute(Name *n, Tree *value)
 }
 
 
-Tree *FontParsingAction::Do(Prefix *what)
+bool FontParsingAction::Do(Prefix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate the prefix
 // ----------------------------------------------------------------------------
 {
     if (Name *name = what->left->AsName())
         if (SetAttribute(name, what->right))
-            return what;
+            return true;
 
-    Tree *value = context->Evaluate(what);
+    Tree *value = xl_evaluate(scope, what);
     if (value != what)
         return value->Do(this);
     Ooops("Invalid font attribute $1", what);
-    return what;
+    return false;
 }
 
 
-Tree *FontParsingAction::Do(Postfix *what)
+bool FontParsingAction::Do(Postfix *what)
 // ----------------------------------------------------------------------------
 //   Evaluate the postfix
 // ----------------------------------------------------------------------------
 {
-    Tree *value = context->Evaluate(what);
+    Tree *value = xl_evaluate(scope, what);
     if (value != what)
         return value->Do(this);
     Ooops("Invalid font attribute $1", what);
@@ -350,33 +334,33 @@ Tree *FontParsingAction::Do(Postfix *what)
 }
 
 
-Tree *FontParsingAction::Do(Infix *what)
+bool FontParsingAction::Do(Infix *what)
 // ----------------------------------------------------------------------------
 //   Split comma-separated lists, otherwise evaluate sides
 // ----------------------------------------------------------------------------
 {
     if (what->name == ",")
     {
-        what->left->Do(this);
-        what->right->Do(this);
-        return what;
+        bool l = what->left->Do(this);
+        bool r = what->right->Do(this);
+        return l && r;
     }
     else if (what->name == "=" || what->name == ":")
     {
         if (Name *name = what->left->AsName())
             if (SetAttribute(name, what->right))
-                return what;
+                return true;
     }
 
-    Tree *value = context->Evaluate(what);
+    Tree *value = xl_evaluate(scope, what);
     if (value != what)
         return value->Do(this);
     Ooops("Invalid font attribute $1", what);
-    return what;
+    return false;
 }
 
 
-Tree *FontParsingAction::Do(Block *what)
+bool FontParsingAction::Do(Block *what)
 // ----------------------------------------------------------------------------
 //   Evaluate the block
 // ----------------------------------------------------------------------------

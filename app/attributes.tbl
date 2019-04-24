@@ -64,187 +64,187 @@ COLOR_ATTRIBUTE(FillColorAlias, "fill_color", fillColor)
 #define XARGS(p) pos,
 COLOR_ATTRIBUTE(GradientColor, "gradient_color", gradientColor)
 
-PREFIX(MotionBlur, tree, "motion_blur",
-       PARM(f, real, "Amount of blur, between 0 and 1"),
-       RTAO(motionBlur(self, f)),
-       GROUP(page)
-       SYNOPSIS("Set the motion blur factor"))
-PREFIX(LineWidth,  tree,  "line_width",
-       PARM(lw, real, "The line width to set."),
-       RTAO(lineWidth(self, lw)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Select the line width for OpenGL")
-       DESCRIPTION("Set the line width for OpenGL"))
-PREFIX(LineStipple,  tree,  "line_stipple",
-       PARM(p, integer, "pattern")
-       PARM(s, integer, "scale"),
-       RTAO(lineStipple(self, p, s)),
-       GROUP(graph:attribute)
-       SYNOPSIS("line stipple pattern (3D)")
-       DESCRIPTION("Select the line stipple pattern for OpenGL lines (3D paths only)"))
-PREFIX(LineStippleName,  tree,  "line_stipple",
-       PARM(n, text, "Name of the pattern (see Qt::PenStyle)"),
-       RTAO(lineStipple(self, n)),
-       GROUP(graph:attribute)
-       SYNOPSIS("line stipple pattern (2D)")
-       DESCRIPTION("Select the line stipple pattern for 2D shapes"))
-PREFIX(CachedDrawing, tree, "cached",
-       PARM(version, real, "Version")
-       PARM(body, code, "Code to cache"),
-       RTAO(drawingCache(context, self, version, body)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Cache some drawings for faster execution"))
-PREFIX(FillTextureUnit,  integer,  "texture_unit",
-       PARM(texUnit, integer, "The texture unit."),
-       RTAO(fillTextureUnit(self, texUnit)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Create a GL texture")
-       DESCRIPTION(""))
-PREFIX(FillTextureId,  integer,  "texture",
-       PARM(texId, integer, "The texture id."),
-       RTAO(fillTextureId(self, texId)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Create a GL texture")
-       DESCRIPTION(""))
-PREFIX(FillTexture,  integer,  "texture",
-       PARM(n, text, "The image filename."),
-       RTAO(fillTexture(context, self, n)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Create a GL texture")
-       DESCRIPTION("Build a GL texture out of an image file.\n"
-                   "Supported format include:\n"
-                   "BMP  Windows Bitmap\n"
-                   "GIF  Graphic Interchange Format (optional)\n"
-                   "JPG	 Joint Photographic Experts Group\n"
-                   "JPEG Joint Photographic Experts Group\n"
-                   "PNG	 Portable Network Graphics\n"
-                   "PBM  Portable Bitmap\n"
-                   "PGM  Portable Graymap\n"
-                   "PPM  Portable Pixmap\n"
-                   "TIFF Tagged Image File Format\n"
-                   "XBM  X11 Bitmap\n"
-                   "XPM X11 Pixmap"))
-PREFIX(FillTextureSVG,  integer, "svg",
-       PARM(img, text, "The image filename."),
-       RTAO(fillTextureFromSVG(context, self, img)),
-       GROUP(graph)
-       SYNOPSIS("Create a texture from an SVG")
-       DESCRIPTION("Draw an image from an SVG format")
-       RETURNS(tree, ""))
-PREFIX(FillAnimatedTexture,  integer,  "animated_texture",
-       PARM(n, text, "The animation filename."),
-       RTAO(fillAnimatedTexture(context, self, n)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Create a GL animated texture")
-       DESCRIPTION("Build a GL texture images from an animated image file. Supported format are:\n\
+OVERLOAD(MotionBlur, tree, "motion_blur",
+         PARM(f, real, "Amount of blur, between 0 and 1"),
+         RTAO(motionBlur(XL_SELF, f)),
+         GROUP(page)
+         SYNOPSIS("Set the motion blur factor"))
+OVERLOAD(LineWidth,  tree,  "line_width",
+         PARM(lw, real, "The line width to set."),
+         RTAO(lineWidth(XL_SELF, lw)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Select the line width for OpenGL")
+         DESCRIPTION("Set the line width for OpenGL"))
+OVERLOAD(LineStipple,  tree,  "line_stipple",
+         PARM(p, integer, "pattern")
+         PARM(s, integer, "scale"),
+         RTAO(lineStipple(XL_SELF, p, s)),
+         GROUP(graph:attribute)
+         SYNOPSIS("line stipple pattern (3D)")
+         DESCRIPTION("Select the line stipple pattern for OpenGL lines (3D paths only)"))
+OVERLOAD(LineStippleName,  tree,  "line_stipple",
+         PARM(n, text, "Name of the pattern (see Qt::PenStyle)"),
+         RTAO(lineStipple(XL_SELF, n)),
+         GROUP(graph:attribute)
+         SYNOPSIS("line stipple pattern (2D)")
+         DESCRIPTION("Select the line stipple pattern for 2D shapes"))
+OVERLOAD(CachedDrawing, tree, "cached",
+         PARM(version, real, "Version")
+         PARM(body, code, "Code to cache"),
+         RTAO(drawingCache(XL_SCOPE, XL_SELF, version, body)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Cache some drawings for faster execution"))
+OVERLOAD(FillTextureUnit,  integer,  "texture_unit",
+         PARM(texUnit, integer, "The texture unit."),
+         RTAO(fillTextureUnit(XL_SELF, texUnit)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Create a GL texture")
+         DESCRIPTION(""))
+OVERLOAD(FillTextureId,  integer,  "texture",
+         PARM(texId, integer, "The texture id."),
+         RTAO(fillTextureId(XL_SELF, texId)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Create a GL texture")
+         DESCRIPTION(""))
+OVERLOAD(FillTexture,  integer,  "texture",
+         PARM(n, text, "The image filename."),
+         RTAO(fillTexture(XL_SCOPE, XL_SELF, n)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Create a GL texture")
+         DESCRIPTION("Build a GL texture out of an image file.\n"
+                     "Supported format include:\n"
+                     "BMP  Windows Bitmap\n"
+                     "GIF  Graphic Interchange Format (optional)\n"
+                     "JPG	 Joint Photographic Experts Group\n"
+                     "JPEG Joint Photographic Experts Group\n"
+                     "PNG	 Portable Network Graphics\n"
+                     "PBM  Portable Bitmap\n"
+                     "PGM  Portable Graymap\n"
+                     "PPM  Portable Pixmap\n"
+                     "TIFF Tagged Image File Format\n"
+                     "XBM  X11 Bitmap\n"
+                     "XPM X11 Pixmap"))
+OVERLOAD(FillTextureSVG,  integer, "svg",
+         PARM(img, text, "The image filename."),
+         RTAO(fillTextureFromSVG(XL_SCOPE, XL_SELF, img)),
+         GROUP(graph)
+         SYNOPSIS("Create a texture from an SVG")
+         DESCRIPTION("Draw an image from an SVG format")
+         RETURNS(tree, ""))
+OVERLOAD(FillAnimatedTexture,  integer,  "animated_texture",
+         PARM(n, text, "The animation filename."),
+         RTAO(fillAnimatedTexture(XL_SCOPE, XL_SELF, n)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Create a GL animated texture")
+         DESCRIPTION("Build a GL texture images from an animated image file. Supported format are:\n\
 GIF	Animated Graphic Interchange Format\n                           \
 MNG	Animated portable Network Graphics\n                            \
 others [TODO:  description is troncated] "))
-PREFIX(Image,  integer, "image",
-       PARM(x, real, )
-       PARM(y, real, )
-       PARM(w, real, )
-       PARM(h, real, )
-       PARM(img, text, ),
-       RTAO(image(context, self, x, y, w, h, img)),
-       GROUP()
-       SYNOPSIS("")
-       DESCRIPTION(""))
-PREFIX(ImageSize,  infix, "image_size",
-       PARM(img, text, "File path"),
-       RTAO(imageSize(context, self, img)),
-       GROUP()
-       SYNOPSIS("Get the size of an image")
-       DESCRIPTION("")
-       RETURNS(infix, "Two integer values: w,h"))
-PREFIX(TextureWrap,  tree,  "texture_wrap",
-       PARM(s, boolean, "[TODO]")
-       PARM(t, boolean, "[TODO]"),
-       RTAO(textureWrap(self, s, t)),
-       GROUP(graph)
-       SYNOPSIS("wrap textures or clamp them")
-       DESCRIPTION("Record if we want to wrap textures or clamp them"))
-PREFIX(SetTextureMode,  tree,  "texture_mode",
-       PARM(mode, text, "[TODO]"),
-       RTAO(textureMode(self, mode)),
-       GROUP(graph)
-       SYNOPSIS("choose mode of blending of the textures")
-       DESCRIPTION("Record mode of blending of the textures"))
-PREFIX(TextureTransform,  tree,  "texture_transform",
-       PARM(t, code, "[TODO]"),
-       RTAO(textureTransform(context, self, t)),
-       GROUP(graph)
-       SYNOPSIS("Apply a texture transformation")
-       DESCRIPTION("Apply a texture transformation.[TODO: de quel genre ?]")
-       RETURNS(tree, "The result of the child evaluation."))
-PREFIX(TextureWidth,  tree,  "texture_width",,
-       RTAO(textureWidth(self)),
-       GROUP(graph)
-       SYNOPSIS("Return current texture width.")
-       DESCRIPTION("Return current texture width.")
-       RETURNS(tree, "The current texture width."))
-PREFIX(TextureHeight,  tree,  "texture_height",,
-       RTAO(textureHeight(self)),
-       GROUP(graph)
-       SYNOPSIS("Return current texture height")
-       DESCRIPTION("Return current texture height")
-       RETURNS(tree, "The current texture height"))
-PREFIX(TextureType,  tree,  "texture_type",,
-       RTAO(textureType(self)),
-       GROUP(graph)
-       SYNOPSIS("Return current texture type.")
-       DESCRIPTION("Return current texture type.")
-       RETURNS(tree, "The current texture type."))
-PREFIX(TextureMode,  tree,  "texture_mode",,
-       RTAO(textureMode(self)),
-       GROUP(graph)
-       SYNOPSIS("Return current texture mode.")
-       DESCRIPTION("Return current texture mode.")
-       RETURNS(tree, "The current texture mode."))
-PREFIX(TextureId,  tree,  "texture",,
-       RTAO(textureId(self)),
-       GROUP(graph)
-       SYNOPSIS("Return current texture id")
-       DESCRIPTION("Return current texture id")
-       RETURNS(tree, "The current texture id"))
-PREFIX(TextureUnit,  tree,  "texture_unit",,
-       RTAO(textureUnit(self)),
-       GROUP(graph)
-       SYNOPSIS("Return current texture unit")
-       DESCRIPTION("Return current texture unit")
-       RETURNS(tree, "The current texture unit"))
-PREFIX(HasTexture, tree,  "has_texture",
-       PARM(unit, integer, "texture unit checked"),
-       RTAO(hasTexture(self, unit)),
-       GROUP(graph)
-       SYNOPSIS("Return result of evaluation.")
-       DESCRIPTION("Return result of evaluation.")
-       RETURNS(tree, "Return result of evaluation."))
-PREFIX(SetTextureMinFilter,  tree,  "texture_min_filter",
-       PARM(fn, text, "The texture minifying function (GL_NEAREST, GL_LINEAR etc.)"),
-       RTAO(textureMinFilter(self, fn)),
-       GROUP(graph)
-       SYNOPSIS("Set the texture minifying filter function"))
-PREFIX(SetTextureMagFilter,  tree,  "texture_mag_filter",
-       PARM(fn, text, "The texture magnification function (GL_NEAREST, GL_LINEAR etc.)"),
-       RTAO(textureMagFilter(self, fn)),
-       GROUP(graph)
-       SYNOPSIS("Set the texture magnification filter function"))
-PREFIX(ExtrudeDepth,  tree,  "extrude_depth",
-       PARM(ed, real, ""),
-       RTAO(extrudeDepth(self, ed)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Select the extrude depth for paths")
-       DESCRIPTION("Select the extrude depth for paths"))
-PREFIX(ExtrudeRadius,  tree,  "extrude_radius",
-       PARM(er, real, ""),
-       RTAO(extrudeRadius(self, er)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Select the extrude radius for paths")
-       DESCRIPTION("Select the extrude radius for paths"))
-PREFIX(ExtrudeCount,  tree,  "extrude_count",
-       PARM(ec, integer, ""),
-       RTAO(extrudeCount(self, ec)),
-       GROUP(graph:attribute)
-       SYNOPSIS("Select the extrude count for paths")
-       DESCRIPTION("Select the extrude count for paths"))
+OVERLOAD(Image,  integer, "image",
+         PARM(x, real, )
+         PARM(y, real, )
+         PARM(w, real, )
+         PARM(h, real, )
+         PARM(img, text, ),
+         RTAO(image(XL_SCOPE, XL_SELF, x, y, w, h, img)),
+         GROUP()
+         SYNOPSIS("")
+         DESCRIPTION(""))
+OVERLOAD(ImageSize,  infix, "image_size",
+         PARM(img, text, "File path"),
+         RTAO(imageSize(XL_SCOPE, XL_SELF, img)),
+         GROUP()
+         SYNOPSIS("Get the size of an image")
+         DESCRIPTION("")
+         RETURNS(infix, "Two integer values: w,h"))
+OVERLOAD(TextureWrap,  tree,  "texture_wrap",
+         PARM(s, boolean, "[TODO]")
+         PARM(t, boolean, "[TODO]"),
+         RTAO(textureWrap(XL_SELF, s, t)),
+         GROUP(graph)
+         SYNOPSIS("wrap textures or clamp them")
+         DESCRIPTION("Record if we want to wrap textures or clamp them"))
+OVERLOAD(SetTextureMode,  tree,  "texture_mode",
+         PARM(mode, text, "[TODO]"),
+         RTAO(textureMode(XL_SELF, mode)),
+         GROUP(graph)
+         SYNOPSIS("choose mode of blending of the textures")
+         DESCRIPTION("Record mode of blending of the textures"))
+OVERLOAD(TextureTransform,  tree,  "texture_transform",
+         PARM(t, code, "[TODO]"),
+         RTAO(textureTransform(XL_SCOPE, XL_SELF, t)),
+         GROUP(graph)
+         SYNOPSIS("Apply a texture transformation")
+         DESCRIPTION("Apply a texture transformation.[TODO: de quel genre ?]")
+         RETURNS(tree, "The result of the child evaluation."))
+OVERLOAD(TextureWidth,  tree,  "texture_width",,
+         RTAO(textureWidth(XL_SELF)),
+         GROUP(graph)
+         SYNOPSIS("Return current texture width.")
+         DESCRIPTION("Return current texture width.")
+         RETURNS(tree, "The current texture width."))
+OVERLOAD(TextureHeight,  tree,  "texture_height",,
+         RTAO(textureHeight(XL_SELF)),
+         GROUP(graph)
+         SYNOPSIS("Return current texture height")
+         DESCRIPTION("Return current texture height")
+         RETURNS(tree, "The current texture height"))
+OVERLOAD(TextureType,  tree,  "texture_type",,
+         RTAO(textureType(XL_SELF)),
+         GROUP(graph)
+         SYNOPSIS("Return current texture type.")
+         DESCRIPTION("Return current texture type.")
+         RETURNS(tree, "The current texture type."))
+OVERLOAD(TextureMode,  tree,  "texture_mode",,
+         RTAO(textureMode(XL_SELF)),
+         GROUP(graph)
+         SYNOPSIS("Return current texture mode.")
+         DESCRIPTION("Return current texture mode.")
+         RETURNS(tree, "The current texture mode."))
+OVERLOAD(TextureId,  tree,  "texture",,
+         RTAO(textureId(XL_SELF)),
+         GROUP(graph)
+         SYNOPSIS("Return current texture id")
+         DESCRIPTION("Return current texture id")
+         RETURNS(tree, "The current texture id"))
+OVERLOAD(TextureUnit,  tree,  "texture_unit",,
+         RTAO(textureUnit(XL_SELF)),
+         GROUP(graph)
+         SYNOPSIS("Return current texture unit")
+         DESCRIPTION("Return current texture unit")
+         RETURNS(tree, "The current texture unit"))
+OVERLOAD(HasTexture, tree,  "has_texture",
+         PARM(unit, integer, "texture unit checked"),
+         RTAO(hasTexture(XL_SELF, unit)),
+         GROUP(graph)
+         SYNOPSIS("Return result of evaluation.")
+         DESCRIPTION("Return result of evaluation.")
+         RETURNS(tree, "Return result of evaluation."))
+OVERLOAD(SetTextureMinFilter,  tree,  "texture_min_filter",
+         PARM(fn, text, "The texture minifying function (GL_NEAREST, GL_LINEAR etc.)"),
+         RTAO(textureMinFilter(XL_SELF, fn)),
+         GROUP(graph)
+         SYNOPSIS("Set the texture minifying filter function"))
+OVERLOAD(SetTextureMagFilter,  tree,  "texture_mag_filter",
+         PARM(fn, text, "The texture magnification function (GL_NEAREST, GL_LINEAR etc.)"),
+         RTAO(textureMagFilter(XL_SELF, fn)),
+         GROUP(graph)
+         SYNOPSIS("Set the texture magnification filter function"))
+OVERLOAD(ExtrudeDepth,  tree,  "extrude_depth",
+         PARM(ed, real, ""),
+         RTAO(extrudeDepth(XL_SELF, ed)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Select the extrude depth for paths")
+         DESCRIPTION("Select the extrude depth for paths"))
+OVERLOAD(ExtrudeRadius,  tree,  "extrude_radius",
+         PARM(er, real, ""),
+         RTAO(extrudeRadius(XL_SELF, er)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Select the extrude radius for paths")
+         DESCRIPTION("Select the extrude radius for paths"))
+OVERLOAD(ExtrudeCount,  tree,  "extrude_count",
+         PARM(ec, integer, ""),
+         RTAO(extrudeCount(XL_SELF, ec)),
+         GROUP(graph:attribute)
+         SYNOPSIS("Select the extrude count for paths")
+         DESCRIPTION("Select the extrude count for paths"))

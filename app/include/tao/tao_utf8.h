@@ -63,7 +63,17 @@ inline kstring operator +(QString s)
     return s.toUtf8().constData();
 }
 
+
 TAO_END
+
+inline uintptr_t _recorder_arg(const QString &arg)\
+// ----------------------------------------------------------------------------
+//    Store data from a QString into the recorder
+// ----------------------------------------------------------------------------
+{
+    return (uintptr_t) arg.toUtf8().constData();
+}
+
 
 // Print a string for debug purpose
 extern void pqs(const QString &qs);

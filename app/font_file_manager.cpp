@@ -53,6 +53,7 @@
 #  include <windows.h>
 #endif
 
+
 TAO_BEGIN
 
 // ----------------------------------------------------------------------------
@@ -119,24 +120,20 @@ void FontFileManager::AddFontFiles(const QFont &font)
 // ----------------------------------------------------------------------------
 {
     QString family = font.family();
-    IFTRACE(fonts)
-        std::cerr << "Searching files for font family '" << +family << "'\n";
+    record(fonts, "Searching files for font family %s", family);
     QStringList list = FilesForFontFamily(family);
     if (list.isEmpty())
     {
-        IFTRACE(fonts)
-            std::cerr << "No font file found!\n";
+        record(fonts_warning, "No font file found for %s", family);
         errors << QString("No font file found for family '%1'").arg(family);
         return;
     }
     foreach (QString path, list)
     {
-        IFTRACE(fonts)
-            std::cerr << "  " << +path << "\n";
+        record(fonts, "Looking in path %s", path);
         if (fontFiles.contains(path))
         {
-            IFTRACE(fonts)
-                std::cerr << "  Already in list\n";
+            record(fonts, "Font path %s is already in the list", path);
             return;
         }
         if (IsLoadable(path))
@@ -155,12 +152,10 @@ bool FontFileManager::IsLoadable(QString fileName)
     int id = QFontDatabase::addApplicationFont(fileName);
     if (id == -1)
     {
-        IFTRACE(fonts)
-            std::cerr << "    Font file cannot be loaded";
+        record(fonts_warning, "Font file %s cannot be loaded", fileName);
         return false;
     }
-    IFTRACE(fonts)
-        std::cerr << "    Font file can be loaded\n";
+    record(fonts, "Font file %s loaded with ID %d", fileName, id);
     QFontDatabase::removeApplicationFont(id);
     return true;
 }
@@ -202,45 +197,29 @@ QList<int> FontFileManager::LoadFonts(const QDir &dir)
     if (!dir.exists())
         return ids;
     QFileInfoList contents = dir.entryInfoList(fontFileFilter);
-    QTime time;
-    int count = 0;
-    IFTRACE(fonts)
-    {
-        std::cerr << "Looking for fonts in '" << +dir.absolutePath() << "'\n";
-        time.start();
-    }
+    unsigned count = 0;
+    record(fonts, "Looking for fonts in %s", +dir.absolutePath());
     foreach (QFileInfo f, contents)
     {
         if (f.isFile())
         {
             QString path = f.absoluteFilePath();
-            IFTRACE(fonts)
-            {
-                std::cerr << "Loading font file '" << +f.fileName() << "'...";
-                count++;
-            }
+            record(fonts, "Loading font #%u file %s", ++count, f.fileName());
             int id = QFontDatabase::addApplicationFont(path);
             if (id != -1)
             {
-                IFTRACE(fonts)
-                    std::cerr << " done (id=" << id << ")\n";
+                record(fonts, "Font path %s added, ID %d", path, id);
                 ids.append(id);
             }
             else
             {
-                IFTRACE(fonts)
-                    std::cerr << " failed\n";
+                record(fonts_warning, "Font path %s could not be added", path);
                 errors << QString(QObject::tr("Cannot load font file: %1"))
                                  .arg(f.fileName());
             }
         }
     }
-    IFTRACE(fonts)
-    {
-        int ms = time.elapsed();
-        std::cerr << count << " font files loaded in " << ms << " ms\n";
-    }
-
+    record(fonts, "Loaded %u fonts", count);
     return ids;
 }
 
@@ -252,8 +231,7 @@ void FontFileManager::UnloadFonts(const QList<int> &ids)
 {
     foreach(int id, ids)
     {
-        IFTRACE(fonts)
-                std::cerr << "Unloading font id " << id << "\n";
+        record(fonts, "Unloading font ID %d", id);
         QFontDatabase::removeApplicationFont(id);
     }
     FontParsingAction::exactMatchCache.clear();

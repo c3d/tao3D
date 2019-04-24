@@ -37,59 +37,65 @@
 // along with Tao3D, in a file named COPYING.
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
+
 #include "action.h"
 #include "parser.h"
 #include "tao_tree.h"
 
+TAO_BEGIN
 
 struct ExtractComment
 // ----------------------------------------------------------------------------
 //   Extract Comment surrounded by /*| |*/ from the given tree
 // ----------------------------------------------------------------------------
 {
-    typedef Tree *value_type;
+    typedef text value_type;
+
     ExtractComment() : opening("/*|"), closing("|*/") {}
-    text extract(XL::CommentsList commentList);
+    text Extract(XL::CommentsList commentList);
 
-    XL::Tree *Do(XL::Integer *what);
-    XL::Tree *Do(XL::Real *what);
-    XL::Tree *Do(XL::Text *what);
-    XL::Tree *Do(XL::Name *what);
+    text Do(Tree *what);
+    text Do(Block *what);
+    text Do(Infix *what);
+    text Do(Prefix *what);
+    text Do(Postfix *what);
 
-    XL::Tree *Do(XL::Block *what);
-    XL::Tree *Do(XL::Infix *what);
-    XL::Tree *Do(XL::Prefix *what);
-    XL::Tree *Do(XL::Postfix *what);
-    XL::Tree *Do(XL::Tree *what)
-    {
-        return what->Do(this);
-    }
+protected:
+    text Pre (Tree *what);
+    text Post(Tree *what);
+
 public:
     text opening, closing;
 };
+
 
 struct ExtractDoc : public ExtractComment
 // ----------------------------------------------------------------------------
 //   Extract documentation surrounded by /** **/ from the given tree
 // ----------------------------------------------------------------------------
 {
+    typedef text value_type;
+
     ExtractDoc(text defGrp = "") : defaultGroup(defGrp), params_tree(0)
     {
         opening = "/**";
         closing = "**/";
     }
-    XL::Tree *Do(XL::Infix *what);
-    XL::Tree *Do(XL::Prefix *what);
-    XL::Tree *Do(XL::Postfix *what);
+    text Do(Tree *what);
+    text Do(Infix *what);
+    text Do(Prefix *what);
+    text Do(Postfix *what);
 
-    text formatSyntax(XL::Tree *t);
+    text formatSyntax(Tree *t);
     text formatDoc(text *c);
-    text addParam(XL::Name *name, XL::Name *ptype, text *coment);
+    text addParam(Name *name, Name *ptype, text *coment);
     text defaultGroup;
-    int params_tree;
+    int  params_tree;
     text symbol;
     text syntax;
     text params;
 };
+
+TAO_END
 
 #endif // DOCUMENTATION_H

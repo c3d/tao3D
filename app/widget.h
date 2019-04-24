@@ -361,7 +361,7 @@ public:
     TextSelect *textSelection();
     void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
     void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
-    Layout *    drawTree(Layout *where, Context *context, Tree_p code);
+    Layout *    drawTree(Layout *where, Scope *scope, Tree_p code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
     bool        mouseTracking() { return doMouseTracking; }
     bool        inMouseMove()   { return w_event &&
@@ -373,7 +373,7 @@ public:
     bool        canPaste();
 
     Tree *      shapeAction(text n, GLuint id, int x, int y);
-    Tree_p      saveAndEvaluate(Context *context, Tree_p code);
+    Tree_p      saveAndEvaluate(Scope *scope, Tree_p code);
 
     // Text flows and text management
     TextFlow *  pageLayoutFlow(text f)  { return flows[f]; }
@@ -398,7 +398,7 @@ public:
     // XLR entry points
 
     // Page definition and attributes
-    Text_p      page(Context *context, Text_p name, Tree_p body);
+    Text_p      page(Scope *scope, Text_p name, Tree_p body);
     Text_p      pageUniqueName(Tree_p self, text name);
     Text_p      pageLink(Tree_p self, text key, text name);
     Real_p      pageSetPrintTime(Tree_p self, double t);
@@ -413,13 +413,13 @@ public:
     Integer_p   prevPageNumber(Tree_p self);
 
     // Transitions
-    Tree_p      transition(Context *, Tree_p self, double dur, Tree_p body);
+    Tree_p      transition(Scope *, Tree_p self, double dur, Tree_p body);
     Real_p      transitionTime(Tree_p self);
     Real_p      transitionDuration(Tree_p self);
     Real_p      transitionRatio(Tree_p self);
-    Tree_p      transitionCurrentPage(Context *, Tree_p self);
-    Tree_p      transitionNextPage(Context *, Tree_p self);
-    Tree_p      runTransition(Context *);
+    Tree_p      transitionCurrentPage(Scope *, Tree_p self);
+    Tree_p      transitionNextPage(Scope *, Tree_p self);
+    Tree_p      runTransition(Scope *);
 
     // Frame definition and transitions
     Real_p      frameWidth(Tree_p self);
@@ -432,9 +432,9 @@ public:
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
     Integer_p   pageSeconds(Tree_p self);
-    Real_p      after(Context *context, double delay, Tree_p code);
-    Real_p      every(Context *context, double delay, double duration, Tree_p code);
-    Name_p      once(Context *context, Tree_p self, Tree_p prog);
+    Real_p      after(Scope *scope, double delay, Tree_p code);
+    Real_p      every(Scope *scope, double delay, double duration, Tree_p code);
+    Name_p      once(Scope *scope, Tree_p self, Tree_p prog);
     Real_p      mouseX(Tree_p self);
     Real_p      mouseY(Tree_p self);
     Integer_p   screenMouseX(Tree_p self);
@@ -443,11 +443,11 @@ public:
     Tree_p      shapeAction(Tree_p self, Context_p context, text name, Tree_p action);
 
     // Preserving attributes
-    Tree_p      locally(Context *context, Tree_p self, Tree_p t);
-    Tree_p      shape(Context *context, Tree_p self, Tree_p t);
-    Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
-    Tree_p      anchor(Context *context, Tree_p self, Tree_p t, bool abs=false);
-    Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
+    Tree_p      locally(Scope *scope, Tree_p self, Tree_p t);
+    Tree_p      shape(Scope *scope, Tree_p self, Tree_p t);
+    Tree_p      activeWidget(Scope *scope, Tree_p self, Tree_p t);
+    Tree_p      anchor(Scope *scope, Tree_p self, Tree_p t, bool abs=false);
+    Tree_p      stereoViewpoints(Scope *ctx,Tree_p self,Integer_p e,Tree_p t);
     Integer_p   stereoViewpoints();
 
     // Transforms
@@ -570,14 +570,14 @@ public:
 
     Integer*    fillTextureUnit(Tree_p self, GLuint texUnit);
     Integer*    fillTextureId(Tree_p self, GLuint texId);
-    Integer*    fillTexture(Context *, Tree_p self, text fileName);
-    Integer*    fillAnimatedTexture(Context *, Tree_p self, text fileName);
-    Integer*    fillTextureFromSVG(Context *, Tree_p self, text svg);
+    Integer*    fillTexture(Scope *, Tree_p self, text fileName);
+    Integer*    fillAnimatedTexture(Scope *, Tree_p self, text fileName);
+    Integer*    fillTextureFromSVG(Scope *, Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureMode(Tree_p self, text mode);
     Tree_p      textureMinFilter(Tree_p self, text filter);
     Tree_p      textureMagFilter(Tree_p self, text filter);
-    Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
+    Tree_p      textureTransform(Scope *scope, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);
     Integer*    textureHeight(Tree_p self);
     Integer*    textureType(Tree_p self);
@@ -634,10 +634,10 @@ public:
     MATERIAL_ADAPT(materialEmission, GL_EMISSION)
 #undef MATERIAL_ADAPT
 
-    Tree_p      shaderProgram(Context *, Tree_p self, Tree_p code);
+    Tree_p      shaderProgram(Scope *, Tree_p self, Tree_p code);
     Tree_p      shaderFromSource(Tree_p self, ShaderKind kind, text source);
-    Tree_p      shaderFromFile(Context *, Tree_p self, ShaderKind k, text file);
-    Tree_p      shaderSet(Context *, Tree_p self, Tree_p code);
+    Tree_p      shaderFromFile(Scope *, Tree_p self, ShaderKind k, text file);
+    Tree_p      shaderSet(Scope *, Tree_p self, Tree_p code);
     Text_p      shaderLog(Tree_p self);
     Name_p      setGeometryInputType(Tree_p self, uint inputType);
     Integer*    geometryInputType(Tree_p self);
@@ -647,7 +647,7 @@ public:
     Integer*    geometryOutputCount(Tree_p self);
 
     // Generating a path
-    Tree_p      newPath(Context *c, Tree_p self, Tree_p t);
+    Tree_p      newPath(Scope *c, Tree_p self, Tree_p t);
     Tree_p      moveTo(Tree_p self, Real_p x, Real_p y, Real_p z);
     Tree_p      lineTo(Tree_p self, Real_p x, Real_p y, Real_p z);
     Tree_p      curveTo(Tree_p self,
@@ -727,22 +727,22 @@ public:
                      double ratio);
 
     // Text and font
-    Tree_p      textBox(Context *context, Tree_p self,
+    Tree_p      textBox(Scope *scope, Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h,
                         Tree_p body);
-    Tree_p      textFlow(Context *context, Tree_p self, Text_p name, Tree_p child);
-    Tree_p      textFlow(Context *context, Tree_p self, Text_p name);
-    Text_p      textFlow(Context *context, Tree_p self);
-    Name_p      textFlowExists(Context *context, Tree_p self, Text_p name);
-    Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
+    Tree_p      textFlow(Scope *scope, Tree_p self, Text_p name, Tree_p child);
+    Tree_p      textFlow(Scope *scope, Tree_p self, Text_p name);
+    Text_p      textFlow(Scope *scope, Tree_p self);
+    Name_p      textFlowExists(Scope *scope, Tree_p self, Text_p name);
+    Tree_p      textSpan(Scope *scope, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
-    Tree_p      htmlTextUnit(Context *context,Tree_p self,text html,text css);
+    Tree_p      htmlTextUnit(Scope *scope,Tree_p self,text html,text css);
     Box3        textSize(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
-    Tree_p      textValue(Context *, Tree_p self, Tree_p value);
-    Tree_p      font(Context *context, Tree_p self,Tree_p dscr,Tree_p d2=NULL);
-    Tree_p      fontFamily(Context *, Tree_p self, Text_p family);
-    Tree_p      fontFamily(Context *, Tree_p self, Text_p family, Real_p size);
+    Tree_p      textValue(Scope *, Tree_p self, Tree_p value);
+    Tree_p      font(Scope *scope, Tree_p self,Tree_p dscr,Tree_p d2=NULL);
+    Tree_p      fontFamily(Scope *, Tree_p self, Text_p family);
+    Tree_p      fontFamily(Scope *, Tree_p self, Text_p family, Real_p size);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontPlain(Tree_p self);
     Tree_p      fontItalic(Tree_p self, scale amount = 1);
@@ -761,7 +761,7 @@ public:
     Tree_p      drawingBreak(Tree_p self, BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
-    Text_p      loadText(Context *, Tree_p self, text file, text encoding);
+    Text_p      loadText(Scope *, Tree_p self, text file, text encoding);
     Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
     Text_p      taoEdition(Tree_p self);
@@ -774,14 +774,14 @@ public:
     Text_p      unicodeCharText(Tree_p self, text code);
 
     // Tables
-    Tree_p      newTable(Context *context, Tree_p self,
+    Tree_p      newTable(Scope *scope, Tree_p self,
                          Real_p x, Real_p y,
                          Integer_p r, Integer_p c, Tree_p body);
-    Tree_p      newTable(Context *context, Tree_p self,
+    Tree_p      newTable(Scope *scope, Tree_p self,
                          Integer_p r, Integer_p c, Tree_p body);
-    Tree_p      tableCell(Context *, Tree_p self,
+    Tree_p      tableCell(Scope *, Tree_p self,
                           Real_p w, Real_p h, Tree_p body);
-    Tree_p      tableCell(Context *, Tree_p self, Tree_p body);
+    Tree_p      tableCell(Scope *, Tree_p self, Tree_p body);
     Tree_p      tableMargins(Tree_p self,
                              Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      tableMargins(Tree_p self,
@@ -799,27 +799,27 @@ public:
 
     // Frames and widgets
     Tree_p      status(Tree_p self, text t, float timeout);
-    Integer*    framePaint(Context *context, Tree_p self,
+    Integer*    framePaint(Scope *scope, Tree_p self,
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
-    Integer*    frameTexture(Context *context, Tree_p self,
+    Integer*    frameTexture(Scope *scope, Tree_p self,
                              double w, double h, Tree_p prog, text name = "",
                              Integer_p depth=NULL, bool canvas=false);
     Integer *   framePixelCount(Tree_p self, float alphaMin);
     Integer *   framePixel(Tree_p self, float x, float y,
                            Real_p r, Real_p g, Real_p b, Real_p a);
-    Tree*       drawingCache(Context *context, Tree_p self,
+    Tree*       drawingCache(Scope *scope, Tree_p self,
                              double version, Tree_p prog);
-    Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
-    Name_p      saveThumbnail(Context *context, Tree_p self, int w, int h,
+    Integer*    thumbnail(Scope *, Tree_p self, scale s, double i, text page);
+    Name_p      saveThumbnail(Scope *scope, Tree_p self, int w, int h,
                               int page, text file, double pageTime = 0.0);
-    Integer*    linearGradient(Context *context, Tree_p self,
+    Integer*    linearGradient(Scope *scope, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
                                double w, double h, Tree_p prog);
-    Integer*    radialGradient(Context *context, Tree_p self,
+    Integer*    radialGradient(Scope *scope, Tree_p self,
                                Real_p center_x, Real_p center_y, Real_p radius,
                                double w, double h, Tree_p prog);
-    Integer*    conicalGradient(Context *context, Tree_p self,
+    Integer*    conicalGradient(Scope *scope, Tree_p self,
                                 Real_p center_x, Real_p center_y, Real_p angle,
                                 double w, double h, Tree_p prog);
 
@@ -835,9 +835,9 @@ public:
                          Real_p w,Real_p h, text_p s);
     Integer*    lineEditTexture(Tree_p self, double x, double y, Text_p s);
 
-    Tree_p      textEdit(Context *context, Tree_p self,
+    Tree_p      textEdit(Scope *scope, Tree_p self,
                          Real_p x, Real_p y, Real_p w, Real_p h, Text_p html);
-    Tree_p      textEditTexture(Context *context, Tree_p self,
+    Tree_p      textEditTexture(Scope *scope, Tree_p self,
                                 double w, double h, Text_p html);
 
     Tree_p      abstractButton(Tree_p self, Text_p name,
@@ -860,7 +860,7 @@ public:
                                       double w, double h,
                                       text_p name, Text_p lbl,
                                       Text_p  marked, Tree_p act);
-    Tree_p      buttonGroup(Context *context, Tree_p self,
+    Tree_p      buttonGroup(Scope *scope, Tree_p self,
                             bool exclusive, Tree_p buttons);
     Tree_p      setButtonGroupAction(Tree_p self, Tree_p action);
 
@@ -873,22 +873,22 @@ public:
     Tree_p      setFileDialogFilter(Tree_p self, text filters);
     Tree_p      setFileDialogLabel(Tree_p self, text label, text value);
 
-    Tree_p      groupBox(Context *context, Tree_p self,
+    Tree_p      groupBox(Scope *scope, Tree_p self,
                          Real_p x,Real_p y, Real_p w,Real_p h,
                          text_p lbl, Tree_p buttons);
     Integer*    groupBoxTexture(Tree_p self,
                                 double w, double h,
                                 Text_p lbl);
 
-    Integer*    image(Context *context,
+    Integer*    image(Scope *scope,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
-    Tree_p      listFiles(Context *context, Tree_p self, Tree_p pattern);
-    Infix_p     imageSize(Context *context,
+    Tree_p      listFiles(Scope *scope, Tree_p self, Tree_p pattern);
+    Infix_p     imageSize(Scope *scope,
                           Tree_p self, text filename);
 
     // Menus and widgets
-    Tree_p      chooser(Context *, Tree_p self, text caption);
+    Tree_p      chooser(Scope *, Tree_p self, text caption);
     Tree_p      chooserChoice(Tree_p self, text caption, Tree_p command);
     Tree_p      chooserCommands(Tree_p self, text prefix, text label);
     Tree_p      chooserPages(Tree_p self, Name_p prefix, text label);
@@ -941,7 +941,7 @@ public:
     Real_p      getWorldCoordinates(Tree_p, Real_p x, Real_p y,
                                     Real_p wx, Real_p wy, Real_p wz);
     Name_p      hasDisplayModeText(Tree_p self, text name);
-    Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
+    Name_p      displaySet(Scope *scope, Tree_p self, Tree_p code);
     Text_p      displayMode();
     Name_p      readOnly();
     Text_p      baseName(Tree_p, text filename);
@@ -961,7 +961,7 @@ public:
     Name_p      sendBackward(Tree_p self);
 
     // group management
-    Tree_p      group(Context *context, Tree_p self, Tree_p shapes);
+    Tree_p      group(Scope *scope, Tree_p self, Tree_p shapes);
     Name_p      groupSelection(Tree_p self);
     Name_p      ungroupSelection(Tree_p self);
 
@@ -1275,7 +1275,7 @@ inline ActivityClass *Widget::active()
 
 #undef TAO // From the command line
 #define TAO(x)          Tao::Widget::Tao()->x
-#define RTAO(x)         return Tao::Widget::Tao()->x;
+#define RTAO(x)         RESULT(Tao::Widget::Tao()->x)
 
 inline void glShowErrors()
 // ----------------------------------------------------------------------------

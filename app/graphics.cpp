@@ -37,29 +37,9 @@
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
 
-#include "graphics.h"
-#include "opcodes.h"
-#include "options.h"
-#include "widget.h"
-#include "types.h"
-#include "drawing.h"
-#include "module_manager.h"
-#include "texture_cache.h"
-#include <iostream>
+#warning "Empty file - Consider removing"
 
-
-// ============================================================================
-//
-//    Top-level operation
-//
-// ============================================================================
-
-using namespace XL;
-
-#include "opcodes_declare.h"
-#include "graphics.tbl"
-
-
+#if 0
 Tree *xl_process_module_import(Symbols *symbols, Tree *source, phase_t phase)
 // ----------------------------------------------------------------------------
 //   Standard connector for 'import' statements
@@ -91,30 +71,6 @@ Tree *xl_process_module_config(Symbols *symbols, Tree *source, phase_t phase)
     return NULL;
 }
 
-
-namespace Tao
-{
-
-void EnterGraphics()
-// ----------------------------------------------------------------------------
-//   Enter all the basic operations defined in graphics.tbl
-// ----------------------------------------------------------------------------
-{
-    XL::Context *context = MAIN->context;
-#include "opcodes_define.h"
-#include "graphics.tbl"
-    xl_enter_declarator("import", xl_process_module_import);
-    xl_enter_declarator("configuration", xl_process_module_config);
-}
-
-
-void DeleteGraphics()
-// ----------------------------------------------------------------------------
-//   Delete all the global operations defined in graphics.tbl
-// ----------------------------------------------------------------------------
-{
-#include "opcodes_delete.h"
-#include "graphics.tbl"
-}
-
-}
+xl_enter_declarator("import", xl_process_module_import);
+xl_enter_declarator("configuration", xl_process_module_config);
+#endif

@@ -49,8 +49,9 @@
 #include <sstream>
 #include "demangle.h"
 
-RECORDER_DEFINE(layoutevents, 32, "Layout events");
-RECORDER_DEFINE(lfps, 16, "Layout frames-per-second stats");
+RECORDER_DEFINE(layoutevents,           32, "Layout events");
+RECORDER_DEFINE(layoutevents_warning,    8, "Layout events warnings");
+RECORDER_DEFINE(layout_fps,             16, "Layout frames-per-second stats");
 
 TAO_BEGIN
 
@@ -201,20 +202,20 @@ Layout::~Layout()
 
 
 Layout *Layout::AddChild(uint childId,
-                         Tree_p body, Context_p ctx,
+                         Tree_p body, Scope_p scope,
                          Layout *child)
 // ----------------------------------------------------------------------------
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
-    record(layoutevents, "Adding child id %u to %u with body %t",
-           childId, id, (Tree *) body);
+    record(layoutevents, "Adding child id %u to %u with body %t scope %t",
+           childId, id, (Tree *) body, (Scope *) scope);
     Layout *result = child ? child : NewChild();
     Add(result);
     result->idx = items.size();
     result->id = childId;
     result->body = body;
-    result->ctx = ctx;
+    result->scope = scope;
     return result;
 }
 
@@ -271,7 +272,7 @@ void Layout::Draw(Layout *where)
 //   Draw the elements in the layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::beginDraw(body);
 
     // Save polygon offset for transparency
@@ -305,7 +306,7 @@ void Layout::Draw(Layout *where)
         GL.DepthMask(GL_TRUE);
         transparency = false;
     }
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::endDraw(body);
 }
 
@@ -315,7 +316,7 @@ void Layout::DrawSelection(Layout *where)
 //   Draw the selection for the elements in the layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::beginDraw(body);
 
     // Save polygon offset for transparency
@@ -348,7 +349,7 @@ void Layout::DrawSelection(Layout *where)
         GL.DepthMask(GL_TRUE);
         transparency = false;
     }
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::endDraw(body);
 }
 
@@ -358,7 +359,7 @@ void Layout::Identify(Layout *where)
 //   Identify the elements of the layout for OpenGL selection
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::beginDraw(body);
 
     // Save polygon offset for transparency
@@ -394,7 +395,7 @@ void Layout::Identify(Layout *where)
         GL.DepthMask(GL_TRUE);
         transparency = false;
     }
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::endDraw(body);
 }
 
@@ -529,7 +530,7 @@ text Layout::PrettyId()
     sstr << (void*)this << " id = " << id;
     if (body)
     {
-        Tree *source = XL::xl_source(body);
+        Tree *source = body;
         if (Prefix *p = source->AsPrefix())
         {
             if (p->left)
@@ -562,9 +563,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     Widget * widget = Widget::Tao();
     if (widget->currentPrinter())
         return false;
-    text layoutId;
+    QString layoutId;
 
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::beginExec(body);
 
     IFTRACE(layoutevents)
@@ -572,21 +573,18 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         if (!dbg.isEmpty())
             dbg.append("/");
         dbg += QString("%1").arg(idx);
-        layoutId = +dbg + " " + PrettyId();
+        layoutId = dbg + " " + +PrettyId();
     }
 
     if (NeedRefresh(e, now))
     {
         XL::Save<uint> saveId(widget->id, id);
-        IFTRACE(layoutevents)
-            std::cerr << "Layout " << layoutId
-                      << " id " << id << " needs updating\n";
-
+        record(layoutevents, "Layout %s id %u needs updating", layoutId, id);
         refreshEvents.clear();
         nextRefresh = DBL_MAX;
 
         // Check if we can evaluate locally
-        if (ctx && body)
+        if (scope && body)
         {
             record(justify, "Refresh of layout %p clears it", this);
 
@@ -601,36 +599,28 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
             GLAllStateKeeper save;
 
             record(layoutevents, "Evaluating %t", (Tree *) body);
-            ctx->Evaluate(body);
+            xl_evaluate(scope, body);
         }
         else
         {
             if (this == (Layout*) widget->space)
                 widget->refreshNow();
             else
-                std::cerr << "Unexpected NULL ctx/body in non-root layout\n";
+                std::cerr << "Unexpected NULL scope or body in non-root layout\n";
         }
 
         changed = true;
     }
     else
     {
-        IFTRACE(layoutevents)
-        {
-            std::cerr << "Layout " << layoutId << " does not need updating"
-                      << " now=" << now
-                      << " expires at ";
-            if (nextRefresh == DBL_MAX)
-                std::cerr << "(never)";
-            else
-                std::cerr << nextRefresh;
-            std::cerr << "\n";
-        }
+        record(layoutevents,
+               "Layout %s id %u does not need updating, now %f, expires at %f",
+               layoutId, id, now, nextRefresh);
 
         // Forward event to all child layouts
         changed |= RefreshChildren(e, now, dbg);
     }
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::endExec(body);
 
     return changed;
@@ -738,12 +728,10 @@ bool Layout::RefreshOn(Layout *layout)
         changed = true;
     }
 
-    IFTRACE(layoutevents)
-    {
-        if (changed)
-            std::cerr << "Refresh events copied from " << (void*)layout
-                      << " to " << (void*)this << "\n";
-    }
+    record(layoutevents,
+           "Refresh events %+s in %p from %p",
+           changed ? "copied" : "not copied",
+           this, layout);
 
     return changed;
 }

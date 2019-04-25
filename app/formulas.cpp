@@ -37,42 +37,4 @@
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
 
-#include "opcodes.h"
-#include "types.h"
-#include "options.h"
-#include "runtime.h"
-#include "basics.h"
-#include "widget.h"
-#include "main.h"
-#include <iostream>
-
-
-using namespace XL;
-
-namespace TaoFormulas
-{
-#define XL_SCOPE "xl_formulas_"
-#include "opcodes_declare.h"
-#include "formulas.tbl"
-
-
-void EnterFormulas(XL::Context *context, XL::Symbols *globals)
-// ----------------------------------------------------------------------------
-//   Enter all the operations defined in formulas.tbl
-// ----------------------------------------------------------------------------
-{
-    XL::Save<XL::Symbols_p> saveGlobals(MAIN->globals, globals);
-#include "opcodes_define.h"
-#include "formulas.tbl"
-}
-
-
-void DeleteFormulas()
-// ----------------------------------------------------------------------------
-//   Delete all the global operations defined in formulas.tbl
-// ----------------------------------------------------------------------------
-{
-#include "opcodes_delete.h"
-#include "formulas.tbl"
-}
-}
+#warning "Empty file - Can be removed"

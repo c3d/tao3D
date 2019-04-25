@@ -40,23 +40,4 @@
 
 #include "context.h"
 
-
-
-// ============================================================================
-//
-//   Top level entry point
-//
-// ============================================================================
-
-namespace TaoFormulas
-{
-
-// Top-level entry point: enter all basic operations in the context
-void EnterFormulas(XL::Context *context, XL::Symbols *globals);
-
-// Top-level entry point: reset all global pointers related to formulas
-void DeleteFormulas();
-
-}
-
 #endif // FORMULAS_H

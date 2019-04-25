@@ -46,6 +46,9 @@
 #include "save.h"
 #include <QFontMetricsF>
 
+RECORDER(glyph_cache,           16, "Glyph cache (pre-computed glyph shapes)");
+RECORDER(glyph_cache_warning,   16, "Warnings from the glyph cache");
+
 TAO_BEGIN
 
 // ============================================================================
@@ -72,11 +75,14 @@ PerFontGlyphCache::PerFontGlyphCache(const QFont &font)
 // ----------------------------------------------------------------------------
     : font(font), ascent(0), descent(0), leading(0)
 {
+    record(glyph_cache, "Creating cache %p for font %s", this, font.family());
     QFontMetricsF fm(font);
     ascent = fm.ascent();
     descent = fm.descent();
     leading = fm.leading();
     baseSize = font.pointSizeF();
+    record(glyph_cache, "ascent=%f descent=%f leading=%f baseSize=%f",
+           ascent, descent, leading, baseSize);
 }
 
 
@@ -85,6 +91,7 @@ PerFontGlyphCache::~PerFontGlyphCache()
 //   Clear the per-font glyph cache
 // ----------------------------------------------------------------------------
 {
+    record(glyph_cache, "Deleting cache %p", this);
     for (CodeMap::iterator ci = codes.begin(); ci != codes.end(); ci++)
     {
         GlyphEntry &e = (*ci).second;
@@ -181,6 +188,7 @@ GlyphCache::GlyphCache()
       GLcontext(QGLContext::currentContext()),
       layout(NULL)
 {
+    record(glyph_cache, "Create glyph cache %p", this);
     image.fill(0);
 }
 
@@ -190,6 +198,7 @@ GlyphCache::~GlyphCache()
 //   Release the texture we were using
 // ----------------------------------------------------------------------------
 {
+    record(glyph_cache, "Delete glyph cache %p", this);
     // Don't delete texture if context has been changed
     // REVISIT glyph cache should support multiple contexts
     if (GLcontext == QGLContext::currentContext())
@@ -296,20 +305,15 @@ bool GlyphCache::Find(const QFont &font,
         if (fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
             fabs(bounds.y()) > 10 * scaled.pointSizeF())
         {
-            IFTRACE(fonts)
-            {
-                QString exactMatchText;
-                if (!scaled.exactMatch())
-                    exactMatchText = "NO ";
-                QString msg;
-                msg = QString("Warning: font '%1' (%2exact match): character "
-                              "'%3' has weird metrics:\n  width %4 height %5 "
-                              "x %6 y %7")
-                        .arg(scaled.family()).arg(exactMatchText).arg(qc)
-                        .arg(bounds.width()).arg(bounds.height())
-                        .arg(bounds.x()).arg(bounds.y());
-                std::cerr << +msg << "\n";
-            }
+            record(glyph_cache_warning,
+                   "Font %s %+s has weird metric for character %u: "
+                   "width=%u height=%u x=%u y=%u",
+                   scaled.family(),
+                   scaled.exactMatch() ? "exact match" : "interpolated",
+                   code,
+                   bounds.width(), bounds.height(),
+                   bounds.x(), bounds.y());
+
             // #1161 Workaround font metric bug in TeX Gyre Adventor
             // 'Mountains of Christmas' has the same problem at least
             // on MacOSX 10.6.8
@@ -321,16 +325,13 @@ bool GlyphCache::Find(const QFont &font,
             else
                 repl = QChar('m');
             bounds = fm.boundingRect(repl);
-            IFTRACE(fonts)
-            {
-                QString msg;
-                msg = QString("Using metrics of character '%1' instead:\n"
-                              "  width %2 height %3 x %4 y %7")
-                        .arg(repl)
-                        .arg(bounds.width()).arg(bounds.height())
-                        .arg(bounds.x()).arg(bounds.y());
-                std::cerr << +msg << "\n";
-            }
+
+            record(glyph_cache_warning,
+                   "Working around using metric of %u: "
+                   "width=%u height=%u x=%u y=%u",
+                   repl.unicode(),
+                   bounds.width(), bounds.height(),
+                   bounds.x(), bounds.y());
         }
         scale bx = bounds.x();
         scale by = bounds.y();

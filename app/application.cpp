@@ -359,7 +359,6 @@ void Application::deferredInit()
     install_first_exception_handler();
 
     // Initialize the graphics just below contents of basics.tbl
-    Initialize();
     record(tao_app, "Create main symbol table for XL");
     xlr->context.CreateScope();
 

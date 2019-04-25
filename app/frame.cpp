@@ -49,6 +49,9 @@
 #include <QGLFramebufferObject>
 
 
+RECORDER(frameinfo, 16, "Dynamic frames and frame buffer objects");
+
+
 TAO_BEGIN
 
 FrameInfo::FrameInfo(uint w, uint h, GLenum f)
@@ -59,9 +62,8 @@ FrameInfo::FrameInfo(uint w, uint h, GLenum f)
       context(NULL), renderFBO(NULL), textureFBO(NULL),
       layout(NULL), clearColor(1, 1, 1, 0)
 {
-    IFTRACE(fbo)
-        std::cerr << "[FrameInfo] Constructor " << this
-                  << " size "<< w << "x" << h << "\n";
+    record(frameinfo,
+           "Constructor %p size %u x %u pixels format 0x%X", this, w, h, f);
 }
 
 
@@ -69,14 +71,12 @@ FrameInfo::FrameInfo(const FrameInfo &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor - Don't copy the framebuffers
 // ----------------------------------------------------------------------------
-    : XL::Info(o), w(o.w), h(o.h), format(o.format), depthTextureID(0),
+    : XL::Info(), w(o.w), h(o.h), format(o.format), depthTextureID(0),
       context(NULL), renderFBO(NULL), textureFBO(NULL),
       layout(NULL), clearColor(o.clearColor)
 {
-    IFTRACE(fbo)
-        std::cerr << "[FrameInfo] Copy " << this
-                  << " from " << &o
-                  << " size "<< w << "x" << h << "\n";
+    record(frameinfo,
+           "Copy %p from %p size %u x %u pixels", this, &o, w, h);
 }
 
 
@@ -85,8 +85,7 @@ FrameInfo::~FrameInfo()
 //   Delete the frame buffer objects and GL tiles
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(fbo)
-        std::cerr << "[FrameInfo] Destructor " << this << "\n";
+    record(frameinfo, "Destroy %p, layout %p", this, layout);
     delete layout;
     purge();
 }
@@ -97,15 +96,14 @@ void FrameInfo::resize(uint w, uint h)
 //   Change the size of the frame buffer used for rendering
 // ----------------------------------------------------------------------------
 {
-    assert(QGLContext::currentContext() ||
-           !"FrameInfo::resize without an OpenGL context???");
+    assert(QGLContext::currentContext() &&
+           "FrameInfo::resize without an OpenGL context???");
 
     // Don't change anything if size stays the same
     if (renderFBO && renderFBO->width()==int(w) && renderFBO->height()==int(h))
         return;
 
-    IFTRACE(fbo)
-        std::cerr << "[FrameInfo] Resize " << w << "x" << h << "\n";
+    record(frameinfo, "Rersize %p to %u x %u pixels", this, w, h);
 
     GraphicSave *save = GL.Save();
 
@@ -120,9 +118,9 @@ void FrameInfo::resize(uint w, uint h)
                           TaoApp->hasFBOMultisample;
     if (w >= maxTextureSize || h >= maxTextureSize)
     {
-        IFTRACE(fbo)
-            std::cerr << "[FrameInfo] Disable multisample, too big "
-                      << maxTextureSize << "\n";
+        record(frameinfo,
+               "Disabling multisampling for %p, size %u x %u, max %u",
+               this, w, h, maxTextureSize);
         canMultiSample = false;
     }
 
@@ -180,10 +178,8 @@ void FrameInfo::resize(uint w, uint h)
     // Store what context we created things in
     this->w = w; this->h = h;
     this->context = (QGLContext *) QGLContext::currentContext();
-    IFTRACE(fbo)
-        std::cerr << "[FrameInfo] Resized " << w << "x" << h
-                  << " in " << context << "\n";
-
+    record(frameinfo,
+           "Resized %p to %u x %u pixels in context %p", this, w, h, context);
     GL.Restore(save);
 
     // Clear the contents of the newly created frame buffer
@@ -376,9 +372,9 @@ void FrameInfo::purge()
             GL.Cache.DeleteTextures(1, &tex);
         }
 
-        IFTRACE(fbo)
-            std::cerr << "[FrameInfo] Purged " << context << " current "
-                      << QGLContext::currentContext() << "\n";
+        record(frameinfo,
+               "Purged %p in context %p current %p",
+               this, context, QGLContext::currentContext());
         renderFBO = textureFBO = NULL;
         depthTextureID = 0;
         context = NULL;
@@ -422,15 +418,14 @@ void FrameInfo::checkGLContext()
 {
     if (context != QGLContext::currentContext())
     {
-        IFTRACE(fbo)
-            std::cerr << "[FrameInfo] Changing context from " << context
-                      << " to " << QGLContext::currentContext()
-                      << "\n";
+        record(frameinfo,
+               "Changing context for %p from %p to %p",
+               this, context, QGLContext::currentContext());
         purge();
         resize(w, h);
     }
-    assert(context == QGLContext::currentContext() ||
-           !"FrameInfo::checkGLContext was unable to set GL context???");
+    assert(context == QGLContext::currentContext() &&
+           "FrameInfo::checkGLContext was unable to set GL context???");
 }
 
 
@@ -596,63 +591,3 @@ FramePainter::~FramePainter()
 }
 
 TAO_END
-
-
-
-// ****************************************************************************
-//
-//    Code generation from frame.tbl
-//
-// ****************************************************************************
-
-#include "graphics.h"
-#include "opcodes.h"
-#include "options.h"
-#include "widget.h"
-#include "types.h"
-#include "drawing.h"
-#include "layout.h"
-#include "module_manager.h"
-#include <iostream>
-
-
-// ============================================================================
-//
-//    Top-level operation
-//
-// ============================================================================
-
-#include "widget.h"
-
-using namespace XL;
-
-#include "opcodes_declare.h"
-#include "frame.tbl"
-
-namespace Tao
-{
-
-#include "frame.tbl"
-
-
-void EnterFrames()
-// ----------------------------------------------------------------------------
-//   Enter all the basic operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-    XL::Context *context = MAIN->context;
-#include "opcodes_define.h"
-#include "frame.tbl"
-}
-
-
-void DeleteFrames()
-// ----------------------------------------------------------------------------
-//   Delete all the global operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-#include "opcodes_delete.h"
-#include "frame.tbl"
-}
-
-}

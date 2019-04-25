@@ -133,7 +133,7 @@ public:
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
     virtual Layout *    AddChild(uint id = 0,
-                                 Tree_p body = 0, Context_p ctx = 0,
+                                 Tree_p body = 0, Scope_p scope = 0,
                                  Layout *child = NULL);
     virtual void        Clear();
     virtual void        ClearCaches();
@@ -195,7 +195,7 @@ public:
     qevent_ids          refreshEvents;
     double              nextRefresh;
     Tree_p              body;
-    Context_p           ctx;
+    Scope_p             scope;
 
 public:
     // Static attributes for polygon offset computation

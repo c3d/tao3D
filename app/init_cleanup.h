@@ -35,8 +35,4 @@
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
 
-namespace Tao
-{
-extern void Initialize();
-extern void Cleanup();
-}
+#warning "Empty file - Consider cleanup"

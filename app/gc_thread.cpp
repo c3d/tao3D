@@ -45,6 +45,8 @@
 #include <QTime>
 #include <iostream>
 
+RECORDER(tao_gc, 16, "Tao3D garbage collector");
+
 namespace Tao {
 
 void GCThread::collect()
@@ -54,15 +56,12 @@ void GCThread::collect()
 {
     Widget *w = (Widget *)sender();
 
-    IFTRACE(memory)
-        debug() << "GC collect started\n";
-    QTime t;
-    t.start();
+    record(memory, "Collection started");
     w->stats.begin(Statistics::GC);
-    XL::GarbageCollector::Collect();
+    XL::GarbageCollector::MustRun();
+    XL::GarbageCollector::SafePoint();
     w->stats.end(Statistics::GC);
-    IFTRACE(memory)
-        debug() << "Collect time " << t.elapsed() << " ms\n";
+    record(memory, "Collection done");
     mutex.lock();
     collectDone = true;
     cond.wakeOne();

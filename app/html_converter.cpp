@@ -42,12 +42,14 @@
 #include "tao_utf8.h"
 #include "options.h"
 
+RECORDER(html_convert, 16, "Converting HTML to Tao3D");
+
 TAO_BEGIN
 
 // Helper functions
 static text color(text name, QColor const&color);
 static text indent(text src);
-static inline text fontFlag(bool f) { return f ? "" : "no_"; }
+static inline QString fontFlag(bool f) { return f ? "" : "no_"; }
 
 
 XL::Tree *HTMLConverter::fromHTML(QString html, QString css)
@@ -81,14 +83,11 @@ XL::Tree *HTMLConverter::docToTree(const QTextDocument &doc)
     for (QTextBlock block = firstBlock; block.isValid(); block = block.next())
         source += blockToTree(block, indentWidth);
 
-    IFTRACE(html)
-        std::cerr << "HTML SOURCE:\n" << source << "\n-----\n";
+    record(html_convert, "Converting source %s", source);
     Tree *result = XL::xl_parse_text(source);
+    record(html_convert, "Converted to %t", result);
     if (where)
-    {
         result->SetPosition(where->Position());
-        result->SetSymbols(where->Symbols());
-    }
     return result;
 }
 
@@ -252,17 +251,17 @@ text HTMLConverter::fragmentToTree(const QTextFragment &fragment)
     QFont existingFont = charFormat.font();
     if (font != existingFont)
     {
-        text fontSpec = "";
+        QString fontSpec = "";
 
         // Family change
         QString fontFamily = font.family();
         if (fontFamily != existingFont.family())
-            fontSpec += "\"" + +fontFamily + "\",";
+            fontSpec += "\"" + fontFamily + "\",";
 
         // Size change
         scale fontSize = font.pointSizeF();
         if (fontSize != existingFont.pointSizeF())
-            fontSpec += +(QString("%1,").arg(fontSize));
+            fontSpec += QString("%1,").arg(fontSize);
 
         // Style change
         QFont::Style fontStyle = font.style();
@@ -277,18 +276,17 @@ text HTMLConverter::fragmentToTree(const QTextFragment &fragment)
         }
 
         // Weight change
-        int fontWeight = font.weight();
-        if (fontWeight != existingFont.weight())
+        int weight = font.weight();
+        if (weight != existingFont.weight())
         {
-            switch(fontWeight)
+            switch(weight)
             {
-            case QFont::Light    : fontSpec += "light,"   ; break;
-            case QFont::Normal   : fontSpec += "regular," ; break;
-            case QFont::DemiBold : fontSpec += "demibold,"; break;
-            case QFont::Bold     : fontSpec += "bold,"    ; break;
-            case QFont::Black    : fontSpec += "black,"   ; break;
-            default              : fontSpec += +(QString("weight %1,")
-                                                 .arg(fontWeight));
+            case QFont::Light   : fontSpec += "light,"   ; break;
+            case QFont::Normal  : fontSpec += "regular," ; break;
+            case QFont::DemiBold: fontSpec += "demibold,"; break;
+            case QFont::Bold    : fontSpec += "bold,"    ; break;
+            case QFont::Black   : fontSpec += "black,"   ; break;
+            default             : fontSpec += QString("weight %1,").arg(weight);
             }
         }
 
@@ -306,10 +304,10 @@ text HTMLConverter::fragmentToTree(const QTextFragment &fragment)
         }
 
         // Stretch change
-        int fontStretch = font.stretch();
-        if (fontStretch != existingFont.stretch())
+        int stretch = font.stretch();
+        if (stretch != existingFont.stretch())
         {
-            switch(fontStretch)
+            switch(stretch)
             {
             case QFont::UltraCondensed : fontSpec += "ultra_condensed,"; break;
             case QFont::ExtraCondensed : fontSpec += "extra_condensed,"; break;
@@ -320,8 +318,8 @@ text HTMLConverter::fragmentToTree(const QTextFragment &fragment)
             case QFont::Expanded       : fontSpec += "expanded,"       ; break;
             case QFont::ExtraExpanded  : fontSpec += "extra_expanded," ; break;
             case QFont::UltraExpanded  : fontSpec += "ultra_expanded," ; break;
-            default                    : fontSpec += +(QString("stretch %1,")
-                                                       .arg(fontStretch));
+            default                    : fontSpec += QString("stretch %1,")
+                                                     .arg(stretch);
             }
         }
 
@@ -339,8 +337,8 @@ text HTMLConverter::fragmentToTree(const QTextFragment &fragment)
         if (fontSpec != "")
         {
             // Remove the trailing comma
-            fontSpec = fontSpec.substr(0, fontSpec.length()-1);
-            result += "font " + fontSpec + "\n";
+            fontSpec = "font " + fontSpec.chopped(1) + "\n";
+            result += +fontSpec;
         }
     }
     charFormat = format;
@@ -348,8 +346,12 @@ text HTMLConverter::fragmentToTree(const QTextFragment &fragment)
     // Check if there is an image
     QTextImageFormat image = format.toImageFormat();
     if (image.isValid())
-        result += "text_span {"
-            "color \"white\"; image \"" + +image.name() + "\" }\n";
+    {
+        QString textSpan = "text_span { color \"white\"; image \""
+            + image.name()
+            + "\" }\n";
+        result += +textSpan;
+    }
 
     // Add the text
     QString fragText = fragment.text();

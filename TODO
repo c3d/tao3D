@@ -1,0 +1,5 @@
+- Rework module imports
+- Rework initialization of built-in functions
+- Rework lookup priority lowering for symbols (used in slides module)
+- Rework crypto
+- Rework access to Taodyne web site (examples, etc)

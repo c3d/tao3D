@@ -138,7 +138,6 @@ HEADERS +=     activity.h \
     include/tao/tao_info.h \
     include/tao/tao_utf8.h \
     info_trash_can.h \
-    init_cleanup.h \
     inspectordialog.h \
     justification.h \
     layout.h \
@@ -217,7 +216,6 @@ SOURCES += \
     html_converter.cpp \
     http_ua.cpp \
     info_trash_can.cpp \
-    init_cleanup.cpp \
     inspectordialog.cpp \
     layout.cpp \
     license_dialog.cpp \

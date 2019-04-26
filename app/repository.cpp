@@ -38,23 +38,28 @@
 // *****************************************************************************
 
 #include "repository.h"
-#include "renderer.h"
-#include "parser.h"
-#include "main.h"
+
 #if !defined(CFG_NOGIT) || !defined(CFG_NONETWORK)
 #include "git_backend.h"
 #endif
+#include "main.h"
+#include "parser.h"
+#include "renderer.h"
+#include "tao_options.h"
 #include "tao_utf8.h"
 
+#include <QApplication>
 #include <QDir>
 #include <QtGlobal>
-#include <QApplication>
 #include <fstream>
 #include <math.h>
 
 #if defined(CFG_NOGIT) && defined(CFG_NONETWORK)
 #define REPO_DISABLED 1
 #endif
+
+
+RECORDER(repository, 16, "Document repository operations");
 
 namespace Tao {
 
@@ -64,11 +69,16 @@ bool              RepositoryFactory::no_repo      = false;
 bool              RepositoryFactory::no_local     = false;
 struct Repository::Commit Repository::HeadCommit  = Repository::Commit("HEAD");
 
-Repository::Repository(const QString &path): path(path),
-                                     pullInterval(XL::MAIN->options
-                                                  .pull_interval),
-                                     state(RS_Clean), whatsNew("")
+
+Repository::Repository(const QString &path)
+// ----------------------------------------------------------------------------
+//   Repository constructor
+// ----------------------------------------------------------------------------
+    : path(path),
+      pullInterval(Opt::pullInterval),
+      state(RS_Clean), whatsNew("")
 {
+    record(repository, "Creating repository %p path %s", this, path);
     connect(&branchCheckTimer, SIGNAL(timeout()),
             this, SLOT(checkCurrentBranch()));
     branchCheckTimer.start(1000);
@@ -80,6 +90,7 @@ Repository::~Repository()
 //   Remove self from cache (if present)
 // ----------------------------------------------------------------------------
 {
+    record(repository, "Deleting repository %p path %s", this, path);
     RepositoryFactory::removeFromCache(path);
 }
 
@@ -113,6 +124,7 @@ bool Repository::write(text fileName, XL::Tree *tree)
 //   Write the text into a repository, ready to commit, return true if OK
 // ----------------------------------------------------------------------------
 {
+    record(repository, "Writing file %s from tree %t", fileName, tree);
     bool ok = false;
     text full = fullName(fileName);
 
@@ -125,16 +137,16 @@ bool Repository::write(text fileName, XL::Tree *tree)
     // Write the file in a copy (avoid overwriting original)
     text copy = full + "~";
     {
+        QFileInfo stylesheetFile(+styleSheet());
+        QFileInfo syntaxFile("system:xl.syntax");
+        QString sspath(stylesheetFile.absoluteFilePath());
+        QString sypath(syntaxFile.absoluteFilePath());
+        record(repository,
+               "Rendering %t using git stylesheet %s syntax %s",
+               tree, sspath, sypath);
         std::ofstream output(copy.c_str());
-        XL::Renderer renderer(output);
-        QFileInfo stylesheet(+styleSheet());
-        QFileInfo syntax("system:xl.syntax");
-        QString sspath(stylesheet.absoluteFilePath());
-        QString sypath(syntax.absoluteFilePath());
-        IFTRACE(paths)
-                std::cerr << "Loading git stylesheet '" << +sspath
-                << "' with syntax '" << +sypath << "'\n";
-        renderer.SelectStyleSheet(+sspath, +sypath);
+        XL::Syntax syntax(+sypath);
+        XL::Renderer renderer(output, +sspath, syntax);
         renderer.Render(tree);
         output.flush();
         ok = output.good();
@@ -157,7 +169,7 @@ bool Repository::write(text fileName, XL::Tree *tree)
 }
 
 
-XL::Tree *  Repository::read(text fileName)
+XL::Tree *Repository::read(text fileName)
 // ----------------------------------------------------------------------------
 //   Read a tree from a given file in the repository
 // ----------------------------------------------------------------------------
@@ -175,6 +187,7 @@ XL::Tree *  Repository::read(text fileName)
     XL::Parser     parser(full.c_str(), syntax, positions, errors);
 
     result = parser.Parse();
+    record(repository, "Read file %s, content was %t", fileName, result);
     return result;
 }
 
@@ -259,9 +272,8 @@ void Repository::waitForAsyncProcessCompletion()
     while (!pQueue.empty())
     {
         process_p p = pQueue.first();
-        IFTRACE(process)
-            std::cerr << "Process queue not empty (first=#" << p->num
-                      << "), waiting\n";
+        record(repository,
+               "Process queue is not empty, first %u, waiting", p->num);
         QApplication::processEvents(QEventLoop::WaitForMoreEvents);
     }
 }

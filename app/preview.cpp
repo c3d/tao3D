@@ -37,8 +37,8 @@
 #include "preview.h"
 #include "base.h"
 #include "tao_utf8.h"
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
 #include <recorder/recorder.h>
 
 

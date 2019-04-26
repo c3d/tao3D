@@ -262,7 +262,7 @@ void PageLayout::Draw(Layout *where)
 //   and then only iterate on the items that were placed, not all items,
 //   taking the layout offset from the placed position
 {
-    record(justify, "Draw page layout %p offset %f", this, where->Offset());
+    record(justify, "Draw page layout %p in layout %p", this, where);
 
     // Inherit state from where, compute layout if necessary
     Compute(where);
@@ -285,7 +285,7 @@ void PageLayout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout();
-    record(justify, "Page layout %p done, offset %f", this, where->Offset());
+    record(justify, "Page layout %p done for layout %p", this, where);
 }
 
 
@@ -822,7 +822,7 @@ void TextFlow::ClearCaches()
 //   Drop all cached references to other drawings from this text flow
 // ----------------------------------------------------------------------------
 {
-    record(jutsify, "Clear text flow %p caches", this);
+    record(justify, "Clear text flow %p caches", this);
 
     // Clear caches from rejects
     Drawings r = reject;
@@ -891,8 +891,8 @@ void TextFlow::Transfer(LayoutLine *line)
 {
     typedef Justifier<Drawing *> DJ;
     DJ::Places &places = line->line.places;
-    record(justify, "Transfer layout %p lines %p (%u places)",
-           this, lines, places.size());
+    record(justify, "Transfer layout %p line %p (%u places)",
+           this, line, places.size());
     for(DJ::PlacesIterator p = places.begin(); p != places.end(); p++)
         reject.push_back((*p).item);
     places.clear();

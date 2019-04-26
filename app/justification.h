@@ -231,7 +231,7 @@ void Justifier<Item>::Clear()
 //   Delete the elements we have moved in places
 // ----------------------------------------------------------------------------
 {
-    record(justify, "Clear item %p", this)
+    record(justify, "Clear item %p", this);
     PurgeItems();
     places.clear();
     delete data;

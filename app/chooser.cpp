@@ -56,11 +56,11 @@ TAO_BEGIN
 using namespace XL;
 
 
-Chooser::Chooser(SourceFile *program, text name, Widget *w)
+Chooser::Chooser(Scope *scope, text name, Widget *w)
 // ----------------------------------------------------------------------------
 //   Chooser constructor
 // ----------------------------------------------------------------------------
-    : Activity(name, w), xlProgram(program),
+    : Activity(name, w), scope(scope),
       keystrokes(""), item(0), firstItem(0), selected(NULL)
 {}
 
@@ -138,7 +138,7 @@ Activity *Chooser::Display(void)
 // ----------------------------------------------------------------------------
 {
     // Select the chooser font
-    XLCall("chooser_title_font") (xlProgram);
+    XLCall("chooser_title_font") (scope);
     QFont titleFont = widget->currentFont();
     QFontMetricsF titleFM(titleFont);
     coord mtlh = titleFM.height();
@@ -156,7 +156,7 @@ Activity *Chooser::Display(void)
     selected = NULL;
 
     // Select the chooser item font
-    XLCall("chooser_item_font")(xlProgram);
+    XLCall("chooser_item_font")(scope);
     QFont itemFont = widget->currentFont();
     QFontMetricsF itemFM(itemFont);
     coord milh = itemFM.height();
@@ -221,20 +221,19 @@ Activity *Chooser::Display(void)
     GL.LoadMatrix();
 
     // Draw the chooser box
-    widget->drawSelection(NULL, Box3(mx, my, 0, mw, mh, 0), "chooser_box");
+    widget->drawSelection(Box3(mx, my, 0, mw, mh, 0), "chooser_box");
 
     // Show what the user has typed
     if (keystrokes.length())
     {
-        XLCall call(found ? "draw_chooser_choice" : "draw_chooser_error");
-        call, keystrokes, ix, iy;
-        widget->drawCall(NULL, call);
+        XLCall call(found ? "draw_chooser_choice" : "draw_chooser_error",
+                    keystrokes, ix, iy);
+        widget->drawCall(call);
     }
     else
     {
-        XLCall call("draw_chooser_title");
-        call, name, ix, iy;
-        widget->drawCall(NULL, call);
+        XLCall call("draw_chooser_title", name, ix, iy);
+        widget->drawCall(call);
     }
     iy -= mtlh;
 
@@ -259,21 +258,21 @@ Activity *Chooser::Display(void)
         {
             // Indicate when there's more above in the list...
             if (i == 0 && firstItem > 0)
-                widget->drawSelection(NULL, Box3(ix+mw/2, iy+mild, 0,
-                                                 milh, milh, 0),
+                widget->drawSelection(Box3(ix+mw/2, iy+mild, 0,
+                                           milh, milh, 0),
                                       "chooser_more_above");
 
             // Indicate when there's more below in the list...
             if (i == displayed-1 && firstItem + i != found - 1)
-                widget->drawSelection(NULL, Box3(ix+mw/2, iy+mild, 0,
-                                                 milh, milh, 0),
+                widget->drawSelection(Box3(ix+mw/2, iy+mild, 0,
+                                           milh, milh, 0),
                                       "chooser_more_below");
         }
 
         // Draw the selection box if we are on selected line
         if (i + firstItem == item)
         {
-            widget->drawSelection(NULL,  Box3(mx, iy - mild, 0, mw, milh, 0),
+            widget->drawSelection(Box3(mx, iy - mild, 0, mw, milh, 0),
                                   "chooser_selection");
             selected = remaining[i + firstItem].function;
         }
@@ -287,15 +286,13 @@ Activity *Chooser::Display(void)
             QString ca1 = qcaption.mid(0, pos);
             QString ca2 = qcaption.mid(pos, qkeystrokes.length());
             QString ca3 = qcaption.mid(pos + qkeystrokes.length());
-            XLCall call("draw_chooser_match");
-            call, +ca1, +ca2, +ca3, ix, iy;
-            widget->drawCall(NULL, call);
+            XLCall call("draw_chooser_match", +ca1, +ca2, +ca3, ix, iy);
+            widget->drawCall(call);
         }
         else
         {
-            XLCall call("draw_chooser_item");
-            call, caption, ix, iy;
-            widget->drawCall(NULL, call);
+            XLCall call("draw_chooser_item", caption, ix, iy);
+            widget->drawCall(call);
         }
 
         // Move to the next line
@@ -327,7 +324,7 @@ Activity *Chooser::Key(text key)
     {
         if (selected)
         {
-            xl_evaluate(xlProgram->scope, selected);
+            xl_evaluate(scope, selected);
             delete this;
         }
     }

@@ -60,25 +60,6 @@ namespace Tao {
 
 QWeakPointer<TextureCache> TextureCache::textureCache;
 
-
-static text bytesToText(quint64 size)
-// ----------------------------------------------------------------------------
-//   Convert size in bytes into a human readable string
-// ----------------------------------------------------------------------------
-{
-    if (size == CACHE_UNLIMITED)
-        return +QString("unlimited");
-    if (size < CACHE_KB)
-        return +QString("%1 B").arg(size);
-    else if (size < CACHE_MB)
-        return +QString("%1 KiB").arg((double)size/CACHE_KB, 0, 'f', 2);
-    else if (size < CACHE_GB)
-        return +QString("%1 MiB").arg((double)size/CACHE_MB, 0, 'f', 2);
-    else
-        return +QString("%1 GiB").arg((double)size/CACHE_GB, 0, 'f', 2);
-}
-
-
 #define BOOL_SETTER(fn, attr)                                   \
 XL::Name_p TextureCache::fn(bool enable)                        \
 /* --------------------------------------------------------- */ \
@@ -107,7 +88,7 @@ BOOL_SETTER(textureSaveCompressed, saveCompressed)
 #define SIZE_SETTER(fn, attr)                                   \
 XL::Integer_p TextureCache::fn(quint64 val)                     \
 /* --------------------------------------------------------- */ \
-/*   Primitives to change numberical values in cache         */ \
+/*   Primitives to change numerical values in cache          */ \
 /* --------------------------------------------------------- */ \
 {                                                               \
     QSharedPointer<TextureCache> tc = TextureCache::instance(); \
@@ -116,7 +97,7 @@ XL::Integer_p TextureCache::fn(quint64 val)                     \
     if (attr != val)                                            \
     {                                                           \
         attr = val;                                             \
-        record(textures, #attr " %llu -> %llu", prev, attr);    \
+        record(textures, #attr " %k -> %k", prev, attr);        \
     }                                                           \
                                                                 \
     return new XL::Integer(prev);                               \
@@ -206,7 +187,7 @@ void TextureCache::doPrintStatistics()
 //   Print cache statistics
 // ----------------------------------------------------------------------------
 {
-    record(textures, "Used %llu / %llu, GL %llu/%llu",
+    record(textures, "Used %k / %k, GL %k/%k",
            memSize, maxMemSize, GLSize, maxGLSize);
 
 #ifndef QT_NO_DEBUG
@@ -276,7 +257,7 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
                 cached->transfer();
                 insert(cached, GL_LRU);
             }
-            record(textures, "After load %llu / %llu, GL %llu/%llu",
+            record(textures, "After load %k / %k, GL %k/%k",
                    memSize, maxMemSize, GLSize, maxGLSize);
             printStatistics();
         }
@@ -346,7 +327,7 @@ void TextureCache::reload(CachedTexture *tex)
 //   Reload from file or network
 // ----------------------------------------------------------------------------
 {
-    record(textures, "Reload %p: %llu / %llu, GL %llu/%llu",
+    record(textures, "Reload %p: %k / %k, GL %k/%k",
            tex, memSize, maxMemSize, GLSize, maxGLSize);
     tex->purge();
     if (memSize > maxMemSize)
@@ -403,7 +384,7 @@ void TextureCache::purgeMem()
 // ----------------------------------------------------------------------------
 {
     record(textures,
-           "Purge memory in %p: %llu / %llu",
+           "Purge memory in %p: %k / %k",
            this, memSize, maxMemSize);
     while (memSize > (maxMemSize * purgeRatio))
     {
@@ -423,7 +404,7 @@ void TextureCache::purgeGLMem()
 // ----------------------------------------------------------------------------
 {
     record(textures,
-           "Purge GL memory in %p: %llu / %llu",
+           "Purge GL memory in %p: %k / %k",
            this, GLSize, maxGLSize);
     while (GLSize > (maxGLSize * purgeRatio))
     {
@@ -686,7 +667,7 @@ bool CachedTexture::load()
             record(textures, "Load %s in progress", path);
         else if (loaded())
             record(textures,
-                   "Network %s: %u x %u pixels, %llu bytes ",
+                   "Network %s: %u x %u pixels, %k",
                    path, width, height, size);
     }
     else
@@ -701,7 +682,7 @@ bool CachedTexture::load()
                 ? Image::toCompressedPath(canonicalPath)
                 : canonicalPath;
             record(textures,
-                   "Network %s compressed %s: %u x %u pixels, %llu bytes ",
+                   "Network %s compressed %s: %u x %u pixels, %k",
                    path, cpath, width, height, size);
         }
     }
@@ -720,7 +701,7 @@ void CachedTexture::unload()
 
     int purged = image.byteCount();
     image.clear();
-    record(textures, "Unloading %llu bytes", purged);
+    record(textures, "Unloading %k", purged);
     cache.memSize -= purged;
 }
 
@@ -861,7 +842,7 @@ void CachedTexture::transfer()
     }
 
     record(textures,
-           "Mem->GL %llu bytes, %llu copied, %+s, %+s",
+           "Mem->GL %k, %k copied, %+s, %+s",
            GLsize,
            copiedSize,
            copiedCompressed
@@ -873,7 +854,7 @@ void CachedTexture::transfer()
     int saved = (before - after);
     if (saved)
     {
-        record(textures, "Compression saved %llu bytes", saved);
+        record(textures, "Compression saved %k", saved);
         cache.memSize -= saved;
     }
     else
@@ -912,7 +893,7 @@ void CachedTexture::purgeGL()
         int purged = GLsize;
         GLsize = 0;
         cache.GLSize -= purged;
-        record(textures, "Purged %llu GL bytes now %llu", purged, cache.GLSize);
+        record(textures, "Purged %k GL bytes now %k", purged, cache.GLSize);
     }
 }
 

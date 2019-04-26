@@ -338,8 +338,7 @@ void ClickThroughRectangle::DrawSelection (Layout *layout)
     {
         Box3 bounds = Bounds(layout);
         XL::Save<Point3> zeroOffset(layout->offset, Point3(0,0,0));
-        widget->drawSelection(layout, bounds,
-                              "widget_selection", layout->id);
+        widget->drawSelection(bounds, "widget_selection", layout);
     }
 }
 

@@ -37,28 +37,40 @@
 
 #include "options.h"
 
-namespace Tao { namespace Opt {
+namespace Tao {
+namespace Opt {
+
 using namespace XL;
-extern IntegerOption   syncInterval;
-extern IntegerOption   saveInterval;
-extern IntegerOption   commitInterval;
-extern IntegerOption   pullInterval;
-extern BooleanOption   splash;
-extern BooleanOption   transparent;
-extern BooleanOption   windowVisible;
-extern BooleanOption   slideShow;
-extern BooleanOption   enableModules;
-extern IntegerOption   printResolution;
-extern TextOption      renderMode;
-extern TextOption      displayMode;
-extern BooleanOption   gcThread;
+
+extern IntegerOption    syncInterval;
+extern IntegerOption    saveInterval;
+extern IntegerOption    commitInterval;
+extern IntegerOption    pullInterval;
+extern BooleanOption    splash;
+extern BooleanOption    transparent;
+extern BooleanOption    windowVisible;
+extern BooleanOption    slideShow;
+extern BooleanOption    enableModules;
+extern IntegerOption    printResolution;
+extern TextOption       renderMode;
+extern TextOption       displayMode;
+extern BooleanOption    gcThread;
+extern BooleanOption    compressTextures;
+extern BooleanOption    showVersion;
+extern BooleanOption    showGLInfo;
+extern TextOption       fontPath;
+extern BooleanOption    textureCache;
+
+extern TextOption       proofOfPlayFile;
+extern IntegerOption    proofOfPlayInterval;
+extern IntegerOption    proofOfPlayWidth;
+extern IntegerOption    proofOfPlayHeight;
+
 #ifndef CFG_NOGIT
 extern BooleanOption   gitRepository;
 #endif // CFG_NOGIT
-extern BooleanOption   showVersion;
-extern BooleanOption   showGLInfo;
-extern TextOption      fontPath;
-extern BooleanOption   textureCache;
-}}
+
+}
+}
 
 #endif // TAO_OPTIONS_H

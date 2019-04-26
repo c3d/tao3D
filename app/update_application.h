@@ -53,6 +53,8 @@
 #include <QPushButton>
 #include <QProgressBar>
 
+RECORDER_DECLARE(update);
+
 namespace Tao {
 
 

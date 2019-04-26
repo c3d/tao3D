@@ -722,7 +722,7 @@ void TextSplit::DrawSelection(Layout *where)
                     GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
                     text mode = "formula_highlight";
                     XL::Save<Point3> zeroOffset(where->offset, Point3());
-                    widget->drawSelection(where, sel->formulaBox, mode, 0);
+                    widget->drawSelection(sel->formulaBox, mode, where);
                     sel->formulaBox.Empty();
                     GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }

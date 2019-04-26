@@ -62,7 +62,7 @@ struct Chooser : Activity
 //  A chooser shows a selection among the possible commands
 // ----------------------------------------------------------------------------
 {
-    Chooser(SourceFile *program, text name, Widget *w);
+    Chooser(Scope *scope, text name, Widget *w);
     virtual ~Chooser();
 
     // Callbacks, return true if this activity 'handled' the event
@@ -78,12 +78,12 @@ struct Chooser : Activity
     void                SetCurrentItem(text caption);
 
 public:
-    SourceFile * xlProgram;
-    text         keystrokes;
-    int          item;
-    int          firstItem;
-    ChooserItems items;
-    XL::Tree_p   selected;
+    Scope_p             scope;
+    text                keystrokes;
+    int                 item;
+    int                 firstItem;
+    ChooserItems        items;
+    XL::Tree_p          selected;
 };
 
 

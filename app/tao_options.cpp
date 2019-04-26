@@ -35,44 +35,82 @@
 
 #include "tao_options.h"
 
-namespace Tao { namespace Opt {
+namespace Tao {
+namespace Opt {
+
 IntegerOption   syncInterval
 ("autosync", "Interval for automatic file sync (ms)",      500,   20, 100000);
+
 IntegerOption   saveInterval
 ("autosave", "Interval for automatic file save (ms)",     1000,  500, 100000);
+
 IntegerOption   commitInterval
 ("autocommit", "Interval for automatic file commit (ms)", 5000, 1000, 100000);
+
 IntegerOption   pullInterval
 ("autopull", "Interval for automatic file pull (ms)",     5000, 1000, 100000);
+
 BooleanOption   splash
 ("splash", "Show splash screen", true);
+
 BooleanOption   transparent
 ("transparent", "Make window transparent", false);
+
 BooleanOption   windowVisible
 ("window_visible", "Make window visible", true);
+
 BooleanOption   slideShow
 ("slideshow", "Open document in slide-show mode (full-screen)", false);
+
 AliasOption     fullScreen("F", slideShow);
+
 BooleanOption   enableModules
 ("modules", "Enable external modules", true);
+
 IntegerOption   printResolution
 ("print_dpi", "Select print resolution in dot-per-inch (DPI)", 300, 72, 3600);
+
 TextOption      renderMode
 ("render", "Offline rendering - Use -render help for info", "");
+
 TextOption      displayMode
 ("display_mode", "Select display mode - Use -display help for info", "");
+
 BooleanOption   gcThread
 ("gcthread", "Run the garbage collector in its own thread", true);
+
+BooleanOption   compressTextures
+("save_compressed_textures", "Save compressed textures to file", false);
+
+BooleanOption   showVersion
+("version", "Display version info and exit", false);
+
+BooleanOption   showGLInfo
+("glinfo", "Display GL information and exit", false);
+
+TextOption      fontPath
+("fontpath", "Path for additional fonts", "");
+
+BooleanOption   textureCache
+("texture_cache", "Activate compressed texture cache", false);
+
+TextOption      proofOfPlayFile
+("proof", "Select the proof-of-play output file", "");
+
+IntegerOption   proofOfPlayInterval
+("proof_interval", "Milliseconds between proof-of-play snapthots",
+     4932, 250, 8640000);
+
+IntegerOption   proofOfPlayWidth
+("proof_interval", "Maximum width for proof-of-play file", 800, 32, 2048);
+
+IntegerOption   proofOfPlayHeight
+("proof_interval", "Maximum height for proof-of-play file", 600, 32, 2048);
+
 #ifndef CFG_NOGIT
 BooleanOption   gitRepository
 ("gitrepository", "Activate git repository for documents", false);
 #endif // CFG_NOGIT
-BooleanOption   showVersion
-("version", "Display version info and exit", false);
-BooleanOption   showGLInfo
-("glinfo", "Display GL information and exit", false);
-TextOption      fontPath
-("fontpath", "Path for additional fonts", "");
-BooleanOption   textureCache
-("texture_cache", "Activate compressed texture cache", false);
-}}
+
+}
+}

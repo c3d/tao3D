@@ -171,8 +171,12 @@ static int DisplayLink = -1;
         var -= floor(var);                      \
     }
 
-RECORDER(tao_widget, 32, "Tao drawing widget");
-RECORDER(primitive, 32, "Tao primitives (C++ code)");
+RECORDER(widget,        32, "Tao main drawing widget");
+RECORDER(primitive,     32, "Tao primitives (C++ code)");
+RECORDER(polycount,     16, "Polygon counts");
+RECORDER(pages,         16, "Page management");
+RECORDER(print,         16, "Printing");
+RECORDER(focus,         16, "Application focus");
 
 namespace Tao {
 
@@ -296,9 +300,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     , pageLimitationDialogShown(false)
 #endif
 {
-    record(tao_widget, "Widget constructor this=%p", this);
+    record(widget, "Widget constructor this=%p", this);
 
-    if (XL::MAIN->options.transparent)
+    if (Opt::transparent)
     {
         setStyleSheet("background:transparent;");
         QGLWidget::setAttribute(Qt::WA_TranslucentBackground);
@@ -308,9 +312,10 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     if (DisplayLink == -1)
     {
         DisplayLink = QEvent::registerEventType();
-        IFTRACE(layoutevents)
-            std::cerr << "Event type allocated for DisplayLink: "
-                      << DisplayLink << "\n";
+        record(widget,
+               "Widget %p allocated %d as event for DisplayLink",
+               this, DisplayLink);
+        record(layout, "DisplayLink event is %d", DisplayLink);
     }
 #endif
 
@@ -329,7 +334,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 
     // Initialize the texture cache (GL must have been initialized first)
     textureCache = TextureCache::instance();
-    textureCache->setSaveCompressed(XL::MAIN->options.tcache_savecomp);
+    textureCache->setSaveCompressed(Opt::compressTextures);
 
     // Sync to VBlank if configured to do so
     enableVSync(NULL, PerformancesPage::VSync());
@@ -369,9 +374,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     mouseFocusTracker = new MouseFocusTracker(this);
 
     // Find which page overscaling to use
-    XL::Options &options = XL::MAIN->options;
+    unsigned printResolution = Opt::printResolution;
     while (printOverscaling < 8 &&
-           printOverscaling * 72 < options.printResolution)
+           printOverscaling * 72 < printResolution)
         printOverscaling <<= 1;
 
     // Initialize start time
@@ -398,13 +403,14 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
             this, SLOT(addToReloadList(QString)));
 
     // Prepare to record proof-of-play pictures
-    if (options.proofOfPlayFile != "")
+    text popf = Opt::proofOfPlayFile;
+    if (popf != "")
     {
-        uint popw = options.proofOfPlayWidth;
-        uint poph = options.proofOfPlayHeight;
+        uint popw = Opt::proofOfPlayWidth;
+        uint poph = Opt::proofOfPlayHeight;
         saveProofOfPlayThread.setMaxSize(popw, poph);
-        saveProofOfPlayThread.setInterval(options.proofOfPlayInterval);
-        saveProofOfPlayThread.setPath(+options.proofOfPlayFile);
+        saveProofOfPlayThread.setInterval(Opt::proofOfPlayInterval);
+        saveProofOfPlayThread.setPath(+popf);
     }
 }
 
@@ -586,7 +592,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     , pageLimitationDialogShown(o.pageLimitationDialogShown)
 #endif
 {
-    record(tao_widget, "Widget copy constructor copy %p from %p", this, &o);
+    record(widget, "Widget copy constructor copy %p from %p", this, &o);
     setObjectName(QString("Widget"));
 
     memcpy(focusProjection, o.focusProjection, sizeof(focusProjection));
@@ -681,7 +687,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
-    record(tao_widget, "Widget destructor %p", this);
+    record(widget, "Widget destructor %p", this);
     xlProgram = NULL;           // Mark widget as invalid
     current = NULL;
     delete space;
@@ -796,10 +802,10 @@ void Widget::dawdle()
 #endif
 
     // Check if statistics status changed from the dialog box
-    if (stats.isEnabled(Statistics::TO_CONSOLE) != XLTRACE(fps))
-        stats.enable(XLTRACE(fps), Statistics::TO_CONSOLE);
+    if (stats.isEnabled(Statistics::TO_CONSOLE) != XLTRACE(layout_fps))
+        stats.enable(XLTRACE(layout_fps), Statistics::TO_CONSOLE);
 
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         printPerLayoutStatistics();
 }
 
@@ -839,7 +845,7 @@ void Widget::drawScene()
 //   Draw all objects in the scene
 // ----------------------------------------------------------------------------
 {
-    if (XL::MAIN->options.threaded_gc)
+    if (Opt::gcThread)
     {
         // Start asynchronous garbage collection
         TaoApp->gcThread->clearCollectDone();
@@ -860,17 +866,16 @@ void Widget::drawScene()
     }
     else
     {
+        record(polycount, "Begin draw, polycount was %lu", GL.polycount);
         GL.polycount = 0;
         space->Draw(NULL);
-        IFTRACE(polycount)
-            // It's really the number of elements sent to DrawArray
-            std::cout << "Edges=" << GL.polycount << "\n";
+        record(polycount, "End draw, polycount is %lu", GL.polycount);
     }
 
     if (showingEvaluationWatermark)
         drawWatermark();
 
-    if (XL::MAIN->options.threaded_gc)
+    if (Opt::gcThread)
     {
         // Record wait time till asynchronous garbage collection completes
         stats.end(Statistics::DRAW);
@@ -1007,7 +1012,7 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    record(tao_widget, "Draw %p%+s%+s%+s",
+    record(widget, "Draw %p%+s%+s%+s",
            this,
            inOfflineRendering ? ", offline" : "",
            inDraw ? ", already drawing" : "",
@@ -1046,7 +1051,7 @@ void Widget::draw()
         runProgram();
     }
 
-    if (!XL::MAIN->options.threaded_gc)
+    if (!Opt::gcThread)
         emit runGC();
 
     // Run current display algorithm
@@ -1167,17 +1172,11 @@ void Widget::commitPageChange(bool afterTransition)
 
     if (!inOfflineRendering && pageChangeActions.size())
     {
-        page_action_map::iterator i;
-        for (i = pageChangeActions.begin(); i != pageChangeActions.end(); i++)
-        {
-            XL::Context_p ctx = (*i).second.context;
-            XL::Tree_p code = (*i).second.code;
-            ctx->Evaluate(code);
-        }
+        for (auto &pc : pageChangeActions)
+            xl_evaluate(pc.second.scope, pc.second.code);
     }
 
-    IFTRACE(pages)
-        std::cerr << "New page number is " << pageShown << "\n";
+    record(pages, "New page number is %u", pageShown);
 }
 
 
@@ -1192,9 +1191,7 @@ bool Widget::runPageExitHandlers()
     {
         if (inRunPageExitHandlers)
             return true;
-        IFTRACE(pages)
-            std::cerr << "Running exit handler(s) for page " << pageShown
-                      << "\n";
+        record(pages, "Running exit handler(s) for page %u", pageShown);
         do
         {
             // Prevent recursion
@@ -1206,8 +1203,7 @@ bool Widget::runPageExitHandlers()
     }
     else
     {
-        IFTRACE(pages)
-            std::cerr << "Page " << pageShown << " has no exit handler\n";
+        record(pages, "Page %u has no exit handler", pageShown);
     }
     return false;
 }
@@ -1218,10 +1214,13 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
+    record(widget, "Refresh %p now %+s%+s%+s",
+           this,
+           inDraw   ? " in draw"  : "",
+           inError  ? " in error" : "",
+           printer  ? " printing" : "");
     if (inDraw || inError || printer)
         return false;
-
-    record(tao_widget, "Refresh %p", this);
 
     // Update times
     setCurrentTime();
@@ -1241,10 +1240,7 @@ bool Widget::refreshNow(QEvent *event)
     // Check if we need to change pages.
     else if (gotoPageName != "")
     {
-        IFTRACE(pages)
-            std::cerr << "Goto page request: '" << gotoPageName
-                      << "' from '" << pageName << "'\n";
-
+        record(pages, "Goto page %s request from %s", gotoPageName, pageName);
         if (transitionTree == NULL)
         {
             commitPageChange(false);
@@ -1269,8 +1265,7 @@ bool Widget::refreshNow(QEvent *event)
     // Redraw full scene if required
     if (!event || space->NeedRefresh(event, now))
     {
-        IFTRACE(layoutevents)
-            std::cerr << "Full refresh\n";
+        record(layout, "Full refresh of widget %p", this);
 
         XL::Save<bool> drawing(inDraw, true);
         // runProgram needs current != NULL which is not always true here
@@ -1283,9 +1278,10 @@ bool Widget::refreshNow(QEvent *event)
     }
     else
     {
-        IFTRACE(layoutevents)
-            std::cerr << "Partial refresh due to event: "
-                      << LayoutState::ToText(event->type()) << "\n";
+        int evt = event->type();
+        record(layout, "Partial refresh of %p dur to event %s (%d)",
+               this, LayoutState::ToText(evt), evt);
+
         // Layout::Refresh needs current != NULL
         TaoSave saveCurrent(current, this);
         stats.begin(Statistics::EXEC);
@@ -1339,16 +1335,9 @@ void Widget::refreshOn(int type, double nextRefresh)
         double currentTime = CurrentTime();
         if (nextRefresh == DBL_MAX)
             nextRefresh = currentTime + dfltRefresh;
-
-        IFTRACE(layoutevents)
-        {
-            QDateTime d = fromSecsSinceEpoch(nextRefresh);
-            double delta = nextRefresh - currentTime;
-            std::cerr << "Request to refresh layout "
-                      << layout->PrettyId() << " at " << nextRefresh
-                      << " (" << +d.toString("dd MMM yyyy hh:mm:ss.zzz")
-                      << " = now + " << delta << "s)\n";
-        }
+        record(layout,
+               "Refresh %p at %f (in %fs)",
+               this, nextRefresh, nextRefresh - currentTime);
     }
 
     layout->RefreshOn(type, nextRefresh);
@@ -1527,7 +1516,7 @@ void Widget::runProgram()
 //   (and only twice to avoid infinite loops). For example, if the page
 //   title is translated, it may not match on the next draw. See #2060.
 {
-    record(tao_widget, "Run %p", this);
+    record(widget, "Run program for widget %p", this);
 
 #if defined(Q_OS_WIN)
     // #3017
@@ -1536,11 +1525,7 @@ void Widget::runProgram()
 
     runProgramOnce();
 
-    IFTRACE(pages)
-        std::cerr << "Page found=" << pageFound
-                  << " id=" << pageId
-                  << " shown=" << pageShown
-                  << "\n";
+    record(pages, "Page found %u id %u shown %u", pageFound, pageId, pageShown);
     pageNames = newPageNames;
     pageTotal = pageId;
     if (pageFound)
@@ -1559,21 +1544,21 @@ void Widget::runProgram()
 }
 
 
-Tree_p Widget::saveAndEvaluate(Context* context, Tree_p code)
+Tree_p Widget::saveAndEvaluate(Scope* scope, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Save GL states before evaluate a XL context
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::beginExec(code);
 
     // Save GL state before evaluate
     GLAllStateKeeper save;
 
     // Evaluate context
-    Tree *result = context->Evaluate(code);
+    Tree *result = xl_evaluate(scope, code);
 
-    IFTRACE(lfps)
+    IFTRACE(layout_fps)
         PerLayoutStatistics::endExec(code);
 
     return result;
@@ -1586,9 +1571,7 @@ void Widget::processProgramEvents()
 // ----------------------------------------------------------------------------
 {
     LayoutState::qevent_ids refreshEvents = space->RefreshEvents();
-    IFTRACE(layoutevents)
-            std::cerr << "Program events: "
-            << LayoutState::ToText(refreshEvents) << "\n";
+    record(layout, "Program events: %s", Layout::ToText(refreshEvents));
     // Trigger mouse tracking only if needed
     bool mouseTracking = (refreshEvents.count(QEvent::MouseMove) != 0);
     if (mouseTracking)
@@ -1622,10 +1605,10 @@ void Widget::print(QPrinter *prt)
     QPainter painter(printer);
     uint w = pageRect.width(), h = pageRect.height();
     FrameInfo frame(w, h);
-    IFTRACE(print)
-        std::cerr << "Page rectangle: "
-                  << pageRect.top() << ", " << pageRect.left() << ", "
-                  << pageRect.bottom() << ", " << pageRect.right() << "\n";
+    record(print,
+           "Page rectangle top %u left %u bottom %u right %u",
+           pageRect.top(), pageRect.left()
+           pageRect.bottom(), pageRect.right());
 
     // Get the status bar
     QStatusBar *status = taoWindow()->statusBar();
@@ -1652,10 +1635,8 @@ void Widget::print(QPrinter *prt)
         QImage bigPicture(w * n, h * n, QImage::Format_RGB888);
         QPainter bigPainter(&bigPicture);
         bigPicture.fill(-1);
-        IFTRACE(print)
-            std::cerr << "Printing page " << pageToPrint
-                  << " size " << w << "x" << h
-                      << " at " << printOverscaling << "x overscaling\n";
+        record(print, "Printing page %u %u x %u overscaling %u",
+               pageToPrint, w, h, printOverscaling);
 
         // Show crude progress information
         status->showMessage(tr("Printing page %1/%2...")
@@ -1697,9 +1678,7 @@ void Widget::print(QPrinter *prt)
                                     .arg(pct));
                 status->repaint(); // Does not work on MacOSX?
 
-                IFTRACE(print)
-                    std::cerr << "Page " << pageToPrint
-                              << " row " << r << " column " << c << "\n";
+                record(print, "Page %u row %u column %u", pageToPrint, r, c);
 
                 // Draw the layout in the frame context
                 id = idDepth = 0;
@@ -1903,10 +1882,8 @@ void Widget::renderFrames(int w, int h, double start_time, double duration,
 
         if (gotoPageName != "")
         {
-            IFTRACE(pages)
-                std::cerr << "(renderFrames) "
-                          << "Goto page request: '" << gotoPageName
-                          << "' from '" << pageName << "'\n";
+            record(pages, "Goto page %s (renderframes) from %s",
+                   gotoPageName, pageName);
             commitPageChange(false);
             if (time_offset && currentFrame == firstFrame)
             {
@@ -1960,16 +1937,14 @@ void Widget::renderFrames(int w, int h, double start_time, double duration,
     }
 
     double elapsed = fpsTimer.elapsed();
-    IFTRACE(fps)
-        std::cerr << "Rendered " << currentFrame << " frames in "
-                  << elapsed << " ms, approximately "
-                  << 1000 * currentFrame / elapsed << " FPS\n";
+    record(layout_fps,
+           "Rendered %lu frames in %lu ms, approx %lu FPS",
+           currentFrame, elapsed, 1000 * currentFrame / elapsed);
     saveThreads.waitForDone();
     elapsed = fpsTimer.elapsed();
-    IFTRACE(fps)
-        std::cerr << "Saved " << currentFrame << " frames in "
-                  << elapsed << " ms, approximately "
-                  << 1000 * currentFrame / elapsed << " FPS\n";
+    record(layout_fps,
+           "Saved %lu frames in %lu ms, approx %lu FPS",
+           currentFrame, elapsed, 1000 * currentFrame / elapsed);
 
     // Done with offline rendering
     inOfflineRendering = false;
@@ -2051,10 +2026,8 @@ XL::Name_p Widget::saveThumbnail(Context *, Tree_p, int w, int h, int page,
 
     if (gotoPageName != "")
     {
-        IFTRACE(pages)
-                std::cerr << "(thumbnailFile) "
-                          << "Goto page request: '" << gotoPageName
-                          << "' from '" << pageName << "'\n";
+        record(pages, "Goto page %s (thumbnail) from %s",
+               gotoPageName, pageName);
         commitPageChange(false);
         pageEntry = 0;
     }
@@ -2130,16 +2103,7 @@ void Widget::appFocusChanged(QWidget *prev, QWidget *next)
 //   Notifications when focus changes
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(focus)
-    {
-        std::cerr << "Focus " << prev << "->" << next << "\n";
-        const QObjectList &children = this->children();
-        QObjectList::const_iterator it;
-        for (it = children.begin(); it != children.end(); it++)
-            std::cerr << (it == children.begin() ? "Children: " : " ")
-                      << (QWidget *) *it;
-        std::cerr << "\n";
-    }
+    record(focus, "Focus from %p to %p", prev, next);
 }
 
 
@@ -5682,8 +5646,7 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
         {
             QFocusEvent focusOut(QEvent::FocusOut, Qt::ActiveWindowFocusReason);
             QObject *fout = focusWidget;
-            IFTRACE(focus)
-                std::cerr << "Focus out " << focusWidget << "\n";
+            record(focus, "Focus %p out", fout);
             fout->event(&focusOut);
             focusWidget->clearFocus();
         }
@@ -5697,22 +5660,18 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
             QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
             QObject *fin = focusWidget;
             QApplication::focusWidget()->clearFocus();
-            IFTRACE(focus)
-                std::cerr << "Focus in " << widget << "\n";
+            record(focus, "Focus %p in", widget);
             fin->event(&focusIn);
             focusWidget->setFocus();
-            IFTRACE(focus)
-                std::cerr << "Focus widget " << QApplication::focusWidget()
-                          << " focus: "
-                          << focusWidget->hasFocus() << "\n";
+            record(focus,
+                   "Focus widget %p %+s",
+                   QApplication::focusWidget()
+                   focusWidget->hasFocus() ? "has focus" : "has no focus");
         }
-        IFTRACE(focus)
-        {
-            if (focusWidget && focusWidget->hasFocus())
-                std::cerr << "Focus widget has focus\n";
-            else
-                std::cerr << "No focus?\n";
-        }
+        record(focus,
+               focusWidget && focusWidget->hasFocus()
+               ? "Focus widget has focus"
+               : "No current focus");
     }
 
     if (focusWidget)
@@ -5723,16 +5682,12 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
         focusWidget->setFocus();
     }
 
-    IFTRACE(focus)
-    {
-        std::cerr << "Focus widget=" << focusWidget
-                  << " app=" << QApplication::focusWidget()
-                  << "\n";
-        if (focusWidget && focusWidget->hasFocus())
-            std::cerr << "V2 Focus widget has focus\n";
-        else
-            std::cerr << "V2 No focus?\n";
-    }
+    record(focus,
+           "Focus widget %p app %p", focusWidget, QApplication::focusWidget());
+    record(focus,
+           focusWidget && focusWidget->hasFocus()
+           ? "V2 Focus widget has focus"
+           : "V2 No current focus");
 
     return focusWidget == widget;
 }
@@ -5945,13 +5900,24 @@ static inline void resetLayout(Layout *where)
 }
 
 
-void Widget::drawSelection(Layout *where,
-                           const Box3 &bnds, text selName, uint id)
+static inline uint layoutId(Layout *where)
+// ----------------------------------------------------------------------------
+//   Return the layout ID for the given layout, or 0
+// ----------------------------------------------------------------------------
+{
+    return where ? where->id : 0;
+}
+
+
+void Widget::drawSelection(const Box3 &bnds,
+                           text selName,
+                           Layout *where)
 // ----------------------------------------------------------------------------
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
-    if (!xlProgram) return ;
+    if (!xlProgram)
+        return;
 
     Box3 bounds(bnds);
     bounds.Normalize();
@@ -5969,7 +5935,7 @@ void Widget::drawSelection(Layout *where,
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper     saveGL;
     resetLayout(layout);
-    selectionSpace.id = id;
+    selectionSpace.id = layoutId(where);
     saveSelectionColorAndFont(where);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
@@ -5980,12 +5946,16 @@ void Widget::drawSelection(Layout *where,
 }
 
 
-void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
+void Widget::drawHandle(const Point3 &p,
+                        text handleName,
+                        Layout *where,
+                        uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
 {
-    if (!xlProgram) return ;
+    if (!xlProgram)
+        return;
 
     SpaceLayout selectionSpace(this);
 
@@ -5999,19 +5969,22 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 }
 
 
-Layout *Widget::drawTree(Layout *where, Context *context, Tree_p code)
+Layout *Widget::drawTree(Scope *scope,
+                         Tree_p code,
+                         Layout *where)
 // ----------------------------------------------------------------------------
 //    Draw some tree, e.g. cell fill and border, return new layout
 // ----------------------------------------------------------------------------
 {
     Layout *result = where->NewChild();
     XL::Save<Layout *> saveLayout(layout, result);
-    saveAndEvaluate(context, code);
+    saveAndEvaluate(scope, code);
     return result;
 }
 
 
-void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
+void Widget::drawCall(XL::XLCall &call,
+                      Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the given call in a selection context
 // ----------------------------------------------------------------------------
@@ -6024,7 +5997,7 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper     saveGL;
     resetLayout(layout);
-    selectionSpace.id = id;
+    selectionSpace.id = layoutId(where);
     call(xlProgram);
     selectionSpace.Draw(where);
 }
@@ -6860,7 +6833,9 @@ Integer_p Widget::mouseButtons(Tree_p self)
 }
 
 
-Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
+Tree_p Widget::shapeAction(Scope_p scope,
+                           Tree_p self,
+                           text name,
                            Tree_p action)
 // ----------------------------------------------------------------------------
 //   Set the action associated with a click or other on the object
@@ -6871,12 +6846,7 @@ Tree_p Widget::shapeAction(Tree_p self, Context_p context, text name,
     if (name == "pagechange")
     {
         if (!pageChangeActions.count(self))
-        {
-            if (!action->Symbols())
-                action->SetSymbols(self->Symbols());
-            ContextAndCode cc(context, action);
-            pageChangeActions[self] = cc;
-        }
+            pageChangeActions[self] = ScopeAndCode(scope, action);
         return XL::xl_true;
     }
     else if ((+name).startsWith("keydown"))

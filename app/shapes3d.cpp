@@ -60,7 +60,7 @@ void Shape3::DrawSelection(Layout *layout)
     {
         Box3 bounds = Bounds(layout);
         XL::Save<Point3> zeroOffset(layout->offset, Point3(0,0,0));
-        widget->drawSelection(layout, bounds, "3D_selection", 0);
+        widget->drawSelection(bounds, "3D_selection", layout);
     }
 }
 

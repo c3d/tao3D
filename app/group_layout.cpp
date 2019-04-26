@@ -80,7 +80,7 @@ void GroupLayout::DrawSelection(Layout *where)
 
         Box3 bounds = Bounds(where);
         XL::Save<Point3> zeroOffset(where->offset, Point3(0,0,0));
-        widget->drawSelection(where, bounds, "open_group", where->id);
+        widget->drawSelection(bounds, "open_group", where);
     }
     else if (sel)
     {

@@ -42,33 +42,34 @@
 #define WINVER 0x501
 #endif
 
-#include "application.h"
-#include "main.h"
-#include "basics.h"
-#include "graphics.h"
-#include "formulas.h"
-#include "widget.h"
-#include "tao_utf8.h"
-#include "gc.h"
-#include "tao_main.h"
-#include "tao_utf8.h"
 #include "../config.h"
+#include "application.h"
+#include "basics.h"
 #include "crypto.h"
-#include "normalize.h"
-#include "opengl_state.h"
 #ifndef CFG_NO_DOC_SIGNATURE
 #include "document_signature.h"
 #endif
+#include "formulas.h"
+#include "gc.h"
+#include "graphics.h"
+#include "main.h"
+#include "normalize.h"
+#include "opengl_state.h"
+#include "tao_main.h"
+#include "tao_utf8.h"
+#include "tao_utf8.h"
+#include "widget.h"
 
 #include <QApplication>
-#include <QGLWidget>
 #include <QFileInfo>
+#include <QGLWidget>
 #include <QTimer>
 
+#include <errno.h>
+#include <fcntl.h>
+#include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <unistd.h>
 
 #ifndef CONFIG_MINGW
@@ -104,6 +105,38 @@ namespace Tao {
 
 static void redirect_console();
 
+// ============================================================================
+//
+//    Formatting helper for %k, display sizes with b / k / M / G suffix
+//
+// ============================================================================
+
+static size_t recorder_bytes_format(intptr_t tracing XL_UNUSED,
+                                    const char *format XL_UNUSED,
+                                    char *buffer, size_t size,
+                                    uintptr_t arg)
+// ----------------------------------------------------------------------------
+//   Show 'arg' using familiar 'B', 'kB', 'MB' and 'GB' suffixes
+// ----------------------------------------------------------------------------
+{
+    const uintptr_t KB = 1024;
+    const uintptr_t MB = 1024 * KB;
+    const uintptr_t GB = 1024 * MB;
+    const uintptr_t TB = 1024 * GB;
+
+    if (arg > 10 * TB)
+        return snprintf(buffer, size, "%" PRIuPTR "TB", arg / TB);
+    if (arg > 10 * GB)
+        return snprintf(buffer, size, "%" PRIuPTR "GB", arg / GB);
+    if (arg > 10 * MB)
+        return snprintf(buffer, size, "%" PRIuPTR "MB", arg / MB);
+    if (arg > 10 * KB)
+        return snprintf(buffer, size, "%" PRIuPTR "KB", arg / KB);
+    return snprintf(buffer, size, "%" PRIuPTR "B", arg);
+}
+
+
+
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 //    Main entry point of the graphical front-end
@@ -111,13 +144,14 @@ int main(int argc, char **argv)
 {
     using namespace Tao;
 
+    // Do our best to send stdout/stderr output somewhere
+    redirect_console();
+
     // Recorder initialization
     recorder_dump_on_common_signals(0, 0);
     recorder_trace_set(".*_(error|warning)");
     recorder_trace_set(getenv("TAO_TRACES"));
-
-    // Do our best to send stdout/stderr output somewhere
-    redirect_console();
+    recorder_configure_type('k', recorder_bytes_format);
 
     // Process --version before graphic initialization so that this option may
     // be used without a valid X11 display on Linux

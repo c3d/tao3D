@@ -53,6 +53,8 @@
 #include <QMessageBox>
 #include <sstream>
 
+RECORDER(update, 16, "Tao3D application update");
+
 namespace Tao {
 
 
@@ -99,6 +101,8 @@ UpdateApplication::UpdateApplication()
     connectionErrorIcon(loadIcon(":/images/not_connected.png")),
     reply(NULL), manager(NULL), code(-1)
 {
+    record(update, "Application updater %p", this);
+
     // download.png from http://www.iconfinder.com/icondetails/2085/128
     // Author: Alexandre Moore
     // License: LGPL
@@ -124,11 +128,8 @@ UpdateApplication::UpdateApplication()
            this,     SLOT(cancel()));
    progress->setWindowTitle(dialogTitle);
 
-   IFTRACE(update)
-       debug() << "Current version: edition='" << +edition
-               << "' version=" << version
-               << " target='" << +target << "'"
-               << " User-Agent='" << +userAgent() << "'\n";
+   record(update, "Tao3D %s edition, versoin %s, target %s, User-Agent %s",
+          edition, version, target, userAgent());
 }
 
 

@@ -122,11 +122,11 @@ bool Manipulator::DrawHandle(Layout *layout, Point3 p, uint id, text name)
     bool     selected = false;
     if (layout->groupDrag)
     {
-        widget->drawHandle(layout, p + offset, "group_" + name, id);
+        widget->drawHandle(p + offset, "group_" + name, layout, id);
     }
     else
     {
-        widget->drawHandle(layout, p + offset, name, id);
+        widget->drawHandle(p + offset, name, layout, id);
         selected = widget->selectionHandleId() == id;
     }
     return selected;
@@ -1174,8 +1174,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
         {
             Box3 bounds = Bounds(layout);
             XL::Save<Point3> zeroOffset(layout->offset, Point3(0,0,0));
-            widget->drawSelection(layout, bounds,
-                                  "widget_selection", layout->id);
+            widget->drawSelection(bounds, "widget_selection", layout);
         }
     }
 }

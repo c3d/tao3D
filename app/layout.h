@@ -57,6 +57,7 @@
 #include <recorder/recorder.h>
 
 RECORDER_DECLARE(layout);
+RECORDER_DECLARE(layout_fps);
 
 TAO_BEGIN
 struct Widget;
@@ -76,7 +77,7 @@ public:
 public:
     void                ClearAttributes();
     static text         ToText(qevent_ids & ids);
-    static text         ToText(int type);
+    static kstring      ToText(int type);
     void                InheritState(LayoutState *other);
     void                toDebugString(std::ostream &out) const;
 

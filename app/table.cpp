@@ -119,12 +119,12 @@ void Table::Evaluate(Layout *where)
 
             Layout *fillLayout = NULL;
             if (Tree_p fill = *fi++)
-                fillLayout = widget->drawTree(this, scope, fill);
+                fillLayout = widget->drawTree(scope, fill, this);
             fills.push_back(fillLayout);
 
             Layout *borderLayout = NULL;
             if (Tree_p border = *bi++)
-                borderLayout = widget->drawTree(this, scope, border);
+                borderLayout = widget->drawTree(scope, border, this);
             borders.push_back(borderLayout);
 
             if (column < columnWidth.size())

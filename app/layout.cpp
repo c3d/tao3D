@@ -122,7 +122,7 @@ void LayoutState::ClearAttributes()
 }
 
 
-text LayoutState::ToText(int type)
+kstring LayoutState::ToText(int type)
 // ----------------------------------------------------------------------------
 //   Helper function to display an event type in human-readable form
 // ----------------------------------------------------------------------------
@@ -141,9 +141,7 @@ text LayoutState::ToText(int type)
         default: break;
     }
 #undef CASE
-    std::ostringstream ostr;
-    ostr << type;
-    return ostr.str();
+    return "";
 }
 
 

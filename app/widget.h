@@ -359,10 +359,10 @@ public:
     uint        lastModifiers()         { return keyboardModifiers; }
     Drag *      drag();
     TextSelect *textSelection();
-    void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
-    void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
-    Layout *    drawTree(Layout *where, Scope *scope, Tree_p code);
-    void        drawCall(Layout *, XL::XLCall &call, uint id=0);
+    void        drawSelection(const Box3 &, text name,Layout * = 0);
+    void        drawHandle(const Point3 &, text name, Layout * = 0, uint id=0);
+    Layout *    drawTree(Scope *scope, Tree_p code, Layout * = 0);
+    void        drawCall(XL::XLCall &call, Layout * = 0);
     bool        mouseTracking() { return doMouseTracking; }
     bool        inMouseMove()   { return w_event &&
                                   w_event->type() == QEvent::MouseMove; }
@@ -1005,14 +1005,13 @@ private:
     friend struct GCThread;
     friend struct WidgetSurface;
 
-    struct ContextAndCode
+    struct ScopeAndCode
     {
-        ContextAndCode() : context(0), code(0) {}
-        ContextAndCode(XL::Context_p context, XL::Tree_p code)
-            : context(context), code(code) {}
-        ~ContextAndCode() { context = 0; code = 0; }
-        XL::Context_p context;
-        XL::Tree_p    code;
+        ScopeAndCode(): scope(), code() {}
+        ScopeAndCode(Scope_p scope, Tree_p code): scope(scope), code(code) {}
+        ~ScopeAndCode() {}
+        Scope_p scope;
+        Tree_p  code;
     };
 
     typedef XL::Save<QEvent *>               EventSave;
@@ -1022,7 +1021,7 @@ private:
     typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
     typedef std::map<text, perId_action_map> action_map;
-    typedef std::map<Tree_p, ContextAndCode> page_action_map;
+    typedef std::map<Tree_p, ScopeAndCode>   page_action_map;
     typedef std::map<Tree_p, GLuint>         GLid_map;
     typedef std::set<Tree_p>                 tree_set;
 

@@ -317,9 +317,9 @@ void PageLayout::DrawSelection(Layout *where)
         Box3 bounds = space;
         XL::Save<Point3> zeroOffset(where->offset, Point3(0,0,0));
         if ((selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
-            widget->drawSelection(where, bounds, "open_textbox", where->id);
+            widget->drawSelection(bounds, "open_textbox", where);
         else
-            widget->drawSelection(where, bounds, "selected_textbox", where->id);
+            widget->drawSelection(bounds, "selected_textbox", where);
     }
 
     // Display all items
@@ -439,19 +439,19 @@ void PageLayout::DrawSelectionBox(TextSelect *sel,Drawing *child,coord savedY)
         GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = sel->textMode ? "text_selection" : "text_highlight";
         XL::Save<Point3> zeroOffset(offset, Point3());
-        widget->drawSelection(this, sel->selBox, mode, 0);
+        widget->drawSelection(sel->selBox, mode, this);
         sel->selBox.Empty();
         GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     if (sel->formulaBox.Width() > 0 && sel->formulaBox.Height() > 0)
     {
-         GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
+        GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = "formula_highlight";
         XL::Save<Point3> zeroOffset(offset, Point3());
-        widget->drawSelection(this, sel->formulaBox, mode, 0);
+        widget->drawSelection(sel->formulaBox, mode, this);
         sel->formulaBox.Empty();
-         GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 }
 

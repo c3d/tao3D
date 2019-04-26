@@ -34,11 +34,15 @@
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
 
-#include <QFileInfo>
-#include <QDir>
 #include "preview.h"
 #include "base.h"
 #include "tao_utf8.h"
+#include <QFileInfo>
+#include <QDir>
+#include <recorder/recorder.h>
+
+
+RECORDER(preview, 16, "Preview thread (saving previews of current output)");
 
 namespace Tao {
 
@@ -49,8 +53,9 @@ PreviewThread::PreviewThread(uint timeInterval, uint maxWidth, uint maxHeight)
     : mutex(), path(), image(), nextSave(),
       timeInterval(timeInterval), maxWidth(maxWidth), maxHeight(maxHeight)
 {
-    IFTRACE(preview)
-        debug() << "Starting preview thread (" << timeInterval << " ms)\n";
+    record(preview,
+           "Starting preview thread %p, refreshing at %u ms, %u x %u pixels",
+           this, timeInterval, maxWidth, maxHeight);
 
     // Ready the thread to receive events
     moveToThread(this);
@@ -71,8 +76,7 @@ PreviewThread::~PreviewThread()
 //   Stop the monitor thread
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(preview)
-        debug() << "Stopping\n";
+    record(preview, "Stopping preview thread %p", this);
     quit();
     wait(100);
 }
@@ -83,6 +87,7 @@ void PreviewThread::setPath(QString path)
 //    Record the path where we will save the picture and trigger save
 // ----------------------------------------------------------------------------
 {
+    record(preview, "Preview thread %p uses path %s", this, path);
     QMutexLocker locker(&mutex);
     this->path = path;
     if (!image.isNull() && !isBusy())
@@ -95,6 +100,9 @@ void PreviewThread::setMaxSize(uint maxWidth, uint maxHeight)
 //   Record the maximum size for resizing the picture
 // ----------------------------------------------------------------------------
 {
+    record(preview,
+           "Preview thread %p max size %u x %u pixels",
+           this, maxWidth, maxHeight);
     QMutexLocker locker(&mutex);
     this->maxWidth = maxWidth;
     this->maxHeight = maxHeight;
@@ -106,6 +114,8 @@ void PreviewThread::setInterval(uint interval)
 //   Record the interval between saves of the picture
 // ----------------------------------------------------------------------------
 {
+    record(preview,
+           "Preview thread %p interval %u ms", this, interval);
     QMutexLocker locker(&mutex);
     this->timeInterval = interval;
     this->nextSave.setInterval(interval);
@@ -119,10 +129,15 @@ void PreviewThread::recordImage(QImage &image)
 {
     if (mutex.tryLock())
     {
+        record(preview, "Preview thread %p record image");
         this->image = image;
         mutex.unlock();
         if (path != "" && !isBusy())
             emit imageAvailable();
+    }
+    else
+    {
+        record(preview, "Preview thread %p couldn't record image (contention)");
     }
 }
 
@@ -132,6 +147,8 @@ void PreviewThread::savePreview()
 //   Save a preview of the image, and wait until awoken again
 // ----------------------------------------------------------------------------
 {
+    record(preview, "Thread %p saving preview", this);
+
     // Acquire input parameters
     mutex.lock();
     QImage toSave = image;

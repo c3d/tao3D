@@ -118,7 +118,7 @@ void ModuleInfoDialog::updateInfo(const ModuleInfo &info)
     if (file.open(QIODevice::ReadOnly))
         t = QString::fromUtf8(file.readAll().data());
 
-    QString vstr = QString::number(mi.ver);
+    QString vstr = QString::number(mi.version);
     if (!vstr.contains("."))
         vstr.append(".0");
 

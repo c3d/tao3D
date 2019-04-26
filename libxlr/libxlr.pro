@@ -126,7 +126,8 @@ SOURCES += \
     xlr/src/syntax.cpp \
     xlr/src/tree.cpp \
     xlr/src/types.cpp \
-    xlr/src/utf8_fileutils.cpp
+    xlr/src/utf8_fileutils.cpp \
+    xlr/src/version.cpp
 
 win32 {
       SOURCES += xlr/src/winglob.cpp

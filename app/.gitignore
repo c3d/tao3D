@@ -3,8 +3,7 @@
 /Makefile.Release
 /Tao3D*.app/
 /Tao
-/version.h
-/version2.h
+/tao_version.h
 /Info.plist
 /tao.rc
 /NEWS

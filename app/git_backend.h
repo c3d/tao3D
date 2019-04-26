@@ -114,6 +114,7 @@ public:
     virtual QString     diff(QString a, QString b, bool symetric);
     virtual process_p   asyncGetRemoteTags(QString remote);
     virtual QStringList tags();
+    virtual XL::Version highestVersionTag();
     virtual bool        pathIsRoot();
 
 public:

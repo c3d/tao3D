@@ -4,7 +4,7 @@
 #  include <winver.h>
 # endif
 
-#include \"version.h\"
+#include \"tao_version.h\"
 
 VS_VERSION_INFO VERSIONINFO
         FILEVERSION $$MAJOR,$$MINOR,$$RELEASE,0

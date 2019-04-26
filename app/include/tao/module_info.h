@@ -41,6 +41,7 @@
 
 namespace Tao {
 
+typedef std::string text;
 
 struct ModuleInfo
 // ------------------------------------------------------------------------
@@ -48,25 +49,21 @@ struct ModuleInfo
 // ------------------------------------------------------------------------
 {
     ModuleInfo() {}
-    ModuleInfo(std::string id, std::string path)
-        : id(id), path(path), ver(1.0), autoLoad(false) {}
+    ModuleInfo(text id, text path)
+        : id(id), path(path), version(1.0), autoLoad(false) {}
 
-    std::string id;
-    std::string path;  // Qt format (e.g., "/Users/foo", "C:/Users/foo")
-    std::string name;
-    std::string desc;
-    std::string icon;
-    double      ver;
-    std::string author;
-    std::string website;
-    std::string importName;
-    bool        autoLoad;
-    // Message supplied by the module as on_load_error, shown in case of
-    // library load error
-    std::string onLoadError;
-    // Windows: value of %PATH% to be set to load the library (supplied by
-    // the module as windows_load_path)
-    std::string windowsLoadPath;
+    text   id;
+    text   path;                // Path in Qt format
+    text   name;
+    text   desc;
+    text   icon;
+    double version;
+    text   author;
+    text   website;
+    text   importName;
+    bool   autoLoad;
+    text   onLoadError;         // Message supplied by module
+    text   windowsLoadPath;     // Value of %PATH ot be set (windows_load_path)
 };
 
 }

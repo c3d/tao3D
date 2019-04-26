@@ -45,7 +45,7 @@
 #include <QToolBar>
 #include <QAction>
 #include <QMainWindow>
-#include "tree.h"
+#include "tao_tree.h"
 
 
 namespace Tao {
@@ -53,9 +53,9 @@ namespace Tao {
 struct MenuInfo : QObject
 // ----------------------------------------------------------------------------
 //  Qt menu data.
+// ----------------------------------------------------------------------------
 //  This objects holds either a menu/submenu/menuitem using p_parent and
 //    p_action or a toolbar using p_window and p_toolbar.
-// ----------------------------------------------------------------------------
 {
     Q_OBJECT;
 public:
@@ -64,30 +64,29 @@ public:
     ~MenuInfo();
 
 public:
-    QString        fullname; // the widget full name.
-    QAction      * p_action; // The action associated with the widget
-    QToolBar     * p_toolbar; // The toolbar
+    QString        fullname;  // The widget full name.
+    QAction       *action;    // The action associated with the widget
+    QToolBar      *toolbar;   // The toolbar
     text           title;
     text           icon;
 
 public slots:
     void actionDestroyed();
-
 };
 
 
 struct GroupInfo : QButtonGroup, XL::Info
 // ----------------------------------------------------------------------------
-// QGroupButton associated to an XL tree
+//  QGroupButton associated to an XL tree
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT;
-
 public:
     typedef GroupInfo * data_t;
 
-    GroupInfo(XL::Tree *t, QWidget * parent) :
-            QButtonGroup(parent), XL::Info(), tree(t), action(NULL)
+    GroupInfo(Tree *t, Scope *scope, Tree *action, QWidget * parent)
+        : QButtonGroup(parent), XL::Info(),
+        tree(t), scope(scope), action(action)
     {
         connect(this, SIGNAL(buttonClicked(QAbstractButton*)),
                 this, SLOT(bClicked(QAbstractButton*)));
@@ -104,8 +103,9 @@ public slots:
     void bClicked(QAbstractButton* button);
 
 public:
-    XL::Tree_p tree;
-    XL::Tree_p action;
+    Tree_p  tree;
+    Scope_p scope;
+    Tree_p  action;
 };
 
 }

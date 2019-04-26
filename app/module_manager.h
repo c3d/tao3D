@@ -39,11 +39,6 @@
 // *****************************************************************************
 
 /*
-
-// TODO:
-//   - localization
-//   - do we need some kind of dependency information? (load order)
-
 1. What is a Tao module?
 
 A Tao module is made up of some XLR code, and optionally some native code in
@@ -288,26 +283,28 @@ Native and XL functions of a module are called by Tao in the following order:
 
  */
 
-#include "tao.h"
-#include "tao_tree.h"
-#include "tao_options.h"
 #include "action.h"
+#include "context.h"
+#include "module_api_p.h"
 #include "repository.h"
-#include "tao_utf8.h"
+#include "runtime.h"
+#include "tao.h"
 #include "tao/module_api.h"
 #include "tao/module_info.h"
-#include "module_api_p.h"
+#include "tao_options.h"
+#include "tao_tree.h"
+#include "tao_utf8.h"
 #include "tree.h"
-#include "runtime.h"
-#include "context.h"
-#include <QObject>
-#include <QString>
+#include "version.h"
+
+#include <QDir>
+#include <QLibrary>
 #include <QList>
 #include <QMap>
-#include <QStringList>
+#include <QObject>
 #include <QSet>
-#include <QLibrary>
-#include <QDir>
+#include <QString>
+#include <QStringList>
 #include <QTextStream>
 #include <QTranslator>
 #include <iostream>
@@ -324,49 +321,45 @@ struct ModuleManager : public QObject
 
 public:
     static ModuleManager * moduleManager();
-    static XL::Tree_p      import(XL::Context_p context,
-                                  XL::Tree_p self,
-                                  XL::Tree_p what,
-                                  XL::phase_t phase,
-                                  bool needSignature = true);
+    static XL::Tree_p      import(Scope *scope, Tree *self);
 
     struct ModuleInfoPrivate : ModuleInfo
     // ------------------------------------------------------------------------
     //   Information about a module
     // ------------------------------------------------------------------------
     {
-        ModuleInfoPrivate() : ModuleInfo(), enabled(false), loaded(false),
-              updateAvailable(false), hasNative(false),
-            native(NULL), scope(NULL), inError(false), show_preferences(NULL)
-            {}
+        ModuleInfoPrivate()
+            : ModuleInfo(),
+              enabled(), hasUpdate(), hasNative(), inError(),
+              scope(), loaded(),
+              native(), latestVersion(0.0),
+              preferences(), translator(), qchFiles(),
+              graphicStatePtr()
+        {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
-            : ModuleInfo(id, path), enabled(enabled), loaded(false),
-              updateAvailable(false), hasNative(false),
-              native(NULL), scope(NULL), inError(false),
-              show_preferences(NULL), graphicStatePtr(NULL)
-            {}
+            : ModuleInfo(id, path),
+              enabled(enabled), hasUpdate(), hasNative(), inError(),
+              scope(), loaded(),
+              native(), latestVersion(0.0),
+              preferences(), translator(), qchFiles(),
+              graphicStatePtr()
+        {}
 
-        // Configuration attributes
-        bool                    enabled;
-        // Runtime attributes
-        double                  latest;
-        // loaded is set to true when xl file is imported and
-        //           set to false when xl file is unloaded
-        bool                    loaded;
-        bool                    updateAvailable;
-        // hasNative is true when the specified path for native library exists. It is
-        // different from native only when specified file is not a compliant library.
-        bool                    hasNative;
-        // native is the pointer to a compliant library (enter_symbols is present)
-        QLibrary *              native;
-        XL::Scope_p             scope;
-        bool                    inError;
-        QString                 source; // .xl content, non-null only after full text search
-        module_preferences_fn   show_preferences;
-        QTranslator *           translator;
-        // Module documentation files, may be empty
-        QStringList             qchFiles;
-        GraphicState          **graphicStatePtr; // May be NULL
+        typedef module_preferences_fn prefs_fn;
+
+        bool           enabled;         // Module is enabled
+        bool           hasUpdate;       // An update is available on server
+        bool           hasNative;       // Binary library file exists
+        bool           inError;         // An error happened
+        Scope_p        scope;           // Local module scope
+        Tree_p         loaded;          // Tree loaded from module
+        QLibrary      *native;          // Native library if API matches
+        XL::Version    version;         // Current version of the module
+        XL::Version    latestVersion;   // Latest version on server
+        prefs_fn       preferences;     // Function showing preferences
+        QTranslator   *translator;      // Translations for this module
+        QStringList    qchFiles;        // Documentation files
+        GraphicState **graphicStatePtr; // Graphic state pointer in module
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -398,15 +391,15 @@ public:
 
         QString libPath() const
         {
-#           if   defined(CONFIG_MINGW)
+#if defined(CONFIG_MINGW)
             QString fmt("%1/%2/%3.dll");
-#           elif defined(CONFIG_MACOSX)
+#elif defined(CONFIG_MACOSX)
             QString fmt("%1/%2/lib%3.dylib");
-#           elif defined(CONFIG_LINUX)
+#elif defined(CONFIG_LINUX)
             QString fmt("%1/%2/lib%3.so");
-#           else
-#           error Unknown OS - please define library name
-#           endif
+#else
+# error Unknown OS - please define library name
+#endif
             QString ret = fmt.arg(+path).arg("lib").arg(dirname());
             if (!QFileInfo(ret).isReadable())
                 ret = fmt.arg(+path).arg("lib").arg("module"); // Backwd compat.
@@ -433,17 +426,14 @@ public:
                 return true;
             if (searchSource)
             {
-                if (source.isNull())
+                QFile file(xlPath());
+                if (file.open(QIODevice::ReadOnly))
                 {
-                    QFile file(xlPath());
-                    if (file.open(QIODevice::ReadOnly))
-                    {
-                        QTextStream s(&file);
-                        source = s.readAll();
-                    }
+                    QTextStream s(&file);
+                    QString source = s.readAll();
+                    if (source.contains(keyword))
+                        return true;
                 }
-                if (source.contains(keyword))
-                    return true;
             }
             return false;
         }
@@ -456,9 +446,9 @@ public:
     };
 
     bool                init();
-    bool                loadAll(Context *context);
+    bool                loadAll(Context &context);
     bool                loadAutoLoadModules(Context &context);
-    QStringList                anonymousXL();
+    QStringList         anonymousXL();
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return Opt::enableModules; }
@@ -475,18 +465,16 @@ public:
                                             const ModuleInfoPrivate &existing);
     virtual void        warnLibraryLoadError(QString name, QString errorString,
                                              QString moduleSuppliedText = "");
-    virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
-    static double       parseVersion(Tree *versionId);
-    static double       parseVersion(text versionId);
-    static bool         versionGreaterOrEqual(text ver, text ref);
-    static bool         versionMatches(double ver, double ref);
+    virtual void        warnBinaryModuleIncompatible(QLibrary *lib,
+                                                     text name);
+    static XL::Version  parseVersion(Tree *versionId);
     bool                hasPendingUpdate(QString moduleDir);
-    QString             latestTag(QString moduleDir);
+    XL::Version         latestTag(QString moduleDir);
     QStringList         qchFiles();
     void                unloadImported();
     void                updateGraphicStatePointers(GraphicState *newState);
-    QDir                userModuleDir() { return QDir(u); }
-    QDir                systemModuleDir() { return QDir(s); }
+    QDir                userModuleDir() { return QDir(userDir); }
+    QDir                systemModuleDir() { return QDir(systemDir); }
 
 signals:
     void                checking(QString name);
@@ -557,7 +545,7 @@ private:
     void                expandSpecialPathTokens(ModuleInfoPrivate &m);
 #endif
     bool                applyPendingUpdate(const ModuleInfoPrivate &m);
-    QString             gitVersion(QString moduleDir);
+    XL::Version         gitVersion(QString moduleDir);
 
     Tree *              parse(QString xlPath);
     QString             moduleAttr(Tree * tree, QString attribute);
@@ -568,24 +556,18 @@ private:
     bool                load(Context &, const ModuleInfoPrivate &m);
     bool                loadXL(Context &, const ModuleInfoPrivate &m);
     bool                loadNative(Context &, const ModuleInfoPrivate &m);
-    bool                isCompatible(QLibrary * lib);
+    bool                isCompatible(QLibrary * lib, text name);
 
-    static
-    std::ostream &      debug();
-    void                debugPrint(const ModuleInfoPrivate &m);
-    void                debugPrintShort(const ModuleInfoPrivate &m);
+    ModuleInfoPrivate & moduleById(text id)     { return modules[+id]; }
+    ModuleInfoPrivate & moduleById(QString id)  { return modules[ id]; }
 
-    ModuleInfoPrivate * moduleById(text id);
+    Tree *              importModule(Scope *scope, Tree *self);
 
-    XL::Tree_p          importModule(XL::Context_p context,
-                                     XL::Tree_p self,
-                                     XL::Tree_p what,
-                                     XL::phase_t phase);
 private:
-    QString                     u, s;
-    QMap<QString, ModuleInfoPrivate>   modules;
-    ModuleApiPrivate                   api;
-
+    QMap<QString, ModuleInfoPrivate>    modules;
+    ModuleApiPrivate                    api;
+    QString                             userDir;
+    QString                             systemDir;
 
     static ModuleManager * instance;
     static Cleanup         cleanup;
@@ -600,6 +582,8 @@ friend class SetPath;
 
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };
+
+
 
 // ============================================================================
 //
@@ -624,13 +608,10 @@ public:
     bool           start();
 
 signals:
-    void           complete(ModuleManager::ModuleInfoPrivate m, bool updateAvailable);
+    void           complete(ModuleManager::ModuleInfoPrivate m, bool hasUpdate);
 
 private slots:
     void           processRemoteTags(QStringList tags);
-
-private:
-    std::ostream & debug()  { return mm.debug(); }
 
 private:
     ModuleManager &           mm;
@@ -638,6 +619,8 @@ private:
     repository_ptr            repo;
     process_p                 proc;
 };
+
+
 
 // ============================================================================
 //
@@ -653,7 +636,7 @@ class CheckAllForUpdate : public QObject
     Q_OBJECT
 
 public:
-    CheckAllForUpdate(ModuleManager &mm) : mm(mm), updateAvailable(false) {}
+    CheckAllForUpdate(ModuleManager &mm) : mm(mm), hasUpdate(false) {}
 
     bool           start();
 
@@ -667,14 +650,13 @@ private slots:
     void           processResult(ModuleManager::ModuleInfoPrivate m, bool need);
 
 private:
-    std::ostream & debug()  { return mm.debug(); }
-
-private:
     ModuleManager & mm;
     QSet<QString>   pending;
-    bool            updateAvailable;
+    bool            hasUpdate;
     int             num;
 };
+
+
 
 // ============================================================================
 //
@@ -708,82 +690,14 @@ private slots:
     void           onFinished(int exitCode, QProcess::ExitStatus status);
 
 private:
-    std::ostream & debug()  { return mm.debug(); }
-
-private:
     ModuleManager &           mm;
     ModuleManager::ModuleInfoPrivate m;
     repository_ptr            repo;
     process_p                 proc;
 };
 
-// ============================================================================
-//
-//    FindAttribute implementation
-//
-// ============================================================================
-
-inline Tree *ModuleManager::FindAttribute::Do(Block *what)
-{
-    if (!sectionFound)
-        return NULL;
-    return what->child->Do(this);
 }
 
-inline Tree *ModuleManager::FindAttribute::Do(Infix *what)
-{
-    if (what->name == "\n" || what->name == ";")
-    {
-        if (Tree * t = what->left->Do(this))
-            return t;
-        return what->right->Do(this);
-    }
-    return NULL;
-}
-
-inline Tree *ModuleManager::FindAttribute::Do(Prefix *what)
-{
-    XL::Name * name = what->left->AsName();
-    if (!sectionFound)
-    {
-        if (name && name->value == sectionName)
-        {
-            if (lang == "")
-            {
-                if (what->right->AsBlock())
-                {
-                    sectionFound = true;
-                    if (Tree * t = what->right->Do(this))
-                        return t;
-                    sectionFound = false;
-                }
-            }
-            else
-            {
-                Infix * inf =  what->right->AsInfix();
-                if (inf)
-                {
-                    Text * t = inf->left->AsText();
-                    if (t && t->value == lang)
-                    {
-                        if (inf->right->AsBlock())
-                        {
-                            sectionFound = true;
-                            if (Tree * t = inf->right->Do(this))
-                                return t;
-                            sectionFound = false;
-                        }
-                    }
-                }
-            }
-        }
-        return NULL;
-    }
-    if (name && name->value == attrName)
-        return what->right;
-    return NULL;
-}
-
-}
+RECORDER_DECLARE(modules);
 
 #endif // MODULE_MANAGER_H

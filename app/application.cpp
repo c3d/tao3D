@@ -40,7 +40,6 @@
 // *****************************************************************************
 
 #include "application.h"
-#include "init_cleanup.h"
 #include "widget.h"
 #include "repository.h"
 #include "tao_utf8.h"

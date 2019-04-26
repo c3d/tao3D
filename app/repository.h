@@ -40,19 +40,21 @@
 //  Although the class is supposed to be abstract, the terminology is
 //  largely inspired by Git. We had to pick one.
 
-#include "tao.h"
-#include "tree.h"
-#include "tao_tree.h"
-#include "tao_process.h"
 #include "main.h"
-#include <QString>
-#include <QProcess>
-#include <QtGlobal>
+#include "tao.h"
+#include "tao_process.h"
+#include "tao_tree.h"
+#include "tree.h"
+#include "version.h"
+
 #include <QMap>
-#include <QWeakPointer>
-#include <QSharedPointer>
+#include <QProcess>
 #include <QQueue>
+#include <QSharedPointer>
+#include <QString>
 #include <QTimer>
+#include <QWeakPointer>
+#include <QtGlobal>
 #include <iostream>
 
 namespace Tao {
@@ -68,20 +70,20 @@ private:
     Q_OBJECT
 
 public:
+    enum Kind
     // ------------------------------------------------------------------------
     //   The kind of SCM tool available to the application
     // ------------------------------------------------------------------------
-    enum Kind
     {
         Unknown,
         None,
         Git
     };
 
+    enum ConflictResolution
     // ------------------------------------------------------------------------
     //   The behavior in case of merge conflict
     // ------------------------------------------------------------------------
-    enum ConflictResolution
     {
         CR_Unknown,
         CR_Ours,     // Keep local version
@@ -89,20 +91,20 @@ public:
         CR_Manual,   // Do nothing, user will manually resolve conflict
     };
 
+    enum State
     // ------------------------------------------------------------------------
     //   Repository states
     // ------------------------------------------------------------------------
-    enum State
     {
         RS_Clean,     // Work area reflects last commit
         RS_NotClean,  // Work area has been modified since last commit
     };
 
 
+    struct Commit
     // ------------------------------------------------------------------------
     //   Commit information
     // ------------------------------------------------------------------------
-    struct Commit
     {
         Commit() {}
         Commit(QString id, QString msg = "", QString unixTime = "",
@@ -209,6 +211,7 @@ public:
     virtual QString     diff(QString a, QString b, bool symetric = false) = 0;
     virtual process_p   asyncGetRemoteTags(QString remote) = 0;
     virtual QStringList tags()                          = 0;
+    virtual XL::Version highestVersionTag()             = 0;
     virtual bool        pathIsRoot()                    = 0;
 
 public:

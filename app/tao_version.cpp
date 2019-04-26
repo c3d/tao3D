@@ -32,7 +32,8 @@
 // along with Tao3D, in a file named COPYING.
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
-#include "version.h"
+
+#include "tao_version.h"
 
 namespace Tao {
   const char *GITREV_  = GITREV;

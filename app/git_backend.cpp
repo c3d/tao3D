@@ -1417,6 +1417,23 @@ QStringList GitRepository::tags()
 }
 
 
+XL::Version GitRepository::highestVersionTag()
+// ----------------------------------------------------------------------------
+//    Return the highest tag of all available in git repository
+// ----------------------------------------------------------------------------
+{
+    XL::Version latest;
+    QStringList tagList = tags();
+    foreach (QString tag, tagList)
+    {
+        XL::Version version(+tag);
+        if (latest < version)
+            latest = version;
+    }
+    return latest;
+}
+
+
 text GitRepository::version()
 // ----------------------------------------------------------------------------
 //    Return the name of the current version of the document

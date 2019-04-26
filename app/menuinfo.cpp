@@ -46,15 +46,19 @@
 #include "main.h"
 #include <iostream>
 
+RECORDER(menus, 16, "Tao3D menus");
+
+
 TAO_BEGIN
 
-MenuInfo::MenuInfo(QString name, QAction *act)
+MenuInfo::MenuInfo(QString name, QAction *action)
 // ----------------------------------------------------------------------------
 //   Constructor taking an action, e.g. when creating a menu
 // ----------------------------------------------------------------------------
-    : fullname(name), p_action(act), p_toolbar(NULL), title(""), icon("")
+    : fullname(name), action(action), toolbar(NULL), title(""), icon("")
 {
-    connect(p_action, SIGNAL(destroyed(QObject *)),
+    record(menus, "Creating menuinfo %p for action %s", this, name);
+    connect(action, SIGNAL(destroyed(QObject *)),
             this, SLOT(actionDestroyed()));
 }
 
@@ -63,9 +67,10 @@ MenuInfo::MenuInfo(QString name, QToolBar *bar)
 // ----------------------------------------------------------------------------
 //   Constructor taking a toolbar, e.g. when adding items in a toolbar
 // ----------------------------------------------------------------------------
-    : fullname(name), p_action(NULL), p_toolbar(bar), title(""), icon("")
+    : fullname(name), action(NULL), toolbar(bar), title(""), icon("")
 {
-    connect(p_toolbar, SIGNAL(destroyed(QObject *)),
+    record(menus, "Creating menuinfo %p for toolbar %s", this, name);
+    connect(toolbar, SIGNAL(destroyed(QObject *)),
             this, SLOT(actionDestroyed()));
 }
 
@@ -75,17 +80,8 @@ MenuInfo::~MenuInfo()
 //   Delete a menu entry
 // ----------------------------------------------------------------------------
 {
-    if (p_action)
-    {
-        delete p_action;
-        p_action = NULL;
-    }
-    if (p_toolbar)
-    {
-        delete p_toolbar;
-        p_toolbar = NULL;
-    }
-
+    delete action;
+    delete toolbar;
     actionDestroyed();
     fullname = "";
 }
@@ -96,14 +92,11 @@ void MenuInfo::actionDestroyed()
 //   Action or toolbar going away: clear everything
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(menus)
-    {
-        std::cerr << fullname.toStdString() << " actionDestroyed \n";
-    }
-    p_action   = NULL;
-    p_toolbar  = NULL;
-    title = "";
-    icon = "";
+    record(menus, "Action %s destroyed", fullname);
+    action  = NULL;
+    toolbar = NULL;
+    title   = "";
+    icon    = "";
 }
 
 
@@ -117,16 +110,12 @@ void GroupInfo::bClicked(QAbstractButton *button)
     if (!action)
         return;
 
-
-    // The tree to be evaluated needs its own symbol table before evaluation
+    // Adjust tree to evaluate
     ClickTreeClone replacer(+button->objectName());
-    XL::Tree *  toBeEvaluated = action;
-    XL::Symbols * sym = action->Symbols();
-    toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(sym);
+    XL::Tree *toRun = action->Do(replacer);
 
-    // Evaluate the input tree
-    XL::MAIN->context->Evaluate(toBeEvaluated);
+    // Evaluate the action
+    xl_evaluate(scope, toRun);
 }
 
 TAO_END

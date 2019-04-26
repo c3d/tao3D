@@ -428,7 +428,7 @@ void Whirlpool::Transform(word64 *digest, const word64 *block)
 #if CRYPTOPP_BOOL_SSE2_ASM_AVAILABLE
 	if (HasISSE())
 	{
-		// MMX version has the same structure as C version below
+          // MMX version has the same structure as C version below
 #ifdef __GNUC__
 	#if CRYPTOPP_BOOL_X64
 		word64 workspace[16];

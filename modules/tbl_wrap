@@ -78,7 +78,7 @@ cat >$OUT << __EOF__
  * (for runtime compatibility check)
  */
 DLL_PUBLIC
-unsigned module_api_current = TAO_MODULE_API_CURRENT;
+XL::Version module_api_version = TAO_MODULE_API_CURRENT;
 
 using namespace XL;
 

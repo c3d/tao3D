@@ -252,6 +252,7 @@ SOURCES += \
     tao_main.cpp \
     tao_options.cpp \
     tao_process.cpp \
+    tao_version.cpp \
     text_drawing.cpp \
     texture.cpp \
     texture_cache.cpp \
@@ -259,7 +260,6 @@ SOURCES += \
     transforms.cpp \
     tree_cloning.cpp \
     update_application.cpp \
-    version.cpp \
     widget.cpp \
     widget_surface.cpp \
     window.cpp
@@ -524,9 +524,9 @@ FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui
 
 # Automatic embedding of Git version
-QMAKE_CLEAN += version.h
-PRE_TARGETDEPS += version.h
-revtarget.target = version.h
+QMAKE_CLEAN += tao_version.h
+PRE_TARGETDEPS += tao_version.h
+revtarget.target = tao_version.h
 revtarget.commands = ./updaterev.sh
 revtarget.depends = $$SOURCES \
     $$HEADERS \

@@ -395,12 +395,9 @@ QStringList DebugPage::allTraceNames()
 // ----------------------------------------------------------------------------
 {
     QStringList ret;
-
-    std::set<std::string>::iterator it;
-    std::set<std::string> all = XL::Traces::names();
-    for (it = all.begin(); it != all.end(); it++)
-        ret << +*it;
-
+    for (recorder_info *rec = recorder_list(); rec; rec = rec->next)
+        ret << QString("%1: %2").arg(rec->name).arg(rec->description);
+    ret.sort();
     return ret;
 }
 
@@ -411,20 +408,24 @@ void DebugPage::toggleTrace(bool on)
 // ----------------------------------------------------------------------------
 {
     QCheckBox *b = (QCheckBox *)sender();
-    QString toggled = b->text();
-
-    XL::Traces::enable(+toggled, on);
-
+    QStringList split = b->text().split(":");
+    QString toggled = QString("%1=%2").arg(split[0]).arg(on ? "1" : "0");
+    recorder_trace_set(+toggled);
     save->setEnabled(true);
 }
 
 
-bool DebugPage::isTraceEnabled(QString tname)
+bool DebugPage::isTraceEnabled(QString trace)
 // ----------------------------------------------------------------------------
 //   Return true if trace is currently enabled
 // ----------------------------------------------------------------------------
 {
-    return XL::Traces::enabled(+tname);
+    QStringList split = trace.split(":");
+    QString name = split[0];
+    for (recorder_info *rec = recorder_list(); rec; rec = rec->next)
+        if (name == rec->name)
+            return rec->trace;
+    return false;
 }
 
 
@@ -475,10 +476,10 @@ void DebugPage::saveClicked()
 // ============================================================================
 
 ModulesPage::ModulesPage(QWidget *parent)
-     : QWidget(parent), findUpdatesInProgress(false)
 // ----------------------------------------------------------------------------
 //   Create the page and show a list of modules
 // ----------------------------------------------------------------------------
+    : QWidget(parent), findUpdatesInProgress(false)
 {
     mmgr = ModuleManager::moduleManager();
     if (!mmgr)
@@ -607,7 +608,7 @@ void ModulesPage::updateTable()
         item->setTextAlignment(Qt::AlignCenter);
         item->setIcon(QIcon(":/images/general.png"));
         Qt::ItemFlags pFlag = Qt::NoItemFlags;
-        if (m.enabled && m.show_preferences)
+        if (m.enabled && m.preferences)
             pFlag = Qt::ItemIsEnabled;
         item->setFlags(pFlag);
         table->setItem(row, 1, item);
@@ -624,9 +625,7 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 3, item);
 
-        QString vstr = QString::number(m.ver);
-        if (!vstr.contains("."))
-            vstr.append(".0");
+        QString vstr = +text(m.version);
         item = new QTableWidgetItem(vstr);
         item->setTextAlignment(Qt::AlignCenter);
         item->setFlags(enFlag);
@@ -641,9 +640,9 @@ void ModulesPage::updateTable()
         table->setCellWidget(row, 5, b);
 
         QWidget *widget = NULL;
-        if (m.updateAvailable)
+        if (m.hasUpdate)
         {
-            QString msg = QString("Update to %1").arg(+m.latest);
+            QString msg = QString("Update to %1").arg(+text(m.latestVersion));
             QToolButton *b = new QToolButton;
             QAction *act = new QAction(msg, this);
             act->setData(QVariant(row));
@@ -730,8 +729,8 @@ void ModulesPage::onCellClicked(int row, int col)
     else if (col == 1)
     {
         // Configuration icon clicked
-        if (m.show_preferences)
-            m.show_preferences();
+        if (m.preferences)
+            m.preferences();
     }
 }
 

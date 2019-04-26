@@ -111,7 +111,12 @@ Tree *Renormalize::DoInfix(Infix *what)
             if (il->name == what->name)
             {
                 // Loop on the right to find where we want to attach
-                Infix *last = il->LastStatement();
+                Infix *last = il;
+                while (Infix *ir = last->right->AsInfix())
+                    if (ir->name == what->name)
+                        last = ir;
+                    else
+                        break;
 
                 // Connect the bottom of what we had on the left
                 last->right = new Infix(what->name, last->right, right,

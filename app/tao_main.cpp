@@ -43,7 +43,6 @@
 #endif
 
 #include "application.h"
-#include "init_cleanup.h"
 #include "main.h"
 #include "basics.h"
 #include "graphics.h"
@@ -168,21 +167,6 @@ int main(int argc, char **argv)
     {
         record(tao_error, "Exception caught at top level, exiting");
     }
-
-    try
-    {
-        record(tao_app, "Cleaning up");
-        Cleanup();
-
-        // HACK: it seems that cleanup() does not clean everything, at least on
-        // Windows -- without the exit() call, the windows build crashes at exit
-        exit(ret);
-    }
-    catch(...)
-    {
-        record(tao_error, "Exception caught during cleanup");
-    }
-
     return ret;
 }
 
@@ -695,14 +679,12 @@ static void taoQtMessageHandler(QtMsgType type, const char *msg)
 
 
 TAO_BEGIN
-int Main::LoadFile(text file, bool updateContext,
-                   XL::Context *importContext, XL::Symbols *importSymbols)
+int Main::LoadFile(text file, text modname)
 // ----------------------------------------------------------------------------
 //   Call XLR to load file. Attach signature info to tree if file is signed.
 // ----------------------------------------------------------------------------
 {
-    int ret = XL::Main::LoadFile(file, updateContext, importContext,
-                                 importSymbols);
+    int ret = XL::Main::LoadFile(file, modname);
 
 #ifndef CFG_NO_DOC_SIGNATURE
     // (Re-) check file signature.
@@ -727,23 +709,32 @@ int Main::LoadFile(text file, bool updateContext,
 }
 
 
-text Main::SearchFile(text file)
+text Main::SearchFile(text file, text extension)
 // ----------------------------------------------------------------------------
 //   Find the file in the application path
 // ----------------------------------------------------------------------------
 {
-    QFileInfo fileInfo1(+file);
+    text fullname = XL::Main::SearchFile(file, extension);
+    QFileInfo fileInfo1(+fullname);
     if (fileInfo1.exists())
         return +fileInfo1.absoluteFilePath();
 
-    text header = "xl:";
-    header += file;
+    // Add extension if needed
+    size_t len = extension.length();
+    if (len)
+    {
+        size_t flen = file.length();
+        if (file.rfind(extension) != flen - len)
+            file += extension;
+    }
 
+    text header = "xl:" + file;
     QFileInfo fileInfo2(header.c_str());
     if (fileInfo2.exists())
        return +fileInfo2.absoluteFilePath();
 
-    return "";
+    // Let the error pop with the original name
+    return file;
 }
 
 

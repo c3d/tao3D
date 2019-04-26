@@ -47,6 +47,9 @@
 #include "gl_keepers.h"
 #include <QtEndian>
 
+RECORDER(textures,              16, "Textures and texture cache");
+RECORDER(textures_warning,      16, "Warnings from textures and texture cache");
+
 namespace Tao {
 
 // ============================================================================
@@ -76,23 +79,24 @@ static text bytesToText(quint64 size)
 }
 
 
-// ----------------------------------------------------------------------------
-//   Primitives to enable or disable settings
-// ----------------------------------------------------------------------------
-#define BOOL_SETTER(fn, attr)                                               \
-XL::Name_p TextureCache::fn(bool enable)                                    \
-{                                                                           \
-    QSharedPointer<TextureCache> tc = TextureCache::instance();             \
-    bool &attr = tc->attr, prev = attr;                                     \
-                                                                            \
-    if (attr != enable)                                                     \
-    {                                                                       \
-        attr = enable;                                                      \
-        IFTRACE(texturecache)                                               \
-            tc->debug() << #attr << " " << prev << " -> " << attr << "\n";  \
-    }                                                                       \
-                                                                            \
-    return prev ? XL::xl_true : XL::xl_false;                               \
+#define BOOL_SETTER(fn, attr)                                   \
+XL::Name_p TextureCache::fn(bool enable)                        \
+/* --------------------------------------------------------- */ \
+/*   Primitives to enable or disable boolean settings        */ \
+/* --------------------------------------------------------- */ \
+{                                                               \
+    QSharedPointer<TextureCache> tc = TextureCache::instance(); \
+    bool &attr = tc->attr, prev = attr;                         \
+                                                                \
+    if (attr != enable)                                         \
+    {                                                           \
+        attr = enable;                                          \
+        record(textures, #attr " %+s -> %+s",                   \
+               prev ? "on" : "off",                             \
+               attr ? "on" : "off");                            \
+    }                                                           \
+                                                                \
+    return prev ? XL::xl_true : XL::xl_false;                   \
 }
 
 BOOL_SETTER(textureMipmap, mipmap)
@@ -100,24 +104,22 @@ BOOL_SETTER(textureCompress, compress)
 BOOL_SETTER(textureSaveCompressed, saveCompressed)
 
 
-// ----------------------------------------------------------------------------
-//   Primitives to change cache size limits
-// ----------------------------------------------------------------------------
-#define SIZE_SETTER(fn, attr)                                               \
-XL::Integer_p TextureCache::fn(quint64 val)                                 \
-{                                                                           \
-    QSharedPointer<TextureCache> tc = TextureCache::instance();             \
-    quint64 &attr = tc->attr, prev = attr;                                  \
-                                                                            \
-    if (attr != val)                                                        \
-    {                                                                       \
-        attr = val;                                                         \
-        IFTRACE(texturecache)                                               \
-            tc->debug() << #attr << " " << bytesToText(prev) << " -> "      \
-                        << bytesToText(attr) << "\n";                       \
-    }                                                                       \
-                                                                            \
-    return new XL::Integer(prev);                                           \
+#define SIZE_SETTER(fn, attr)                                   \
+XL::Integer_p TextureCache::fn(quint64 val)                     \
+/* --------------------------------------------------------- */ \
+/*   Primitives to change numberical values in cache         */ \
+/* --------------------------------------------------------- */ \
+{                                                               \
+    QSharedPointer<TextureCache> tc = TextureCache::instance(); \
+    quint64 &attr = tc->attr, prev = attr;                      \
+                                                                \
+    if (attr != val)                                            \
+    {                                                           \
+        attr = val;                                             \
+        record(textures, #attr " %llu -> %llu", prev, attr);    \
+    }                                                           \
+                                                                \
+    return new XL::Integer(prev);                               \
 }
 
 SIZE_SETTER(textureCacheMemSize, maxMemSize)
@@ -132,6 +134,7 @@ XL::Name_p TextureCache::textureCacheRefresh()
     TextureCache::instance()->refresh();
     return XL::xl_true;
 }
+
 
 
 // ============================================================================
@@ -157,27 +160,24 @@ TextureCache::TextureCache()
 {
     statTimer.setSingleShot(true);
     connect(&statTimer, SIGNAL(timeout()), this, SLOT(doPrintStatistics()));
-    IFTRACE2(texturecache, layoutevents)
-        debug() << "ID of 'refresh' user event: " << texChangedEvent << "\n";
+    record(textures, "Texture cache %p created ev %d", this, texChangedEvent);
+    record(layout, "Texture changed event is %d for cahce %p",
+           texChangedEvent, this);
 
+    QGLWidget gl;
+    gl.makeCurrent();
+
+    GLint *fmt, n = 0;
+    if (QGLContext::currentContext()->isValid())
     {
-        QGLWidget gl;
-        gl.makeCurrent();
-
-        GLint *fmt, n = 0;
-        if (QGLContext::currentContext()->isValid())
-        {
-            GL.Get(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &n);
-            fmt = (GLint*)malloc(n * sizeof(GLint));
-            GL.Get(GL_COMPRESSED_TEXTURE_FORMATS, fmt);
-            for (int i = 0; i < n; ++i)
-                cmpFormats.insert(fmt[i]);
-            free(fmt);
-        }
-        IFTRACE(texturecache)
-                debug() << "GL implementation supports " << n
-                        << " compressed texture formats\n";
+        GL.Get(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &n);
+        fmt = (GLint*)malloc(n * sizeof(GLint));
+        GL.Get(GL_COMPRESSED_TEXTURE_FORMATS, fmt);
+        for (int i = 0; i < n; ++i)
+            cmpFormats.insert(fmt[i]);
+        free(fmt);
     }
+    record(textures, "GL impementation supports compressed texture formats");
 }
 
 
@@ -206,12 +206,8 @@ void TextureCache::doPrintStatistics()
 //   Print cache statistics
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(texturecache)
-        debug() << "Used: Mem " << bytesToText(memSize) << "/"
-                                << bytesToText(maxMemSize)
-                << ", GL " << bytesToText(GLSize) << "/"
-                           << bytesToText(maxGLSize)
-                << "\n";
+    record(textures, "Used %llu / %llu, GL %llu/%llu",
+           memSize, maxMemSize, GLSize, maxGLSize);
 
 #ifndef QT_NO_DEBUG
     quint64 checkMemSize = 0, checkGLSize = 0;
@@ -227,12 +223,13 @@ void TextureCache::doPrintStatistics()
 #endif
 }
 
+
 void TextureCache::printStatistics()
 // ----------------------------------------------------------------------------
 //   Print cache statistics not more often that once per second
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(texturecache)
+    IFTRACE(textures)
     {
         if (statTimer.isActive())
             return;
@@ -246,6 +243,7 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 //   Load texture file. docPath is used if img is relative.
 // ----------------------------------------------------------------------------
 {
+    record(textures, "Loading %s", img);
     QString name(img);
     if (!name.contains("://") && QDir::isRelativePath(name) &&
         QRegExp("^[a-z]+:").indexIn(name) == -1)
@@ -278,6 +276,8 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
                 cached->transfer();
                 insert(cached, GL_LRU);
             }
+            record(textures, "After load %llu / %llu, GL %llu/%llu",
+                   memSize, maxMemSize, GLSize, maxGLSize);
             printStatistics();
         }
     }
@@ -346,6 +346,8 @@ void TextureCache::reload(CachedTexture *tex)
 //   Reload from file or network
 // ----------------------------------------------------------------------------
 {
+    record(textures, "Reload %p: %llu / %llu, GL %llu/%llu",
+           tex, memSize, maxMemSize, GLSize, maxGLSize);
     tex->purge();
     if (memSize > maxMemSize)
         purgeMem();
@@ -400,6 +402,9 @@ void TextureCache::purgeMem()
 //   Drop the least recently used textures from main memory
 // ----------------------------------------------------------------------------
 {
+    record(textures,
+           "Purge memory in %p: %llu / %llu",
+           this, memSize, maxMemSize);
     while (memSize > (maxMemSize * purgeRatio))
     {
         printStatistics();
@@ -417,6 +422,9 @@ void TextureCache::purgeGLMem()
 //   Drop the least recently used items from texture memory
 // ----------------------------------------------------------------------------
 {
+    record(textures,
+           "Purge GL memory in %p: %llu / %llu",
+           this, GLSize, maxGLSize);
     while (GLSize > (maxGLSize * purgeRatio))
     {
         printStatistics();
@@ -434,9 +442,7 @@ void TextureCache::clear()
 //   Empty cache
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(texturecache)
-        debug() << "Clearing\n";
-
+    record(textures, "Clear %p", this);
     QList<GLuint> ids = fromId.keys();
     foreach (GLuint id, ids)
     {
@@ -463,9 +469,7 @@ void TextureCache::purge()
 //   Purge all textures in cache (free memory but keep texture id valid)
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(texturecache)
-        debug() << "Purging\n";
-
+    record(textures, "Purge %p", this);
     QList<GLuint> ids = fromId.keys();
     foreach (GLuint id, ids)
         fromId[id]->purge();
@@ -562,16 +566,6 @@ void TextureCache::unlink(CachedTexture *tex, LRU &lru)
     if (lru.first == t) lru.first = t->next;
 
     t->next = t->prev = 0;
-}
-
-
-std::ostream & TextureCache::debug()
-// ----------------------------------------------------------------------------
-//   Convenience method to log with a common prefix
-// ----------------------------------------------------------------------------
-{
-    std::cerr << "[TextureCache] ";
-    return std::cerr;
 }
 
 
@@ -686,32 +680,29 @@ bool CachedTexture::load()
         size = image.byteCount();
     }
 
-    IFTRACE2(texturecache, fileload)
+    if (networked)
     {
-        if (networked)
+        if (inProgress)
+            record(textures, "Load %s in progress", path);
+        else if (loaded())
+            record(textures,
+                   "Network %s: %u x %u pixels, %llu bytes ",
+                   path, width, height, size);
+    }
+    else
+    {
+        if (isDefaultTexture)
         {
-            if (inProgress)
-                debug() << "Load in progress: '" << +path << "'\n";
-            else if (loaded())
-                debug() << "Net->Mem +" << bytesToText(size)
-                        << " (" << width << "x" << height << " pixels, "
-                        << "'" << +path << "')\n";
+            record(textures_warning, "Failed to load %s", path);
         }
         else
         {
-            if (isDefaultTexture)
-            {
-                debug() << "Failed to load: '" << +path << "'\n";
-            }
-            else
-            {
-                text cpath = +canonicalPath;
-                if (image.compressed)
-                    cpath = +Image::toCompressedPath(canonicalPath);
-                debug() << "File->Mem +" << bytesToText(size)
-                        << " (" << width << "x" << height << " pixels, "
-                        << "'" << +path << "' ['" << cpath << "'])\n";
-            }
+            QString cpath = image.compressed
+                ? Image::toCompressedPath(canonicalPath)
+                : canonicalPath;
+            record(textures,
+                   "Network %s compressed %s: %u x %u pixels, %llu bytes ",
+                   path, cpath, width, height, size);
         }
     }
 
@@ -729,10 +720,7 @@ void CachedTexture::unload()
 
     int purged = image.byteCount();
     image.clear();
-
-    IFTRACE(texturecache)
-        debug() << "Mem -" << bytesToText(purged) << "\n";
-
+    record(textures, "Unloading %llu bytes", purged);
     cache.memSize -= purged;
 }
 
@@ -839,11 +827,7 @@ void CachedTexture::transfer()
             {
                 QString cmpPath = Image::toCompressedPath(canonicalPath);
                 if (image.saveCompressed(cmpPath))
-                {
-                    // No IFTRACE() here, to always print to console when
-                    // -savect command-line option was given
-                    debug() << "Saved: " << +cmpPath << "\n";
-                }
+                    record(textures, "Saved compressed %s", cmpPath);
             }
 
             GLsize = cmpsz;
@@ -876,31 +860,27 @@ void CachedTexture::transfer()
         ADJUST_FOR_MIPMAP_OVERHEAD(GLsize);
     }
 
-    IFTRACE(texturecache)
-    {
-        debug() << "Mem->GL +" << bytesToText(GLsize)
-                << " (copied " << bytesToText(copiedSize) << " "
-                << (char*)(copiedCompressed ? "" : "not ") << "compressed, "
-                << (char*)((compress && !copiedCompressed) ?
-                           "compression requested, " : "")
-                << (char*)(mipmap ? "" : "no ") << "mipmap)\n";
-    }
+    record(textures,
+           "Mem->GL %llu bytes, %llu copied, %+s, %+s",
+           GLsize,
+           copiedSize,
+           copiedCompressed
+           ? (compress ? "compressed" : "compressed (unexpected)")
+           : (compress ? "failed compression" : "uncompressed"),
+           mipmap ? "mipmapped" : "no mipmap");
 
     int after = image.byteCount();
     int saved = (before - after);
     if (saved)
     {
-        IFTRACE(texturecache)
-            debug() << "Compression saved " << bytesToText(saved)
-                    << " Mem\n";
+        record(textures, "Compression saved %llu bytes", saved);
         cache.memSize -= saved;
     }
     else
     {
         if (compress && didNotCompress)
         {
-            IFTRACE(texturecache)
-                debug() << "GL did not compress - will not ask again\n";
+            record(textures_warning, "GL did not compress, will not ask again");
             compress = false;
         }
     }
@@ -931,10 +911,8 @@ void CachedTexture::purgeGL()
 
         int purged = GLsize;
         GLsize = 0;
-
-        IFTRACE(texturecache)
-            debug() << "GL -" << bytesToText(purged) << "\n";
         cache.GLSize -= purged;
+        record(textures, "Purged %llu GL bytes now %llu", purged, cache.GLSize);
     }
 }
 
@@ -973,11 +951,7 @@ void CachedTexture::checkReply(QNetworkReply *reply)
 
         if (reply->error() == QNetworkReply::NoError)
         {
-            IFTRACE(texturecache)
-            {
-                debug() << "Received response for: '" << +path << "' (HTTP "
-                        << "status: " << code << ")\n";
-            }
+            record(textures, "Received HTTP%d for %s", code, path);
             if (code >= 300 && code <= 400)
             {
                 // Redirected
@@ -985,8 +959,7 @@ void CachedTexture::checkReply(QNetworkReply *reply)
                 QNetworkRequest::Attribute
                         attr = QNetworkRequest::RedirectionTargetAttribute;
                 QUrl url = reply->attribute(attr).toUrl();
-                IFTRACE(texturecache)
-                    debug() << "Redirected to: '" << +url.toString() << "'\n";
+                record(textures, "Redirected to %s", url.toString());
                 QNetworkRequest req(url);
                 networkReply = cache.network.get(req);
                 return;
@@ -994,11 +967,8 @@ void CachedTexture::checkReply(QNetworkReply *reply)
         }
         else
         {
-            IFTRACE(texturecache)
-            {
-                debug() << "Error downloading '" << +path << "' ("
-                        << +reply->errorString() << ")\n";
-            }
+            record(textures_warning, "Error %s downloading %s",
+                   reply->errorString(), path);
         }
         // Show received image, or error placeholder
         reload();
@@ -1018,8 +988,7 @@ void CachedTexture::reload()
 //   Reload texture e.g., when file was changed
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(texturecache)
-        debug() << "Reloading\n";
+    record(textures, "Reloading %s", path);
     cache.reload(this);
 }
 
@@ -1080,16 +1049,6 @@ void CachedTexture::onFileDeleted(const QString &path)
         reload();
         Widget::postEventOnceAPI(cache.textureChangedEvent());
     }
-}
-
-
-std::ostream & CachedTexture::debug()
-// ----------------------------------------------------------------------------
-//   Convenience method to log with a common prefix
-// ----------------------------------------------------------------------------
-{
-    std::cerr << "[CachedTexture " << id << "] ";
-    return std::cerr;
 }
 
 

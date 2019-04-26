@@ -59,6 +59,8 @@
 #include <QFontMetrics>
 #include <sstream>
 
+RECORDER_TWEAK_DEFINE(textselect, 0, "Show text selection");
+
 TAO_BEGIN
 
 // ============================================================================
@@ -119,8 +121,8 @@ void TextSplit::Draw(Layout *where)
                              TaoApp->hasGLMultisample;
     bool        badSize    = tooBig || tooSmall;
     Point3      offset0    = where->Offset();
-    record(justify, "Text split %p draw in layout %p offset %f",
-           this, where, offset0);
+
+    record(justify, "Text split %p draw in layout %p", this, where);
 
     // Check if we activated new texture units
     glyphs.CheckActiveLayout(where);
@@ -1348,6 +1350,41 @@ int TextSplit::PerformEditOperation(Widget *widget, uint i)
 }
 
 
+static Tree *xl_list_to_tree(TreeList v, text infix, Infix **deepest = nullptr)
+// ----------------------------------------------------------------------------
+//   Builds a tree from a list of tree with the given infix.
+// ----------------------------------------------------------------------------
+// The deepest infix carries the 2 last elements of TreeList. If latest is
+// provided then the deepest infix is returned and its right leg carries xl_nil.
+{
+    if (v.size() <= 0)
+        return XL::xl_nil;
+    if (deepest)
+    {
+        *deepest = NULL;
+        v.push_back(XL::xl_nil);
+    }
+    if (v.size() == 1) return v[0];
+
+    Tree* result = NULL;
+    TreeList::reverse_iterator rit;
+    // First build the bottom of the tree
+    rit = v.rbegin();
+    result = *rit;
+    rit++;
+    XL::Infix * resInf = NULL;
+    // Build the common part
+    for (; rit < v.rend(); ++rit)
+    {
+        result = resInf = new XL::Infix(infix, *rit, result);
+        // Assign only the first time to remember the bottomest Infix
+        if (deepest && *deepest == NULL)
+            *deepest = resInf;
+    }
+    return result;
+}
+
+
 void TextSplit::PerformInsertOperation(Layout * /* l */,
                                       Widget * widget,
                                       uint     position)
@@ -1711,6 +1748,7 @@ void TextUnit::Clear()
 uint TextFormula::formulas = 0;
 uint TextFormula::shows = 0;
 
+
 XL::Text *TextFormula::Format(XL::Prefix *self)
 // ----------------------------------------------------------------------------
 //   Return a formatted value for the given value
@@ -1733,7 +1771,7 @@ XL::Text *TextFormula::Format(XL::Prefix *self)
             value = named;
 
     // Evaluate the tree and turn it into a tree
-    Tree *computed = context->Evaluate(value);
+    Tree *computed = xl_evaluate(scope, value);
     return new XL::Text(*computed);
 }
 
@@ -2423,63 +2461,3 @@ void TextSelect::processChar(uint charId, coord x, bool selected, uint code)
 }
 
 TAO_END
-
-
-
-// ****************************************************************************
-//
-//    Code generation from text_drawing.tbl
-//
-// ****************************************************************************
-
-#include "graphics.h"
-#include "opcodes.h"
-#include "options.h"
-#include "widget.h"
-#include "types.h"
-#include "drawing.h"
-#include "layout.h"
-#include "module_manager.h"
-#include <iostream>
-
-
-// ============================================================================
-//
-//    Top-level operation
-//
-// ============================================================================
-
-#include "widget.h"
-
-using namespace XL;
-
-#include "opcodes_declare.h"
-#include "text_drawing.tbl"
-
-namespace Tao
-{
-
-#include "text_drawing.tbl"
-
-
-void EnterTextDrawing()
-// ----------------------------------------------------------------------------
-//   Enter all the basic operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-    XL::Context *context = MAIN->context;
-#include "opcodes_define.h"
-#include "text_drawing.tbl"
-}
-
-
-void DeleteTextDrawing()
-// ----------------------------------------------------------------------------
-//   Delete all the global operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-#include "opcodes_delete.h"
-#include "text_drawing.tbl"
-}
-
-}

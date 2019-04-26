@@ -44,10 +44,12 @@
 #include <vector>
 #include <iostream>
 #include <Qt>
+
+RECORDER_DECLARE(justify);
+
 TAO_BEGIN
 
 struct Layout;
-
 
 struct Justification
 // ----------------------------------------------------------------------------
@@ -507,4 +509,5 @@ void Justifier<Item>::Dump(text msg)
 }
 
 TAO_END
+
 #endif // JUSTIFICATION_H_IMPLEMENTATION

@@ -451,7 +451,12 @@ XL_MODULES +=           \
     frame.tbl           \
     graphics.tbl        \
     lighting.tbl        \
-    manipulator.tbl
+    manipulator.tbl     \
+    shapes.tbl          \
+    shapes3d.tbl        \
+    table.tbl           \
+    text_drawing.tbl    \
+    transforms.tbl
 
 win32 {
     !build_pass:message("Using GLEW")

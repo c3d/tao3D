@@ -44,11 +44,11 @@
 
 TAO_BEGIN
 
-Table::Table(Widget *w, Context *ctx, Real_p x, Real_p y, uint r, uint c)
+Table::Table(Widget *w, Scope *scope, Real_p x, Real_p y, uint r, uint c)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : Layout(w), context(ctx),
+    : Layout(w), scope(scope),
       x(x), y(y), rows(r), columns(c), row(0), column(0),
       margins(0,0,5,5), columnWidth(), rowHeight(),
       fill(NULL), border(NULL), fills(), borders()
@@ -119,12 +119,12 @@ void Table::Evaluate(Layout *where)
 
             Layout *fillLayout = NULL;
             if (Tree_p fill = *fi++)
-                fillLayout = widget->drawTree(this, context, fill);
+                fillLayout = widget->drawTree(this, scope, fill);
             fills.push_back(fillLayout);
 
             Layout *borderLayout = NULL;
             if (Tree_p border = *bi++)
-                borderLayout = widget->drawTree(this, context, border);
+                borderLayout = widget->drawTree(this, scope, border);
             borders.push_back(borderLayout);
 
             if (column < columnWidth.size())
@@ -467,63 +467,3 @@ void Table::NextCell()
 }
 
 TAO_END
-
-
-
-// ****************************************************************************
-//
-//    Code generation from table.tbl
-//
-// ****************************************************************************
-
-#include "graphics.h"
-#include "opcodes.h"
-#include "options.h"
-#include "widget.h"
-#include "types.h"
-#include "drawing.h"
-#include "layout.h"
-#include "module_manager.h"
-#include <iostream>
-
-
-// ============================================================================
-//
-//    Top-level operation
-//
-// ============================================================================
-
-#include "widget.h"
-
-using namespace XL;
-
-#include "opcodes_declare.h"
-#include "table.tbl"
-
-namespace Tao
-{
-
-#include "table.tbl"
-
-
-void EnterTables()
-// ----------------------------------------------------------------------------
-//   Enter all the basic operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-    XL::Context *context = MAIN->context;
-#include "opcodes_define.h"
-#include "table.tbl"
-}
-
-
-void DeleteTables()
-// ----------------------------------------------------------------------------
-//   Delete all the global operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-#include "opcodes_delete.h"
-#include "table.tbl"
-}
-
-}

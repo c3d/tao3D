@@ -160,8 +160,10 @@ struct TextFormula : TextSplit
 //   Like a text span, but for an evaluated value
 // ----------------------------------------------------------------------------
 {
-    TextFormula(XL::Prefix *self, Widget *wid, uint start = 0, uint end = ~0)
-        : TextSplit(NULL, start, end), self(self), widget(wid)
+    TextFormula(Scope *scope, Prefix *self,
+                Widget *wid, uint start = 0, uint end = ~0)
+        : TextSplit(NULL, start, end),
+          scope(scope), self(self), widget(wid)
     {
         source = Format(self);
     }
@@ -172,6 +174,7 @@ struct TextFormula : TextSplit
     virtual void        Identify(Layout *where);
 
 public:
+    Scope_p             scope;
     Prefix_p            self;
     Widget *            widget;
     static uint         formulas, shows;

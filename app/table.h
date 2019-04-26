@@ -50,7 +50,7 @@ struct Table : Layout
 //    A table-like layout for graphic elements
 // ----------------------------------------------------------------------------
 {
-    Table(Widget *display, Context *ctx, Real_p x, Real_p y, uint r, uint c);
+    Table(Widget *display, Scope *, Real_p x, Real_p y, uint r, uint c);
     ~Table();
 
     virtual void        Draw(Layout *);
@@ -65,7 +65,7 @@ struct Table : Layout
     void                NextCell();
 
 public:
-    Context_p              context;
+    Scope_p                scope;
     Real_p                 x, y;
     uint                   rows, columns;
     uint                   row, column;
@@ -80,17 +80,6 @@ public:
     TreeList               cellFill, cellBorder;
     Layouts                fills, borders;
 };
-
-
-
-// ============================================================================
-//
-//   Entering shapes in the symbols table
-//
-// ============================================================================
-
-extern void EnterTables();
-extern void DeleteTables();
 
 TAO_END
 

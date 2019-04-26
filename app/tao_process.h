@@ -41,13 +41,17 @@
 #include "tao.h"
 #include "base.h"
 
-#include <string>
 #include <iostream>
+#include <recorder/recorder.h>
+#include <string>
 
-#include <QString>
 #include <QProcess>
+#include <QString>
 #include <QTextEdit>
 #include <QTime>
+
+
+RECORDER_DECLARE(process);
 
 namespace Tao {
 

@@ -48,6 +48,9 @@
 #include <QtGui>
 #include <string.h>
 
+RECORDER(selection,             16, "Selection of graphical items");
+RECORDER(selection_list,        32, "Selection lists");
+
 TAO_BEGIN
 
 // ============================================================================
@@ -134,10 +137,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
             {
                 depth = ptr[1];
                 childSelected = false;
-
-                IFTRACE(selection)
-                    std::cerr << "Selection " << std::hex << *selPtr
-                              << " depth " << depth << ": ";
+                record(selection, "Selection %u depth %u", *selPtr, depth);
 
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
@@ -148,8 +148,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
                 {
                     GLuint child = *ptr++;
                     GLuint selType = child & Widget::SELECTION_MASK;
-                    IFTRACE(selection)
-                        std::cerr << std::hex << child << " ";
+                    record(selection_list, "Item %X seltype %X", child,selType);
                     if (selType == Widget::HANDLE_SELECTED)
                         handleId = (child & ~Widget::SELECTION_MASK);
                     else if (selType == Widget::CHARACTER_SELECTED)
@@ -161,8 +160,6 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
                         childSelected = child;
                 }
 
-                IFTRACE(selection)
-                    std::cerr << "\n";
             }
 
             ptr = selNext;
@@ -263,10 +260,7 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
     if (active)
         return next;
 
-    IFTRACE(widgets)
-        std::cerr << "MouseFocusTracker::MouseMove " << x << ", " << y
-                  << std::endl;
-
+    record(selection, "MouseMove %d %d %+sactive", x, y, active ? "" : "in");
     uint current = ObjectAtPoint(x, widget->height() - y);
     widget->shapeAction("mouseover", current, x, y);
 
@@ -284,9 +278,8 @@ Activity *MouseFocusTracker::Click(uint /*button*/,
 {
     uint current = ObjectAtPoint(x, widget->height() - y);
 
-    IFTRACE(widgets)
-        std::cerr << "MouseFocusTracker::Click Focus " << current << std::endl;
-
+    record(selection,
+           "Click %d, %d current %u previous %u", x, y, current, previous);
     if (current != previous)
     {
         if (current > 0)
@@ -364,8 +357,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
 //   Initial and final click in a selection rectangle
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(widgets)
-        std::cerr << "Selection::Click\n";
+    record(selection,
+           "Click button %X count %u at %d, %d", button, count, x, y);
     bool firstClick = false;
     bool doneWithSelection = false;
     bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;

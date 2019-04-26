@@ -65,8 +65,7 @@ struct Main : public XL::Main
         MAIN = this;
     }
 
-    virtual int  LoadFile(text file, bool updateContext = false,
-                          XL::Scope *importScope=0);
+    virtual int  LoadFile(text file, text modname="") override;
     virtual text SearchFile(text input, text ext = "") override;
     virtual bool Refresh(double delay) override;
     virtual text Decrypt(text input) override;

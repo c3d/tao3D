@@ -56,8 +56,7 @@
 #include <float.h>
 #include <recorder/recorder.h>
 
-RECORDER_DECLARE(layoutevents);
-
+RECORDER_DECLARE(layout);
 
 TAO_BEGIN
 struct Widget;
@@ -223,7 +222,5 @@ struct StereoLayout : Layout
 
 
 TAO_END
-
-RECORDER_DECLARE(layoutevents);
 
 #endif // LAYOUT_H

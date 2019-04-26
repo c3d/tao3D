@@ -41,6 +41,9 @@
 #include "window.h"
 #include "tao_utf8.h"
 
+
+RECORDER(resources, 16, "Resource manager");
+
 TAO_BEGIN
 
 ResourceMgt::ResourceMgt(Widget *widget): TreeClone()
@@ -75,24 +78,20 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
 //  The prefix action
 //-----------------------------------------------------------------------------
 {
-    Name * n = what->left->AsName();
+    Name *n = what->left->AsName();
     if (!n || cmdFileList.count(n->value) == 0)
-        return TreeClone::DoPrefix(what);
+        return TreeClone::Do(what);
 
-    Text * arg = getArg(what, cmdFileList[n->value].first);
-    if (! arg)
-        return TreeClone::DoPrefix(what);
+    Text *arg = getArg(what, cmdFileList[n->value].first);
+    if (!arg)
+        return TreeClone::Do(what);
 
     QFileInfo info(+(arg->value));
     if (! isToBeMoved(info,+(cmdFileList[n->value].second)))
     {
         usedFile.insert(+(info.filePath()));
-        IFTRACE(resources)
-        {
-            std::cerr << "Used file: "<< +(info.filePath()) << std::endl;
-        }
-
-        return TreeClone::DoPrefix(what);
+        record(resources, "Used file %s", info.filePath());
+        return TreeClone::Do(what);
     }
 
     if (movedFiles.count(+(info.absoluteFilePath())))
@@ -103,18 +102,21 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
     }
 
 
-    return TreeClone::DoPrefix(what);
+    return TreeClone::Do(what);
 }
 
 
 Text * ResourceMgt::getArg(Prefix * what, int pos)
 //-----------------------------------------------------------------------------
-//  return the pos'th argument of the 'what' command
+//  Return the pos'th argument of the 'what' command
 //-----------------------------------------------------------------------------
 {
-    Infix * inf = what->right->AsInfix();
+
+    record(resources, "Getting arg %d of %t", pos, what);
+    Infix *infix = what->right->AsInfix();
+
     // If the right is not an infix, it is the only argument so return it.
-    if (!inf)
+    if (!infix)
     {
         return what->right->AsText();
     }
@@ -122,40 +124,29 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
     if (pos <= 0)
     {
         // pos <= 0 means the latest parameter
-        inf = inf->LastStatement();
-        IFTRACE(resources)
-        {
-            std::cerr << "Return last arg: "
-                      << inf->right->AsText() << std::endl;
-        }
-        return inf->right->AsText();
+        infix = infix->LastStatement();
+        record(resources, "For %d return last argument %t", pos, infix->right);
+        return infix->right->AsText();
     }
 
-    // Loop to get the required argument (inf->left is already the first one)
-    Infix *last = inf;
+    // Loop to get the required argument (infix->left is already the first one)
+    Infix *last = infix;
     Infix *next = NULL;
-    while ( (--pos > 1) &&
-            (next = last->left->AsInfix()) &&
-            (next->name == "," ))
+    while ((--pos > 1) &&
+           (next = last->left->AsInfix()) &&
+           (next->name == ","))
     {
         last = next;
     }
 
-    IFTRACE(resources)
-        std::cerr << "pos is: "<< pos << std::endl;
-
+    //  REVISIT: Code below looks suspicious (AsText, next vs last) - DDD
     if (next && (next->name ==  "\n" || next->name == ";"))
     {
-        IFTRACE(resources)
-            std::cerr << "returning next->right: " << next->right->AsText()
-                      << std::endl;
+        record(resources, "Returning next %t as text", next->right);
         return next->right->AsText();
     }
 
-    IFTRACE(resources)
-         std::cerr << "returning last->right: "<< last->right->AsText()
-                << std::endl;
-
+    record(resources, "Return last %t as text", last->right);
     return last->right->AsText();
 }
 
@@ -204,25 +195,14 @@ text ResourceMgt::integrateFile(QFileInfo info, QString prefix)
     if (!subdir.isEmpty())
         QDir(w->currentProjectFolderPath()).mkpath(subdir);
 
-    IFTRACE(resources)
-    {
-        std::cerr << "Copying "<< +(info.absoluteFilePath()) <<
-                " into " << +(newName.filePath()) << std::endl;
-    }
+    record(resources,
+           "Copying %s into %s", info.absoluteFilePath(), newName.filePath());
     QFile::copy(info.absoluteFilePath(), newName.filePath());
 
     text relName = +(prefix + ':' + newName.fileName());
     movedFiles[+(info.absoluteFilePath())] = relName;
     newName.refresh();
     usedFile.insert(+(projdir.relativeFilePath(newName.absoluteFilePath())));
-    IFTRACE(resources)
-    {
-        std::cerr << " usedFile.insert("<<
-                +(projdir.relativeFilePath(newName.absoluteFilePath()))
-                <<")"<< std::endl;
-        std::cerr << "newName.absoluteFilePath() "
-                << +(newName.absoluteFilePath()) << std::endl;
-    }
 
 #ifndef CFG_NOGIT
     Repository * repo = ((Window*)widget->parent())->repository();

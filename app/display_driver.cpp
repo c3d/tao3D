@@ -47,7 +47,8 @@
 #include <iostream>
 
 
-RECORDER(displaymode, 16, "Information about display mode");
+RECORDER(display_driver,        16, "Information about display mode");
+RECORDER(display_driver_warning, 8, "Warnings from display mode drivers");
 
 
 namespace Tao {
@@ -64,11 +65,12 @@ DisplayDriver::DisplayDriver()
     : useInProgress(false), wFactor(1.0), hFactor(1.0)
 {
     if (!vpEvt)
+    {
         vpEvt = QEvent::registerEventType();
+        record(layout, "Event id %d for viewpoints changed", vpEvt);
+    }
 
-    IFTRACE2(displaymode, layoutevents)
-        debug() << "ID of 'viewpoints changed' user event: " << vpEvt << "\n";
-
+    record(display_driver, "Display driver %p created, event %d", this, vpEvt);
     registerDisplayFunction("2Dplain", displayBackBuffer,
                                        NULL, NULL, NULL);
 
@@ -91,10 +93,8 @@ DisplayDriver::~DisplayDriver()
 //   Destructor
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(displaymode)
-        debug() << "Deactivating display function: " << +current.name
-                << "@" << (void*)current.fn << "\n";
-
+    record(display_driver, "Deactivating display function %s function %p in %p",
+           current.name, current.fn, this);
     if (current.unuse)
         current.unuse(current.obj);
 }
@@ -134,9 +134,8 @@ bool DisplayDriver::setDisplayFunction(QString name)
 
         current = map[name];
         found = true;
-        IFTRACE(displaymode)
-            debug() << "Selecting display function: " << +name
-                    << "@" << (void*)current.fn << "\n";
+        record(display_driver, "Selecting display function %s at %p in %p",
+               name, current.fn, this);
         if (current.use)
         {
             useInProgress = true;
@@ -148,9 +147,9 @@ bool DisplayDriver::setDisplayFunction(QString name)
 
         if (current.obj == (void*)(~0L))
         {
-            IFTRACE(displaymode)
-                debug() << "Display function initialization error, "
-                           "restoring previous function\n";
+            record(display_driver_warning,
+                   "Display function initialization error, restoring previous");
+
             current = save;
             if (current.use)
             {
@@ -207,16 +206,14 @@ bool DisplayDriver::setOption(std::string name, std::string val)
 // ----------------------------------------------------------------------------
 {
     bool ok = false;
-    IFTRACE(displaymode)
-        debug() << "Passing option to display function: " << +current.name
-                << " \"" << name << "\"=\"" << val << "\"\n";
+    record(display_driver,
+           "Driver %p set option %s = %s to display function %s",
+           this, name, val, current.name);
     if (current.setopt)
         ok = current.setopt(current.obj, name, val);
     if (!ok)
-    {
-        IFTRACE(displaymode)
-            debug() << "Option not recognized or rejected\n";
-    }
+        record(display_driver_warning,
+               "Invalid option %s for driver %p", name, this);
     return ok;
 }
 
@@ -226,18 +223,18 @@ std::string DisplayDriver::getOption(std::string name, std::string deflt)
 //   Read option from display module
 // ----------------------------------------------------------------------------
 {
-    std::string val, defstr;
+    std::string val;
+    kstring defstr = "";
     if (current.getopt)
         val = current.getopt(current.obj, name);
     if (val == "")
     {
-        IFTRACE(displaymode)
-            defstr = " (from default)";
+        defstr = " (from default)";
         val = deflt;
     }
-    IFTRACE(displaymode)
-        debug() << "Read option from display function: " << +current.name
-                << " \"" << name << "\"=\"" << val << "\"" << defstr << "\n";
+    record(display_driver,
+           "Driver %p read option %s = %s%+s from display function %s",
+           this, name, val, defstr, current.name);
     return val;
 }
 
@@ -256,27 +253,12 @@ bool DisplayDriver::useFBO()
 //   Shall we do 2D rendering through a framebuffer object (true), or directly?
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(displaymode)
-    {
-        text gl, fbos;
-        if (!TaoApp->hasGLMultisample)
-            gl = "not ";
-        if (!TaoApp->hasFBOMultisample)
-            fbos = "not ";
-        debug() << "GL framebuffer multisampling: " << gl << "supported\n";
-        debug() << "FBOs multisampling: " << fbos << "supported\n";
-    }
+    record(display_driver,
+           "Driver %p %+s framebuffer multisampling and %+s FBO multisampling",
+           this,
+           TaoApp->hasGLMultisample   ? "has" : "has no",
+           TaoApp->hasFBOMultisample ? "has" : "has no");
     return (!TaoApp->hasGLMultisample && TaoApp->hasFBOMultisample);
-}
-
-
-std::ostream & DisplayDriver::debug()
-// ----------------------------------------------------------------------------
-//   Convenience method to log with a common prefix
-// ----------------------------------------------------------------------------
-{
-    std::cerr << "[Display Driver] ";
-    return std::cerr;
 }
 
 
@@ -292,6 +274,8 @@ void DisplayDriver::displayBackBuffer(void *)
 //   Default, usual 2D rendering into OpenGL back buffer
 // ----------------------------------------------------------------------------
 {
+    record(display_driver, "Driver display back buffer");
+
     // Save GL state
     Tao::GraphicSave* save = GL.Save();
 
@@ -335,6 +319,8 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 //   This function enables better antialiasing on platforms that do not have
 //   multisample GL widget, but do support multisample FBOs.
 {
+    record(display_driver, "Driver display back buffer FBO");
+
     // Save graphic state
     Tao::GraphicSave *save = GL.Save();
 
@@ -427,7 +413,7 @@ void DisplayDriver::backBufferFBOUnuse(void *obj)
 //   Done with 2D back buffer FBO display
 // ----------------------------------------------------------------------------
 {
-    delete (BackBufferFBOParams *)obj;
+    delete (BackBufferFBOParams *) obj;
 }
 
 
@@ -436,7 +422,6 @@ void DisplayDriver::backBufferFBOUnuse(void *obj)
 //   Static methods exported to module API
 //
 // ============================================================================
-
 
 bool DisplayDriver::registerDisplayFunction(std::string name,
                                             ModuleApi::display_fn fn,
@@ -448,14 +433,16 @@ bool DisplayDriver::registerDisplayFunction(std::string name,
 //   Add a display function to the list of known functions
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(displaymode)
-        debug() << "Registering display function: " << name << "@"
-                << (void*)fn << "\n";
+    record(display_driver,
+           "Registering display functions for %s address %p", name, fn);
+    record(display_driver,
+           "Registering functions use=%p unuse=%p setop=%p getopt=%p",
+           use, unuse, setopt, getopt);
+
     QString nam = +name;
     if (map.contains(nam))
     {
-        IFTRACE(displaymode)
-            debug() << "Error: name already in use\n";
+        record(display_driver_warning, "Name %s already in use", name);
         return false;
     }
     DisplayParams p(nam, fn, use, unuse, setopt, getopt);
@@ -473,22 +460,21 @@ bool DisplayDriver::registerDisplayFunctionAlias(std::string name,
     QString nam = +name, oth = +other;
     if (map.contains(nam))
     {
-        IFTRACE(displaymode)
-            debug() << "Error: name " << name << " already in use\n";
+        record(display_driver_warning,
+               "Name %s already in use (alias %s)", name, other);
         return false;
     }
     if (!map.contains(oth))
     {
-        IFTRACE(displaymode)
-            debug() << "Error: name " << other << " not found\n";
+        record(display_driver_warning,
+               "Alias %s already in use (name %s)", other, name);
         return false;
     }
 
     DisplayParams p = map[nam] = map[oth];
-
-    IFTRACE(displaymode)
-        debug() << "Registering alias: " << name
-                << " => " << other << "@" << (void*)p.fn << "\n";
+    record(display_driver_warning,
+           "Registering alias %s -> %s at address %p",
+           name, other, p.fn);
     return true;
 }
 

@@ -49,9 +49,9 @@
 #include <sstream>
 #include "demangle.h"
 
-RECORDER_DEFINE(layoutevents,           32, "Layout events");
-RECORDER_DEFINE(layoutevents_warning,    8, "Layout events warnings");
-RECORDER_DEFINE(layout_fps,             16, "Layout frames-per-second stats");
+RECORDER_DEFINE(layout,         32, "Layout events");
+RECORDER_DEFINE(layout_warning,  8, "Layout events warnings");
+RECORDER_DEFINE(layout_fps,     16, "Layout frames-per-second stats");
 
 TAO_BEGIN
 
@@ -208,7 +208,7 @@ Layout *Layout::AddChild(uint childId,
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
-    record(layoutevents, "Adding child id %u to %u with body %t scope %t",
+    record(layout, "Adding child id %u to %u with body %t scope %t",
            childId, id, (Tree *) body, (Scope *) scope);
     Layout *result = child ? child : NewChild();
     Add(result);
@@ -555,7 +555,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 //   Re-compute layout on event, return true if self or child changed
 // ----------------------------------------------------------------------------
 {
-    record(justify, "Refresh %p", this);
+    record(justify, "Refresh %p id %u", this, id);
     bool changed = false;
     if (!e)
         return false;
@@ -568,7 +568,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     IFTRACE(layout_fps)
         PerLayoutStatistics::beginExec(body);
 
-    IFTRACE(layoutevents)
+    IFTRACE(layout)
     {
         if (!dbg.isEmpty())
             dbg.append("/");
@@ -579,14 +579,14 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     if (NeedRefresh(e, now))
     {
         XL::Save<uint> saveId(widget->id, id);
-        record(layoutevents, "Layout %s id %u needs updating", layoutId, id);
+        record(layout, "Layout %p id %u %s needs updating", this, id, layoutId);
         refreshEvents.clear();
         nextRefresh = DBL_MAX;
 
         // Check if we can evaluate locally
         if (scope && body)
         {
-            record(justify, "Refresh of layout %p clears it", this);
+            record(justify, "Refresh of layout %p id %u clears it", this, id);
 
             // Clear old contents of the layout, drop all children
             Clear();
@@ -598,7 +598,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
             XL::Save<Layout *> saveLayout(widget->layout, this);
             GLAllStateKeeper save;
 
-            record(layoutevents, "Evaluating %t", (Tree *) body);
+            record(layout, "Layout %p id %u evaluating %t", this, id, body);
             xl_evaluate(scope, body);
         }
         else
@@ -613,7 +613,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     }
     else
     {
-        record(layoutevents,
+        record(layout,
                "Layout %s id %u does not need updating, now %f, expires at %f",
                layoutId, id, now, nextRefresh);
 
@@ -728,7 +728,7 @@ bool Layout::RefreshOn(Layout *layout)
         changed = true;
     }
 
-    record(layoutevents,
+    record(layout,
            "Refresh events %+s in %p from %p",
            changed ? "copied" : "not copied",
            this, layout);
@@ -793,8 +793,7 @@ void Layout::AddName(text name)
 //   Give a name to this layout
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(layoutevents)
-        std::cerr << "Name " << name << " is layout " << PrettyId() << "\n";
+    record(layout, "Layout %p id %u add name %s", this, id, name);
     names.insert(name);
 }
 
@@ -804,9 +803,7 @@ void Layout::AddDep(text name)
 //   Layout 'name' shall be refreshed when this one is refreshed
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(layoutevents)
-        std::cerr << "Layout " << PrettyId() << " shall refresh "
-                  << name << " \n";
+    record(layout, "Layout %p id %u add dependency %s", this, id, name);
     deps.insert(name);
 }
 
@@ -854,11 +851,9 @@ void Layout::CheckRefreshDeps()
                          k != targets.end(); k++)
                     {
                         Layout *to = (*k);
-                        IFTRACE(layoutevents)
-                            std::cerr << "Refresh dependency: from {"
-                                      << from->PrettyId()
-                                      << "} to {" << to->PrettyId()
-                                      << " name " << (*j) << "}\n";
+                        record(layout,
+                               "Refresh dependency from %p to %p name %s",
+                               from, to, *j);
                         if (to->RefreshOnUp(from))
                             changed = true;
                     }
@@ -868,10 +863,9 @@ void Layout::CheckRefreshDeps()
         pass++;
     } while (changed);
 
-    IFTRACE(layoutevents)
-        std::cerr << "Refresh dependencies resolved in " << pass
-                  << " pass" << ((pass > 1) ? "es" : "") << " of "
-                  << withDeps.size() << "/" << lyo.size() << "\n";
+    record(layout,
+           "Refresh dependency resolved in pass %u of %u / %u",
+           pass, withDeps.size(), lyo.size());
 }
 
 

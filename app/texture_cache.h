@@ -266,8 +266,6 @@ private:
     void            purgeGLMem();
     void            printStatistics();
 
-    std::ostream &  debug();
-
 private slots:
     void            doPrintStatistics();
 

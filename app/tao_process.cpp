@@ -48,6 +48,8 @@
 #include <QDir>
 
 
+RECORDER(process,               16, "Processes launched by Tao3D");
+RECORDER(process_warning,       16, "Warnings from Tao3D processes");
 
 namespace Tao {
 
@@ -61,6 +63,7 @@ Process::Process(QObject *parent, size_t bufSize)
       mode(ReadWrite), id(NULL),
       aborted(false), combine(false), errOutMaxSize(100000)
 {
+    record(process, "Create process %p buffer size %zu", this, bufSize);
     initialize(bufSize);
 }
 
@@ -77,6 +80,8 @@ Process::Process(const QString &cmd,
     : cmd(cmd), args(args), wd(""), mode(ReadWrite),
       id(NULL), aborted(false), combine(combine), errOutMaxSize(100000)
 {
+    record(process, "Process %p command %s args [%s] pwd %s buffer size %zu",
+           this, cmd, args.join(","), wd, bufSize);
     setWd(wd);
     initialize(bufSize);
     if (startImmediately)
@@ -89,6 +94,7 @@ Process::~Process()
 //    Make sure we are done with all the data for that process
 // ----------------------------------------------------------------------------
 {
+    record(process, "Delete process %p", this);
     if (pbase())
         done();
 }
@@ -105,8 +111,7 @@ void Process::setWd(const QString &wd)
     if (QDir(wd).isReadable())
         setWorkingDirectory(wd);
     else
-        std::cerr << +tr("Warning: cannot set working directory to "
-                         "non-existent or not readable path: %1\n").arg(wd);
+        record(process_warning, "Cannot set working directory to %s", wd);
 }
 
 
@@ -115,33 +120,25 @@ void Process::start()
 //   Start child process with current parameters (command, arguments...)
 // ----------------------------------------------------------------------------
 {
+    record(process, "Starting %s with default args [%s]", cmd, args.join(","));
+
     setWd(wd);
     setEnvironment();
-
-    IFTRACE(process)
-    {
-        QString commandLine = "{" + cmd;
-        foreach (QString a, args)
-            commandLine += "} {" + a;
-        commandLine += "}";
-        QString dir = workingDirectory();
-        if (dir.isEmpty())
-            dir = "<not set>";
-        std::cerr << "Process " << num << ": " << +commandLine
-                  << " (wd " << +dir << ")\n";
-    }
-
     startTime.start();
     QProcess::start(cmd, args, mode);
 }
 
 
-void Process::start(const QString &program, const QStringList &arguments,
+void Process::start(const QString &program,
+                    const QStringList &arguments,
                     QProcess::OpenMode openmode)
 // ----------------------------------------------------------------------------
 //   Start process. Overrides parent method.
 // ----------------------------------------------------------------------------
 {
+    record(process, "Starting program %s with arguments [%s]",
+           program, arguments.join(","));
+
     cmd = program;
     args = arguments;
     mode = openmode;
@@ -154,6 +151,7 @@ void Process::start(const QString &program, OpenMode openmode)
 //   Start process. Overrides parent method.
 // ----------------------------------------------------------------------------
 {
+    record(process, "Starting program %s", program);
     cmd = program;
     mode = openmode;
     start();
@@ -189,6 +187,8 @@ bool Process::done(text *errors, text *output)
     if (errors)
         *errors = +err;
 
+    record(process, "Process %+s, output [%s], error [%s]",
+           ok ? "successful" : "failed", out, err);
     return ok;
 }
 
@@ -198,7 +198,12 @@ bool Process::failed()
 //   Return true if the process crashed or returned a non-zero value
 // ----------------------------------------------------------------------------
 {
-  return (exitStatus() != QProcess::NormalExit) || exitCode();
+    QProcess::ExitStatus st = exitStatus();
+    int rc = exitCode();
+    bool fail = st != QProcess::NormalExit || rc != 0;
+    record(process_warning, "Process %p %+s status %u exit %d",
+           fail ? "failed" : "successful", st, rc);
+    return fail;
 }
 
 

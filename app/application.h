@@ -66,6 +66,7 @@ namespace Tao {
 struct Widget;
 struct Window;
 struct SplashScreen;
+struct Main;
 struct ModuleManager;
 struct GCThread;
 struct UpdateApplication;
@@ -215,7 +216,7 @@ private:
                  splash;
     Window *     win;
     XL::source_names contextFiles;
-    XL::Main *   xlr;
+    Tao::Main *  xlr;
     QString      savedUri;
     bool         screenSaverBlocked;
 #if defined (CONFIG_LINUX)

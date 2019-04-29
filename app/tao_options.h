@@ -53,6 +53,7 @@ extern BooleanOption    slideShow;
 extern BooleanOption    enableModules;
 extern IntegerOption    printResolution;
 extern TextOption       renderMode;
+extern TextOption       preloadFiles;
 extern TextOption       displayMode;
 extern BooleanOption    gcThread;
 extern BooleanOption    compressTextures;
@@ -60,6 +61,7 @@ extern BooleanOption    showVersion;
 extern BooleanOption    showGLInfo;
 extern TextOption       fontPath;
 extern BooleanOption    textureCache;
+extern BooleanOption    undoWidget;
 
 extern TextOption       proofOfPlayFile;
 extern IntegerOption    proofOfPlayInterval;

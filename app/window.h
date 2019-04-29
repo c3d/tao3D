@@ -40,24 +40,25 @@
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
 
-#include <QMainWindow>
-#include <QTimer>
-#include <QSharedPointer>
-#include <QUndoStack>
-#include <QUndoView>
-#include <QPointer>
-#include <QPrinter>
-#include <QStackedWidget>
+#include "examples_menu.h"
 #include "main.h"
-#include "tao.h"
 #ifndef CFG_NOGIT
 #include "repository.h"
 #include "update_application.h"
 #endif
+#include "tao.h"
 #ifndef CFG_NO_WEBUI
 #include "webui.h"
 #endif
-#include "examples_menu.h"
+
+#include <QMainWindow>
+#include <QPointer>
+#include <QPrinter>
+#include <QSharedPointer>
+#include <QStackedWidget>
+#include <QTimer>
+#include <QUndoStack>
+#include <QUndoView>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -78,6 +79,7 @@ struct ToolWindow;
 struct XLSourceEdit;
 struct Repository;
 struct Assistant;
+struct Main;
 
 
 struct Window : public QMainWindow
@@ -92,7 +94,7 @@ private:
     enum { MaxRecentFiles = 5 };
 
 public:
-    Window(XL::Main *xlr, XL::source_names context = XL::source_names(),
+    Window(Tao::Main *xlr, XL::source_names context = XL::source_names(),
            QString sourceFile = "", bool ro = false);
     ~Window();
 
@@ -284,7 +286,7 @@ public:
     bool                loadInProgress;
 
 private:
-    XL::Main *          xlRuntime;
+    Tao::Main *          xlRuntime;
     QSharedPointer<Repository> repo;
     QList<int>          docFontIds;
     // currentProjectFolder : Used if repo is not used.

@@ -41,63 +41,65 @@
 // *****************************************************************************
 
 #include "window.h"
-#include "widget.h"
-#include "apply_changes.h"
+
 #include "application.h"
+#include "apply_changes.h"
+#include "assistant.h"
+#include "examples_menu.h"
+#include "license.h"
+#include "license_dialog.h"
+#include "module_manager.h"
+#include "normalize.h"
+#include "preferences_dialog.h"
+#include "render_to_file_dialog.h"
+#include "resource_mgt.h"
+#include "splash_screen.h"
+#include "tao_main.h"
 #include "tao_utf8.h"
+#include "texture_cache.h"
+#include "tool_window.h"
+#include "update_application.h"
+#include "uri.h"
+#include "widget.h"
+#include "xl_source_edit.h"
+#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
+#include "document_signature.h"
+#endif
 #ifndef CFG_NOGIT
-#include "git_backend.h"
-#include "pull_from_dialog.h"
-#include "push_dialog.h"
-#include "fetch_dialog.h"
-#include "merge_dialog.h"
 #include "checkout_dialog.h"
-#include "selective_undo_dialog.h"
 #include "clone_dialog.h"
 #include "diff_dialog.h"
+#include "fetch_dialog.h"
+#include "git_backend.h"
 #include "git_toolbar.h"
+#include "merge_dialog.h"
 #include "preferences_pages.h"
+#include "pull_from_dialog.h"
+#include "push_dialog.h"
+#include "selective_undo_dialog.h"
 #include "undo.h"
 #endif
 #ifndef CFG_NONETWORK
 #include "open_uri_dialog.h"
 #endif
-#include "resource_mgt.h"
-#include "splash_screen.h"
-#include "uri.h"
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
 #include "new_document_wizard.h"
 #endif
-#include "preferences_dialog.h"
-#include "tool_window.h"
-#include "xl_source_edit.h"
-#include "render_to_file_dialog.h"
-#include "module_manager.h"
-#include "assistant.h"
-#include "license.h"
-#include "license_dialog.h"
-#include "normalize.h"
-#include "examples_menu.h"
-#include "texture_cache.h"
-#include "update_application.h"
-#if !defined(CFG_NO_DOC_SIGNATURE) && !defined(TAO_PLAYER)
-#include "document_signature.h"
-#endif
-#include <recorder/recorder.h>
+
 #include <iostream>
+#include <menuinfo.h>
+#include <recorder/recorder.h>
 #include <sstream>
 #include <string>
-#include <menuinfo.h>
-#include <bfs.h>
 
-#include <QList>
-#include <QRegExp>
-#include <QtGui>
 #include <QDockWidget>
-#include <QStatusBar>
+#include <QList>
 #include <QMenuBar>
-#include <QPrintDialog>
 #include <QPageSetupDialog>
+#include <QPrintDialog>
+#include <QRegExp>
+#include <QStatusBar>
+#include <QtGui>
 #ifndef Q_OS_MACX
 #if QT_VERSION < 0x050000
 #include <QFSFileEngine>
@@ -114,11 +116,16 @@
  *                      ";;All files (*.*)"
  */
 
-RECORDER(tao_window, 32, "Window for the Tao3D application");
+RECORDER(console_error, 16, "Error messages sent to the console");
+RECORDER(window,        16, "Window for the Tao3D application");
+
+// Forward recorders (don't include headers just for those)
+RECORDER_DECLARE(fonts);
+RECORDER_DECLARE(displaymode);
 
 namespace Tao {
 
-Window::Window(XL::Main *xlr,
+Window::Window(Tao::Main *xlr,
                XL::source_names context,
                QString sourceFile,
                bool ro)
@@ -208,14 +215,14 @@ Window::Window(XL::Main *xlr,
       helpMenu(),
       splashScreen(), aboutSplash()
 {
-    record(tao_window, "Constructor %p", this);
+    record(window, "Constructor %p", this);
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
-    bool transparent = XL::MAIN->options.transparent;
+    bool transparent = Opt::transparent;
     if (transparent)
         setAttribute(Qt::WA_TranslucentBackground);
-    if (XL::MAIN->options.nowindow)
+    if (Opt::windowVisible == false)
 #if QT_VERSION >= 0x050000
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
 #else
@@ -331,7 +338,7 @@ Window::~Window()
 //   Destroy a document window and free associated resources
 // ----------------------------------------------------------------------------
 {
-    record(tao_window, "Destructor %p", this);
+    record(window, "Destructor %p", this);
     FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
     delete printer;
@@ -522,9 +529,7 @@ void Window::addError(QString txt)
 
     if (!isFullScreen())
         emit showErrorWindow(); // Bug#3202
-    QString console = +XL::MAIN->options.to_stderr;
-    if (console == "on" || (console == "auto" && isFullScreen()))
-        std::cerr << +txt << std::endl;
+    record(console_error, "%s", txt);
 
     // Before trying to show the error in the status bar, see #970
 }
@@ -999,8 +1004,7 @@ bool Window::saveFonts()
             if (found)
                 continue;
 
-            IFTRACE(fonts)
-                    std::cerr << "Removing  '" << +path << "'\n";
+            record(fonts, "Removing %s", path);
             if (repo)
             {
                 QString relPath = QString("fonts/%1").arg(name);
@@ -1019,10 +1023,7 @@ bool Window::saveFonts()
     {
         fileName = QFileInfo(file).fileName();
         newFile = QString("%1/%2").arg(fontPath).arg(fileName);
-        IFTRACE(fonts)
-        {
-            std::cerr << "Copying '" << +file << "' as '" << +newFile << "'\n";
-        }
+        record(fonts, "Copying %s as %s", file, newFile);
         if (newFile == file)
             continue;
         if (QFile::exists(newFile))
@@ -1049,6 +1050,7 @@ void Window::consolidate()
 // ----------------------------------------------------------------------------
 {
     text fn = +curFile;
+
     IFTRACE(resources)
         std::cerr << "Consolidate: File name is "<< fn << std::endl;
 
@@ -1214,8 +1216,8 @@ bool Window::setStereo(bool on)
 
     QGLFormat newFormat(current);
     newFormat.setStereo(on);
-    IFTRACE(displaymode)
-        std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
+
+    record(displaymode, "%+sabling stereo buffers", on ? "En" : "Dis");
     XL_ASSERT(stackedWidget->indexOf(taoWidget) == 0);
     stackedWidget->removeWidget(taoWidget);
     taoWidget->deleteLater();
@@ -2477,7 +2479,7 @@ void Window::createUndoView()
 // ----------------------------------------------------------------------------
 {
     undoView = NULL;
-    IFTRACE(undo)
+    if (Opt::undoWidget)
     {
         undoView = new QUndoView(undoStack);
         undoView->setWindowTitle(tr("Change History"));
@@ -2495,8 +2497,8 @@ void Window::readSettings()
     QSettings settings;
     if (!restoreGeometry(settings.value("geometry").toByteArray()))
     {
-        // By default, the application's main window is centered and proportional
-        // to the screen size, p being the scaling factor
+        // By default, the application's main window is centered and
+        // proportional to the screen size, p being the scaling factor
         const float p = 0.7;
         QRect avail = TaoApp->desktop()->availableGeometry(this);
         int w = avail.width(), h = avail.height();
@@ -2533,6 +2535,7 @@ void Window::closeToolWindows()
     foreach (ToolWindow *f, floats)
         f->doClose();
 }
+
 
 bool Window::maybeSave()
 // ----------------------------------------------------------------------------
@@ -2580,7 +2583,6 @@ void Window::showMessage(QString message, int timeout)
 {
     if (splashScreen)
         return splashScreen->showMessage(message);
-
     statusBar()->showMessage(message, timeout);
 }
 
@@ -2748,7 +2750,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     setReadOnly(ro);
     taoWidget->updateProgramSource(false);
     setWindowModified(false);
-    if (XL::MAIN->options.slideshow)
+    if (Opt::slideShow)
         switchToSlideShow();
     return true;
 }
@@ -3025,7 +3027,7 @@ void Window::updateContext(QString docPath)
     if (tao.exists())
         contextFileNames.push_back(+tao.absoluteFilePath());
     // Files given through the command line preload option (-p)
-    QString preload = +XL::MAIN->options.preload_files;
+    QString preload = +Opt::preloadFiles.value;
     foreach (QString file, preload.split(":", QString::SkipEmptyParts))
     {
         QFileInfo info(QDir(TaoApp->startDir), file);
@@ -3227,12 +3229,7 @@ void Window::resetTaoMenus()
     for(it = menu_list.begin(); it!=menu_list.end(); ++it)
     {
         QMenu *menu = *it;
-        IFTRACE(menus)
-        {
-            std::cout << menu->objectName().toStdString()
-                    << " Contextual menu removed\n";
-            std::cout.flush();
-        }
+        record(menu, "Removed contextual menu %s", menu->objectName());
         delete menu;
     }
 }

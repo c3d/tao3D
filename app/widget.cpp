@@ -178,12 +178,12 @@ RECORDER(focus,                 16, "Application focus");
 RECORDER(frames,                16, "Frame textures");
 RECORDER(license_error,          4, "Errors reported relative to licensing");
 RECORDER(pages,                 16, "Page management");
+RECORDER(picture_pack_error,     4, "Errors from picture packer");
 RECORDER(polycount,             16, "Polygon counts");
 RECORDER(primitive,             32, "Tao primitives (C++ code)");
 RECORDER(print,                 16, "Printing");
 RECORDER(shaders,               16, "GLSL shaders");
 RECORDER(widget,                32, "Tao main drawing widget");
-RECORDER(picture_pack_error,     4, "Errors from picture packer");
 
 RECORDER_DECLARE(menus);
 

@@ -73,6 +73,9 @@ IntegerOption   printResolution
 TextOption      renderMode
 ("render", "Offline rendering - Use -render help for info", "");
 
+TextOption      preloadFiles
+("preload", "Files to pre-load before main document", "");
+
 TextOption      displayMode
 ("display_mode", "Select display mode - Use -display help for info", "");
 
@@ -93,6 +96,9 @@ TextOption      fontPath
 
 BooleanOption   textureCache
 ("texture_cache", "Activate compressed texture cache", false);
+
+BooleanOption   undoWidget
+("undo_widget", "Enable undo widget", false);
 
 TextOption      proofOfPlayFile
 ("proof", "Select the proof-of-play output file", "");

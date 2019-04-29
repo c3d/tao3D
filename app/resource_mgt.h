@@ -41,6 +41,8 @@
 #include "tree_cloning.h"
 #include "QFileInfo"
 
+RECORDER_DECLARE(resources);
+
 TAO_BEGIN
 
 struct Widget;

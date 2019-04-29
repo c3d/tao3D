@@ -38,12 +38,13 @@
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
 
-
-#include "tao.h"
 #include "frame.h"
+#include "tao.h"
 #include "tao/module_api.h"
-#include <QStringList>
 #include <QMap>
+#include <QStringList>
+
+RECORDER_DECLARE(displaymode);
 
 TAO_BEGIN
 
@@ -63,9 +64,9 @@ struct DisplayDriver
     bool                setOption(std::string name, std::string val);
     std::string         getOption(std::string name, std::string deflt);
     static QStringList  allDisplayFunctions();
-    double              windowWidthFactor()  { return wFactor; }
-    double              windowHeightFactor() { return hFactor; }
-    static int          viewPointsChangedEvent() { return vpEvt; }
+    double              windowWidthFactor()             { return wFactor; }
+    double              windowHeightFactor()            { return hFactor; }
+    static int          viewPointsChangedEvent()        { return vpEvt; }
 
 public:
     // Methods exported by the module API for use by display modules
@@ -189,7 +190,5 @@ protected:
 };
 
 TAO_END
-
-RECORDER_DECLARE(displaymode);
 
 #endif // DISPLAY_DRIVER_H

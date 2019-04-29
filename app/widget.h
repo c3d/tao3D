@@ -90,6 +90,11 @@
 typedef struct __CVDisplayLink *CVDisplayLinkRef;
 #endif
 
+RECORDER_DECLARE(focus);
+RECORDER_DECLARE(primitive);
+RECORDER_DECLARE(widget);
+
+
 namespace Tao {
 
 struct Window;
@@ -1443,8 +1448,5 @@ struct SetAttributeAction
 #define TREEPOINTER_TYPE 383 // (QVariant::UserType | 0x100)
 Q_DECLARE_METATYPE(XL::Tree_p)
 Q_DECLARE_METATYPE(XL::Scope_p)
-
-RECORDER_DECLARE(tao_widget);
-RECORDER_DECLARE(primitive);
 
 #endif // TAO_WIDGET_H

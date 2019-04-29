@@ -294,6 +294,7 @@ uint OpenGLState::ShowErrors(kstring msg)
         }
         else
         {
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
             char *p = (char *) gluErrorString(err);
             record(gl_error, "%s (%d, %+s)", p, err, msg);
             last = err;

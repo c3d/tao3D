@@ -39,11 +39,15 @@
 // If not, see <https://www.gnu.org/licenses/>.
 // *****************************************************************************
 
-#include "tao_tree.h"
 #include "action.h"
+#include "tao_tree.h"
+
 #include <QFont>
 #include <QMap>
 #include <QPair>
+
+RECORDER_DECLARE(fonts);
+RECORDER_DECLARE(fonts_warning);
 
 TAO_BEGIN
 
@@ -89,8 +93,5 @@ inline double fontSizeAdjust(double size)
 }
 
 TAO_END
-
-RECORDER_DECLARE(fonts);
-RECORDER_DECLARE(fonts_warning);
 
 #endif // FONT_H

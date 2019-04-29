@@ -71,6 +71,8 @@ struct Main : public XL::Main
     virtual text Decrypt(text input) override;
     virtual Tree *Normalize(Tree *input) override;
 
+    SourceFile *NewFile(text sourceFile);
+
     static Main *MAIN;
 };
 

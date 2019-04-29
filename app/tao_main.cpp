@@ -820,6 +820,18 @@ Tree *Main::Normalize(Tree *input)
 }
 
 
+SourceFile *Main::NewFile(text path)
+// ----------------------------------------------------------------------------
+//    Create a new entry for a source file that is empty
+// ----------------------------------------------------------------------------
+{
+    Scope *scope = context.CreateScope();
+    files[path] = SourceFile(path, XL::xl_nil, scope, true);
+    context.PopScope();
+    return &files[path];
+}
+
+
 Main *Main::MAIN = NULL;
 
 TAO_END

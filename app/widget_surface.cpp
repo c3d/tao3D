@@ -58,9 +58,9 @@
 #endif
 #endif
 
+RECORDER(widget_surface, 16, "Widget surface (from Qt widget to texture)");
+
 TAO_BEGIN
-
-
 
 // ============================================================================
 //
@@ -68,21 +68,20 @@ TAO_BEGIN
 //
 // ============================================================================
 
-WidgetSurface::WidgetSurface(Tree * t, QWidget *widget, Widget *display)
+WidgetSurface::WidgetSurface(Scope   *scope,
+                             Tree    *self,
+                             QWidget *widget,
+                             Widget  *display)
 // ----------------------------------------------------------------------------
 //   Create a renderer with the right size
 // ----------------------------------------------------------------------------
     : widget(widget), parentDisplay(display),
-      textureId(0), dirty(true), tree(t)
+      textureId(0), scope(scope), self(self), dirty(true)
 {
-    IFTRACE(widgets)
-        std::cerr << "WidgetSurface CONSTRUCTOR this : "<< this
-                  << "  --- Widget : " << widget
-                  << "  --- Widget class : \""
-                  << widget->metaObject()->className()<< "\"\n";
-
     widget->hide();
     GL.GenTextures(1, &textureId);
+    record(widget_surface, "Constructing %p class %s widget %p texture %u",
+           this, widget->metaObject()->className(), widget, textureId);
 }
 
 
@@ -91,13 +90,10 @@ WidgetSurface::~WidgetSurface()
 //   When deleting the info, delete all renderers we have
 // ----------------------------------------------------------------------------
 {
+    record(widget_surface, "Delete %p widget %p texture %u",
+           this, widget, textureId);
     if (widget)
     {
-        IFTRACE(widgets)
-            std::cerr << "WidgetSurface DESTRUCTOR this : "<< this
-                      << " --- Widget : "
-                      << widget << "\n";
-
         if (Widget *disp = display())
             disp->deleteFocus(widget);
         delete widget;
@@ -107,20 +103,20 @@ WidgetSurface::~WidgetSurface()
 }
 
 
-Tree* WidgetSurface::evaluate(Tree * t)
+Tree* WidgetSurface::evaluate(Scope *scope, Tree *code)
 // ----------------------------------------------------------------------------
 //   Set the executing environment and evaluate t
 // ----------------------------------------------------------------------------
 {
     if (Widget::current)
-        return XL::MAIN->context->Evaluate(t);
+        return xl_evaluate(scope, code);
 
     // Set the environment
     if (Widget *disp = display())
     {
         // Evaluate the input tree within saved Tao widget
         Widget::TaoSave saveCurrent(Widget::current, disp);
-        return XL::MAIN->context->Evaluate(t);
+        return xl_evaluate(scope, code);
     }
     return XL::xl_nil;
 }
@@ -212,11 +208,11 @@ void WidgetSurface::repaint()
 
 #ifndef CFG_NO_QTWEBKIT
 
-WebViewSurface::WebViewSurface(XL::Tree *self, Widget *display)
+WebViewSurface::WebViewSurface(Scope *scope, Tree *self, Widget *display)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
 // ----------------------------------------------------------------------------
-    : WidgetSurface(self, new QWebView(NULL), display),
+    : WidgetSurface(scope, self, new QWebView(NULL), display),
       url(NULL), progress(0), inputUrl(""), currentUrl("")
 {
     QWebView *webView = (QWebView *) widget;
@@ -230,7 +226,7 @@ WebViewSurface::WebViewSurface(XL::Tree *self, Widget *display)
 }
 
 
-GLuint WebViewSurface::bindURL(XL::Text *urlTree, XL::Integer_p progressTree)
+GLuint WebViewSurface::bindURL(Text *urlTree, Integer_p progressTree)
 // ----------------------------------------------------------------------------
 //    Update depending on URL changes, then bind texture
 // ----------------------------------------------------------------------------
@@ -293,11 +289,11 @@ void WebViewSurface::loadProgress(int progressPercent)
 //
 // ============================================================================
 
-LineEditSurface::LineEditSurface(XL::Text *text, Widget *display)
+LineEditSurface::LineEditSurface(Scope *scope, Text *text, Widget *display)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
-    : WidgetSurface(text, new QLineEdit(NULL), display), contents(text)
+    : WidgetSurface(scope, text, new QLineEdit(NULL), display), contents(text)
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
     lineEdit->setFrame(true);
@@ -317,7 +313,7 @@ LineEditSurface::LineEditSurface(XL::Text *text, Widget *display)
 }
 
 
-GLuint LineEditSurface::bindText(XL::Text *newText)
+GLuint LineEditSurface::bindText(Text *newText)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
@@ -345,7 +341,7 @@ void LineEditSurface::textChanged(const QString &)
 
 void LineEditSurface::inputValidated()
 // ----------------------------------------------------------------------------
-//    If the text changed, update the associated XL::Text
+//    If the text changed, update the associated Text
 // ----------------------------------------------------------------------------
 {
     QLineEdit *lineEdit = (QLineEdit *) widget;
@@ -371,11 +367,11 @@ void LineEditSurface::inputValidated()
 //
 // ============================================================================
 
-TextEditSurface::TextEditSurface(XL::Text *html, Widget *display)
+TextEditSurface::TextEditSurface(Scope *scope, Text *html, Widget *display)
 // ----------------------------------------------------------------------------
 //    Build the QLineEdit
 // ----------------------------------------------------------------------------
-    : WidgetSurface(html, new QTextEdit(NULL), display), contents(html)
+    : WidgetSurface(scope, html, new QTextEdit(NULL), display), contents(html)
 {
     QTextEdit *textEdit = (QTextEdit *) widget;
     textEdit->setReadOnly(false);
@@ -393,7 +389,7 @@ TextEditSurface::TextEditSurface(XL::Text *html, Widget *display)
 }
 
 
-GLuint TextEditSurface::bindHTML(XL::Text *html)
+GLuint TextEditSurface::bindHTML(Text *html)
 // ----------------------------------------------------------------------------
 //    Update text based on text changes
 // ----------------------------------------------------------------------------
@@ -412,7 +408,7 @@ GLuint TextEditSurface::bindHTML(XL::Text *html)
 
 void TextEditSurface::textChanged()
 // ----------------------------------------------------------------------------
-//    If the text changed, update the associated XL::Text
+//    If the text changed, update the associated Text
 // ----------------------------------------------------------------------------
 {
     // Record the change
@@ -440,13 +436,13 @@ void TextEditSurface::textChanged()
 //
 // ============================================================================
 
-AbstractButtonSurface::AbstractButtonSurface(Tree *t,
+AbstractButtonSurface::AbstractButtonSurface(Scope *scope, Tree *self,
                                              QAbstractButton * button,
                                              QString name)
 // ----------------------------------------------------------------------------
 //    Create the Abstract Button surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, button, NULL),
+    : WidgetSurface(scope, self, button, NULL),
       label(), action(XL::xl_false), isMarked(NULL)
 {
     button->setObjectName(name);
@@ -461,9 +457,9 @@ AbstractButtonSurface::AbstractButtonSurface(Tree *t,
 }
 
 
-GLuint AbstractButtonSurface::bindButton(XL::Text *lbl,
-                                         XL::Tree *act,
-                                         XL::Text *sel)
+GLuint AbstractButtonSurface::bindButton(Text *lbl,
+                                         Tree *act,
+                                         Text *sel)
 // ----------------------------------------------------------------------------
 //    If the label or associated action changes
 // ----------------------------------------------------------------------------
@@ -494,16 +490,13 @@ void AbstractButtonSurface::clicked(bool checked)
 //    The button was clicked. Evaluate the action.
 // ----------------------------------------------------------------------------
 {
-    IFTRACE (widgets)
-    {
-        std::cerr << "button "<< label
-                  << " was clicked with checked = " << checked << "\n";
-    }
+    record(widget_surface, "Button %s was clicked (%+s)",
+           label, checked ? "checked" : "not checked");
 
     // Evaluate the action. The actual context doesn't matter much, because
     // the action is usually a closure capturing the original context
     if (action)
-        evaluate(action);
+        evaluate(scope, action);
     repaint();
 }
 
@@ -514,13 +507,11 @@ void AbstractButtonSurface::toggled(bool checked)
 // ----------------------------------------------------------------------------
 //    Like for the color chooser and other trees, we replace the 'checked'
 //    keyword with the value we got from the user. In this case, this is
-//    either true (XL::xl_true) or false (XL::xl_false)
+//    either true (xl_true) or false (xl_false)
 {
-    IFTRACE (widgets)
-    {
-        std::cerr << "button "<< label
-                  << " has toggled to " << checked << "\n";
-    }
+    record(widget_surface,
+           "Button %s has toggled to %+s",
+           label, checked ? "checked" : "not checked");
 
     if (isMarked)
     {
@@ -539,17 +530,12 @@ void AbstractButtonSurface::toggled(bool checked)
     // Replace "checked" with true or false in input tree
     // REVISIT: Replace with a declaration of "checked" in the tree
     ToggleTreeClone replacer(checked);
-    XL::Tree *toBeEvaluated = action;
-    XL::Symbols *symbols = toBeEvaluated->Symbols();
-    toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(symbols);
+    Tree *code = action->Do(replacer);
 
     // Evaluate the input tree
-    evaluate(toBeEvaluated);
+    evaluate(scope, code);
     repaint();
 }
-
-
 
 
 
@@ -559,11 +545,11 @@ void AbstractButtonSurface::toggled(bool checked)
 //
 // ============================================================================
 
-GroupBoxSurface::GroupBoxSurface(XL::Tree *t, Widget *display)
+GroupBoxSurface::GroupBoxSurface(Scope *scope, Tree *self, Widget *display)
 // ----------------------------------------------------------------------------
 //    Create the Group Box surface
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new GridGroupBox(NULL), display)
+    : WidgetSurface(scope, self, new GridGroupBox(NULL), display)
 {}
 
 
@@ -572,8 +558,7 @@ GroupBoxSurface::~GroupBoxSurface()
 //    delete the Group Box surface
 // ----------------------------------------------------------------------------
 {
-    QLayoutItem *child;
-    while ((child = grid()->takeAt(0)) != 0)
+    while (QLayoutItem *child = grid()->takeAt(0))
     {
         child->widget()->setParent(NULL);
         delete child;
@@ -581,11 +566,12 @@ GroupBoxSurface::~GroupBoxSurface()
 }
 
 
-GLuint GroupBoxSurface::bindButton(XL::Text *lbl)
+GLuint GroupBoxSurface::bindButton(Text *lbl)
 // ----------------------------------------------------------------------------
 //   Display the group box
 // ----------------------------------------------------------------------------
 {
+    record(widget_surface, "Bind button label %s value %s", label, lbl->value);
     if (lbl->value != label)
     {
         label = lbl->value;
@@ -593,13 +579,9 @@ GLuint GroupBoxSurface::bindButton(XL::Text *lbl)
         gbox->setObjectName(+label);
         gbox->setTitle(+label);
         dirty = true;
-        IFTRACE(widgets)
-        {
-            QLayout *l = gbox->layout();
-            std::cerr << "Layout : "
-                      << (l ? +l->objectName() : "No Layout")
-                      <<"\n";
-        }
+        record(widget_surface,
+               "Bind button %s layout %s",
+               label, gbox->layout()->objectName());
     }
     return WidgetSurface::bind();
 }
@@ -610,8 +592,8 @@ bool GridGroupBox::event(QEvent *event)
 //   In case of MouseEvent it forward the event to the desired widget
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(widgets)
-            std::cerr << "GridGroupBox::event\n";
+    record(widget_surface, "GridGroupBox receives event %d", event->type());
+
     switch (event->type()){
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
@@ -635,9 +617,8 @@ bool GridGroupBox::event(QEvent *event)
                         {
                             int cx = nx - rect.x();
                             int cy = ny - rect.y();
-                            IFTRACE(widgets)
-                                    std::cerr << "GridGroupBox::event cx = "
-                                    << cx <<" cy = " << cy << std::endl;
+                            record(widget_surface,
+                                   "nx=%d ny=%d cx=%d cy=%d", nx, ny, cx, cy);
                             QMouseEvent clocal(evt->type(), QPoint(cx, cy ),
                                                evt->button(), evt->buttons(),
                                                evt->modifiers());
@@ -667,76 +648,23 @@ bool GridGroupBox::event(QEvent *event)
 //
 // ============================================================================
 
-AbstractSliderSurface::AbstractSliderSurface(XL::Tree *t,
-                                             QAbstractSlider *slide) :
-    WidgetSurface(t, slide, NULL), min(0), max(0), value(NULL)
+AbstractSliderSurface::AbstractSliderSurface(Scope *scope, Tree *self,
+                                             QAbstractSlider *slide)
+// ----------------------------------------------------------------------------
+//   Abstract slider
+// ----------------------------------------------------------------------------
+    : WidgetSurface(scope, self, slide, NULL), min(0), max(0), value(NULL)
 {
 
 }
 
+
 void AbstractSliderSurface::valueChanged(int /* new_value */)
+// ----------------------------------------------------------------------------
+//   Update when the slider value changed
+// ----------------------------------------------------------------------------
 {
 
 }
 
 TAO_END
-
-
-
-// ****************************************************************************
-//
-//    Code generation from widget_surface.tbl
-//
-// ****************************************************************************
-
-#include "graphics.h"
-#include "opcodes.h"
-#include "options.h"
-#include "widget.h"
-#include "types.h"
-#include "drawing.h"
-#include "layout.h"
-#include "module_manager.h"
-#include <iostream>
-
-
-// ============================================================================
-//
-//    Top-level operation
-//
-// ============================================================================
-
-#include "widget.h"
-
-using namespace XL;
-
-#include "opcodes_declare.h"
-#include "widget_surface.tbl"
-
-namespace Tao
-{
-
-#include "widget_surface.tbl"
-
-
-void EnterWidgetSurfaces()
-// ----------------------------------------------------------------------------
-//   Enter all the basic operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-    XL::Context *context = MAIN->context;
-#include "opcodes_define.h"
-#include "widget_surface.tbl"
-}
-
-
-void DeleteWidgetSurfaces()
-// ----------------------------------------------------------------------------
-//   Delete all the global operations defined in attributes.tbl
-// ----------------------------------------------------------------------------
-{
-#include "opcodes_delete.h"
-#include "widget_surface.tbl"
-}
-
-}

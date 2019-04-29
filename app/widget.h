@@ -835,34 +835,38 @@ public:
                            double x, double y,
                            Text *s, Integer *p);
 
-    Tree *      lineEdit(Tree *self,
+    Tree *      lineEdit(Scope *scope, Tree *self,
                          Real *x, Real *y, Real *w, Real *h,
                          Text *txt);
-    Integer*    lineEditTexture(Tree *self, double x, double y, Text *txt);
+    Integer*    lineEditTexture(Scope *scope, Tree *self,
+                                double x, double y, Text *txt);
 
     Tree *      textEdit(Scope *scope, Tree *self,
                          Real *x, Real *y, Real *w, Real *h, Text *html);
     Tree *      textEditTexture(Scope *scope, Tree *self,
                                 double w, double h, Text *html);
 
-    Tree *      abstractButton(Tree *self, Text *name,
+    Tree *      abstractButton(Scope *scope, Tree *self, Text *name,
                                Real *x, Real *y, Real *w, Real *h);
-    Tree *      pushButton(Tree *self, Real *x, Real *y, Real *w, Real *h,
+    Tree *      pushButton(Scope *scope, Tree *self,
+                           Real *x, Real *y, Real *w, Real *h,
                            Text *name, Text *label, Tree *act);
-    Integer*    pushButtonTexture(Tree *self, double w, double h,
+    Integer*    pushButtonTexture(Scope *scope, Tree *self,
+                                  double w, double h,
                                   Text *name, Text *label, Tree *act);
-    Tree *      radioButton(Tree *self,
+    Tree *      radioButton(Scope *scope, Tree *self,
                             Real *x,Real *y, Real *w,Real *h,
                             Text *name, Text *label,
                             Text *selected, Tree *act);
-    Integer*    radioButtonTexture(Tree *self, double w, double h,
+    Integer*    radioButtonTexture(Scope *scope, Tree *self,
+                                   double w, double h,
                                    Text *name, Text *label,
                                    Text *selected, Tree *act);
-    Tree *      checkBoxButton(Tree *self,
+    Tree *      checkBoxButton(Scope *scope, Tree *self,
                                Real *x,Real *y, Real *w, Real *h,
                                Text *name, Text *label, Text * marked,
                                Tree *act);
-    Integer*    checkBoxButtonTexture(Tree *self,
+    Integer*    checkBoxButtonTexture(Scope *scope, Tree *self,
                                       double w, double h,
                                       Text *name, Text *label,
                                       Text * marked, Tree *act);

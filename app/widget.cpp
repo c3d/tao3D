@@ -10475,7 +10475,7 @@ Tree * Widget::textEditTexture(Scope *scope, Tree *self,
     TextEditSurface *surface = html->GetInfo<TextEditSurface>();
     if (!surface)
     {
-        surface = new TextEditSurface(html, this);
+        surface = new TextEditSurface(scope, html, this);
         html->SetInfo<TextEditSurface> (surface);
     }
 
@@ -12159,7 +12159,7 @@ Integer* Widget::urlTexture(Tree *self, double w, double h,
 }
 
 
-Tree *Widget::lineEdit(Tree *self,
+Tree *Widget::lineEdit(Scope *scope, Tree *self,
                        Real *x, Real *y, Real *w, Real *h,
                        Text *txt)
 // ----------------------------------------------------------------------------
@@ -12167,7 +12167,7 @@ Tree *Widget::lineEdit(Tree *self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    lineEditTexture(self, *w, *h, txt);
+    lineEditTexture(scope, self, *w, *h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(*x-*w/2, *y-*h/2, *w, *h),
                                           surface));
@@ -12177,7 +12177,8 @@ Tree *Widget::lineEdit(Tree *self,
 }
 
 
-Integer* Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
+Integer* Widget::lineEditTexture(Scope *scope, Tree *self,
+                                 double w, double h, Text *txt)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given line editor
 // ----------------------------------------------------------------------------
@@ -12189,7 +12190,7 @@ Integer* Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     if (!surface)
     {
-        surface = new LineEditSurface(txt, this);
+        surface = new LineEditSurface(scope, txt, this);
         txt->SetInfo<LineEditSurface> (surface);
     }
 
@@ -12204,7 +12205,7 @@ Integer* Widget::lineEditTexture(Tree *self, double w, double h, Text *txt)
 }
 
 
-Tree *Widget::radioButton(Tree *self,
+Tree *Widget::radioButton(Scope *scope, Tree *self,
                           Real *x,Real *y, Real *w,Real *h,
                           Text *name, Text *label,
                           Text *sel, Tree *act)
@@ -12213,12 +12214,13 @@ Tree *Widget::radioButton(Tree *self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    radioButtonTexture(self, *w, *h, name, label, sel, act);
-    return abstractButton(self, name, x, y, w, h);
+    radioButtonTexture(scope, self, *w, *h, name, label, sel, act);
+    return abstractButton(scope, self, name, x, y, w, h);
 }
 
 
-Integer* Widget::radioButtonTexture(Tree *self, double w, double h,
+Integer* Widget::radioButtonTexture(Scope *scope, Tree *self,
+                                    double w, double h,
                                     Text *name, Text *label,
                                     Text * sel, Tree *act)
 // ----------------------------------------------------------------------------
@@ -12232,7 +12234,7 @@ Integer* Widget::radioButtonTexture(Tree *self, double w, double h,
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new RadioButtonSurface(name, this, +name->value);
+        surface = new RadioButtonSurface(scope, name, this, +name->value);
         name->SetInfo<AbstractButtonSurface> (surface);
     }
 
@@ -12246,7 +12248,7 @@ Integer* Widget::radioButtonTexture(Tree *self, double w, double h,
 }
 
 
-Tree *Widget::checkBoxButton(Tree *self,
+Tree *Widget::checkBoxButton(Scope *scope, Tree *self,
                              Real *x,Real *y, Real *w, Real *h,
                              Text *name, Text *label, Text * sel, Tree *act)
 // ----------------------------------------------------------------------------
@@ -12254,12 +12256,12 @@ Tree *Widget::checkBoxButton(Tree *self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    checkBoxButtonTexture(self, *w, *h, name, label, sel, act);
-    return abstractButton(self, name, x, y, w, h);
+    checkBoxButtonTexture(scope, self, *w, *h, name, label, sel, act);
+    return abstractButton(scope, self, name, x, y, w, h);
 }
 
 
-Integer* Widget::checkBoxButtonTexture(Tree *self,
+Integer* Widget::checkBoxButtonTexture(Scope *scope, Tree *self,
                                        double w, double h, Text *name,
                                        Text *label, Text * sel, Tree *act)
 // ----------------------------------------------------------------------------
@@ -12273,7 +12275,7 @@ Integer* Widget::checkBoxButtonTexture(Tree *self,
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new CheckBoxSurface(name, this, +name->value);
+        surface = new CheckBoxSurface(scope, name, this, +name->value);
         name->SetInfo<AbstractButtonSurface> (surface);
     }
 
@@ -12287,7 +12289,7 @@ Integer* Widget::checkBoxButtonTexture(Tree *self,
 }
 
 
-Tree *Widget::pushButton(Tree *self,
+Tree *Widget::pushButton(Scope *scope, Tree *self,
                          Real *x, Real *y, Real *w, Real *h,
                          Text *name, Text *label, Tree * act)
 // ----------------------------------------------------------------------------
@@ -12295,12 +12297,12 @@ Tree *Widget::pushButton(Tree *self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    pushButtonTexture(self, *w, *h, name, label, act);
-    return abstractButton(self, name, x, y, w, h);
+    pushButtonTexture(scope, self, *w, *h, name, label, act);
+    return abstractButton(scope, self, name, x, y, w, h);
 }
 
 
-Integer* Widget::pushButtonTexture(Tree *self,
+Integer* Widget::pushButtonTexture(Scope *scope, Tree *self,
                                    double w, double h, Text *name,
                                    Text *label, Tree *act)
 // ----------------------------------------------------------------------------
@@ -12314,7 +12316,7 @@ Integer* Widget::pushButtonTexture(Tree *self,
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
     if (!surface)
     {
-        surface = new PushButtonSurface(name, this, +name->value);
+        surface = new PushButtonSurface(scope, name, this, +name->value);
         name->SetInfo<AbstractButtonSurface> (surface);
     }
 
@@ -12328,7 +12330,7 @@ Integer* Widget::pushButtonTexture(Tree *self,
 }
 
 
-Tree *Widget::abstractButton(Tree *self, Text *name,
+Tree *Widget::abstractButton(Scope *scope, Tree *self, Text *name,
                              Real *x, Real *y, Real *w, Real *h)
 // ----------------------------------------------------------------------------
 //   Draw any button in the curent frame
@@ -12785,7 +12787,7 @@ Integer* Widget::groupBoxTexture(Scope *scope, Tree *self,
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
     if (!surface)
     {
-        surface = new GroupBoxSurface(self, this);
+        surface = new GroupBoxSurface(scope, self, this);
         self->SetInfo<GroupBoxSurface> (surface);
     }
 

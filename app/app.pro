@@ -456,7 +456,8 @@ XL_MODULES +=           \
     shapes3d.tbl        \
     table.tbl           \
     text_drawing.tbl    \
-    transforms.tbl
+    transforms.tbl      \
+    widget_surface.tbl
 
 win32 {
     !build_pass:message("Using GLEW")

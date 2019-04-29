@@ -47,6 +47,7 @@
 #include <QMainWindow>
 #include "tao_tree.h"
 
+RECORDER_DECLARE(menu);
 
 namespace Tao {
 
@@ -84,7 +85,7 @@ struct GroupInfo : QButtonGroup, XL::Info
 public:
     typedef GroupInfo * data_t;
 
-    GroupInfo(Tree *t, Scope *scope, Tree *action, QWidget * parent)
+    GroupInfo(Scope *scope, Tree *t, Tree *action, QWidget * parent)
         : QButtonGroup(parent), XL::Info(),
         tree(t), scope(scope), action(action)
     {

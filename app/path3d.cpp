@@ -50,6 +50,8 @@
 #include <QPainterPathStroker>
 #include <iostream>
 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 TAO_BEGIN
 
 typedef GraphicPath::VertexData         VertexData;

@@ -42,6 +42,8 @@
 #include <QDebug>
 #include <iostream>
 
+RECORDER(undo, 16, "Undo operations");
+
 namespace Tao {
 
 UndoCommand::UndoCommand(Repository *repo, QString id, QString msg)
@@ -67,8 +69,7 @@ void UndoCommand::redo()
         firstRedo = false;
         return;
     }
-    IFTRACE(undo)
-        std::cerr << "Redo " << +id << " " << +text() << "\n";
+    record(undo, "Redo %s %s", id, text());
     if (repo)
         repo->cherryPick(+id);
 }
@@ -79,11 +80,9 @@ void UndoCommand::undo()
 //    Reverts a change to the document.
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(undo)
-        std::cerr << "Undo " << +id << " " << +text() << "\n";
+    record(undo, "Undo %s %s", id, text());
     if (repo)
         repo->revert(+id);
 }
-
 
 }

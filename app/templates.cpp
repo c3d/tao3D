@@ -45,6 +45,8 @@
 #include <QSettings>
 #include <QTextStream>
 
+RECORDER(templates, 16, "Document templates");
+
 TAO_BEGIN
 
 Template::Template(const QDir &dir)
@@ -55,9 +57,7 @@ Template::Template(const QDir &dir)
 {
     QString path = dir.absolutePath();
 
-    IFTRACE(templates)
-        debug() << "Reading template in " << +path << "\n";
-
+    record(templates, "Reading template in %s", path);
     if (!dir.exists())
         return;
 
@@ -104,16 +104,10 @@ Template::Template(const QDir &dir)
 
     valid = true;
 
-    IFTRACE(templates)
-    {
-        QString thumb;
-        if (!thumbnail.isNull())
-            thumb = thumbFile;
-        debug() << " name: " << +name << "\n";
-        debug() << " thumbnail: " << +thumb << "\n";
-        debug() << " main file: " << +mainFile << "\n";
-        debug() << "Template is valid\n";
-    }
+    record(templates,
+           "Template %s %+s thumbnail %s, main file is %s",
+           name, thumbnail.isNull() ? "has" : "doesn't have",
+           thumbFile, mainFile);
 }
 
 
@@ -155,16 +149,6 @@ bool Template::operator<(const Template t) const
         return true;
 
     return (name1 < name2);
-}
-
-
-std::ostream& Template::debug()
-// ----------------------------------------------------------------------------
-//   Convenience method to log with a common prefix
-// ----------------------------------------------------------------------------
-{
-    std::cerr << "[Template] ";
-    return std::cerr;
 }
 
 
@@ -305,10 +289,7 @@ void Templates::read(const QDir &dir)
 //   Find document templates in a directory
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(templates)
-        debug() << "Looking for templates in " << +dir.absolutePath()
-                << "\n";
-
+    record(templates, "Looking for templates in %s", dir.absolutePath());
     foreach (QFileInfo f, dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
         QDir d(f.absoluteFilePath());
@@ -319,16 +300,6 @@ void Templates::read(const QDir &dir)
 
     // Sort templates by alphabetical order
     qSort(begin(), end());
-}
-
-
-std::ostream& Templates::debug()
-// ----------------------------------------------------------------------------
-//   Convenience method to log with a common prefix
-// ----------------------------------------------------------------------------
-{
-    std::cerr << "[Templates] ";
-    return std::cerr;
 }
 
 TAO_END

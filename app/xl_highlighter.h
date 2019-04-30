@@ -38,6 +38,7 @@
 // *****************************************************************************
 
 #include "renderer.h"
+
 #include <QRegExp>
 #include <QString>
 #include <QStringList>
@@ -45,6 +46,8 @@
 #include <QTextCharFormat>
 #include <QVector>
 #include <set>
+
+RECORDER_DECLARE(source_view);
 
 QT_BEGIN_NAMESPACE
 class QTextDocument;

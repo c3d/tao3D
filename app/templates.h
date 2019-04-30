@@ -90,9 +90,6 @@ public:
                               QString mainFile = "");
     bool operator<(const Template o) const;
 
-private:
-    static std::ostream& debug();
-
 public:
     QString name;       // Template name. Not empty if isValid().
     QString description; // Template description. Not empty if isValid().
@@ -119,7 +116,6 @@ public:
     Templates(const QList<QDir> &dirs);
 
 private:
-    std::ostream& debug();
     void          read(const QDir &dir);
 
 private:

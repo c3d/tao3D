@@ -39,6 +39,8 @@
 #include "tao_utf8.h"
 #include <iostream>
 
+RECORDER(source_view, 16, "XL source view");
+
 TAO_BEGIN
 
 XLHighlighter::XLHighlighter(QTextDocument *parent)
@@ -277,13 +279,8 @@ void XLHighlighter::setSelectedRanges(const XL::stream_ranges &selected)
 // ----------------------------------------------------------------------------
 {
     this->selected = selected;
-    IFTRACE(srcview)
-    {
-        std::cerr << "Selected objects (src pos):\n";
-        XL::stream_ranges::iterator it;
-        for (it = this->selected.begin(); it != this->selected.end(); it++)
-            std::cerr << (*it).first << " - " << (*it).second << "\n";
-    }
+    for (auto &sel : selected)
+        record(source_view, "Selected %lld-%lld", sel.first, sel.second);
 }
 
 

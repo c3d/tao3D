@@ -55,6 +55,8 @@
 
 #include <iostream>
 
+RECORDER_DECLARE(settings);
+
 namespace Tao {
 
 // The 'git' command. May be updated by checkGit().

@@ -64,10 +64,8 @@ XLSourceEdit::XLSourceEdit(QWidget *parent)
 
     renderer = new XL::Renderer(rendererOut);
     QFileInfo stylesheet("xl:git.stylesheet");
-    QFileInfo syntax("xl:xl.syntax");
     QString sspath(stylesheet.absoluteFilePath());
-    QString sypath(syntax.absoluteFilePath());
-    renderer->SelectStyleSheet(+sspath, +sypath);
+    renderer->SelectStyleSheet(+sspath);
 }
 
 

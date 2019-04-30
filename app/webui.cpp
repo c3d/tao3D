@@ -53,6 +53,9 @@
 #include <QtGlobal>
 #include <QUuid>
 
+RECORDER(web_ui,        16, "Tao3D web-based user interface");
+RECORDER(web_ui_error,  16, "Error from Tao3D web-based user interface");
+
 namespace Tao {
 
 WebUI::WebUI(QObject *parent)
@@ -105,8 +108,7 @@ void WebUI::stopServer()
 {
     if (server.state() != QProcess::NotRunning)
     {
-        IFTRACE(webui)
-            debug() << "Stopping server\n";
+        record(web_ui, "Stopping server");
         // On Windows, the process can't be stopped with server.terminate()
         // because as stated in the QProcess documentation:
         // "Console applications on Windows that do not run an event loop, or
@@ -138,8 +140,7 @@ void WebUI::startServer(bool andBrowser)
         token = "";
     }
     args << path;
-    IFTRACE(webui)
-        debug() << "Starting server - args: " << +args.join(",") << "\n";
+    record(web_ui, "Starting server %s %s", nodePath(), args.join(","));
     server.start(nodePath(), args);
 }
 
@@ -166,8 +167,7 @@ void WebUI::readServerOut(QByteArray newOut)
         launchBrowser();
     }
 
-    IFTRACE(webui)
-        std::cout << "[WebUI Server] " << newOut.data() << "\n";
+    record(web_ui, "Server output: %s", newOut.data());
 }
 
 
@@ -176,7 +176,7 @@ void WebUI::readServerError(QByteArray newErr)
 //   Make sure we report errors in WebUI server
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "[WebUI Server] " << newErr.data() << "\n";
+    record(web_ui_error, "WeUI server error: %s", newErr.data());
 }
 
 
@@ -201,8 +201,7 @@ void WebUI::launchBrowser()
     if (!token.isEmpty())
         url += "&token=" + token;
 
-    IFTRACE(webui)
-        debug() << "Launching browser at: " << +url << "\n";
+    record(web_ui, "Launching browser at %s", url);
     if (!QDesktopServices::openUrl(QUrl(url)))
         QMessageBox::warning(NULL, tr("Error"),
                              tr("Could not launch web browser"));
